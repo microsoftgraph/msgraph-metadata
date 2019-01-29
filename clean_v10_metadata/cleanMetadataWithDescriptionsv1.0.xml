@@ -1521,6 +1521,7 @@
         </Property>
       </EntityType>
       <EntityType Name="group" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="assignedLicenses" Type="Collection(microsoft.graph.assignedLicense)" />
         <Property Name="classification" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Describes a classification for the group (such as low, medium or high business impact). Valid values for this property are defined by creating a ClassificationList setting value, based on the template definition.Returned by default." />
         </Property>
@@ -1533,9 +1534,11 @@
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the group. This property is required when a group is created and cannot be cleared during updates. Returned by default. Supports $filter and $orderby." />
         </Property>
+        <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean" />
         <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the type of group to create. Possible values are Unified to create an Office 365 group, or DynamicMembership for dynamic groups.  For all other group types, like security-enabled groups and email-enabled security groups, do not set this property. Returned by default. Supports $filter." />
         </Property>
+        <Property Name="licenseProcessingState" Type="microsoft.graph.licenseProcessingState" />
         <Property Name="mail" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the group, for example, 'serviceadmins@contoso.onmicrosoft.com'. Returned by default. Read-only. Supports $filter." />
         </Property>
@@ -1588,6 +1591,7 @@
         <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Groups that this group is a member of. HTTP Methods: GET (supported for all groups). Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(microsoft.graph.directoryObject)" />
         <NavigationProperty Name="transitiveMembers" Type="Collection(microsoft.graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
         <NavigationProperty Name="createdOnBehalfOf" Type="microsoft.graph.directoryObject">
@@ -2182,6 +2186,7 @@
         <Property Name="legalAgeGroupClassification" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Used by enterprise applications to determine the legal age group of the user. This property is read-only and calculated based on ageGroup and consentProvidedForMinor properties. Allowed values: null, minorWithOutParentalConsent, minorWithParentalConsent, minorNoParentalConsentRequired, notAdult and adult. Refer to the legal age group property definitions for further information.)" />
         </Property>
+        <Property Name="licenseAssignmentStates" Type="Collection(microsoft.graph.licenseAssignmentState)" />
         <Property Name="mail" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the user, for example, 'jeff@contoso.onmicrosoft.com'. Read-Only. Supports $filter." />
         </Property>
@@ -3084,7 +3089,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the attachment in the Exchange store." />
         </Property>
         <Property Name="contentLocation" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The Uniform Resource Identifier (URI) that corresponds to the location of the content of the attachment." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Do not use this property as it is not supported." />
         </Property>
         <Property Name="contentBytes" Type="Edm.Binary">
           <Annotation Term="Org.OData.Core.V1.Description" String="The base64-encoded contents of the file." />
@@ -9350,6 +9355,17 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The object the service plan can be assigned to. Possible values:'User' - service plan can be assigned to individual users.'Company' - service plan can be assigned to the entire tenant." />
         </Property>
       </ComplexType>
+      <ComplexType Name="assignedLicense">
+        <Property Name="disabledPlans" Type="Collection(Edm.Guid)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of the unique identifiers for plans that have been disabled." />
+        </Property>
+        <Property Name="skuId" Type="Edm.Guid">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the SKU." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="licenseProcessingState">
+        <Property Name="state" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="onPremisesProvisioningError">
         <Property Name="value" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Value of the property causing the error." />
@@ -9425,13 +9441,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="For example, 'Managed'." />
         </Property>
       </ComplexType>
-      <ComplexType Name="assignedLicense">
-        <Property Name="disabledPlans" Type="Collection(Edm.Guid)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of the unique identifiers for plans that have been disabled." />
-        </Property>
-        <Property Name="skuId" Type="Edm.Guid">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the SKU." />
-        </Property>
+      <ComplexType Name="licenseAssignmentState">
+        <Property Name="skuId" Type="Edm.Guid" />
+        <Property Name="disabledPlans" Type="Collection(Edm.Guid)" />
+        <Property Name="assignedByGroup" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+        <Property Name="error" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="onPremisesExtensionAttributes">
         <Property Name="extensionAttribute1" Type="Edm.String">
@@ -9874,7 +9889,7 @@
       </ComplexType>
       <ComplexType Name="itemBody">
         <Property Name="contentType" Type="microsoft.graph.bodyType">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the content. Possible values are Text and HTML." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the content. Possible values are text and HTML." />
         </Property>
         <Property Name="content" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The content of the item." />
