@@ -3271,20 +3271,6 @@
         <Member Name="personal" Value="2" />
         <Member Name="unrestricted" Value="3" />
       </EnumType>
-      <EnumType Name="addressType">
-        <Member Name="unknown" Value="0" />
-        <Member Name="home" Value="1" />
-        <Member Name="business" Value="2" />
-        <Member Name="other" Value="3" />
-      </EnumType>
-      <EnumType Name="availabilityStatus">
-        <Member Name="unknown" Value="0" />
-        <Member Name="free" Value="1" />
-        <Member Name="tentative" Value="2" />
-        <Member Name="busy" Value="3" />
-        <Member Name="oof" Value="4" />
-        <Member Name="workingElsewhere" Value="5" />
-      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Key>
           <PropertyRef Name="id" />
@@ -3654,7 +3640,7 @@
         <NavigationProperty Name="photos" Type="Collection(microsoft.graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true" />
         <NavigationProperty Name="drives" Type="Collection(microsoft.graph.drive)" ContainsTarget="true" />
-        <NavigationProperty Name="followedSites" Type="Collection(microsoft.graph.site)" ContainsTarget="true" />
+        <NavigationProperty Name="followedSites" Type="Collection(microsoft.graph.site)" />
         <NavigationProperty Name="insights" Type="microsoft.graph.officeGraphInsights" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="microsoft.graph.userSettings" ContainsTarget="true" />
         <NavigationProperty Name="planner" Type="microsoft.graph.plannerUser" ContainsTarget="true" />
@@ -3668,6 +3654,7 @@
         <NavigationProperty Name="deviceManagementTroubleshootingEvents" Type="Collection(microsoft.graph.deviceManagementTroubleshootingEvent)" ContainsTarget="true" />
         <NavigationProperty Name="mobileAppIntentAndStates" Type="Collection(microsoft.graph.mobileAppIntentAndState)" ContainsTarget="true" />
         <NavigationProperty Name="mobileAppTroubleshootingEvents" Type="Collection(microsoft.graph.mobileAppTroubleshootingEvent)" ContainsTarget="true" />
+        <NavigationProperty Name="informationProtection" Type="microsoft.graph.informationProtection" ContainsTarget="true" />
         <NavigationProperty Name="agreementAcceptances" Type="Collection(microsoft.graph.agreementAcceptance)" />
         <NavigationProperty Name="notifications" Type="Collection(microsoft.graph.notification)" ContainsTarget="true" />
       </EntityType>
@@ -4293,6 +4280,9 @@
         <Property Name="history" Type="Collection(microsoft.graph.mobileAppTroubleshootingHistoryItem)" />
         <NavigationProperty Name="appLogCollectionRequests" Type="Collection(microsoft.graph.appLogCollectionRequest)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="informationProtection" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreementAcceptance" BaseType="microsoft.graph.entity">
         <Property Name="agreementId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
@@ -4413,6 +4403,7 @@
         <Property Name="city" Type="Edm.String" />
         <Property Name="country" Type="Edm.String" />
         <Property Name="countryLetterCode" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isMultipleDataLocationsForServicesEnabled" Type="Edm.Boolean" />
         <Property Name="marketingNotificationEmails" Type="Collection(Edm.String)" Nullable="false" />
@@ -4673,6 +4664,8 @@
         <Property Name="isInitial" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isRoot" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isVerified" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="passwordNotificationWindowInDays" Type="Edm.Int32" />
+        <Property Name="passwordValidityPeriodInDays" Type="Edm.Int32" />
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="state" Type="microsoft.graph.domainState" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(microsoft.graph.domainDnsRecord)" ContainsTarget="true" />
@@ -13088,6 +13081,7 @@
         <NavigationProperty Name="jobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
         <NavigationProperty Name="classifyText" Type="Collection(microsoft.graph.textClassificationRequest)" ContainsTarget="true" />
         <NavigationProperty Name="classifyFile" Type="Collection(microsoft.graph.fileClassificationRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="sensitiveType" BaseType="microsoft.graph.entity">
         <Property Name="name" Type="Edm.String" />
@@ -13114,13 +13108,67 @@
         <Property Name="file" Type="Edm.Stream" />
         <Property Name="sensitiveTypeIds" Type="Collection(Edm.String)" />
       </EntityType>
-      <ComplexType Name="caasChildError">
+      <EntityType Name="sensitivityLabel" BaseType="microsoft.graph.entity">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="toolTip" Type="Edm.String" />
+        <Property Name="isEndpointProtectionEnabled" Type="Edm.Boolean" />
+        <Property Name="applicationMode" Type="Edm.String" />
+        <Property Name="labelActions" Type="Collection(microsoft.graph.labelActionBase)" />
+        <NavigationProperty Name="assignedPolicies" Type="Collection(microsoft.graph.labelPolicy)" />
+      </EntityType>
+      <ComplexType Name="caaSErrorBase">
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
         <Property Name="target" Type="Edm.String" />
+        <Property Name="innerError" Type="microsoft.graph.caasInnerError" />
       </ComplexType>
-      <ComplexType Name="caasError" BaseType="microsoft.graph.caasChildError">
-        <Property Name="details" Type="Collection(microsoft.graph.caasChildError)" />
+      <ComplexType Name="caasInnerError">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="clientRequestId" Type="Edm.String" />
+        <Property Name="activityId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="caasError" BaseType="microsoft.graph.caaSErrorBase">
+        <Property Name="details" Type="Collection(microsoft.graph.caaSErrorBase)" />
+      </ComplexType>
+      <ComplexType Name="labelActionBase" Abstract="true">
+        <Property Name="name" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="labelPolicy" BaseType="microsoft.graph.entity">
+        <Property Name="labelIds" Type="Collection(Edm.Guid)" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="priority" Type="Edm.Int32" />
+        <Property Name="name" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="evaluateLabelJobResponse" BaseType="microsoft.graph.jobResponseBase">
+        <Property Name="result" Type="microsoft.graph.evaluateLabelResult" />
+      </EntityType>
+      <ComplexType Name="evaluateLabelResult">
+        <Property Name="sensitivityLabel" Type="microsoft.graph.matchingLabel" />
+        <Property Name="responsibleSensitiveTypes" Type="Collection(microsoft.graph.responsibleSensitiveType)" />
+        <Property Name="responsiblePolicy" Type="microsoft.graph.responsiblePolicy" />
+      </ComplexType>
+      <ComplexType Name="matchingLabel">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="toolTip" Type="Edm.String" />
+        <Property Name="policyTip" Type="Edm.String" />
+        <Property Name="isEndpointProtectionEnabled" Type="Edm.Boolean" />
+        <Property Name="applicationMode" Type="Edm.String" />
+        <Property Name="labelActions" Type="Collection(microsoft.graph.labelActionBase)" />
+      </ComplexType>
+      <ComplexType Name="responsibleSensitiveType">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="rulePackageId" Type="Edm.String" />
+        <Property Name="rulePackageType" Type="Edm.String" />
+        <Property Name="publisherName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="responsiblePolicy">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="classificationJobResponse" BaseType="microsoft.graph.jobResponseBase">
         <Property Name="result" Type="microsoft.graph.detectedSensitiveContentWrapper" />
@@ -13146,6 +13194,22 @@
         <Property Name="offset" Type="Edm.Int32" />
         <Property Name="length" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="discoveredSensitiveType">
+        <Property Name="id" Type="Edm.Guid" Nullable="false" />
+        <Property Name="count" Type="Edm.Int32" />
+        <Property Name="confidence" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="encryptAction" BaseType="microsoft.graph.labelActionBase" />
+      <ComplexType Name="contentMarkingAction" BaseType="microsoft.graph.labelActionBase" Abstract="true">
+        <Property Name="placement" Type="Edm.String" />
+        <Property Name="fontSize" Type="Edm.Int64" />
+        <Property Name="text" Type="Edm.String" />
+        <Property Name="fontColor" Type="Edm.String" />
+        <Property Name="margin" Type="Edm.Int32" />
+        <Property Name="alignment" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="contentMarkingHeaderAction" BaseType="microsoft.graph.contentMarkingAction" />
+      <ComplexType Name="contentMarkingFooterAction" BaseType="microsoft.graph.contentMarkingAction" />
       <EntityType Name="dataPolicyOperation" BaseType="microsoft.graph.entity">
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="microsoft.graph.dataPolicyOperationStatus" />
@@ -13175,6 +13239,7 @@
         <Property Name="data" Type="Edm.Binary" />
       </ComplexType>
       <EntityType Name="security" BaseType="microsoft.graph.entity">
+        <Property Name="providerStatus" Type="Collection(microsoft.graph.securityProviderStatus)" />
         <NavigationProperty Name="alerts" Type="Collection(microsoft.graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="cloudAppSecurityProfiles" Type="Collection(microsoft.graph.cloudAppSecurityProfile)" ContainsTarget="true" />
         <NavigationProperty Name="domainSecurityProfiles" Type="Collection(microsoft.graph.domainSecurityProfile)" ContainsTarget="true" />
@@ -13186,7 +13251,15 @@
         <NavigationProperty Name="secureScores" Type="Collection(microsoft.graph.secureScore)" ContainsTarget="true" />
         <NavigationProperty Name="tiIndicators" Type="Collection(microsoft.graph.tiIndicator)" ContainsTarget="true" />
         <NavigationProperty Name="userSecurityProfiles" Type="Collection(microsoft.graph.userSecurityProfile)" ContainsTarget="true" />
+        <NavigationProperty Name="securityActions" Type="Collection(microsoft.graph.securityAction)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="securityProviderStatus">
+        <Property Name="enabled" Type="Edm.Boolean" />
+        <Property Name="endpoint" Type="Edm.String" />
+        <Property Name="provider" Type="Edm.String" />
+        <Property Name="region" Type="Edm.String" />
+        <Property Name="vendor" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="alert" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activityGroupName" Type="Edm.String" />
         <Property Name="assignedTo" Type="Edm.String" />
@@ -13197,12 +13270,13 @@
         <Property Name="cloudAppStates" Type="Collection(microsoft.graph.cloudAppSecurityState)" />
         <Property Name="comments" Type="Collection(Edm.String)" />
         <Property Name="confidence" Type="Edm.Int32" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="detectionIds" Type="Collection(Edm.String)" />
-        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="feedback" Type="microsoft.graph.alertFeedback" />
         <Property Name="fileStates" Type="Collection(microsoft.graph.fileSecurityState)" />
+        <Property Name="historyStates" Type="Collection(microsoft.graph.alertHistoryState)" />
         <Property Name="hostStates" Type="Collection(microsoft.graph.hostSecurityState)" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="malwareStates" Type="Collection(microsoft.graph.malwareState)" />
@@ -13217,13 +13291,13 @@
         <Property Name="title" Type="Edm.String" />
         <Property Name="triggers" Type="Collection(microsoft.graph.alertTrigger)" />
         <Property Name="userStates" Type="Collection(microsoft.graph.userSecurityState)" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
         <Property Name="vulnerabilityStates" Type="Collection(microsoft.graph.vulnerabilityState)" />
       </EntityType>
       <EntityType Name="cloudAppSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="azureSubscriptionId" Type="Edm.String" />
-        <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="azureTenantId" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="deploymentPackageUrl" Type="Edm.String" />
         <Property Name="destinationServiceName" Type="Edm.String" />
         <Property Name="isSigned" Type="Edm.Boolean" />
@@ -13237,7 +13311,7 @@
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" />
         <Property Name="type" Type="Edm.String" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="domainSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activityGroupNames" Type="Collection(Edm.String)" />
@@ -13253,7 +13327,7 @@
         <Property Name="registrant" Type="microsoft.graph.domainRegistrant" />
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="fileSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activityGroupNames" Type="Collection(Edm.String)" />
@@ -13270,7 +13344,7 @@
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="size" Type="Edm.Int64" />
         <Property Name="tags" Type="Collection(Edm.String)" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
         <Property Name="vulnerabilityStates" Type="Collection(microsoft.graph.vulnerabilityState)" />
       </EntityType>
       <EntityType Name="hostSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
@@ -13291,11 +13365,11 @@
         <Property Name="relatedHostIds" Type="Collection(Edm.String)" />
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="ipSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activityGroupNames" Type="Collection(Edm.String)" />
-        <Property Name="address" Type="Edm.String" Nullable="false" />
+        <Property Name="address" Type="Edm.String" />
         <Property Name="azureSubscriptionId" Type="Edm.String" />
         <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
         <Property Name="countHits" Type="Edm.Int32" />
@@ -13306,14 +13380,14 @@
         <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="providerTenantSetting" BaseType="microsoft.graph.entity">
         <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
-        <Property Name="enabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="enabled" Type="Edm.Boolean" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="provider" Type="Edm.String" Nullable="false" />
-        <Property Name="vendor" Type="Edm.String" Nullable="false" />
+        <Property Name="provider" Type="Edm.String" />
+        <Property Name="vendor" Type="Edm.String" />
       </EntityType>
       <EntityType Name="secureScoreControlProfile" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="actionType" Type="Edm.String" />
@@ -13334,21 +13408,21 @@
         <Property Name="tier" Type="Edm.String" />
         <Property Name="title" Type="Edm.String" />
         <Property Name="userImpact" Type="Edm.String" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="secureScore" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activeUserCount" Type="Edm.Int32" />
         <Property Name="averageComparativeScores" Type="Collection(microsoft.graph.averageComparativeScore)" />
         <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
         <Property Name="controlScores" Type="Collection(microsoft.graph.controlScore)" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="currentScore" Type="Edm.Double" />
         <Property Name="enabledServices" Type="Collection(Edm.String)" />
         <Property Name="licensedUserCount" Type="Edm.Int32" />
         <Property Name="maxScore" Type="Edm.Double" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
-      <EntityType Name="tiIndicator" BaseType="microsoft.graph.entity">
+      <EntityType Name="tiIndicator" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="action" Type="microsoft.graph.tiAction" />
         <Property Name="activityGroupNames" Type="Collection(Edm.String)" />
         <Property Name="additionalInformation" Type="Edm.String" />
@@ -13356,6 +13430,7 @@
         <Property Name="confidence" Type="Edm.Int32" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="diamondModel" Type="microsoft.graph.diamondModel" />
+        <Property Name="domainName" Type="Edm.String" />
         <Property Name="emailEncoding" Type="Edm.String" />
         <Property Name="emailLanguage" Type="Edm.String" />
         <Property Name="emailRecipient" Type="Edm.String" />
@@ -13377,7 +13452,6 @@
         <Property Name="filePath" Type="Edm.String" />
         <Property Name="fileSize" Type="Edm.Int64" />
         <Property Name="fileType" Type="Edm.String" />
-        <Property Name="hostName" Type="Edm.String" />
         <Property Name="ingestedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="isActive" Type="Edm.Boolean" />
         <Property Name="killChain" Type="Collection(Edm.String)" />
@@ -13409,24 +13483,32 @@
         <Property Name="userAgent" Type="Edm.String" />
       </EntityType>
       <EntityType Name="userSecurityProfile" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="aadUserDisplayName" Type="Edm.String" />
-        <Property Name="aadUserId" Type="Edm.String" />
-        <Property Name="accountAliases" Type="Collection(microsoft.graph.accountAlias)" />
-        <Property Name="accountInstance" Type="Edm.Int32" />
-        <Property Name="accountService" Type="Edm.String" />
-        <Property Name="accountStatus" Type="microsoft.graph.accountStatus" />
+        <Property Name="accounts" Type="Collection(microsoft.graph.userAccount)" />
         <Property Name="azureSubscriptionId" Type="Edm.String" />
         <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
-        <Property Name="domainName" Type="Edm.String" />
-        <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastVpnClientIp" Type="Edm.String" />
-        <Property Name="mfaEnabled" Type="Edm.Boolean" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" />
         <Property Name="userPrincipalName" Type="Edm.String" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false" />
-        <Property Name="vpnClientId" Type="Edm.String" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
+      </EntityType>
+      <EntityType Name="securityAction" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="actionReason" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="azureTenantId" Type="Edm.String" />
+        <Property Name="clientContext" Type="Edm.String" />
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="errorInfo" Type="microsoft.graph.ResultInfo" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="parameters" Type="Collection(microsoft.graph.keyValuePair)" />
+        <Property Name="states" Type="Collection(microsoft.graph.securityActionState)" />
+        <Property Name="status" Type="microsoft.graph.OperationStatus" />
+        <Property Name="user" Type="Edm.String" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <ComplexType Name="cloudAppSecurityState">
         <Property Name="destinationServiceIp" Type="Edm.String" />
@@ -13442,6 +13524,15 @@
       <ComplexType Name="fileHash">
         <Property Name="hashType" Type="microsoft.graph.fileHashType" />
         <Property Name="hashValue" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="alertHistoryState">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="assignedTo" Type="Edm.String" />
+        <Property Name="comments" Type="Collection(Edm.String)" />
+        <Property Name="feedback" Type="microsoft.graph.alertFeedback" />
+        <Property Name="status" Type="microsoft.graph.alertStatus" />
+        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="user" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="hostSecurityState">
         <Property Name="fqdn" Type="Edm.String" />
@@ -13529,10 +13620,10 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="securityVendorInformation">
-        <Property Name="provider" Type="Edm.String" Nullable="false" />
+        <Property Name="provider" Type="Edm.String" />
         <Property Name="providerVersion" Type="Edm.String" />
         <Property Name="subProvider" Type="Edm.String" />
-        <Property Name="vendor" Type="Edm.String" Nullable="false" />
+        <Property Name="vendor" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="vulnerabilityState">
         <Property Name="cve" Type="Edm.String" />
@@ -13604,8 +13695,22 @@
         <Property Name="updatedBy" Type="Edm.String" />
         <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="securityActionState">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="status" Type="microsoft.graph.OperationStatus" />
+        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="user" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userAccount">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskScore" Type="Edm.String" />
+        <Property Name="service" Type="Edm.String" />
+        <Property Name="signinName" Type="Edm.String" />
+        <Property Name="status" Type="microsoft.graph.accountStatus" />
+      </ComplexType>
       <ComplexType Name="accountAlias">
-        <Property Name="id" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="idType" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="entitySetNames" />
@@ -14018,63 +14123,347 @@
       <EntityType Name="groupPolicyPresentationValueText" BaseType="microsoft.graph.groupPolicyPresentationValue">
         <Property Name="value" Type="Edm.String" />
       </EntityType>
-      <ComplexType Name="attendeeDataModel">
-        <Property Name="type" Type="microsoft.graph.attendeeType" />
-        <Property Name="emailAddress" Type="microsoft.graph.emailAddress" />
-      </ComplexType>
-      <ComplexType Name="locationConstraints">
+      <ComplexType Name="locationConstraint">
         <Property Name="locations" Type="Collection(microsoft.graph.locationConstraintItem)" />
         <Property Name="isRequired" Type="Edm.Boolean" />
         <Property Name="suggestLocation" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="locationDataModel">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="locationEmailAddress" Type="Edm.String" />
-        <Property Name="address" Type="microsoft.graph.postalAddress" />
-        <Property Name="locationUri" Type="Edm.String" />
-        <Property Name="coordinates" Type="microsoft.graph.outlookGeoCoordinates" />
-      </ComplexType>
-      <ComplexType Name="postalAddress">
-        <Property Name="street" Type="Edm.String" />
-        <Property Name="city" Type="Edm.String" />
-        <Property Name="state" Type="Edm.String" />
-        <Property Name="countryOrRegion" Type="Edm.String" />
-        <Property Name="postalCode" Type="Edm.String" />
-        <Property Name="type" Type="microsoft.graph.addressType" />
-        <Property Name="isInferred" Type="Edm.Boolean" />
-      </ComplexType>
-      <ComplexType Name="locationConstraintItem" BaseType="microsoft.graph.locationDataModel">
+      <ComplexType Name="locationConstraintItem" BaseType="microsoft.graph.location">
         <Property Name="resolveAvailability" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="findMeetingTimesResponse">
+      <ComplexType Name="meetingTimeSuggestionsResult">
         <Property Name="meetingTimeSuggestions" Type="Collection(microsoft.graph.meetingTimeSuggestion)" />
         <Property Name="emptySuggestionsReason" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="meetingTimeSuggestion">
         <Property Name="confidence" Type="Edm.Double" />
         <Property Name="order" Type="Edm.Int32" />
-        <Property Name="organizerAvailability" Type="microsoft.graph.availabilityStatus" />
-        <Property Name="attendeeAvailability" Type="Collection(microsoft.graph.attendeeAvailabilityDataModel)" />
-        <Property Name="locations" Type="Collection(microsoft.graph.locationDataModel)" />
+        <Property Name="organizerAvailability" Type="microsoft.graph.freeBusyStatus" />
+        <Property Name="attendeeAvailability" Type="Collection(microsoft.graph.attendeeAvailability)" />
+        <Property Name="locations" Type="Collection(microsoft.graph.location)" />
         <Property Name="suggestionReason" Type="Edm.String" />
-        <Property Name="meetingTimeSlot" Type="microsoft.graph.meetingTimeSlotDataModel" />
+        <Property Name="meetingTimeSlot" Type="microsoft.graph.timeSlot" />
       </ComplexType>
-      <ComplexType Name="attendeeAvailabilityDataModel">
-        <Property Name="attendee" Type="microsoft.graph.attendeeDataModel" />
-        <Property Name="availability" Type="microsoft.graph.availabilityStatus" />
+      <ComplexType Name="attendeeAvailability">
+        <Property Name="attendee" Type="microsoft.graph.attendeeBase" />
+        <Property Name="availability" Type="microsoft.graph.freeBusyStatus" />
       </ComplexType>
-      <ComplexType Name="meetingTimeSlotDataModel">
-        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone" />
-        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone" />
-      </ComplexType>
-      <ComplexType Name="findMeetingTimesTimeConstraints">
+      <ComplexType Name="timeConstraint">
         <Property Name="activityDomain" Type="microsoft.graph.activityDomain" />
-        <Property Name="timeSlots" Type="Collection(microsoft.graph.searchWindowTimeSlot)" />
+        <Property Name="timeSlots" Type="Collection(microsoft.graph.timeSlot)" />
       </ComplexType>
-      <ComplexType Name="searchWindowTimeSlot">
-        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone" Nullable="false" />
-        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone" Nullable="false" />
+      <ComplexType Name="dateTimeTimeZoneType">
+        <Property Name="dateTime" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="postalAddressType">
+        <Property Name="street" Type="Edm.String" />
+        <Property Name="city" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+        <Property Name="countryLetterCode" Type="Edm.String" />
+        <Property Name="postalCode" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="financials" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="companies" Type="Collection(microsoft.graph.company)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="company" BaseType="microsoft.graph.entity">
+        <Property Name="systemVersion" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="businessProfileId" Type="Edm.String" />
+        <NavigationProperty Name="items" Type="Collection(microsoft.graph.item)" ContainsTarget="true" />
+        <NavigationProperty Name="customers" Type="Collection(microsoft.graph.customer)" ContainsTarget="true" />
+        <NavigationProperty Name="vendors" Type="Collection(microsoft.graph.vendor)" ContainsTarget="true" />
+        <NavigationProperty Name="companyInformation" Type="Collection(microsoft.graph.companyInformation)" ContainsTarget="true" />
+        <NavigationProperty Name="customerPaymentJournals" Type="Collection(microsoft.graph.customerPaymentJournal)" ContainsTarget="true" />
+        <NavigationProperty Name="customerPayments" Type="Collection(microsoft.graph.customerPayment)" ContainsTarget="true" />
+        <NavigationProperty Name="accounts" Type="Collection(microsoft.graph.account)" ContainsTarget="true" />
+        <NavigationProperty Name="taxGroups" Type="Collection(microsoft.graph.taxGroup)" ContainsTarget="true" />
+        <NavigationProperty Name="journals" Type="Collection(microsoft.graph.journal)" ContainsTarget="true" />
+        <NavigationProperty Name="journalLines" Type="Collection(microsoft.graph.journalLine)" ContainsTarget="true" />
+        <NavigationProperty Name="employees" Type="Collection(microsoft.graph.employee)" ContainsTarget="true" />
+        <NavigationProperty Name="generalLedgerEntries" Type="Collection(microsoft.graph.generalLedgerEntry)" ContainsTarget="true" />
+        <NavigationProperty Name="currencies" Type="Collection(microsoft.graph.currency)" ContainsTarget="true" />
+        <NavigationProperty Name="paymentMethods" Type="Collection(microsoft.graph.paymentMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="dimensions" Type="Collection(microsoft.graph.dimension)" ContainsTarget="true" />
+        <NavigationProperty Name="dimensionValues" Type="Collection(microsoft.graph.dimensionValue)" ContainsTarget="true" />
+        <NavigationProperty Name="paymentTerms" Type="Collection(microsoft.graph.paymentTerm)" ContainsTarget="true" />
+        <NavigationProperty Name="shipmentMethods" Type="Collection(microsoft.graph.shipmentMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="itemCategories" Type="Collection(microsoft.graph.itemCategory)" ContainsTarget="true" />
+        <NavigationProperty Name="countriesRegions" Type="Collection(microsoft.graph.countryRegion)" ContainsTarget="true" />
+        <NavigationProperty Name="unitsOfMeasure" Type="Collection(microsoft.graph.unitOfMeasure)" ContainsTarget="true" />
+        <NavigationProperty Name="agedAccountsReceivable" Type="Collection(microsoft.graph.agedAccountsReceivable)" ContainsTarget="true" />
+        <NavigationProperty Name="agedAccountsPayable" Type="Collection(microsoft.graph.agedAccountsPayable)" ContainsTarget="true" />
+        <NavigationProperty Name="taxAreas" Type="Collection(microsoft.graph.taxArea)" ContainsTarget="true" />
+        <NavigationProperty Name="picture" Type="Collection(microsoft.graph.picture)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="item" BaseType="microsoft.graph.entity">
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+        <Property Name="itemCategoryId" Type="Edm.Guid" />
+        <Property Name="itemCategoryCode" Type="Edm.String" />
+        <Property Name="blocked" Type="Edm.Boolean" />
+        <Property Name="baseUnitOfMeasureId" Type="Edm.Guid" />
+        <Property Name="gtin" Type="Edm.String" />
+        <Property Name="inventory" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="unitPrice" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="priceIncludesTax" Type="Edm.Boolean" />
+        <Property Name="unitCost" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="taxGroupId" Type="Edm.Guid" />
+        <Property Name="taxGroupCode" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="picture" Type="Collection(microsoft.graph.picture)" ContainsTarget="true" />
+        <NavigationProperty Name="itemCategory" Type="microsoft.graph.itemCategory" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="picture" BaseType="microsoft.graph.entity">
+        <Property Name="width" Type="Edm.Int32" />
+        <Property Name="height" Type="Edm.Int32" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="content" Type="Edm.Stream" />
+      </EntityType>
+      <EntityType Name="itemCategory" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="customer" BaseType="microsoft.graph.entity">
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+        <Property Name="address" Type="microsoft.graph.postalAddressType" />
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="website" Type="Edm.String" />
+        <Property Name="taxLiable" Type="Edm.Boolean" />
+        <Property Name="taxAreaId" Type="Edm.Guid" />
+        <Property Name="taxAreaDisplayName" Type="Edm.String" />
+        <Property Name="taxRegistrationNumber" Type="Edm.String" />
+        <Property Name="currencyId" Type="Edm.Guid" />
+        <Property Name="currencyCode" Type="Edm.String" />
+        <Property Name="paymentTermsId" Type="Edm.Guid" />
+        <Property Name="shipmentMethodId" Type="Edm.Guid" />
+        <Property Name="paymentMethodId" Type="Edm.Guid" />
+        <Property Name="blocked" Type="Edm.String" />
+        <Property Name="balance" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="overdueAmount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="totalSalesExcludingTax" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="picture" Type="Collection(microsoft.graph.picture)" ContainsTarget="true" />
+        <NavigationProperty Name="currency" Type="microsoft.graph.currency" ContainsTarget="true" />
+        <NavigationProperty Name="paymentTerm" Type="microsoft.graph.paymentTerm" ContainsTarget="true" />
+        <NavigationProperty Name="shipmentMethod" Type="microsoft.graph.shipmentMethod" ContainsTarget="true" />
+        <NavigationProperty Name="paymentMethod" Type="microsoft.graph.paymentMethod" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="currency" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="symbol" Type="Edm.String" />
+        <Property Name="amountDecimalPlaces" Type="Edm.String" />
+        <Property Name="amountRoundingPrecision" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="paymentTerm" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="dueDateCalculation" Type="Edm.String" />
+        <Property Name="discountDateCalculation" Type="Edm.String" />
+        <Property Name="discountPercent" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="calculateDiscountOnCreditMemos" Type="Edm.Boolean" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="shipmentMethod" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="paymentMethod" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="vendor" BaseType="microsoft.graph.entity">
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="address" Type="microsoft.graph.postalAddressType" />
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="website" Type="Edm.String" />
+        <Property Name="taxRegistrationNumber" Type="Edm.String" />
+        <Property Name="currencyId" Type="Edm.Guid" />
+        <Property Name="currencyCode" Type="Edm.String" />
+        <Property Name="paymentTermsId" Type="Edm.Guid" />
+        <Property Name="paymentMethodId" Type="Edm.Guid" />
+        <Property Name="taxLiable" Type="Edm.Boolean" />
+        <Property Name="blocked" Type="Edm.String" />
+        <Property Name="balance" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="picture" Type="Collection(microsoft.graph.picture)" ContainsTarget="true" />
+        <NavigationProperty Name="currency" Type="microsoft.graph.currency" ContainsTarget="true" />
+        <NavigationProperty Name="paymentTerm" Type="microsoft.graph.paymentTerm" ContainsTarget="true" />
+        <NavigationProperty Name="paymentMethod" Type="microsoft.graph.paymentMethod" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="companyInformation" BaseType="microsoft.graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="address" Type="microsoft.graph.postalAddressType" />
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="faxNumber" Type="Edm.String" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="website" Type="Edm.String" />
+        <Property Name="taxRegistrationNumber" Type="Edm.String" />
+        <Property Name="currencyCode" Type="Edm.String" />
+        <Property Name="currentFiscalYearStartDate" Type="Edm.Date" />
+        <Property Name="industry" Type="Edm.String" />
+        <Property Name="picture" Type="Edm.Stream" />
+        <Property Name="businessProfileId" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="customerPaymentJournal" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="balancingAccountId" Type="Edm.Guid" />
+        <Property Name="balancingAccountNumber" Type="Edm.String" />
+        <NavigationProperty Name="customerPayments" Type="Collection(microsoft.graph.customerPayment)" ContainsTarget="true" />
+        <NavigationProperty Name="account" Type="microsoft.graph.account" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="customerPayment" BaseType="microsoft.graph.entity">
+        <Property Name="journalDisplayName" Type="Edm.String" />
+        <Property Name="lineNumber" Type="Edm.Int32" />
+        <Property Name="customerId" Type="Edm.Guid" />
+        <Property Name="customerNumber" Type="Edm.String" />
+        <Property Name="contactId" Type="Edm.String" />
+        <Property Name="postingDate" Type="Edm.Date" />
+        <Property Name="documentNumber" Type="Edm.String" />
+        <Property Name="externalDocumentNumber" Type="Edm.String" />
+        <Property Name="amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="appliesToInvoiceId" Type="Edm.Guid" />
+        <Property Name="appliesToInvoiceNumber" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="customer" Type="microsoft.graph.customer" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="account" BaseType="microsoft.graph.entity">
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="category" Type="Edm.String" />
+        <Property Name="subCategory" Type="Edm.String" />
+        <Property Name="blocked" Type="Edm.Boolean" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="taxGroup" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="taxType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="journal" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="balancingAccountId" Type="Edm.Guid" />
+        <Property Name="balancingAccountNumber" Type="Edm.String" />
+        <NavigationProperty Name="account" Type="microsoft.graph.account" ContainsTarget="true" />
+        <NavigationProperty Name="journalLines" Type="Collection(microsoft.graph.journalLine)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="journalLine" BaseType="microsoft.graph.entity">
+        <Property Name="journalDisplayName" Type="Edm.String" />
+        <Property Name="lineNumber" Type="Edm.Int32" />
+        <Property Name="accountId" Type="Edm.Guid" />
+        <Property Name="accountNumber" Type="Edm.String" />
+        <Property Name="postingDate" Type="Edm.Date" />
+        <Property Name="documentNumber" Type="Edm.String" />
+        <Property Name="externalDocumentNumber" Type="Edm.String" />
+        <Property Name="amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="account" Type="microsoft.graph.account" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="employee" BaseType="microsoft.graph.entity">
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="givenName" Type="Edm.String" />
+        <Property Name="middleName" Type="Edm.String" />
+        <Property Name="surname" Type="Edm.String" />
+        <Property Name="jobTitle" Type="Edm.String" />
+        <Property Name="address" Type="microsoft.graph.postalAddressType" />
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="mobilePhone" Type="Edm.String" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="personalEmail" Type="Edm.String" />
+        <Property Name="employmentDate" Type="Edm.Date" />
+        <Property Name="terminationDate" Type="Edm.Date" />
+        <Property Name="status" Type="Edm.String" />
+        <Property Name="birthDate" Type="Edm.Date" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="picture" Type="Collection(microsoft.graph.picture)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="generalLedgerEntry" BaseType="microsoft.graph.entity">
+        <Property Name="postingDate" Type="Edm.Date" />
+        <Property Name="documentNumber" Type="Edm.String" />
+        <Property Name="documentType" Type="Edm.String" />
+        <Property Name="accountId" Type="Edm.Guid" />
+        <Property Name="accountNumber" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="debitAmount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="creditAmount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="account" Type="microsoft.graph.account" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="dimension" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="dimensionValues" Type="Collection(microsoft.graph.dimensionValue)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="dimensionValue" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="countryRegion" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="addressFormat" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="unitOfMeasure" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="internationalStandardCode" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="agedAccountsReceivable" BaseType="microsoft.graph.entity">
+        <Property Name="customerNumber" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="currencyCode" Type="Edm.String" />
+        <Property Name="balanceDue" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="currentAmount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period1Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period2Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period3Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="agedAsOfDate" Type="Edm.Date" />
+        <Property Name="periodLengthFilter" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="agedAccountsPayable" BaseType="microsoft.graph.entity">
+        <Property Name="vendorNumber" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="currencyCode" Type="Edm.String" />
+        <Property Name="balanceDue" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="currentAmount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period1Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period2Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="period3Amount" Type="Edm.Decimal" Scale="Variable" />
+        <Property Name="agedAsOfDate" Type="Edm.Date" />
+        <Property Name="periodLengthFilter" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="taxArea" BaseType="microsoft.graph.entity">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="taxType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.Call" />
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -17366,6 +17755,11 @@
         <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
         <ReturnType Type="Collection(microsoft.graph.site)" />
       </Action>
+      <Action Name="remove" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.site)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
+        <ReturnType Type="Collection(microsoft.graph.site)" />
+      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <Parameter Name="requireSignIn" Type="Edm.Boolean" />
@@ -18629,6 +19023,11 @@
         <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.report" />
       </Function>
+      <Action Name="evaluate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.sensitivityLabel)" />
+        <Parameter Name="discoveredSensitiveTypes" Type="Collection(microsoft.graph.discoveredSensitiveType)" />
+        <ReturnType Type="microsoft.graph.evaluateLabelJobResponse" />
+      </Action>
       <Action Name="exportPersonalData" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
         <Parameter Name="storageLocation" Type="Edm.String" Unicode="false" />
@@ -18641,6 +19040,34 @@
         <Parameter Name="chats" Type="Collection(microsoft.graph.chat)" />
         <ReturnType Type="Collection(microsoft.graph.chatMessage)" />
       </Function>
+      <Action Name="submitTiIndicators" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.tiIndicator)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.tiIndicator)" />
+        <ReturnType Type="Collection(microsoft.graph.tiIndicator)" />
+      </Action>
+      <Action Name="updateTiIndicators" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.tiIndicator)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.tiIndicator)" />
+        <ReturnType Type="Collection(microsoft.graph.tiIndicator)" />
+      </Action>
+      <Action Name="deleteTiIndicators" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.tiIndicator)" />
+        <Parameter Name="value" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.ResultInfo)" />
+      </Action>
+      <Action Name="deleteTiIndicatorsByExternalId" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.tiIndicator)" />
+        <Parameter Name="value" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.ResultInfo)" />
+      </Action>
+      <Action Name="updateAlerts" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.alert)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.alert)" />
+        <ReturnType Type="Collection(microsoft.graph.alert)" />
+      </Action>
+      <Action Name="cancelSecurityAction" IsBound="true">
+        <Parameter Name="bindparameter" Type="microsoft.graph.securityAction" />
+      </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bookingAppointment" Type="microsoft.graph.bookingAppointment" Nullable="false" />
         <Parameter Name="cancellationMessage" Type="Edm.String" Unicode="false" />
@@ -18699,15 +19126,15 @@
       </Action>
       <Action Name="findMeetingTimes" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="attendees" Type="Collection(microsoft.graph.attendeeDataModel)" />
-        <Parameter Name="locationConstraint" Type="microsoft.graph.locationConstraints" />
-        <Parameter Name="timeConstraint" Type="microsoft.graph.findMeetingTimesTimeConstraints" />
+        <Parameter Name="attendees" Type="Collection(microsoft.graph.attendeeBase)" />
+        <Parameter Name="locationConstraint" Type="microsoft.graph.locationConstraint" />
+        <Parameter Name="timeConstraint" Type="microsoft.graph.timeConstraint" />
         <Parameter Name="meetingDuration" Type="Edm.Duration" />
         <Parameter Name="maxCandidates" Type="Edm.Int32" />
         <Parameter Name="isOrganizerOptional" Type="Edm.Boolean" />
         <Parameter Name="returnSuggestionReasons" Type="Edm.Boolean" />
         <Parameter Name="minimumAttendeePercentage" Type="Edm.Double" />
-        <ReturnType Type="microsoft.graph.findMeetingTimesResponse" />
+        <ReturnType Type="microsoft.graph.meetingTimeSuggestionsResult" />
       </Action>
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
@@ -18894,6 +19321,7 @@
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="Security" Type="microsoft.graph.security" />
         <Singleton Name="officeConfiguration" Type="microsoft.graph.officeConfiguration" />
+        <Singleton Name="financials" Type="microsoft.graph.financials" />
       </EntityContainer>
       <Annotations Target="microsoft.graph.directoryObject">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -33900,6 +34328,30 @@
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.securityAction">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.bookingNamedEntity">
         <Annotation Term="Org.OData.Core.V1.Description" String="Booking entities that provide a display name." />
       </Annotations>
@@ -34333,6 +34785,436 @@
       </Annotations>
       <Annotations Target="microsoft.graph.groupPolicyPresentationValueText/value">
         <Annotation Term="Org.OData.Core.V1.Description" String="A string value for the associated presentation." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.financials">
+        <Annotation Term="Org.OData.Capabilities.V1.BatchSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.AsynchronousRequestsSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.BatchContinueOnErrorSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.company">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.item">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.itemCategory">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.customer">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.currency">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.paymentTerm">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.shipmentMethod">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.paymentMethod">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.vendor">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.companyInformation">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.customerPaymentJournal">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.customerPayment">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.account">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.taxGroup">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.journal">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.journalLine">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.employee">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.generalLedgerEntry">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.dimension">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.dimensionValue">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.countryRegion">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.unitOfMeasure">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agedAccountsReceivable">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agedAccountsPayable">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.taxArea">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
     </Schema>
   </edmx:DataServices>
