@@ -1328,6 +1328,9 @@
         <Property Name="approximateLastSignInDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only." />
         </Property>
+        <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The timestamp when the device is no longer deemed compliant. The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only." />
+        </Property>
         <Property Name="deviceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier set by Azure Device Registration Service at the time of registration." />
         </Property>
@@ -1360,6 +1363,12 @@
         </Property>
         <Property Name="physicalIds" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="For interal use only. Not nullable." />
+        </Property>
+        <Property Name="profileType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The profile type of the device. Possible values:RegisteredDevice (default)SecureVMPrinterSharedIoT" />
+        </Property>
+        <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of labels applied to the device by the system." />
         </Property>
         <Property Name="trustType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Type of trust for the joined device. Read-only. Possible values: Workplace - indicates bring your own personal devicesAzureAd - Cloud only joined devicesServerAd - on-premises domain joined devices joined to Azure AD. For more details, see Introduction to device management in Azure Active Directory" />
@@ -1436,6 +1445,12 @@
         </Property>
         <Property Name="isVerified" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="True if the domain has completed domain ownership verification. Not nullable" />
+        </Property>
+        <Property Name="passwordNotificationWindowInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the number of days before a user receives notification that their password will expire. If the property is not set, a default value of 14 days will be used." />
+        </Property>
+        <Property Name="passwordValidityPeriodInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the length of time that a password is valid before it must be changed. If the property is not set, a default value of 90 days will be used." />
         </Property>
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The capabilities assigned to the domain.Can include 0, 1 or more of following values: Email, Sharepoint, EmailInternalRelayOnly, OfficeCommunicationsOnline, SharePointDefaultDomain, FullRedelegation, SharePointPublic, OrgIdAuthentication, Yammer, Intune The values which you can add/remove using Graph API include: Email, OfficeCommunicationsOnline, YammerNot nullable" />
@@ -2198,6 +2213,9 @@
         </Property>
         <Property Name="imAddresses" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The instant message voice over IP (VOIP) session initiation protocol (SIP) addresses for the user. Read-only." />
+        </Property>
+        <Property Name="isResourceAccount" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if the user is a resource account; otherwise, false. Null value should be considered false." />
         </Property>
         <Property Name="jobTitle" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user’s job title. Supports $filter." />
@@ -3476,6 +3494,7 @@
         <NavigationProperty Name="worksheets" Type="Collection(microsoft.graph.workbookWorksheet)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents a collection of worksheets associated with the workbook. Read-only." />
         </NavigationProperty>
+        <NavigationProperty Name="comments" Type="Collection(microsoft.graph.workbookComment)" ContainsTarget="true" />
         <NavigationProperty Name="functions" Type="microsoft.graph.workbookFunctions" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fieldValueSet" BaseType="microsoft.graph.entity" OpenType="true" />
@@ -3540,6 +3559,9 @@
         <Property Name="highlightLastColumn" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the last column contains special formatting." />
         </Property>
+        <Property Name="legacyId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Legacy Id used in older Excle clients. The value of the identifier remains the same even when the table is renamed. This property should be interpreted as an opaque string value and should not be parsed to any other type. Read-only." />
+        </Property>
         <Property Name="name" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Name of the table." />
         </Property>
@@ -3599,6 +3621,11 @@
         <NavigationProperty Name="tables" Type="Collection(microsoft.graph.workbookTable)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection of tables that are part of the worksheet. Read-only." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="workbookComment" BaseType="microsoft.graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="replies" Type="Collection(microsoft.graph.workbookCommentReply)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workbookFunctions" BaseType="microsoft.graph.entity" />
       <EntityType Name="workbookChart" BaseType="microsoft.graph.entity">
@@ -3859,6 +3886,10 @@
         <NavigationProperty Name="font" Type="microsoft.graph.workbookChartFont" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents the font attributes (font name, font size, color, etc.) for the current object. Read-only." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="workbookCommentReply" BaseType="microsoft.graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="workbookFilter" BaseType="microsoft.graph.entity">
         <Property Name="criteria" Type="microsoft.graph.workbookFilterCriteria">
@@ -9347,6 +9378,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the progress of an operation." />
         </Property>
       </EntityType>
+      <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
+        <Property Name="type" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="clientSecret" Type="Edm.String" />
+      </EntityType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="type" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
@@ -12578,6 +12615,7 @@
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
+        <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
