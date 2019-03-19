@@ -3271,6 +3271,45 @@
         <Member Name="personal" Value="2" />
         <Member Name="unrestricted" Value="3" />
       </EnumType>
+      <EnumType Name="scheduleEntityTheme">
+        <Member Name="white" Value="0" />
+        <Member Name="blue" Value="1" />
+        <Member Name="green" Value="2" />
+        <Member Name="purple" Value="3" />
+        <Member Name="pink" Value="4" />
+        <Member Name="yellow" Value="5" />
+        <Member Name="gray" Value="6" />
+        <Member Name="darkBlue" Value="7" />
+        <Member Name="darkGreen" Value="8" />
+        <Member Name="darkPurple" Value="9" />
+        <Member Name="darkPink" Value="10" />
+        <Member Name="darkYellow" Value="11" />
+        <Member Name="unknownFutureValue" Value="12" />
+      </EnumType>
+      <EnumType Name="timeOffReasonIconType">
+        <Member Name="none" Value="0" />
+        <Member Name="car" Value="1" />
+        <Member Name="calendar" Value="2" />
+        <Member Name="running" Value="3" />
+        <Member Name="plane" Value="4" />
+        <Member Name="firstAid" Value="5" />
+        <Member Name="doctor" Value="6" />
+        <Member Name="notWorking" Value="7" />
+        <Member Name="clock" Value="8" />
+        <Member Name="juryDuty" Value="9" />
+        <Member Name="globe" Value="10" />
+        <Member Name="cup" Value="11" />
+        <Member Name="phone" Value="12" />
+        <Member Name="weather" Value="13" />
+        <Member Name="umbrella" Value="14" />
+        <Member Name="piggyBank" Value="15" />
+        <Member Name="dog" Value="16" />
+        <Member Name="cake" Value="17" />
+        <Member Name="trafficCone" Value="18" />
+        <Member Name="pin" Value="19" />
+        <Member Name="sunny" Value="20" />
+        <Member Name="unknownFutureValue" Value="21" />
+      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Key>
           <PropertyRef Name="id" />
@@ -4350,6 +4389,7 @@
         <Property Name="messagingSettings" Type="microsoft.graph.teamMessagingSettings" />
         <Property Name="funSettings" Type="microsoft.graph.teamFunSettings" />
         <Property Name="isArchived" Type="Edm.Boolean" />
+        <NavigationProperty Name="schedule" Type="microsoft.graph.schedule" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="microsoft.graph.teamsTemplate" />
         <NavigationProperty Name="channels" Type="Collection(microsoft.graph.channel)" ContainsTarget="true" />
         <NavigationProperty Name="apps" Type="Collection(microsoft.graph.teamsCatalogApp)" ContainsTarget="true" />
@@ -12340,6 +12380,16 @@
         <Property Name="distributionMethod" Type="microsoft.graph.teamsAppDistributionMethod" Nullable="false" />
         <NavigationProperty Name="appDefinitions" Type="Collection(microsoft.graph.teamsAppDefinition)" />
       </EntityType>
+      <EntityType Name="schedule" BaseType="microsoft.graph.entity">
+        <Property Name="enabled" Type="Edm.Boolean" />
+        <Property Name="timeZone" Type="Edm.String" />
+        <Property Name="provisionStatus" Type="microsoft.graph.OperationStatus" />
+        <Property Name="provisionStatusCode" Type="Edm.String" />
+        <NavigationProperty Name="shifts" Type="Collection(microsoft.graph.shift)" ContainsTarget="true" />
+        <NavigationProperty Name="timesOff" Type="Collection(microsoft.graph.timeOff)" ContainsTarget="true" />
+        <NavigationProperty Name="timeOffReasons" Type="Collection(microsoft.graph.timeOffReason)" ContainsTarget="true" />
+        <NavigationProperty Name="schedulingGroups" Type="Collection(microsoft.graph.schedulingGroup)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="teamMemberSettings">
         <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean" />
         <Property Name="allowDeleteChannels" Type="Edm.Boolean" />
@@ -12400,7 +12450,7 @@
         <Property Name="messageType" Type="microsoft.graph.chatMessageType" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="deleted" Type="Edm.Boolean" />
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="body" Type="microsoft.graph.itemBody" Nullable="false" />
         <Property Name="summary" Type="Edm.String" />
@@ -12469,12 +12519,16 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
       </ComplexType>
-      <EntityType Name="IdentityProvider" BaseType="microsoft.graph.entity">
+      <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
         <Property Name="type" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="clientId" Type="Edm.String" />
         <Property Name="clientSecret" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="trustFramework" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="policies" Type="Collection(microsoft.graph.trustFrameworkPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="trustFrameworkPolicy" BaseType="microsoft.graph.entity" HasStream="true" />
       <ComplexType Name="synchronizationSecretKeyStringValuePair">
         <Property Name="key" Type="microsoft.graph.synchronizationSecret" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
@@ -14460,6 +14514,52 @@
         <Property Name="taxType" Type="Edm.String" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
+      <EntityType Name="changeTrackedEntity" BaseType="microsoft.graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedBy" Type="microsoft.graph.identitySet" />
+      </EntityType>
+      <EntityType Name="shift" BaseType="microsoft.graph.changeTrackedEntity">
+        <Property Name="sharedShift" Type="microsoft.graph.shiftItem" />
+        <Property Name="draftShift" Type="microsoft.graph.shiftItem" />
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="schedulingGroupId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="timeOff" BaseType="microsoft.graph.changeTrackedEntity">
+        <Property Name="sharedTimeOff" Type="microsoft.graph.timeOffItem" />
+        <Property Name="draftTimeOff" Type="microsoft.graph.timeOffItem" />
+        <Property Name="userId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="timeOffReason" BaseType="microsoft.graph.changeTrackedEntity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="iconType" Type="microsoft.graph.timeOffReasonIconType" />
+        <Property Name="isActive" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="schedulingGroup" BaseType="microsoft.graph.changeTrackedEntity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isActive" Type="Edm.Boolean" />
+        <Property Name="userIds" Type="Collection(Edm.String)" />
+      </EntityType>
+      <ComplexType Name="scheduleEntity">
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="theme" Type="microsoft.graph.scheduleEntityTheme" />
+      </ComplexType>
+      <ComplexType Name="shiftActivity">
+        <Property Name="isPaid" Type="Edm.Boolean" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="shiftItem" BaseType="microsoft.graph.scheduleEntity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="notes" Type="Edm.String" />
+        <Property Name="activities" Type="Collection(microsoft.graph.shiftActivity)" />
+      </ComplexType>
+      <ComplexType Name="timeOffItem" BaseType="microsoft.graph.scheduleEntity">
+        <Property Name="timeOffReasonId" Type="Edm.String" />
+      </ComplexType>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.Call" />
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -17763,6 +17863,8 @@
         <Parameter Name="sendInvitation" Type="Edm.Boolean" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <Parameter Name="recipients" Type="Collection(microsoft.graph.driveRecipient)" Nullable="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.permission)" />
       </Action>
       <Action Name="preview" IsBound="true">
@@ -19132,6 +19234,12 @@
         <Parameter Name="minimumAttendeePercentage" Type="Edm.Double" />
         <ReturnType Type="microsoft.graph.meetingTimeSuggestionsResult" />
       </Action>
+      <Action Name="share" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.schedule" />
+        <Parameter Name="notifyTeam" Type="Edm.Boolean" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
+      </Action>
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
@@ -19257,7 +19365,8 @@
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
         <EntitySet Name="teamsTemplates" EntityType="microsoft.graph.teamsTemplate" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
-        <EntitySet Name="identityProviders" EntityType="microsoft.graph.IdentityProvider" />
+        <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
+        <EntitySet Name="trustFrameworkPolicies" EntityType="microsoft.graph.trustFrameworkPolicy" />
         <EntitySet Name="functions" EntityType="microsoft.graph.attributeMappingFunctionSchema" />
         <EntitySet Name="filterOperators" EntityType="microsoft.graph.filterOperatorSchema" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
@@ -19303,6 +19412,7 @@
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
+        <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
         <Singleton Name="education" Type="microsoft.graph.educationRoot">
           <NavigationPropertyBinding Path="classes/teachers" Target="users" />
           <NavigationPropertyBinding Path="classes/members" Target="users" />
@@ -35208,6 +35318,52 @@
             <PropertyValue Property="Deletable" Bool="true" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/provisionStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/provisionStatusCode">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/shifts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/timesOff">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/timeOffReasons">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/schedulingGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.changeTrackedEntity/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.changeTrackedEntity/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.changeTrackedEntity/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedulingGroup/isActive">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
     </Schema>
   </edmx:DataServices>
