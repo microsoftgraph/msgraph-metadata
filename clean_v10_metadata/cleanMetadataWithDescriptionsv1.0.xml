@@ -3394,6 +3394,9 @@
         <NavigationProperty Name="permissions" Type="Collection(microsoft.graph.permission)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The set of permissions for the item. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="subscriptions" Type="Collection(microsoft.graph.subscription)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The set of subscriptions on the item. Only supported on the root of a drive." />
+        </NavigationProperty>
         <NavigationProperty Name="thumbnails" Type="Collection(microsoft.graph.thumbnailSet)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection containing [ThumbnailSet][] objects associated with the item. For more info, see [getting thumbnails][]. Read-only. Nullable." />
         </NavigationProperty>
@@ -3465,6 +3468,29 @@
         </Property>
         <Property Name="shareId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A unique token that can be used to access this shared item via the **shares** API. Read-only." />
+        </Property>
+      </EntityType>
+      <EntityType Name="subscription" BaseType="microsoft.graph.entity">
+        <Property Name="resource" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the resource that will be monitored for changes. Do not include the base URL (https://graph.microsoft.com/v1.0/)." />
+        </Property>
+        <Property Name="changeType" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Indicates the type of change in the subscribed resource that will raise a notification. The supported values are: created, updated, deleted. Multiple values can be combined using a comma-separated list.Note: Drive root item notifications support only the updated changeType. User and group notifications support updated and deleted changeType." />
+        </Property>
+        <Property Name="clientState" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Specifies the value of the clientState property sent by the service in each notification. The maximum length is 128 characters. The client can check that the notification came from the service by comparing the value of the clientState property sent with the subscription with the value of the clientState property received with each notification." />
+        </Property>
+        <Property Name="notificationUrl" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The URL of the endpoint that will receive the notifications. This URL must make use of the HTTPS protocol." />
+        </Property>
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the date and time when the webhook subscription expires. The time is in UTC, and can be an amount of time from subscription creation that varies for the resource subscribed to.  See the table below for maximum supported subscription length of time." />
+        </Property>
+        <Property Name="applicationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the application used to create the subscription. Read-only." />
+        </Property>
+        <Property Name="creatorId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the user or service principal that created the subscription. If the app used delegated permissions to create the subscription, this field contains the id of the signed-in user the app called on behalf of. If the app used application permissions, this field contains the id of the service principal corresponding to the app. Read-only." />
         </Property>
       </EntityType>
       <EntityType Name="thumbnailSet" BaseType="microsoft.graph.entity" OpenType="true">
@@ -4130,29 +4156,6 @@
         </Property>
         <Property Name="protected" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if the worksheet is protected.  Read-only." />
-        </Property>
-      </EntityType>
-      <EntityType Name="subscription" BaseType="microsoft.graph.entity">
-        <Property Name="resource" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the resource that will be monitored for changes. Do not include the base URL (https://graph.microsoft.com/v1.0/)." />
-        </Property>
-        <Property Name="changeType" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Indicates the type of change in the subscribed resource that will raise a notification. The supported values are: created, updated, deleted. Multiple values can be combined using a comma-separated list.Note: Drive root item notifications support only the updated changeType. User and group notifications support updated and deleted changeType." />
-        </Property>
-        <Property Name="clientState" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Specifies the value of the clientState property sent by the service in each notification. The maximum length is 128 characters. The client can check that the notification came from the service by comparing the value of the clientState property sent with the subscription with the value of the clientState property received with each notification." />
-        </Property>
-        <Property Name="notificationUrl" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The URL of the endpoint that will receive the notifications. This URL must make use of the HTTPS protocol." />
-        </Property>
-        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the date and time when the webhook subscription expires. The time is in UTC, and can be an amount of time from subscription creation that varies for the resource subscribed to.  See the table below for maximum supported subscription length of time." />
-        </Property>
-        <Property Name="applicationId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the application used to create the subscription. Read-only." />
-        </Property>
-        <Property Name="creatorId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the user or service principal that created the subscription. If the app used delegated permissions to create the subscription, this field contains the id of the signed-in user the app called on behalf of. If the app used application permissions, this field contains the id of the service principal corresponding to the app. Read-only." />
         </Property>
       </EntityType>
       <EntityType Name="invitation" BaseType="microsoft.graph.entity">
@@ -9176,6 +9179,8 @@
         <NavigationProperty Name="alerts" Type="Collection(microsoft.graph.alert)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(microsoft.graph.secureScoreControlProfile)" ContainsTarget="true" />
+        <NavigationProperty Name="secureScores" Type="Collection(microsoft.graph.secureScore)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="alert" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="activityGroupName" Type="Edm.String">
@@ -9205,7 +9210,7 @@
         <Property Name="confidence" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Confidence of the detection logic (percentage between 1-100)." />
         </Property>
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the alert was created by the alert provider. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Required." />
         </Property>
         <Property Name="description" Type="Edm.String">
@@ -9214,7 +9219,7 @@
         <Property Name="detectionIds" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Set of alerts related to this alert entity (each alert is pushed to the SIEM as a separate record)." />
         </Property>
-        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the event(s) that served as the trigger(s) to generate the alert occurred. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Required." />
         </Property>
         <Property Name="feedback" Type="microsoft.graph.alertFeedback">
@@ -9223,6 +9228,7 @@
         <Property Name="fileStates" Type="Collection(microsoft.graph.fileSecurityState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the file(s) related to this alert." />
         </Property>
+        <Property Name="historyStates" Type="Collection(microsoft.graph.alertHistoryState)" />
         <Property Name="hostStates" Type="Collection(microsoft.graph.hostSecurityState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the host(s) related to this alert." />
         </Property>
@@ -9265,12 +9271,45 @@
         <Property Name="userStates" Type="Collection(microsoft.graph.userSecurityState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the user accounts related to this alert." />
         </Property>
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" Nullable="false">
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation">
           <Annotation Term="Org.OData.Core.V1.Description" String="Complex type containing details about the security product/service vendor, provider, and subprovider (for example, vendor=Microsoft; provider=Windows Defender ATP; subProvider=AppLocker). Required." />
         </Property>
         <Property Name="vulnerabilityStates" Type="Collection(microsoft.graph.vulnerabilityState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Threat intelligence pertaining to one or more vulnerabilities related to this alert." />
         </Property>
+      </EntityType>
+      <EntityType Name="secureScoreControlProfile" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="actionType" Type="Edm.String" />
+        <Property Name="actionUrl" Type="Edm.String" />
+        <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="complianceInformation" Type="Collection(microsoft.graph.complianceInformation)" />
+        <Property Name="controlCategory" Type="Edm.String" />
+        <Property Name="controlStateUpdates" Type="Collection(microsoft.graph.secureScoreControlStateUpdate)" />
+        <Property Name="deprecated" Type="Edm.Boolean" />
+        <Property Name="implementationCost" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="maxScore" Type="Edm.Double" />
+        <Property Name="rank" Type="Edm.Int32" />
+        <Property Name="remediation" Type="Edm.String" />
+        <Property Name="remediationImpact" Type="Edm.String" />
+        <Property Name="service" Type="Edm.String" />
+        <Property Name="threats" Type="Collection(Edm.String)" />
+        <Property Name="tier" Type="Edm.String" />
+        <Property Name="title" Type="Edm.String" />
+        <Property Name="userImpact" Type="Edm.String" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
+      </EntityType>
+      <EntityType Name="secureScore" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="activeUserCount" Type="Edm.Int32" />
+        <Property Name="averageComparativeScores" Type="Collection(microsoft.graph.averageComparativeScore)" />
+        <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="controlScores" Type="Collection(microsoft.graph.controlScore)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="currentScore" Type="Edm.Double" />
+        <Property Name="enabledServices" Type="Collection(Edm.String)" />
+        <Property Name="licensedUserCount" Type="Edm.Int32" />
+        <Property Name="maxScore" Type="Edm.Double" />
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="trending" BaseType="microsoft.graph.entity">
         <Property Name="weight" Type="Edm.Double" Nullable="false" />
@@ -9915,6 +9954,25 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The status for follow-up for an item. Possible values are notFlagged, complete, and flagged." />
         </Property>
       </ComplexType>
+      <ComplexType Name="scheduleInformation">
+        <Property Name="scheduleId" Type="Edm.String" />
+        <Property Name="scheduleItems" Type="Collection(microsoft.graph.scheduleItem)" />
+        <Property Name="availabilityView" Type="Edm.String" />
+        <Property Name="error" Type="microsoft.graph.freeBusyError" />
+        <Property Name="workingHours" Type="microsoft.graph.workingHours" />
+      </ComplexType>
+      <ComplexType Name="scheduleItem">
+        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone" />
+        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone" />
+        <Property Name="isPrivate" Type="Edm.Boolean" />
+        <Property Name="status" Type="microsoft.graph.freeBusyStatus" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="location" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="freeBusyError">
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="responseCode" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="responseStatus">
         <Property Name="response" Type="microsoft.graph.responseType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The response type. The possible values are: None, Organizer, TentativelyAccepted, Accepted, Declined, NotResponded." />
@@ -10258,6 +10316,7 @@
         <Property Name="sharepointIds" Type="microsoft.graph.sharepointIds">
           <Annotation Term="Org.OData.Core.V1.Description" String="Returns identifiers useful for SharePoint REST compatibility. Read-only." />
         </Property>
+        <Property Name="siteId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="sharepointIds">
         <Property Name="listId" Type="Edm.String">
@@ -12203,6 +12262,15 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Value of the file hash." />
         </Property>
       </ComplexType>
+      <ComplexType Name="alertHistoryState">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="assignedTo" Type="Edm.String" />
+        <Property Name="comments" Type="Collection(Edm.String)" />
+        <Property Name="feedback" Type="microsoft.graph.alertFeedback" />
+        <Property Name="status" Type="microsoft.graph.alertStatus" />
+        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="user" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="hostSecurityState">
         <Property Name="fqdn" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Host FQDN (Fully Qualified Domain Name) (for example, machine.company.com)." />
@@ -12427,7 +12495,7 @@
         </Property>
       </ComplexType>
       <ComplexType Name="securityVendorInformation">
-        <Property Name="provider" Type="Edm.String" Nullable="false">
+        <Property Name="provider" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specific provider (product/service - not vendor company); for example, WindowsDefenderATP." />
         </Property>
         <Property Name="providerVersion" Type="Edm.String">
@@ -12436,7 +12504,7 @@
         <Property Name="subProvider" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specific subprovider (under aggregating provider); for example, WindowsDefenderATP.SmartScreen." />
         </Property>
-        <Property Name="vendor" Type="Edm.String" Nullable="false">
+        <Property Name="vendor" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Name of the alert vendor (for example, Microsoft, Dell, FireEye). Required" />
         </Property>
       </ComplexType>
@@ -12450,6 +12518,31 @@
         <Property Name="wasRunning" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the detected vulnerability (file) was running at the time of detection or was the file detected at rest on the disk." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="averageComparativeScore" OpenType="true">
+        <Property Name="averageScore" Type="Edm.Double" />
+        <Property Name="basis" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="controlScore" OpenType="true">
+        <Property Name="controlCategory" Type="Edm.String" />
+        <Property Name="controlName" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="score" Type="Edm.Double" />
+      </ComplexType>
+      <ComplexType Name="complianceInformation" OpenType="true">
+        <Property Name="certificationControls" Type="Collection(microsoft.graph.certificationControl)" />
+        <Property Name="certificationName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="certificationControl" OpenType="true">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="url" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="secureScoreControlStateUpdate">
+        <Property Name="assignedTo" Type="Edm.String" />
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+        <Property Name="updatedBy" Type="Edm.String" />
+        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="resourceVisualization">
         <Property Name="title" Type="Edm.String" />
@@ -13589,6 +13682,14 @@
       </Action>
       <Action Name="send" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.message" />
+      </Action>
+      <Action Name="getSchedule" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.calendar" />
+        <Parameter Name="Schedules" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="EndTime" Type="microsoft.graph.dateTimeTimeZone" />
+        <Parameter Name="StartTime" Type="microsoft.graph.dateTimeTimeZone" />
+        <Parameter Name="AvailabilityViewInterval" Type="Edm.Int32" />
+        <ReturnType Type="Collection(microsoft.graph.scheduleInformation)" />
       </Action>
       <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.event" />
@@ -16504,7 +16605,6 @@
       <Annotations Target="microsoft.graph.post/inReplyTo" />
       <Annotations Target="microsoft.graph.post/attachments" />
       <Annotations Target="microsoft.graph.inferenceClassification/overrides" />
-      <Annotations Target="microsoft.graph.subscription" />
       <Annotations Target="microsoft.graph.educationUser/residenceAddress">
         <Annotation Term="microsoft.graph.TransparentContainerProperty" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceAddress" />
         <Annotation Term="microsoft.graph.TransparentContainerProperty" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceCity" />
@@ -22056,6 +22156,8 @@
       <Annotations Target="microsoft.graph.activityHistoryItem" />
       <Annotations Target="microsoft.graph.security" />
       <Annotations Target="microsoft.graph.alert" />
+      <Annotations Target="microsoft.graph.secureScoreControlProfile" />
+      <Annotations Target="microsoft.graph.secureScore" />
       <Annotations Target="microsoft.graph.trending/resourceVisualization">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
