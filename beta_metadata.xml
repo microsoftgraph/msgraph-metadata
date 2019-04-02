@@ -527,7 +527,8 @@
         <Member Name="adminDismissedAllRiskForUser" Value="7" />
         <Member Name="adminConfirmedSigninCompromised" Value="8" />
         <Member Name="hidden" Value="9" />
-        <Member Name="unknownFutureValue" Value="10" />
+        <Member Name="adminConfirmedUserCompromised" Value="10" />
+        <Member Name="unknownFutureValue" Value="11" />
       </EnumType>
       <EnumType Name="riskEventType">
         <Member Name="unlikelyTravel" Value="0" />
@@ -539,7 +540,12 @@
         <Member Name="leakedCredentials" Value="6" />
         <Member Name="investigationsThreatIntelligence" Value="7" />
         <Member Name="generic" Value="8" />
-        <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="adminConfirmedUserCompromised" Value="9" />
+        <Member Name="mcasImpossibleTravel" Value="10" />
+        <Member Name="mcasSuspiciousInboxManipulationRules" Value="11" />
+        <Member Name="investigationsThreatIntelligenceSigninLinked" Value="12" />
+        <Member Name="maliciousIPAddressValidCredentialsBlockedIP" Value="13" />
+        <Member Name="unknownFutureValue" Value="14" />
       </EnumType>
       <EnumType Name="networkType">
         <Member Name="intranet" Value="0" />
@@ -3726,6 +3732,7 @@
         <NavigationProperty Name="mobileAppIntentAndStates" Type="Collection(microsoft.graph.mobileAppIntentAndState)" ContainsTarget="true" />
         <NavigationProperty Name="mobileAppTroubleshootingEvents" Type="Collection(microsoft.graph.mobileAppTroubleshootingEvent)" ContainsTarget="true" />
         <NavigationProperty Name="informationProtection" Type="microsoft.graph.informationProtection" ContainsTarget="true" />
+        <NavigationProperty Name="chats" Type="Collection(microsoft.graph.chat)" ContainsTarget="true" />
         <NavigationProperty Name="agreementAcceptances" Type="Collection(microsoft.graph.agreementAcceptance)" />
         <NavigationProperty Name="notifications" Type="Collection(microsoft.graph.notification)" ContainsTarget="true" />
       </EntityType>
@@ -4352,6 +4359,12 @@
       </EntityType>
       <EntityType Name="informationProtection" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="chat" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="topic" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.chatMessage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="agreementAcceptance" BaseType="microsoft.graph.entity">
         <Property Name="agreementId" Type="Edm.String" />
@@ -5189,6 +5202,7 @@
         <Property Name="applicationId" Type="Edm.String" />
         <Property Name="creatorId" Type="Edm.String" />
         <Property Name="includeProperties" Type="Edm.Boolean" />
+        <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
       </EntityType>
       <EntityType Name="thumbnailSet" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="large" Type="microsoft.graph.thumbnail" />
@@ -6535,7 +6549,7 @@
         <Property Name="appDisplayName" Type="Edm.String" Nullable="false" />
         <Property Name="successfulSignInCount" Type="Edm.Int64" />
         <Property Name="failedSignInCount" Type="Edm.Int64" />
-        <Property Name="successPercentage" Type="Edm.Int32" />
+        <Property Name="successPercentage" Type="Edm.Double" />
       </EntityType>
       <EntityType Name="credentialUserRegistrationCount" BaseType="microsoft.graph.entity">
         <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
@@ -6576,6 +6590,10 @@
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(microsoft.graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
         <NavigationProperty Name="credentialUserRegistrationDetails" Type="Collection(microsoft.graph.credentialUserRegistrationDetails)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="riskUserActivity">
+        <Property Name="eventTypes" Type="Collection(microsoft.graph.riskEventType)" />
+        <Property Name="detail" Type="microsoft.graph.riskDetail" />
+      </ComplexType>
       <EntityType Name="identityRiskEvent" BaseType="microsoft.graph.entity">
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
@@ -6611,12 +6629,19 @@
       <EntityType Name="riskyUser" BaseType="microsoft.graph.entity">
         <Property Name="isDeleted" Type="Edm.Boolean" />
         <Property Name="isGuest" Type="Edm.Boolean" />
+        <Property Name="isProcessing" Type="Edm.Boolean" />
         <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskLevel" Type="microsoft.graph.riskLevel" />
         <Property Name="riskState" Type="microsoft.graph.riskState" />
         <Property Name="riskDetail" Type="microsoft.graph.riskDetail" />
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
+        <NavigationProperty Name="history" Type="Collection(microsoft.graph.riskyUserHistoryItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="riskyUserHistoryItem" BaseType="microsoft.graph.riskyUser">
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="initiatedBy" Type="Edm.String" />
+        <Property Name="activity" Type="microsoft.graph.riskUserActivity" />
       </EntityType>
       <EntityType Name="privilegedRole" BaseType="microsoft.graph.entity">
         <Property Name="name" Type="Edm.String" />
@@ -12609,8 +12634,10 @@
       </EntityType>
       <EntityType Name="trustFramework" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="policies" Type="Collection(microsoft.graph.trustFrameworkPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="keySets" Type="Collection(microsoft.graph.trustFrameworkKeySet)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="trustFrameworkPolicy" BaseType="microsoft.graph.entity" HasStream="true" />
+      <EntityType Name="trustFrameworkKeySet" BaseType="microsoft.graph.entity" />
       <ComplexType Name="synchronizationSecretKeyStringValuePair">
         <Property Name="key" Type="microsoft.graph.synchronizationSecret" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
@@ -13349,12 +13376,6 @@
         <Property Name="userId" Type="Edm.String" Nullable="false" />
         <Property Name="submittedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="progress" Type="Edm.Double" Nullable="false" />
-      </EntityType>
-      <EntityType Name="chat" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="topic" Type="Edm.String" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.chatMessage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="agreement" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -14844,10 +14865,6 @@
       <Action Name="verify" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="microsoft.graph.domain" Nullable="false" />
         <ReturnType Type="microsoft.graph.domain" />
-      </Action>
-      <Action Name="renew" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
-        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
@@ -18062,6 +18079,14 @@
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.userCredentialUsageDetails)" Nullable="false" />
       </Function>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
       <Action Name="makePermanent" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.privilegedRoleAssignment" />
         <Parameter Name="reason" Type="Edm.String" Unicode="false" />
@@ -19074,6 +19099,9 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="renew" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
       <Function Name="Ping" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.synchronization" />
         <ReturnType Type="Edm.String" Unicode="false" />
@@ -19232,6 +19260,10 @@
       </Function>
       <Function Name="allMessages" IsBound="true">
         <Parameter Name="chats" Type="Collection(microsoft.graph.chat)" />
+        <ReturnType Type="Collection(microsoft.graph.chatMessage)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="messages" Type="Collection(microsoft.graph.chatMessage)" />
         <ReturnType Type="Collection(microsoft.graph.chatMessage)" />
       </Function>
       <Action Name="submitTiIndicators" IsBound="true">
@@ -21209,6 +21241,18 @@
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
             <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyUserHistoryItem">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
