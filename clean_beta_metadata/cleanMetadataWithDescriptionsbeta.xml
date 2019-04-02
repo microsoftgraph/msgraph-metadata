@@ -527,7 +527,8 @@
         <Member Name="adminDismissedAllRiskForUser" Value="7" />
         <Member Name="adminConfirmedSigninCompromised" Value="8" />
         <Member Name="hidden" Value="9" />
-        <Member Name="unknownFutureValue" Value="10" />
+        <Member Name="adminConfirmedUserCompromised" Value="10" />
+        <Member Name="unknownFutureValue" Value="11" />
       </EnumType>
       <EnumType Name="riskEventType">
         <Member Name="unlikelyTravel" Value="0" />
@@ -539,7 +540,12 @@
         <Member Name="leakedCredentials" Value="6" />
         <Member Name="investigationsThreatIntelligence" Value="7" />
         <Member Name="generic" Value="8" />
-        <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="adminConfirmedUserCompromised" Value="9" />
+        <Member Name="mcasImpossibleTravel" Value="10" />
+        <Member Name="mcasSuspiciousInboxManipulationRules" Value="11" />
+        <Member Name="investigationsThreatIntelligenceSigninLinked" Value="12" />
+        <Member Name="maliciousIPAddressValidCredentialsBlockedIP" Value="13" />
+        <Member Name="unknownFutureValue" Value="14" />
       </EnumType>
       <EnumType Name="networkType">
         <Member Name="intranet" Value="0" />
@@ -3767,6 +3773,7 @@
         <NavigationProperty Name="mobileAppIntentAndStates" Type="Collection(microsoft.graph.mobileAppIntentAndState)" ContainsTarget="true" />
         <NavigationProperty Name="mobileAppTroubleshootingEvents" Type="Collection(microsoft.graph.mobileAppTroubleshootingEvent)" ContainsTarget="true" />
         <NavigationProperty Name="informationProtection" Type="microsoft.graph.informationProtection" ContainsTarget="true" />
+        <NavigationProperty Name="chats" Type="Collection(microsoft.graph.chat)" ContainsTarget="true" />
         <NavigationProperty Name="agreementAcceptances" Type="Collection(microsoft.graph.agreementAcceptance)" />
         <NavigationProperty Name="notifications" Type="Collection(microsoft.graph.notification)" ContainsTarget="true" />
       </EntityType>
@@ -4989,6 +4996,12 @@
       <EntityType Name="informationProtection" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="chat" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="topic" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.chatMessage)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreementAcceptance" BaseType="microsoft.graph.entity">
         <Property Name="agreementId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
@@ -5888,6 +5901,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the user or service principal that created the subscription. If the app used delegated permissions to create the subscription, this field contains the id of the signed-in user the app called on behalf of. If the app used application permissions, this field contains the id of the service principal corresponding to the app. Read-only." />
         </Property>
         <Property Name="includeProperties" Type="Edm.Boolean" />
+        <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
       </EntityType>
       <EntityType Name="thumbnailSet" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="large" Type="microsoft.graph.thumbnail">
@@ -7212,7 +7226,7 @@
         <Property Name="appDisplayName" Type="Edm.String" Nullable="false" />
         <Property Name="successfulSignInCount" Type="Edm.Int64" />
         <Property Name="failedSignInCount" Type="Edm.Int64" />
-        <Property Name="successPercentage" Type="Edm.Int32" />
+        <Property Name="successPercentage" Type="Edm.Double" />
       </EntityType>
       <EntityType Name="credentialUserRegistrationCount" BaseType="microsoft.graph.entity">
         <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
@@ -7284,12 +7298,19 @@
       <EntityType Name="riskyUser" BaseType="microsoft.graph.entity">
         <Property Name="isDeleted" Type="Edm.Boolean" />
         <Property Name="isGuest" Type="Edm.Boolean" />
+        <Property Name="isProcessing" Type="Edm.Boolean" />
         <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskLevel" Type="microsoft.graph.riskLevel" />
         <Property Name="riskState" Type="microsoft.graph.riskState" />
         <Property Name="riskDetail" Type="microsoft.graph.riskDetail" />
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
+        <NavigationProperty Name="history" Type="Collection(microsoft.graph.riskyUserHistoryItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="riskyUserHistoryItem" BaseType="microsoft.graph.riskyUser">
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="initiatedBy" Type="Edm.String" />
+        <Property Name="activity" Type="microsoft.graph.riskUserActivity" />
       </EntityType>
       <EntityType Name="privilegedRole" BaseType="microsoft.graph.entity">
         <Property Name="name" Type="Edm.String" />
@@ -14861,8 +14882,10 @@
       </EntityType>
       <EntityType Name="trustFramework" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="policies" Type="Collection(microsoft.graph.trustFrameworkPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="keySets" Type="Collection(microsoft.graph.trustFrameworkKeySet)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="trustFrameworkPolicy" BaseType="microsoft.graph.entity" HasStream="true" />
+      <EntityType Name="trustFrameworkKeySet" BaseType="microsoft.graph.entity" />
       <EntityType Name="synchronizationJob" BaseType="microsoft.graph.entity">
         <Property Name="templateId" Type="Edm.String" />
         <Property Name="schedule" Type="microsoft.graph.synchronizationSchedule" />
@@ -15266,12 +15289,6 @@
         <Property Name="progress" Type="Edm.Double" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the progress of an operation." />
         </Property>
-      </EntityType>
-      <EntityType Name="chat" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="topic" Type="Edm.String" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.chatMessage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="agreement" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -17558,23 +17575,49 @@
         </Property>
       </ComplexType>
       <ComplexType Name="scheduleInformation">
-        <Property Name="scheduleId" Type="Edm.String" />
-        <Property Name="scheduleItems" Type="Collection(microsoft.graph.scheduleItem)" />
-        <Property Name="availabilityView" Type="Edm.String" />
-        <Property Name="error" Type="microsoft.graph.freeBusyError" />
-        <Property Name="workingHours" Type="microsoft.graph.workingHours" />
+        <Property Name="scheduleId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An SMTP address of the user, distribution list, or resource, identifying an instance of scheduleInformation." />
+        </Property>
+        <Property Name="scheduleItems" Type="Collection(microsoft.graph.scheduleItem)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the items that describe the availability of the user or resource." />
+        </Property>
+        <Property Name="availabilityView" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a merged view of availability of all the items in scheduleItems. The view consists of time slots. Availability during each time slot is indicated with: 0= free, 1= tentative, 2= busy, 3= out of office, 4= working elsewhere." />
+        </Property>
+        <Property Name="error" Type="microsoft.graph.freeBusyError">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Error information from attempting to get the availability of the user, distribution list, or resource." />
+        </Property>
+        <Property Name="workingHours" Type="microsoft.graph.workingHours">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week and hours in a specific time zone that the user works. These are set as part of the user's mailboxSettings." />
+        </Property>
       </ComplexType>
       <ComplexType Name="scheduleItem">
-        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone" />
-        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone" />
-        <Property Name="isPrivate" Type="Edm.Boolean" />
-        <Property Name="status" Type="microsoft.graph.freeBusyStatus" />
-        <Property Name="subject" Type="Edm.String" />
-        <Property Name="location" Type="Edm.String" />
+        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date, time, and time zone that the corresponding event starts." />
+        </Property>
+        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date, time, and time zone that the corresponding event ends." />
+        </Property>
+        <Property Name="isPrivate" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The sensitivity of the corresponding event. True if the event is marked private, false otherwise. Optional." />
+        </Property>
+        <Property Name="status" Type="microsoft.graph.freeBusyStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The availability status of the user or resource during the corresponding event. The possible values are: free, tentative, busy, oof, workingElsewhere, unknown." />
+        </Property>
+        <Property Name="subject" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The corresponding event's subject line. Optional." />
+        </Property>
+        <Property Name="location" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The location where the corresponding event is held or attended from. Optional." />
+        </Property>
       </ComplexType>
       <ComplexType Name="freeBusyError">
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="responseCode" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Describes the error." />
+        </Property>
+        <Property Name="responseCode" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The response code from querying for the availability of the user, distribution list, or resource." />
+        </Property>
       </ComplexType>
       <ComplexType Name="responseStatus">
         <Property Name="response" Type="microsoft.graph.responseType">
@@ -18372,6 +18415,10 @@
       <ComplexType Name="userRegistrationCount">
         <Property Name="registrationStatus" Type="microsoft.graph.registrationStatusType" Nullable="false" />
         <Property Name="registrationCount" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="riskUserActivity">
+        <Property Name="eventTypes" Type="Collection(microsoft.graph.riskEventType)" />
+        <Property Name="detail" Type="microsoft.graph.riskDetail" />
       </ComplexType>
       <ComplexType Name="governanceSchedule">
         <Property Name="type" Type="Edm.String" />
@@ -21191,10 +21238,10 @@
       <ComplexType Name="entitySetNames" />
       <ComplexType Name="timeSlot">
         <Property Name="start" Type="microsoft.graph.dateTimeTimeZone">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time the period ends." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date, time, and time zone that a period ends." />
         </Property>
         <Property Name="end" Type="microsoft.graph.dateTimeTimeZone">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time a period begins." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date, time, and time zone that a period begins." />
         </Property>
       </ComplexType>
       <ComplexType Name="bookingReminder">
@@ -21316,7 +21363,9 @@
         <Property Name="confidence" Type="Edm.Double">
           <Annotation Term="Org.OData.Core.V1.Description" String="A percentage that represents the likelhood of all the attendees attending." />
         </Property>
-        <Property Name="order" Type="Edm.Int32" />
+        <Property Name="order" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Order of meeting time suggestions sorted by their computed confidence value from high to low, then by chronology if there are suggestions with the same confidence." />
+        </Property>
         <Property Name="organizerAvailability" Type="microsoft.graph.freeBusyStatus">
           <Annotation Term="Org.OData.Core.V1.Description" String="Availability of the meeting organizer for this meeting suggestion. The possible values are: free, tentative, busy, oof, workingElsewhere, unknown." />
         </Property>
@@ -21335,7 +21384,7 @@
       </ComplexType>
       <ComplexType Name="attendeeAvailability">
         <Property Name="attendee" Type="microsoft.graph.attendeeBase">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of attendee - whether it's a person or a resource, and whether required or optional if it's a person." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The email address and type of attendee - whether it's a person or a resource, and whether required or optional if it's a person." />
         </Property>
         <Property Name="availability" Type="microsoft.graph.freeBusyStatus">
           <Annotation Term="Org.OData.Core.V1.Description" String="The availability status of the attendee. The possible values are: free, tentative, busy, oof, workingElsewhere, unknown." />
@@ -22648,6 +22697,10 @@
         <Parameter Name="chats" Type="Collection(microsoft.graph.chat)" />
         <ReturnType Type="Collection(microsoft.graph.chatMessage)" />
       </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="messages" Type="Collection(microsoft.graph.chatMessage)" />
+        <ReturnType Type="Collection(microsoft.graph.chatMessage)" />
+      </Function>
       <Function Name="export" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.governanceRoleAssignment)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
@@ -22826,10 +22879,6 @@
       <Action Name="verify" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="microsoft.graph.domain" Nullable="false" />
         <ReturnType Type="microsoft.graph.domain" />
-      </Action>
-      <Action Name="renew" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
-        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
@@ -25628,6 +25677,14 @@
         <Parameter Name="webUrl" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.CopyNotebookModel" />
       </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
       <Action Name="makePermanent" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.privilegedRoleAssignment" />
         <Parameter Name="reason" Type="Edm.String" Unicode="false" />
@@ -26081,6 +26138,9 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="renew" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
       <Action Name="pause" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.synchronizationJob" />
       </Action>
@@ -26449,6 +26509,7 @@
       <Annotations Target="microsoft.graph.userCredentialUsageDetails" />
       <Annotations Target="microsoft.graph.identityRiskEvent" />
       <Annotations Target="microsoft.graph.riskyUser" />
+      <Annotations Target="microsoft.graph.riskyUserHistoryItem" />
       <Annotations Target="microsoft.graph.deviceManagement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for Android for Work settings functionality under device management." />
       </Annotations>
