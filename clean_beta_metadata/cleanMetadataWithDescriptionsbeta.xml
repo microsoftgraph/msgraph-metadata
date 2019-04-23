@@ -708,9 +708,18 @@
       </EnumType>
       <EnumType Name="resultantAppStateDetail">
         <Member Name="noAdditionalDetails" Value="0" />
+        <Member Name="dependencyFailedToInstall" Value="1" />
+        <Member Name="dependencyWithRequirementsNotMet" Value="2" />
+        <Member Name="dependencyPendingReboot" Value="3" />
+        <Member Name="dependencyWithAutoInstallDisabled" Value="4" />
         <Member Name="seeInstallErrorCode" Value="2000" />
+        <Member Name="autoInstallDisabled" Value="3000" />
         <Member Name="seeUninstallErrorCode" Value="4000" />
         <Member Name="pendingReboot" Value="5000" />
+        <Member Name="installingDependencies" Value="5001" />
+        <Member Name="powerShellScriptRequirementNotMet" Value="-1013" />
+        <Member Name="registryRequirementNotMet" Value="-1012" />
+        <Member Name="fileSystemRequirementNotMet" Value="-1011" />
         <Member Name="platformNotApplicable" Value="-1006" />
         <Member Name="minimumCpuSpeedNotMet" Value="-1005" />
         <Member Name="minimumLogicalProcessorCountNotMet" Value="-1004" />
@@ -718,6 +727,10 @@
         <Member Name="minimumOsVersionNotMet" Value="-1002" />
         <Member Name="minimumDiskSpaceNotMet" Value="-1001" />
         <Member Name="processorArchitectureNotApplicable" Value="-1000" />
+      </EnumType>
+      <EnumType Name="mobileAppDependecyType">
+        <Member Name="detect" Value="0" />
+        <Member Name="autoInstall" Value="1" />
       </EnumType>
       <EnumType Name="officeProductId">
         <Member Name="o365ProPlusRetail" Value="0" />
@@ -773,6 +786,7 @@
         <Member Name="createdDate" Value="3" />
         <Member Name="version" Value="4" />
         <Member Name="sizeInMB" Value="5" />
+        <Member Name="doesNotExist" Value="6" />
       </EnumType>
       <EnumType Name="win32LobAppDetectionOperator" IsFlags="true">
         <Member Name="notConfigured" Value="0" />
@@ -794,6 +808,15 @@
       <EnumType Name="runAsAccountType">
         <Member Name="system" Value="0" />
         <Member Name="user" Value="1" />
+      </EnumType>
+      <EnumType Name="win32LobAppPowerShellScriptDetectionType">
+        <Member Name="notConfigured" Value="0" />
+        <Member Name="string" Value="1" />
+        <Member Name="dateTime" Value="2" />
+        <Member Name="integer" Value="3" />
+        <Member Name="float" Value="4" />
+        <Member Name="version" Value="5" />
+        <Member Name="boolean" Value="6" />
       </EnumType>
       <EnumType Name="win32LobAppReturnCodeType">
         <Member Name="failed" Value="0" />
@@ -1175,6 +1198,11 @@
         <Member Name="updateFailed" Value="11" />
         <Member Name="communicationError" Value="19" />
       </EnumType>
+      <EnumType Name="appLogUploadState">
+        <Member Name="pending" Value="0" />
+        <Member Name="completed" Value="1" />
+        <Member Name="failed" Value="2" />
+      </EnumType>
       <EnumType Name="deviceManagementSubscriptionState">
         <Member Name="pending" Value="0" />
         <Member Name="active" Value="1" />
@@ -1196,11 +1224,6 @@
         <Member Name="notConfigured" Value="0" />
         <Member Name="granted" Value="1" />
         <Member Name="notGranted" Value="2" />
-      </EnumType>
-      <EnumType Name="appLogUploadState">
-        <Member Name="pending" Value="0" />
-        <Member Name="completed" Value="1" />
-        <Member Name="failed" Value="2" />
       </EnumType>
       <EnumType Name="healthState">
         <Member Name="unknown" Value="0" />
@@ -1355,6 +1378,11 @@
         <Member Name="alphanumeric" Value="5" />
         <Member Name="alphanumericWithSymbols" Value="6" />
         <Member Name="lowSecurityBiometric" Value="7" />
+      </EnumType>
+      <EnumType Name="androidDeviceOwnerPlayStoreMode">
+        <Member Name="notConfigured" Value="0" />
+        <Member Name="allowList" Value="1" />
+        <Member Name="blockList" Value="2" />
       </EnumType>
       <EnumType Name="androidDeviceOwnerBatteryPluggedMode">
         <Member Name="notConfigured" Value="0" />
@@ -3627,6 +3655,7 @@
         <Property Name="showInAddressList" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the Outlook global address list should contain this user, otherwise false. If not set, this will be treated as true. For users invited through the invitation manager, this property will be set to false." />
         </Property>
+        <Property Name="signInSessionsValidFromDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="state" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The state or province in the user's address. Supports $filter." />
         </Property>
@@ -4825,6 +4854,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Device category" />
         </NavigationProperty>
         <NavigationProperty Name="windowsProtectionState" Type="microsoft.graph.windowsProtectionState" ContainsTarget="true" />
+        <NavigationProperty Name="users" Type="Collection(microsoft.graph.user)" ContainsTarget="true" />
         <NavigationProperty Name="deviceCompliancePolicyStates" Type="Collection(microsoft.graph.deviceCompliancePolicyState)" ContainsTarget="true" />
         <NavigationProperty Name="managedDeviceMobileAppConfigurationStates" Type="Collection(microsoft.graph.managedDeviceMobileAppConfigurationState)" ContainsTarget="true" />
         <NavigationProperty Name="securityBaselineStates" Type="Collection(microsoft.graph.securityBaselineState)" ContainsTarget="true" />
@@ -8349,6 +8379,7 @@
         <Property Name="deploymentProfileAssignmentDetailedStatus" Type="microsoft.graph.windowsAutopilotProfileAssignmentDetailedStatus" Nullable="false" />
         <Property Name="deploymentProfileAssignedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="orderIdentifier" Type="Edm.String" />
+        <Property Name="groupTag" Type="Edm.String" />
         <Property Name="purchaseOrderIdentifier" Type="Edm.String" />
         <Property Name="serialNumber" Type="Edm.String" />
         <Property Name="productKey" Type="Edm.String" />
@@ -8430,6 +8461,7 @@
         <Property Name="productKey" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Product Key of the Windows autopilot device." />
         </Property>
+        <Property Name="importId" Type="Edm.String" />
         <Property Name="hardwareIdentifier" Type="Edm.Binary">
           <Annotation Term="Org.OData.Core.V1.Description" String="Hardware Blob of the Windows autopilot device." />
         </Property>
@@ -8718,6 +8750,7 @@
         </Property>
         <Property Name="isAssigned" Type="Edm.Boolean" Nullable="false" />
         <Property Name="roleScopeTagIds" Type="Collection(Edm.String)" />
+        <Property Name="dependentAppCount" Type="Edm.Int32" Nullable="false" />
         <NavigationProperty Name="categories" Type="Collection(microsoft.graph.mobileAppCategory)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The list of categories for this app." />
         </NavigationProperty>
@@ -8727,6 +8760,7 @@
         <NavigationProperty Name="installSummary" Type="microsoft.graph.mobileAppInstallSummary" ContainsTarget="true" />
         <NavigationProperty Name="deviceStatuses" Type="Collection(microsoft.graph.mobileAppInstallStatus)" ContainsTarget="true" />
         <NavigationProperty Name="userStatuses" Type="Collection(microsoft.graph.userAppInstallStatus)" ContainsTarget="true" />
+        <NavigationProperty Name="relationships" Type="Collection(microsoft.graph.mobileAppRelationship)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="mobileAppCategory" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String">
@@ -9332,6 +9366,10 @@
         <NavigationProperty Name="app" Type="microsoft.graph.mobileApp" />
         <NavigationProperty Name="deviceStatuses" Type="Collection(microsoft.graph.mobileAppInstallStatus)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="mobileAppRelationship" BaseType="microsoft.graph.entity" Abstract="true">
+        <Property Name="targetId" Type="Edm.String" />
+        <Property Name="targetDisplayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="mobileAppContentFile" BaseType="microsoft.graph.entity">
         <Property Name="azureStorageUri" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Azure Storage URI." />
@@ -9505,6 +9543,10 @@
         <Property Name="userName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="mobileAppDependency" BaseType="microsoft.graph.mobileAppRelationship">
+        <Property Name="dependencyType" Type="microsoft.graph.mobileAppDependecyType" Nullable="false" />
+        <Property Name="dependentAppCount" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
       <EntityType Name="macOSOfficeSuiteApp" BaseType="microsoft.graph.mobileApp" />
       <EntityType Name="officeSuiteApp" BaseType="microsoft.graph.mobileApp">
         <Property Name="autoAcceptEula" Type="Edm.Boolean" Nullable="false" />
@@ -9641,6 +9683,7 @@
         <Property Name="minimumNumberOfProcessors" Type="Edm.Int32" />
         <Property Name="minimumCpuSpeedInMHz" Type="Edm.Int32" />
         <Property Name="detectionRules" Type="Collection(microsoft.graph.win32LobAppDetection)" />
+        <Property Name="requirementRules" Type="Collection(microsoft.graph.win32LobAppRequirement)" />
         <Property Name="installExperience" Type="microsoft.graph.win32LobAppInstallExperience" />
         <Property Name="returnCodes" Type="Collection(microsoft.graph.win32LobAppReturnCode)" />
         <Property Name="msiInformation" Type="microsoft.graph.win32LobAppMsiInformation" />
@@ -10380,6 +10423,8 @@
         <Property Name="kioskModeWallpaperUrl" Type="Edm.String" />
         <Property Name="kioskModeExitCode" Type="Edm.String" />
         <Property Name="kioskModeVirtualHomeButtonEnabled" Type="Edm.Boolean" />
+        <Property Name="kioskModeBluetoothConfigurationEnabled" Type="Edm.Boolean" />
+        <Property Name="kioskModeWiFiConfigurationEnabled" Type="Edm.Boolean" />
         <Property Name="microphoneForceMute" Type="Edm.Boolean" />
         <Property Name="networkEscapeHatchAllowed" Type="Edm.Boolean" />
         <Property Name="nfcBlockOutgoingBeam" Type="Edm.Boolean" />
@@ -10387,10 +10432,17 @@
         <Property Name="passwordBlockKeyguardFeatures" Type="Collection(microsoft.graph.androidKeyguardFeature)" Nullable="false" />
         <Property Name="passwordExpirationDays" Type="Edm.Int32" />
         <Property Name="passwordMinimumLength" Type="Edm.Int32" />
+        <Property Name="passwordMinimumLetterCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumLowerCaseCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumNonLetterCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumNumericCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumSymbolCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumUpperCaseCharacters" Type="Edm.Int32" />
         <Property Name="passwordMinutesOfInactivityBeforeScreenTimeout" Type="Edm.Int32" />
         <Property Name="passwordPreviousPasswordCountToBlock" Type="Edm.Int32" />
         <Property Name="passwordRequiredType" Type="microsoft.graph.androidDeviceOwnerRequiredPasswordType" />
         <Property Name="passwordSignInFailureCountBeforeFactoryReset" Type="Edm.Int32" />
+        <Property Name="playStoreMode" Type="microsoft.graph.androidDeviceOwnerPlayStoreMode" />
         <Property Name="safeBootBlocked" Type="Edm.Boolean" />
         <Property Name="screenCaptureBlocked" Type="Edm.Boolean" />
         <Property Name="securityAllowDebuggingFeatures" Type="Edm.Boolean" />
@@ -10436,6 +10488,7 @@
         <Property Name="certificateValidityPeriodValue" Type="Edm.Int32" Nullable="false" />
         <Property Name="certificateValidityPeriodScale" Type="microsoft.graph.certificateValidityPeriodScale" Nullable="false" />
         <Property Name="extendedKeyUsages" Type="Collection(microsoft.graph.extendedKeyUsage)" Nullable="false" />
+        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" />
         <NavigationProperty Name="rootCertificate" Type="microsoft.graph.androidForWorkTrustedRootCertificate" />
       </EntityType>
       <EntityType Name="androidForWorkTrustedRootCertificate" BaseType="microsoft.graph.deviceConfiguration">
@@ -10447,7 +10500,6 @@
         <Property Name="certificationAuthorityName" Type="Edm.String" Nullable="false" />
         <Property Name="certificateTemplateName" Type="Edm.String" Nullable="false" />
         <Property Name="subjectAlternativeNameFormatString" Type="Edm.String" />
-        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" Nullable="false" />
         <NavigationProperty Name="managedDeviceCertificateStates" Type="Collection(microsoft.graph.managedDeviceCertificateState)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="androidForWorkScepCertificateProfile" BaseType="microsoft.graph.androidForWorkCertificateProfileBase">
@@ -10459,7 +10511,6 @@
         <Property Name="subjectAlternativeNameFormatString" Type="Edm.String" />
         <Property Name="certificateStore" Type="microsoft.graph.certificateStore" />
         <Property Name="customSubjectAlternativeNames" Type="Collection(microsoft.graph.customSubjectAlternativeName)" />
-        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" />
         <NavigationProperty Name="managedDeviceCertificateStates" Type="Collection(microsoft.graph.managedDeviceCertificateState)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="androidForWorkGmailEasConfiguration" BaseType="microsoft.graph.androidForWorkEasEmailProfileBase" />
@@ -10782,6 +10833,7 @@
         <Property Name="certificateValidityPeriodValue" Type="Edm.Int32" Nullable="false" />
         <Property Name="certificateValidityPeriodScale" Type="microsoft.graph.certificateValidityPeriodScale" Nullable="false" />
         <Property Name="extendedKeyUsages" Type="Collection(microsoft.graph.extendedKeyUsage)" Nullable="false" />
+        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" />
         <NavigationProperty Name="rootCertificate" Type="microsoft.graph.androidWorkProfileTrustedRootCertificate" />
       </EntityType>
       <EntityType Name="androidWorkProfileTrustedRootCertificate" BaseType="microsoft.graph.deviceConfiguration">
@@ -10793,7 +10845,6 @@
         <Property Name="certificationAuthorityName" Type="Edm.String" Nullable="false" />
         <Property Name="certificateTemplateName" Type="Edm.String" Nullable="false" />
         <Property Name="subjectAlternativeNameFormatString" Type="Edm.String" />
-        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" Nullable="false" />
       </EntityType>
       <EntityType Name="androidWorkProfileScepCertificateProfile" BaseType="microsoft.graph.androidWorkProfileCertificateProfileBase">
         <Property Name="scepServerUrls" Type="Collection(Edm.String)" />
@@ -10804,7 +10855,6 @@
         <Property Name="subjectAlternativeNameFormatString" Type="Edm.String" />
         <Property Name="certificateStore" Type="microsoft.graph.certificateStore" />
         <Property Name="customSubjectAlternativeNames" Type="Collection(microsoft.graph.customSubjectAlternativeName)" />
-        <Property Name="subjectAlternativeNameType" Type="microsoft.graph.subjectAlternativeNameType" />
         <NavigationProperty Name="managedDeviceCertificateStates" Type="Collection(microsoft.graph.managedDeviceCertificateState)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="androidWorkProfileCustomConfiguration" BaseType="microsoft.graph.deviceConfiguration">
@@ -11522,6 +11572,11 @@
         <Property Name="firewallEnableStealthMode" Type="Edm.Boolean" Nullable="false" />
         <Property Name="firewallApplications" Type="Collection(microsoft.graph.macOSFirewallApplication)" />
       </EntityType>
+      <EntityType Name="macOSExtensionsConfiguration" BaseType="microsoft.graph.deviceConfiguration">
+        <Property Name="kernelExtensionOverridesAllowed" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="kernelExtensionAllowedTeamIdentifiers" Type="Collection(Edm.String)" />
+        <Property Name="kernelExtensionsAllowed" Type="Collection(microsoft.graph.macOSKernelExtension)" />
+      </EntityType>
       <EntityType Name="macOSGeneralDeviceConfiguration" BaseType="microsoft.graph.deviceConfiguration">
         <Property Name="compliantAppsList" Type="Collection(microsoft.graph.appListItem)">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of apps in the compliance (either allow list or block list, controlled by CompliantAppListType). This collection can contain a maximum of 10000 elements." />
@@ -11691,7 +11746,26 @@
         <Property Name="wallpaperImage" Type="microsoft.graph.mimeContent" />
         <NavigationProperty Name="identityCertificateForClientAuthentication" Type="microsoft.graph.iosCertificateProfileBase" />
       </EntityType>
-      <EntityType Name="macOSDeviceFeaturesConfiguration" BaseType="microsoft.graph.appleDeviceFeaturesConfigurationBase" />
+      <EntityType Name="macOSDeviceFeaturesConfiguration" BaseType="microsoft.graph.appleDeviceFeaturesConfigurationBase">
+        <Property Name="autoLaunchItems" Type="Collection(microsoft.graph.macOSLaunchItem)" />
+        <Property Name="adminShowHostInfo" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="loginWindowText" Type="Edm.String" />
+        <Property Name="authorizedUsersListHidden" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="authorizedUsersListHideLocalUsers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="authorizedUsersListHideMobileAccounts" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="authorizedUsersListIncludeNetworkUsers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="authorizedUsersListHideAdminUsers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="authorizedUsersListShowOtherManagedUsers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="shutDownDisabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="restartDisabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="sleepDisabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="consoleAccessDisabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="shutDownDisabledWhileLoggedIn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="restartDisabledWhileLoggedIn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="powerOffDisabledWhileLoggedIn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="logOutDisabledWhileLoggedIn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="screenLockDisableImmediate" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="appleVpnConfiguration" BaseType="microsoft.graph.deviceConfiguration" Abstract="true">
         <Property Name="connectionName" Type="Edm.String" Nullable="false" />
         <Property Name="connectionType" Type="microsoft.graph.appleVpnConnectionType" Nullable="false" />
@@ -13226,6 +13300,24 @@
         <Property Name="excludeGroup" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="deviceCompliancePolicy" Type="microsoft.graph.deviceCompliancePolicy" />
       </EntityType>
+      <EntityType Name="androidDeviceOwnerCompliancePolicy" BaseType="microsoft.graph.deviceCompliancePolicy">
+        <Property Name="osMinimumVersion" Type="Edm.String" />
+        <Property Name="osMaximumVersion" Type="Edm.String" />
+        <Property Name="minAndroidSecurityPatchLevel" Type="Edm.String" />
+        <Property Name="passwordRequired" Type="Edm.Boolean" />
+        <Property Name="passwordMinimumLength" Type="Edm.Int32" />
+        <Property Name="passwordMinimumLetterCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumLowerCaseCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumNonLetterCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumNumericCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumSymbolCharacters" Type="Edm.Int32" />
+        <Property Name="passwordMinimumUpperCaseCharacters" Type="Edm.Int32" />
+        <Property Name="passwordRequiredType" Type="microsoft.graph.androidDeviceOwnerRequiredPasswordType" />
+        <Property Name="passwordMinutesOfInactivityBeforeLock" Type="Edm.Int32" />
+        <Property Name="passwordExpirationDays" Type="Edm.Int32" />
+        <Property Name="passwordPreviousPasswordCountToBlock" Type="Edm.Int32" />
+        <Property Name="storageRequireEncryption" Type="Edm.Boolean" />
+      </EntityType>
       <EntityType Name="androidForWorkCompliancePolicy" BaseType="microsoft.graph.deviceCompliancePolicy">
         <Property Name="passwordRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="passwordMinimumLength" Type="Edm.Int32" />
@@ -13566,7 +13658,6 @@
         <Property Name="deviceThreatProtectionEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="deviceThreatProtectionRequiredSecurityLevel" Type="microsoft.graph.deviceThreatProtectionLevel" Nullable="false" />
         <Property Name="configurationManagerComplianceRequired" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="tpmRequired" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="windows10MobileCompliancePolicy" BaseType="microsoft.graph.deviceCompliancePolicy">
         <Property Name="passwordRequired" Type="Edm.Boolean" Nullable="false">
@@ -14074,6 +14165,7 @@
         <Property Name="diagnosticsDisabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="displayToneSetupDisabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="privacyPaneDisabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="deviceNameTemplate" Type="Edm.String" />
       </EntityType>
       <EntityType Name="depIOSEnrollmentProfile" BaseType="microsoft.graph.depEnrollmentBaseProfile">
         <Property Name="iTunesPairingMode" Type="microsoft.graph.iTunesPairingMode" Nullable="false" />
@@ -18730,6 +18822,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
         </Property>
         <Property Name="landingPageCustomizedImage" Type="microsoft.graph.mimeContent" />
+        <Property Name="customPrivacyMessage" Type="Edm.String" />
         <Property Name="showDisplayNameNextToLogo" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
         </Property>
@@ -18841,6 +18934,16 @@
         <Property Name="actionState" Type="microsoft.graph.actionState" Nullable="false" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="mobileAppRelationshipState">
+        <Property Name="sourceIds" Type="Collection(Edm.String)" />
+        <Property Name="targetId" Type="Edm.String" />
+        <Property Name="targetDisplayName" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="installState" Type="microsoft.graph.resultantAppState" Nullable="false" />
+        <Property Name="installStateDetail" Type="microsoft.graph.resultantAppStateDetail" Nullable="false" />
+        <Property Name="errorCode" Type="Edm.Int32" Nullable="false" />
+        <Property Name="targetLastSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </ComplexType>
       <ComplexType Name="allLicensedUsersAssignmentTarget" BaseType="microsoft.graph.deviceAndAppManagementAssignmentTarget" />
       <ComplexType Name="groupAssignmentTarget" BaseType="microsoft.graph.deviceAndAppManagementAssignmentTarget">
@@ -18966,6 +19069,10 @@
         <Property Name="v10_1803" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="win32LobAppDetection" Abstract="true" />
+      <ComplexType Name="win32LobAppRequirement" Abstract="true">
+        <Property Name="operator" Type="microsoft.graph.win32LobAppDetectionOperator" Nullable="false" />
+        <Property Name="detectionValue" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="win32LobAppInstallExperience">
         <Property Name="runAsAccount" Type="microsoft.graph.runAsAccountType" Nullable="false" />
       </ComplexType>
@@ -19007,6 +19114,26 @@
         <Property Name="enforceSignatureCheck" Type="Edm.Boolean" Nullable="false" />
         <Property Name="runAs32Bit" Type="Edm.Boolean" Nullable="false" />
         <Property Name="scriptContent" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="win32LobAppRegistryRequirement" BaseType="microsoft.graph.win32LobAppRequirement">
+        <Property Name="check32BitOn64System" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="keyPath" Type="Edm.String" />
+        <Property Name="valueName" Type="Edm.String" />
+        <Property Name="detectionType" Type="microsoft.graph.win32LobAppRegistryDetectionType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="win32LobAppPowerShellScriptRequirement" BaseType="microsoft.graph.win32LobAppRequirement">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="enforceSignatureCheck" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="runAs32Bit" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="runAsAccount" Type="microsoft.graph.runAsAccountType" Nullable="false" />
+        <Property Name="scriptContent" Type="Edm.String" Nullable="false" />
+        <Property Name="detectionType" Type="microsoft.graph.win32LobAppPowerShellScriptDetectionType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="win32LobAppFileSystemRequirement" BaseType="microsoft.graph.win32LobAppRequirement">
+        <Property Name="path" Type="Edm.String" />
+        <Property Name="fileOrFolderName" Type="Edm.String" />
+        <Property Name="check32BitOn64System" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="detectionType" Type="microsoft.graph.win32LobAppFileSystemDetectionType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="macOSMinimumOperatingSystem">
         <Property Name="v10_7" Type="Edm.Boolean" Nullable="false" />
@@ -19329,6 +19456,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Newly generated passcode for the device" />
         </Property>
       </ComplexType>
+      <ComplexType Name="mobileAppTroubleshootingHistoryItem">
+        <Property Name="occurrenceDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deviceOperatingSystemSummary">
         <Property Name="androidCount" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Number of android device count." />
@@ -19369,9 +19499,6 @@
       <ComplexType Name="managedDeviceModelsAndManufacturers">
         <Property Name="deviceModels" Type="Collection(Edm.String)" />
         <Property Name="deviceManufacturers" Type="Collection(Edm.String)" />
-      </ComplexType>
-      <ComplexType Name="mobileAppTroubleshootingHistoryItem">
-        <Property Name="occurrenceDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </ComplexType>
       <ComplexType Name="windowsDeviceADAccount" BaseType="microsoft.graph.windowsDeviceAccount">
         <Property Name="domainName" Type="Edm.String">
@@ -19576,6 +19703,10 @@
         <Property Name="bundleId" Type="Edm.String" Nullable="false" />
         <Property Name="allowsIncomingConnections" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="macOSKernelExtension">
+        <Property Name="teamIdentifier" Type="Edm.String" />
+        <Property Name="bundleId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="unsupportedDeviceConfigurationDetail">
         <Property Name="message" Type="Edm.String" />
         <Property Name="propertyName" Type="Edm.String" />
@@ -19666,6 +19797,10 @@
         <Property Name="bundleID" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="BundleID of app" />
         </Property>
+      </ComplexType>
+      <ComplexType Name="macOSLaunchItem">
+        <Property Name="path" Type="Edm.String" Nullable="false" />
+        <Property Name="hide" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="vpnOnDemandRule">
         <Property Name="ssids" Type="Collection(Edm.String)" />
@@ -20325,10 +20460,6 @@
         <Property Name="installProgressTimeoutInMinutes" Type="Edm.Int32" />
         <Property Name="allowDeviceUseOnInstallFailure" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="managementCertificateWithThumbprint">
-        <Property Name="thumbprint" Type="Edm.String" />
-        <Property Name="certificate" Type="Edm.String" />
-      </ComplexType>
       <ComplexType Name="importedWindowsAutopilotDeviceIdentityState">
         <Property Name="deviceImportStatus" Type="microsoft.graph.importedWindowsAutopilotDeviceIdentityImportStatus" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Device status reported by Device Directory Service(DDS). Possible values are: unknown, pending, partial, complete, error." />
@@ -20342,6 +20473,10 @@
         <Property Name="deviceErrorName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Device error name reported by Device Directory Service(DDS)." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="managementCertificateWithThumbprint">
+        <Property Name="thumbprint" Type="Edm.String" />
+        <Property Name="certificate" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="userActivationCounts">
         <Property Name="productType" Type="Edm.String" />
@@ -22297,6 +22432,12 @@
         <Parameter Name="count" Type="Edm.Int64" Nullable="false" />
         <ReturnType Type="Collection(microsoft.graph.mobileApp)" />
       </Function>
+      <Function Name="getRelatedAppStates" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
+        <Parameter Name="userPrincipalName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="deviceId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mobileAppRelationshipState)" />
+      </Function>
       <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.applePushNotificationCertificate" />
         <ReturnType Type="Edm.String" Unicode="false" />
@@ -23106,6 +23247,10 @@
         <Parameter Name="newPassword" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="invalidateAllRefreshTokens" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="revokeSignInSessions" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
       </Action>
@@ -26018,6 +26163,10 @@
         <Parameter Name="managedDeviceId" Type="Edm.String" Unicode="false" />
         <Parameter Name="notifyManagedDevices" Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="updateRelationships" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
+        <Parameter Name="relationships" Type="Collection(microsoft.graph.mobileAppRelationship)" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementScript" />
         <Parameter Name="deviceManagementScriptGroupAssignments" Type="Collection(microsoft.graph.deviceManagementScriptGroupAssignment)" />
@@ -26303,6 +26452,11 @@
       </Action>
       <Action Name="unassignResourceAccountFromDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.windowsAutopilotDeviceIdentity" />
+      </Action>
+      <Action Name="import" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.importedWindowsAutopilotDeviceIdentity)" />
+        <Parameter Name="importedWindowsAutopilotDeviceIdentities" Type="Collection(microsoft.graph.importedWindowsAutopilotDeviceIdentity)" />
+        <ReturnType Type="Collection(microsoft.graph.importedWindowsAutopilotDeviceIdentity)" />
       </Action>
       <Action Name="beginOnboarding" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.remoteAssistancePartner" />
@@ -27126,7 +27280,10 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
       </Annotations>
       <Annotations Target="microsoft.graph.intuneBrand/landingPageCustomizedImage">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Customized image displayed in Compnay Portal app landing page" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Customized image displayed in Company Portal app landing page" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/customPrivacyMessage">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom privacy message." />
       </Annotations>
       <Annotations Target="microsoft.graph.intuneBrand/showDisplayNameNextToLogo">
         <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
@@ -27273,7 +27430,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Collection of imported Windows autopilot devices." />
       </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistancePartner">
-        <Annotation Term="Org.OData.Core.V1.Description" String="remoteAssistPartner resources represent the metadata and status of a given Remote Assistance partner service." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="RemoteAssistPartner resources represent the metadata and status of a given Remote Assistance partner service." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/remoteAssistancePartners">
         <Annotation Term="Org.OData.Core.V1.Description" String="The remote assist partners." />
@@ -27767,6 +27924,9 @@
       <Annotations Target="microsoft.graph.mobileApp/roleScopeTagIds">
         <Annotation Term="Org.OData.Core.V1.Description" String="List of scope tag ids for this mobile app." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileApp/dependentAppCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The total number of dependencies the child app has." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileApp/categories">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of categories for this app." />
       </Annotations>
@@ -27790,6 +27950,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileApp/userStatuses">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of installation states for this mobile app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationship">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Describes the relationship for a child mobile app to its parent mobile app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileApp/relationships">
+        <Annotation Term="Org.OData.Core.V1.Description" String="List of relationships for this mobile app." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for a single installer file that is associated with a given mobileAppContent version." />
@@ -28043,6 +28209,36 @@
       <Annotations Target="microsoft.graph.iosVppApp/assignedLicenses">
         <Annotation Term="Org.OData.Core.V1.Description" String="The licenses assigned to this app." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationship/targetId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The target child mobile app's app id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationship/targetDisplayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The target child mobile app's display name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/sourceIds">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The collection of source mobile app's ids." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/targetId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The related target app's id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/targetDisplayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The related target app's display name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/deviceId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The corresponding device id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/installState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The install state of the app of target app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/installStateDetail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The install state detail of the app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/errorCode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The error code for install or uninstall failures of target app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppRelationshipState/targetLastSyncDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The last sync time of the target app." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileAppCategory/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="The name of the app category." />
       </Annotations>
@@ -28168,6 +28364,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.userAppInstallStatus/deviceStatuses">
         <Annotation Term="Org.OData.Core.V1.Description" String="The install state of the app on devices." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppDependency">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Describes a dependency type between two mobile apps." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppDependency/dependencyType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The type of dependency relationship between the parent and child apps." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppDependency/dependentAppCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The total number of dependencies the child app has." />
       </Annotations>
       <Annotations Target="microsoft.graph.macOSOfficeSuiteApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for the MacOS Office Suite App." />
@@ -28496,6 +28701,15 @@
       <Annotations Target="microsoft.graph.win32LobApp/detectionRules">
         <Annotation Term="Org.OData.Core.V1.Description" String="The detection rules to detect Win32 Line of Business (LoB) app." />
       </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRequirement/operator">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The operator for detection" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRequirement/detectionValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The detection value" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobApp/requirementRules">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The requirement rules to detect Win32 Line of Business (LoB) app." />
+      </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppInstallExperience/runAsAccount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of execution context the app runs in." />
       </Annotations>
@@ -28591,6 +28805,48 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptDetection/scriptContent">
         <Annotation Term="Org.OData.Core.V1.Description" String="The base64 encoded script content to detect Win32 Line of Business (LoB) app" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRegistryRequirement/check32BitOn64System">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A value indicating whether this registry path is for checking 32-bit app on 64-bit system" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRegistryRequirement/keyPath">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The registry key path to detect Win32 Line of Business (LoB) app" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRegistryRequirement/valueName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The registry value name" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRegistryRequirement/detectionType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The registry data detection type" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The unique display name for this rule" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/enforceSignatureCheck">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A value indicating whether signature check is enforced" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/runAs32Bit">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A value indicating whether this script should run as 32-bit" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/runAsAccount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of execution context the script runs in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/scriptContent">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The base64 encoded script content to detect Win32 Line of Business (LoB) app" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppPowerShellScriptRequirement/detectionType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The detection type for script output" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppFileSystemRequirement/path">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The file or folder path to detect Win32 Line of Business (LoB) app" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppFileSystemRequirement/fileOrFolderName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The file or folder name to detect Win32 Line of Business (LoB) app" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppFileSystemRequirement/check32BitOn64System">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A value indicating whether this file or folder is for checking 32-bit app on 64-bit system" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppFileSystemRequirement/detectionType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The file system detection type" />
       </Annotations>
       <Annotations Target="microsoft.graph.macOSLobApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for the MacOS LOB App." />
@@ -29843,6 +30099,9 @@
       <Annotations Target="microsoft.graph.managedDevice/windowsProtectionState">
         <Annotation Term="Org.OData.Core.V1.Description" String="The device protection status." />
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/users">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The primary users associated with the managed device." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceCompliancePolicyState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device Compliance Policy State for a given device." />
       </Annotations>
@@ -30134,6 +30393,24 @@
       <Annotations Target="microsoft.graph.windowsDeviceMalwareState/category">
         <Annotation Term="Org.OData.Core.V1.Description" String="Category of the malware" />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/managedDeviceIdentifier">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device identifier created or collected by Intune." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/appLogCollectionRequests">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The collection property of AppLogUploadRequest." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/userId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier for the user that tried to enroll the device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/applicationId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Intune application identifier." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingHistoryItem/occurrenceDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Time when the history item occurred." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/history">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Intune Mobile Application Troubleshooting History Item" />
+      </Annotations>
       <Annotations Target="microsoft.graph.windowsManagedDevice">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows devices that are managed or pre-enrolled through Intune" />
       </Annotations>
@@ -30226,24 +30503,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsMalwareInformation/windowsDevicesProtectionState">
         <Annotation Term="Org.OData.Core.V1.Description" String="List of devices' protection status affected with the current malware" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/managedDeviceIdentifier">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device identifier created or collected by Intune." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/appLogCollectionRequests">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The collection property of AppLogUploadRequest." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/userId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier for the user that tried to enroll the device." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/applicationId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Intune application identifier." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingHistoryItem/occurrenceDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Time when the history item occurred." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/history">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Intune Mobile Application Troubleshooting History Item" />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsManagementApp/availableVersion">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows management app available version." />
@@ -30854,6 +31113,12 @@
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/kioskModeVirtualHomeButtonEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not to display a virtual home button when the device is in Kiosk Mode." />
       </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/kioskModeBluetoothConfigurationEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not to allow a user to configure Bluetooth settings in Kiosk Mode." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/kioskModeWiFiConfigurationEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not to allow a user to configure Wi-Fi settings in Kiosk Mode." />
+      </Annotations>
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/microphoneForceMute">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether or not to block unmuting the microphone on the device." />
       </Annotations>
@@ -30875,6 +31140,24 @@
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumLength">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum length of the password required on the device. Valid values 4 to 16" />
       </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumLetterCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of letter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumLowerCaseCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of lower case characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumNonLetterCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of non-letter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumNumericCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of numeric characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumSymbolCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of symbol characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinimumUpperCaseCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of upper caseletter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordMinutesOfInactivityBeforeScreenTimeout">
         <Annotation Term="Org.OData.Core.V1.Description" String="Milliseconds of inactivity before the screen times out." />
       </Annotations>
@@ -30886,6 +31169,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/passwordSignInFailureCountBeforeFactoryReset">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the number of times a user can enter an incorrect password before the device is wiped. Valid values 4 to 11" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/playStoreMode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Play Store mode of the device." />
       </Annotations>
       <Annotations Target="microsoft.graph.androidDeviceOwnerGeneralDeviceConfiguration/safeBootBlocked">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether or not rebooting the device into safe boot is disabled." />
@@ -31013,6 +31299,9 @@
       <Annotations Target="microsoft.graph.androidForWorkCertificateProfileBase/extendedKeyUsages">
         <Annotation Term="Org.OData.Core.V1.Description" String="Extended Key Usage (EKU) settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
+      <Annotations Target="microsoft.graph.androidForWorkCertificateProfileBase/subjectAlternativeNameType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
+      </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkTrustedRootCertificate">
         <Annotation Term="Org.OData.Core.V1.Description" String="Android For Work Trusted Root Certificate configuration profile" />
       </Annotations>
@@ -31039,9 +31328,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkPkcsCertificateProfile/subjectAlternativeNameFormatString">
         <Annotation Term="Org.OData.Core.V1.Description" String="Custom String that defines the AAD Attribute." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.androidForWorkPkcsCertificateProfile/subjectAlternativeNameType">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
       </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkPkcsCertificateProfile/managedDeviceCertificateStates">
         <Annotation Term="Org.OData.Core.V1.Description" String="Certificate state for devices" />
@@ -31071,10 +31357,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Target store certificate" />
       </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkScepCertificateProfile/customSubjectAlternativeNames">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alterantive Name Settings. This collection can contain a maximum of 500 elements." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.androidForWorkScepCertificateProfile/subjectAlternativeNameType">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alternative Name Settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkScepCertificateProfile/managedDeviceCertificateStates">
         <Annotation Term="Org.OData.Core.V1.Description" String="Certificate state for devices" />
@@ -31727,6 +32010,9 @@
       <Annotations Target="microsoft.graph.androidWorkProfileCertificateProfileBase/extendedKeyUsages">
         <Annotation Term="Org.OData.Core.V1.Description" String="Extended Key Usage (EKU) settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
+      <Annotations Target="microsoft.graph.androidWorkProfileCertificateProfileBase/subjectAlternativeNameType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
+      </Annotations>
       <Annotations Target="microsoft.graph.androidWorkProfileTrustedRootCertificate">
         <Annotation Term="Org.OData.Core.V1.Description" String="Android Work Profile Trusted Root Certificate configuration profile" />
       </Annotations>
@@ -31754,9 +32040,6 @@
       <Annotations Target="microsoft.graph.androidWorkProfilePkcsCertificateProfile/subjectAlternativeNameFormatString">
         <Annotation Term="Org.OData.Core.V1.Description" String="Custom String that defines the AAD Attribute." />
       </Annotations>
-      <Annotations Target="microsoft.graph.androidWorkProfilePkcsCertificateProfile/subjectAlternativeNameType">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
-      </Annotations>
       <Annotations Target="microsoft.graph.androidWorkProfileScepCertificateProfile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Android Work Profile SCEP certificate profile" />
       </Annotations>
@@ -31782,10 +32065,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Target store certificate" />
       </Annotations>
       <Annotations Target="microsoft.graph.androidWorkProfileScepCertificateProfile/customSubjectAlternativeNames">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alterantive Name Settings. This collection can contain a maximum of 500 elements." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.androidWorkProfileScepCertificateProfile/subjectAlternativeNameType">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate Subject Alternative Name Type." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alternative Name Settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.androidWorkProfileScepCertificateProfile/managedDeviceCertificateStates">
         <Annotation Term="Org.OData.Core.V1.Description" String="Certificate state for devices" />
@@ -32085,7 +32365,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Target store certificate" />
       </Annotations>
       <Annotations Target="microsoft.graph.iosScepCertificateProfile/customSubjectAlternativeNames">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alterantive Name Settings. This collection can contain a maximum of 500 elements." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alternative Name Settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.iosTrustedRootCertificate">
         <Annotation Term="Org.OData.Core.V1.Description" String="iOS Trusted Root Certificate configuration profile." />
@@ -32894,6 +33174,24 @@
       <Annotations Target="microsoft.graph.macOSEndpointProtectionConfiguration/firewallApplications">
         <Annotation Term="Org.OData.Core.V1.Description" String="List of applications with firewall settings. Firewall settings for applications not on this list are determined by the user. This collection can contain a maximum of 500 elements." />
       </Annotations>
+      <Annotations Target="microsoft.graph.macOSExtensionsConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="MacOS extensions configuration profile." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSExtensionsConfiguration/kernelExtensionOverridesAllowed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, users can approve additional kernel extensions not explicitly allowed by configurations profiles." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSExtensionsConfiguration/kernelExtensionAllowedTeamIdentifiers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="All kernel extensions validly signed by the team identifiers in this list will be allowed to load." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSKernelExtension/teamIdentifier">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The team identifier that was used to sign the kernel extension." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSKernelExtension/bundleId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Bundle ID of the kernel extension." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSExtensionsConfiguration/kernelExtensionsAllowed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A list of kernel extensions that will be allowed to load. . This collection can contain a maximum of 500 elements." />
+      </Annotations>
       <Annotations Target="microsoft.graph.macOSGeneralDeviceConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="This topic provides descriptions of the declared methods, properties and relationships exposed by the macOSGeneralDeviceConfiguration resource." />
       </Annotations>
@@ -33377,6 +33675,66 @@
       </Annotations>
       <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="MacOS device features configuration profile." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSLaunchItem/path">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Path to the launch item." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSLaunchItem/hide">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not to hide the item from the Users and Groups List." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/autoLaunchItems">
+        <Annotation Term="Org.OData.Core.V1.Description" String="List of applications, files, folders, and other items to launch when the user logs in. This collection can contain a maximum of 500 elements." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/adminShowHostInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to show admin host information on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/loginWindowText">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom text to be displayed on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListHidden">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to show the name and password dialog or a list of users on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListHideLocalUsers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to show only network and system users in the authorized users list on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListHideMobileAccounts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to hide mobile users in the authorized users list on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListIncludeNetworkUsers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to show network users in the authorized users list on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListHideAdminUsers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to hide admin users in the authorized users list on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/authorizedUsersListShowOtherManagedUsers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to show other users in the authorized users list on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/shutDownDisabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to hide the Shut Down button item on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/restartDisabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to hide the Restart button item on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/sleepDisabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to hide the Sleep menu item on the login window." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/consoleAccessDisabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the Other user will disregard use of the `&gt;console&gt; special user name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/shutDownDisabledWhileLoggedIn">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the Shut Down menu item on the login window will be disabled while the user is logged in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/restartDisabledWhileLoggedIn">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the Restart menu item on the login window will be disabled while the user is logged in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/powerOffDisabledWhileLoggedIn">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the Power Off menu item on the login window will be disabled while the user is logged in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/logOutDisabledWhileLoggedIn">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the Log Out menu item on the login window will be disabled while the user is logged in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.macOSDeviceFeaturesConfiguration/screenLockDisableImmediate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether to disable the immediate screen lock functions." />
       </Annotations>
       <Annotations Target="microsoft.graph.appleVpnConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Apple VPN configuration profile." />
@@ -35694,7 +36052,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Extended Key Usage (EKU) settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.windows81CertificateProfileBase/customSubjectAlternativeNames">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alterantive Name Settings. This collection can contain a maximum of 500 elements." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom Subject Alternative Name Settings. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.windows81SCEPCertificateProfile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows 8.1+ SCEP certificate profile" />
@@ -36434,6 +36792,57 @@
       <Annotations Target="microsoft.graph.deviceComplianceUserOverview/configurationVersion">
         <Annotation Term="Org.OData.Core.V1.Description" String="Version of the policy for that overview" />
       </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This topic provides descriptions of the declared methods, properties and relationships exposed by the AndroidDeviceOwnerCompliancePolicy resource." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/osMinimumVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Minimum Android version." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/osMaximumVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Maximum Android version." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/minAndroidSecurityPatchLevel">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Minimum Android security patch level." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordRequired">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Require a password to unlock device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumLength">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Minimum password length. Valid values 4 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumLetterCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of letter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumLowerCaseCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of lower case characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumNonLetterCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of non-letter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumNumericCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of numeric characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumSymbolCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of symbol characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinimumUpperCaseCharacters">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the minimum number of upper case letter characters required for device password. Valid values 1 to 16" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordRequiredType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Type of characters in password" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordMinutesOfInactivityBeforeLock">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Minutes of inactivity before a password is required." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordExpirationDays">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of days before the password expires. Valid values 1 to 365" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/passwordPreviousPasswordCountToBlock">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of previous passwords to block. Valid values 1 to 24" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidDeviceOwnerCompliancePolicy/storageRequireEncryption">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Require encryption on Android devices." />
+      </Annotations>
       <Annotations Target="microsoft.graph.androidForWorkCompliancePolicy">
         <Annotation Term="Org.OData.Core.V1.Description" String="This class contains compliance settings for Android for Work." />
       </Annotations>
@@ -36893,9 +37302,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windows10CompliancePolicy/configurationManagerComplianceRequired">
         <Annotation Term="Org.OData.Core.V1.Description" String="Require to consider SCCM Compliance state into consideration for Intune Compliance State." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.windows10CompliancePolicy/tpmRequired">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Require Trusted Platform Module(TPM) to be present." />
       </Annotations>
       <Annotations Target="microsoft.graph.windows10MobileCompliancePolicy">
         <Annotation Term="Org.OData.Core.V1.Description" String="This class contains compliance settings for Windows 10 Mobile." />
@@ -38666,16 +39072,16 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Determines whether the Permission is validated for Scopes defined per Role Assignment." />
       </Annotations>
       <Annotations Target="microsoft.graph.rolePermission/actions">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Allowed Actions" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Allowed Actions - Deprecated" />
       </Annotations>
       <Annotations Target="microsoft.graph.resourceAction/allowedResourceActions">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allowed Actions" />
       </Annotations>
       <Annotations Target="microsoft.graph.resourceAction/notAllowedResourceActions">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Not Allowed Actions" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Not Allowed Actions." />
       </Annotations>
       <Annotations Target="microsoft.graph.rolePermission/resourceActions">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Actions" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Resource Actions each containing a set of allowed and not allowed permissions." />
       </Annotations>
       <Annotations Target="microsoft.graph.roleScopeTag/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="The display or friendly name of the Role Scope Tag." />
@@ -39233,7 +39639,10 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Profile set time of the Windows autopilot device." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity/orderIdentifier">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Order Identifier of the Windows autopilot device." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Order Identifier of the Windows autopilot device - Deprecated" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity/groupTag">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Group Tag of the Windows autopilot device." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity/purchaseOrderIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="Purchase Order Identifier of the Windows autopilot device." />
@@ -39282,6 +39691,36 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity/intendedDeploymentProfile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Deployment profile intended to be assigned to the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/orderIdentifier">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Order Id of the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/serialNumber">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Serial number of the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/productKey">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Product Key of the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/importId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Import Id of the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/hardwareIdentifier">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Hardware Blob of the Windows autopilot device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceImportStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device status reported by Device Directory Service(DDS)." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceRegistrationId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device Registration ID for successfully added device reported by Device Directory Service(DDS)." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device error name reported by Device Directory Service(DDS)." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/state">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Current state of the imported device." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfileAssignment/target">
         <Annotation Term="Org.OData.Core.V1.Description" String="The assignment target for the Windows Autopilot deployment profile." />
@@ -39348,6 +39787,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.depEnrollmentBaseProfile/privacyPaneDisabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if privacy screen is disabled" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.depEnrollmentBaseProfile/deviceNameTemplate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Sets a literal or name pattern." />
       </Annotations>
       <Annotations Target="microsoft.graph.depIOSEnrollmentProfile/iTunesPairingMode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the iTunes pairing mode" />
@@ -39490,33 +39932,6 @@
       <Annotations Target="microsoft.graph.depEnrollmentProfile/enableSharedIPad">
         <Annotation Term="Org.OData.Core.V1.Description" String="This indicates whether the device is to be enrolled in a mode which enables multi user scenarios. Only applicable in shared iPads." />
       </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/orderIdentifier">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Order Id of the Windows autopilot device." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/serialNumber">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Serial number of the Windows autopilot device." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/productKey">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Product Key of the Windows autopilot device." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/hardwareIdentifier">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Hardware Blob of the Windows autopilot device." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceImportStatus">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device status reported by Device Directory Service(DDS)." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceRegistrationId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device Registration ID for successfully added device reported by Device Directory Service(DDS)." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device error name reported by Device Directory Service(DDS)." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity/state">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Current state of the imported device." />
-      </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistancePartner/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the partner." />
       </Annotations>
@@ -39524,7 +39939,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="URL of the partner's onboarding portal, where an administrator can configure their Remote Assistance service." />
       </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistancePartner/onboardingStatus">
-        <Annotation Term="Org.OData.Core.V1.Description" String="TBD" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="A friendly description of the current TeamViewer connector status" />
       </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistancePartner/lastConnectionDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of the last request sent to Intune by the TEM partner." />
