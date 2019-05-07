@@ -1677,6 +1677,7 @@
         <Property Name="root" Type="microsoft.graph.root" />
         <Property Name="sharepointIds" Type="microsoft.graph.sharepointIds" />
         <Property Name="siteCollection" Type="microsoft.graph.siteCollection" />
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="columns" Type="Collection(microsoft.graph.columnDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="contentTypes" Type="Collection(microsoft.graph.contentType)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true" />
@@ -2652,6 +2653,7 @@
         <Property Name="specialFolder" Type="microsoft.graph.specialFolder" />
         <Property Name="video" Type="microsoft.graph.video" />
         <Property Name="webDavUrl" Type="Edm.String" />
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="children" Type="Collection(microsoft.graph.driveItem)" ContainsTarget="true" />
         <NavigationProperty Name="listItem" Type="microsoft.graph.listItem" ContainsTarget="true" />
         <NavigationProperty Name="permissions" Type="Collection(microsoft.graph.permission)" ContainsTarget="true" />
@@ -2781,9 +2783,15 @@
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
       </ComplexType>
+      <EntityType Name="itemAnalytics" BaseType="microsoft.graph.entity" OpenType="true">
+        <NavigationProperty Name="itemActivityStats" Type="Collection(microsoft.graph.itemActivityStat)" ContainsTarget="true" />
+        <NavigationProperty Name="allTime" Type="microsoft.graph.itemActivityStat" />
+        <NavigationProperty Name="lastSevenDays" Type="microsoft.graph.itemActivityStat" />
+      </EntityType>
       <EntityType Name="listItem" BaseType="microsoft.graph.baseItem">
         <Property Name="contentType" Type="microsoft.graph.contentTypeInfo" />
         <Property Name="sharepointIds" Type="microsoft.graph.sharepointIds" />
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="driveItem" Type="microsoft.graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="fields" Type="microsoft.graph.fieldValueSet" ContainsTarget="true" />
         <NavigationProperty Name="versions" Type="Collection(microsoft.graph.listItemVersion)" ContainsTarget="true" />
@@ -2824,6 +2832,33 @@
         <NavigationProperty Name="functions" Type="microsoft.graph.workbookFunctions" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fieldValueSet" BaseType="microsoft.graph.entity" OpenType="true" />
+      <EntityType Name="itemActivity" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="access" Type="microsoft.graph.accessAction" />
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="actor" Type="microsoft.graph.identitySet" />
+        <NavigationProperty Name="driveItem" Type="microsoft.graph.driveItem" ContainsTarget="true" />
+      </EntityType>
+      <ComplexType Name="accessAction" OpenType="true" />
+      <EntityType Name="itemActivityStat" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="access" Type="microsoft.graph.itemActionStat" />
+        <Property Name="create" Type="microsoft.graph.itemActionStat" />
+        <Property Name="delete" Type="microsoft.graph.itemActionStat" />
+        <Property Name="edit" Type="microsoft.graph.itemActionStat" />
+        <Property Name="move" Type="microsoft.graph.itemActionStat" />
+        <Property Name="isTrending" Type="Edm.Boolean" />
+        <Property Name="incompleteData" Type="microsoft.graph.incompleteData" />
+        <NavigationProperty Name="activities" Type="Collection(microsoft.graph.itemActivity)" />
+      </EntityType>
+      <ComplexType Name="itemActionStat" OpenType="true">
+        <Property Name="actionCount" Type="Edm.Int32" />
+        <Property Name="actorCount" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="incompleteData" OpenType="true">
+        <Property Name="missingDataBeforeDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="wasThrottled" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="listInfo">
         <Property Name="contentTypesEnabled" Type="Edm.Boolean" />
         <Property Name="hidden" Type="Edm.Boolean" />
@@ -6400,6 +6435,18 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <ReturnType Type="Collection(microsoft.graph.driveItem)" />
       </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.listItem" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
       <Function Name="getByPath" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
         <Parameter Name="path" Type="Edm.String" Unicode="false" />
@@ -9933,8 +9980,10 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
         <Parameter Name="storageLocation" Type="Edm.String" Unicode="false" />
       </Action>
+      <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <EntityContainer Name="GraphService">
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
