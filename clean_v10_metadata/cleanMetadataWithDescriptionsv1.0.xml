@@ -2058,6 +2058,7 @@
         <Property Name="siteCollection" Type="microsoft.graph.siteCollection">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides details about the site's site collection. Available only on the root site. Read-only." />
         </Property>
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="columns" Type="Collection(microsoft.graph.columnDefinition)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of column definitions reusable across lists under this site." />
         </NavigationProperty>
@@ -3458,6 +3459,7 @@
         <Property Name="webDavUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="WebDAV compatible URL for the item." />
         </Property>
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="children" Type="Collection(microsoft.graph.driveItem)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection containing Item objects for the immediate children of Item. Only items representing folders have children. Read-only. Nullable." />
         </NavigationProperty>
@@ -3506,6 +3508,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="All items contained in the list." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="itemAnalytics" BaseType="microsoft.graph.entity" OpenType="true">
+        <NavigationProperty Name="itemActivityStats" Type="Collection(microsoft.graph.itemActivityStat)" ContainsTarget="true" />
+        <NavigationProperty Name="allTime" Type="microsoft.graph.itemActivityStat" />
+        <NavigationProperty Name="lastSevenDays" Type="microsoft.graph.itemActivityStat" />
+      </EntityType>
       <EntityType Name="listItem" BaseType="microsoft.graph.baseItem">
         <Property Name="contentType" Type="microsoft.graph.contentTypeInfo">
           <Annotation Term="Org.OData.Core.V1.Description" String="The content type of this list item" />
@@ -3513,6 +3520,7 @@
         <Property Name="sharepointIds" Type="microsoft.graph.sharepointIds">
           <Annotation Term="Org.OData.Core.V1.Description" String="Returns identifiers useful for SharePoint REST compatibility. Read-only." />
         </Property>
+        <NavigationProperty Name="analytics" Type="microsoft.graph.itemAnalytics" />
         <NavigationProperty Name="driveItem" Type="microsoft.graph.driveItem" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="For document libraries, the driveItem relationship exposes the listItem as a [driveItem][]" />
         </NavigationProperty>
@@ -3603,6 +3611,24 @@
         <NavigationProperty Name="functions" Type="microsoft.graph.workbookFunctions" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fieldValueSet" BaseType="microsoft.graph.entity" OpenType="true" />
+      <EntityType Name="itemActivity" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="access" Type="microsoft.graph.accessAction" />
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="actor" Type="microsoft.graph.identitySet" />
+        <NavigationProperty Name="driveItem" Type="microsoft.graph.driveItem" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="itemActivityStat" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="access" Type="microsoft.graph.itemActionStat" />
+        <Property Name="create" Type="microsoft.graph.itemActionStat" />
+        <Property Name="delete" Type="microsoft.graph.itemActionStat" />
+        <Property Name="edit" Type="microsoft.graph.itemActionStat" />
+        <Property Name="move" Type="microsoft.graph.itemActionStat" />
+        <Property Name="isTrending" Type="Edm.Boolean" />
+        <Property Name="incompleteData" Type="microsoft.graph.incompleteData" />
+        <NavigationProperty Name="activities" Type="Collection(microsoft.graph.itemActivity)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="listItemVersion" BaseType="microsoft.graph.baseItemVersion">
         <NavigationProperty Name="fields" Type="microsoft.graph.fieldValueSet" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of the fields and values for this version of the list item." />
@@ -9352,37 +9378,85 @@
         </Property>
       </EntityType>
       <EntityType Name="secureScoreControlProfile" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="actionType" Type="Edm.String" />
-        <Property Name="actionUrl" Type="Edm.String" />
-        <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="actionType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Control action type (Config, Review, Behavior)." />
+        </Property>
+        <Property Name="actionUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL to where the control can be actioned." />
+        </Property>
+        <Property Name="azureTenantId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="GUID string for tenant ID." />
+        </Property>
         <Property Name="complianceInformation" Type="Collection(microsoft.graph.complianceInformation)" />
-        <Property Name="controlCategory" Type="Edm.String" />
+        <Property Name="controlCategory" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Control action category (Identity, Data, Device, Apps, Infrastructure)." />
+        </Property>
         <Property Name="controlStateUpdates" Type="Collection(microsoft.graph.secureScoreControlStateUpdate)" />
-        <Property Name="deprecated" Type="Edm.Boolean" />
-        <Property Name="implementationCost" Type="Edm.String" />
-        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="maxScore" Type="Edm.Double" />
-        <Property Name="rank" Type="Edm.Int32" />
-        <Property Name="remediation" Type="Edm.String" />
-        <Property Name="remediationImpact" Type="Edm.String" />
-        <Property Name="service" Type="Edm.String" />
-        <Property Name="threats" Type="Collection(Edm.String)" />
+        <Property Name="deprecated" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate if a control is depreciated." />
+        </Property>
+        <Property Name="implementationCost" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Resource cost of implemmentating control (low, moderate, high)." />
+        </Property>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the control profile entity was last modified. The Timestamp type represents date and time" />
+        </Property>
+        <Property Name="maxScore" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="max attainable score for the control." />
+        </Property>
+        <Property Name="rank" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Microsoft's stack ranking of control." />
+        </Property>
+        <Property Name="remediation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description of what the control will help remediate." />
+        </Property>
+        <Property Name="remediationImpact" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description of the impact on users of the remediation." />
+        </Property>
+        <Property Name="service" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Service that owns the control (Exchange, Sharepoint, Azure AD)." />
+        </Property>
+        <Property Name="threats" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of threats the control mitigates (accountBreach,dataDeletion,dataExfiltration,dataSpillage," />
+        </Property>
         <Property Name="tier" Type="Edm.String" />
-        <Property Name="title" Type="Edm.String" />
+        <Property Name="title" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Title of the control." />
+        </Property>
         <Property Name="userImpact" Type="Edm.String" />
         <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
       </EntityType>
       <EntityType Name="secureScore" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="activeUserCount" Type="Edm.Int32" />
-        <Property Name="averageComparativeScores" Type="Collection(microsoft.graph.averageComparativeScore)" />
-        <Property Name="azureTenantId" Type="Edm.String" Nullable="false" />
-        <Property Name="controlScores" Type="Collection(microsoft.graph.controlScore)" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="currentScore" Type="Edm.Double" />
-        <Property Name="enabledServices" Type="Collection(Edm.String)" />
-        <Property Name="licensedUserCount" Type="Edm.Int32" />
-        <Property Name="maxScore" Type="Edm.Double" />
-        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation" />
+        <Property Name="activeUserCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Active user count of the given tenant." />
+        </Property>
+        <Property Name="averageComparativeScores" Type="Collection(microsoft.graph.averageComparativeScore)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Average score by different scopes (for example, average by industry, average by seating) and control category (Identity, Data, Device, Apps, Infrastructure) within the scope." />
+        </Property>
+        <Property Name="azureTenantId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="GUID string for tenant ID." />
+        </Property>
+        <Property Name="controlScores" Type="Collection(microsoft.graph.controlScore)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains tenant scores for a set of controls." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date when the entity is created." />
+        </Property>
+        <Property Name="currentScore" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Tenant current attained score on specified date." />
+        </Property>
+        <Property Name="enabledServices" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Microsoft-provided services for the tenant (for example, Exchange online, Skype, Sharepoint)." />
+        </Property>
+        <Property Name="licensedUserCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Licensed user count of the given tenant." />
+        </Property>
+        <Property Name="maxScore" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Tenant maximum possible score on specified date." />
+        </Property>
+        <Property Name="vendorInformation" Type="microsoft.graph.securityVendorInformation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Complex type containing details about the security product/service vendor, provider, and subprovider (for example, vendor=Microsoft; provider=SecureScore). Required." />
+        </Property>
       </EntityType>
       <EntityType Name="trending" BaseType="microsoft.graph.entity">
         <Property Name="weight" Type="Edm.Double" Nullable="false" />
@@ -9509,48 +9583,114 @@
         <Property Name="clientSecret" Type="Edm.String" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="microsoft.graph.entity">
-        <Property Name="category" Type="Edm.String" Nullable="false" />
-        <Property Name="correlationId" Type="Edm.String" />
-        <Property Name="result" Type="microsoft.graph.operationResult" />
-        <Property Name="resultReason" Type="Edm.String" />
-        <Property Name="activityDisplayName" Type="Edm.String" Nullable="false" />
-        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="loggedByService" Type="Edm.String" />
+        <Property Name="category" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)" />
+        </Property>
+        <Property Name="correlationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services." />
+        </Property>
+        <Property Name="result" Type="microsoft.graph.operationResult">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the result of the activity.Possible values are: success, failure, timeout, unknownFutureValue." />
+        </Property>
+        <Property Name="resultReason" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Describes cause of 'failure' or 'timeout' results." />
+        </Property>
+        <Property Name="activityDisplayName" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the activity name or the operation name (examples: 'Create User' and 'Add member to group'). For full list, see Azure AD activity list." />
+        </Property>
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the date and time the activity was performed. The Timestamp type is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="loggedByService" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates information on which service initiated the activity (For example: Self-service Password Management, Core Directory, B2C, Invited Users, Microsoft Identity Manager, Privileged Identity Management." />
+        </Property>
         <Property Name="operationType" Type="Edm.String" />
-        <Property Name="initiatedBy" Type="microsoft.graph.auditActivityInitiator" Nullable="false" />
-        <Property Name="targetResources" Type="Collection(microsoft.graph.targetResource)" />
-        <Property Name="additionalDetails" Type="Collection(microsoft.graph.keyValue)" />
+        <Property Name="initiatedBy" Type="microsoft.graph.auditActivityInitiator" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates information about the user or app initiated the activity." />
+        </Property>
+        <Property Name="targetResources" Type="Collection(microsoft.graph.targetResource)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates information on which resource was changed due to the activity. Target Resource Type can be User, Device, Directory, App, Role, Group, Policy or Other." />
+        </Property>
+        <Property Name="additionalDetails" Type="Collection(microsoft.graph.keyValue)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates additional details on the activity." />
+        </Property>
       </EntityType>
       <EntityType Name="signIn" BaseType="microsoft.graph.entity">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="userDisplayName" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-        <Property Name="userId" Type="Edm.String" Nullable="false" />
-        <Property Name="appId" Type="Edm.String" />
-        <Property Name="appDisplayName" Type="Edm.String" />
-        <Property Name="ipAddress" Type="Edm.String" />
-        <Property Name="status" Type="microsoft.graph.signInStatus" />
-        <Property Name="clientAppUsed" Type="Edm.String" />
-        <Property Name="deviceDetail" Type="microsoft.graph.deviceDetail" />
-        <Property Name="location" Type="microsoft.graph.signInLocation" />
-        <Property Name="correlationId" Type="Edm.String" />
-        <Property Name="conditionalAccessStatus" Type="microsoft.graph.conditionalAccessStatus" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time (UTC) the sign-in was initiated. Example: midnight on Jan 1, 2014 is reported as '2014-01-01T00:00:00Z'." />
+        </Property>
+        <Property Name="userDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the user that initiated the sign-in." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the user that initiated the sign-in." />
+        </Property>
+        <Property Name="userId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the user that initiated the sign-in." />
+        </Property>
+        <Property Name="appId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique GUID representing the app ID in the Azure Active Directory." />
+        </Property>
+        <Property Name="appDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="App name displayed in the Azure Portal." />
+        </Property>
+        <Property Name="ipAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="IP address of the client used to sign in." />
+        </Property>
+        <Property Name="status" Type="microsoft.graph.signInStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Sign-in status. Possible values include Success and Failure." />
+        </Property>
+        <Property Name="clientAppUsed" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the legacy client used for sign-in activity.  Includes Browser, Exchange Active Sync, modern clients, IMAP, MAPI, SMTP, and POP." />
+        </Property>
+        <Property Name="deviceDetail" Type="microsoft.graph.deviceDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Device information from where the sign-in occurred; includes device ID, operating system, and browser." />
+        </Property>
+        <Property Name="location" Type="microsoft.graph.signInLocation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the city, state, and country code where the sign-in originated." />
+        </Property>
+        <Property Name="correlationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The request ID sent from the client when the sign-in is initiated; used to troubleshoot sign-in activity." />
+        </Property>
+        <Property Name="conditionalAccessStatus" Type="microsoft.graph.conditionalAccessStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Reports status of an activated conditional access policy. Possible values are: success, failure, notApplied, and unknownFutureValue." />
+        </Property>
         <Property Name="appliedConditionalAccessPolicies" Type="Collection(microsoft.graph.appliedConditionalAccessPolicy)" />
-        <Property Name="isInteractive" Type="Edm.Boolean" />
-        <Property Name="riskDetail" Type="microsoft.graph.riskDetail" />
-        <Property Name="riskLevelAggregated" Type="microsoft.graph.riskLevel" />
-        <Property Name="riskLevelDuringSignIn" Type="microsoft.graph.riskLevel" />
-        <Property Name="riskState" Type="microsoft.graph.riskState" />
-        <Property Name="riskEventTypes" Type="Collection(microsoft.graph.riskEventType)" />
-        <Property Name="resourceDisplayName" Type="Edm.String" />
-        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="isInteractive" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if a sign-in is interactive or not." />
+        </Property>
+        <Property Name="riskDetail" Type="microsoft.graph.riskDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the 'reason' behind a specific state of a risky user, sign-in or a risk event. The possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, unknownFutureValue. The value none means that no action has been performed on the user or sign-in so far. Note: Details for this property require an Azure AD Premium P2 license. Other licenses return the value hidden." />
+        </Property>
+        <Property Name="riskLevelAggregated" Type="microsoft.graph.riskLevel">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Aggregated risk level. The possible values are: none, low, medium, high, hidden, and unknownFutureValue. The value hidden means the user or sign-in was not enabled for Azure AD Identity Protection. Note: Details for this property are only available for Azure AD Premium P2 customers. All other customers will be returned hidden." />
+        </Property>
+        <Property Name="riskLevelDuringSignIn" Type="microsoft.graph.riskLevel">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Risk level during sign-in. The possible values are: none, low, medium, high, hidden, and unknownFutureValue. The value hidden means the user or sign-in was not enabled for Azure AD Identity Protection. Note: Details for this property are only available for Azure AD Premium P2 customers. All other customers will be returned hidden." />
+        </Property>
+        <Property Name="riskState" Type="microsoft.graph.riskState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Reports status of the risky user, sign-in, or a risk event. The possible values are: none, confirmedSafe, remediated, dismissed, atRisk, confirmedCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="riskEventTypes" Type="Collection(microsoft.graph.riskEventType)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Risk event types associated with the sign-in. The possible values are: unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence,  generic, and unknownFutureValue." />
+        </Property>
+        <Property Name="resourceDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the resource the user signed into." />
+        </Property>
+        <Property Name="resourceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the resource that the user signed into." />
+        </Property>
       </EntityType>
       <EntityType Name="restrictedSignIn" BaseType="microsoft.graph.signIn">
         <Property Name="targetTenantId" Type="Edm.Guid" />
       </EntityType>
       <EntityType Name="auditLogRoot" BaseType="microsoft.graph.entity">
-        <NavigationProperty Name="signIns" Type="Collection(microsoft.graph.signIn)" ContainsTarget="true" />
-        <NavigationProperty Name="directoryAudits" Type="Collection(microsoft.graph.directoryAudit)" ContainsTarget="true" />
+        <NavigationProperty Name="signIns" Type="Collection(microsoft.graph.signIn)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="directoryAudits" Type="Collection(microsoft.graph.directoryAudit)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
         <NavigationProperty Name="restrictedSignIns" Type="Collection(microsoft.graph.restrictedSignIn)" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="alternativeSecurityId">
@@ -10891,6 +11031,15 @@
         <Property Name="width" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Width of the video, in pixels." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="accessAction" OpenType="true" />
+      <ComplexType Name="itemActionStat" OpenType="true">
+        <Property Name="actionCount" Type="Edm.Int32" />
+        <Property Name="actorCount" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="incompleteData" OpenType="true">
+        <Property Name="missingDataBeforeDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="wasThrottled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="listInfo">
         <Property Name="contentTypesEnabled" Type="Edm.Boolean">
@@ -12672,29 +12821,59 @@
         </Property>
       </ComplexType>
       <ComplexType Name="averageComparativeScore" OpenType="true">
-        <Property Name="averageScore" Type="Edm.Double" />
-        <Property Name="basis" Type="Edm.String" />
+        <Property Name="averageScore" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Average score within specified basis." />
+        </Property>
+        <Property Name="basis" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Scope type. The possible values are: AllTenants, TotalSeats, IndustryTypes." />
+        </Property>
       </ComplexType>
       <ComplexType Name="controlScore" OpenType="true">
-        <Property Name="controlCategory" Type="Edm.String" />
-        <Property Name="controlName" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="score" Type="Edm.Double" />
+        <Property Name="controlCategory" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Control action category (Identity, Data, Device, Apps, Infrastructure)." />
+        </Property>
+        <Property Name="controlName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Control unique name." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description of the control." />
+        </Property>
+        <Property Name="score" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Tenant achieved score for the control (it varies day by day depending on tenant operations on the control)." />
+        </Property>
       </ComplexType>
       <ComplexType Name="complianceInformation" OpenType="true">
-        <Property Name="certificationControls" Type="Collection(microsoft.graph.certificationControl)" />
-        <Property Name="certificationName" Type="Edm.String" />
+        <Property Name="certificationControls" Type="Collection(microsoft.graph.certificationControl)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Collection of the certification controls associated with certification" />
+        </Property>
+        <Property Name="certificationName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Compliance certification name (for example, ISO 27018:2014, GDPR, FedRAMP, NIST 800-171)" />
+        </Property>
       </ComplexType>
       <ComplexType Name="certificationControl" OpenType="true">
-        <Property Name="name" Type="Edm.String" />
-        <Property Name="url" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Certification control name" />
+        </Property>
+        <Property Name="url" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL for the Microsoft Service Trust Portal" />
+        </Property>
       </ComplexType>
       <ComplexType Name="secureScoreControlStateUpdate">
-        <Property Name="assignedTo" Type="Edm.String" />
-        <Property Name="comment" Type="Edm.String" />
-        <Property Name="state" Type="Edm.String" />
-        <Property Name="updatedBy" Type="Edm.String" />
-        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="assignedTo" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Assigns the control to the user who will take the action." />
+        </Property>
+        <Property Name="comment" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides optional comment about the control." />
+        </Property>
+        <Property Name="state" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="State of the control, which can be modified via a PATCH command (for example, ignored, thirdParty)." />
+        </Property>
+        <Property Name="updatedBy" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the user who updated tenant state." />
+        </Property>
+        <Property Name="updatedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the control state was updated." />
+        </Property>
       </ComplexType>
       <ComplexType Name="resourceVisualization">
         <Property Name="title" Type="Edm.String" />
@@ -12809,64 +12988,144 @@
         </Property>
       </ComplexType>
       <ComplexType Name="auditActivityInitiator">
-        <Property Name="user" Type="microsoft.graph.userIdentity" />
-        <Property Name="app" Type="microsoft.graph.appIdentity" />
+        <Property Name="user" Type="microsoft.graph.userIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the resource initiating the activity is a user, this property Indicates all the user related information like userId, Name, UserPrinicpalName." />
+        </Property>
+        <Property Name="app" Type="microsoft.graph.appIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the resource initiating the activity is an app, this property indicates all the app related information like appId, Name, servicePrincipalId, Name." />
+        </Property>
       </ComplexType>
       <ComplexType Name="userIdentity">
-        <Property Name="id" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="ipAddress" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up-to-date." />
+        </Property>
+        <Property Name="ipAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the client IP address used by user performing the activity (audit log only)." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The userPrincipalName attribute of the user." />
+        </Property>
       </ComplexType>
       <ComplexType Name="appIdentity">
-        <Property Name="appId" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="servicePrincipalId" Type="Edm.String" />
-        <Property Name="servicePrincipalName" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the Unique GUID representing Application Id in the Azure Active Directory." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the Application Name displayed in the Azure Portal." />
+        </Property>
+        <Property Name="servicePrincipalId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the Unique GUID indicating Service Principal Id in Azure Active Directory for the corresponding App." />
+        </Property>
+        <Property Name="servicePrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the Service Principal Name is the Application name in the tenant." />
+        </Property>
       </ComplexType>
       <ComplexType Name="targetResource">
-        <Property Name="id" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="type" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-        <Property Name="groupType" Type="microsoft.graph.groupType" />
-        <Property Name="modifiedProperties" Type="Collection(microsoft.graph.modifiedProperty)" />
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the unique ID of the resource." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the visible name defined for the resource. Typically specified when the resource is created." />
+        </Property>
+        <Property Name="type" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Describes the resource type.  Example values include Application, Group, ServicePrincipal, and User." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When type is set to User, this includes the user name that initiated the action; null for other types." />
+        </Property>
+        <Property Name="groupType" Type="microsoft.graph.groupType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When type is set to Group, this indicates the group type." />
+        </Property>
+        <Property Name="modifiedProperties" Type="Collection(microsoft.graph.modifiedProperty)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates name, old value and new value of each attribute that changed. Property values depend on the operation type." />
+        </Property>
       </ComplexType>
       <ComplexType Name="modifiedProperty">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="oldValue" Type="Edm.String" />
-        <Property Name="newValue" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the property name of the target attribute that was changed." />
+        </Property>
+        <Property Name="oldValue" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the previous value (before the update) for the property." />
+        </Property>
+        <Property Name="newValue" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the updated value for the propery." />
+        </Property>
       </ComplexType>
       <ComplexType Name="keyValue">
-        <Property Name="key" Type="Edm.String" />
-        <Property Name="value" Type="Edm.String" />
+        <Property Name="key" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Key for the key-value pair." />
+        </Property>
+        <Property Name="value" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Value for the key-value pair." />
+        </Property>
       </ComplexType>
       <ComplexType Name="signInStatus">
-        <Property Name="errorCode" Type="Edm.Int32" />
-        <Property Name="failureReason" Type="Edm.String" />
-        <Property Name="additionalDetails" Type="Edm.String" />
+        <Property Name="errorCode" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the 5-6digit error code that's generated during a sign-in failure. Check out the list of error codes and messages." />
+        </Property>
+        <Property Name="failureReason" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the error message or the reason for failure for the corresponding sign-in activity. Check out the list of error codes and messages." />
+        </Property>
+        <Property Name="additionalDetails" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides additional details on the sign-in activity" />
+        </Property>
       </ComplexType>
       <ComplexType Name="deviceDetail">
-        <Property Name="deviceId" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="operatingSystem" Type="Edm.String" />
-        <Property Name="browser" Type="Edm.String" />
-        <Property Name="isCompliant" Type="Edm.Boolean" />
-        <Property Name="isManaged" Type="Edm.Boolean" />
-        <Property Name="trustType" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the UniqueID of the device used for signing in." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the name of the device used for signing in." />
+        </Property>
+        <Property Name="operatingSystem" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the operating system name and version used for signing in." />
+        </Property>
+        <Property Name="browser" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the browser information of the used for signing in." />
+        </Property>
+        <Property Name="isCompliant" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the device is compliant." />
+        </Property>
+        <Property Name="isManaged" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the device is managed." />
+        </Property>
+        <Property Name="trustType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides information about whether the signed-in device is Workplace Joined, AzureAD Joined, Domain Joined." />
+        </Property>
       </ComplexType>
       <ComplexType Name="signInLocation">
-        <Property Name="city" Type="Edm.String" />
-        <Property Name="state" Type="Edm.String" />
-        <Property Name="countryOrRegion" Type="Edm.String" />
-        <Property Name="geoCoordinates" Type="microsoft.graph.geoCoordinates" />
+        <Property Name="city" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the city where the sign-in originated. This is calculated using latitude/longitude information from the sign-in activity." />
+        </Property>
+        <Property Name="state" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the State where the sign-in originated. This is calculated using latitude/longitude information from the sign-in activity." />
+        </Property>
+        <Property Name="countryOrRegion" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the country code info (2 letter code) where the sign-in originated.  This is calculated using latitude/longitude information from the sign-in activity." />
+        </Property>
+        <Property Name="geoCoordinates" Type="microsoft.graph.geoCoordinates">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the latitude, longitude and altitude where the sign-in originated." />
+        </Property>
       </ComplexType>
       <ComplexType Name="appliedConditionalAccessPolicy">
-        <Property Name="id" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="enforcedGrantControls" Type="Collection(Edm.String)" />
-        <Property Name="enforcedSessionControls" Type="Collection(Edm.String)" />
-        <Property Name="result" Type="microsoft.graph.appliedConditionalAccessPolicyResult" />
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique GUID of the conditional access polic.y" />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the Name of the conditional access policy (example: 'Require MFA for Salesforce')." />
+        </Property>
+        <Property Name="enforcedGrantControls" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the grant controls enforced by the conditional access policy (example: 'Require multi-factor authentication')." />
+        </Property>
+        <Property Name="enforcedSessionControls" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Refers to the session controls enforced by the conditional access policy (example: 'Require app enforced controls')." />
+        </Property>
+        <Property Name="result" Type="microsoft.graph.appliedConditionalAccessPolicyResult">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the result of the CA policy that was triggered. Possible values are:successfailurenotApplied - Policy isn't applied because policy conditions were not met.notEnabled - This is due to the policy in disabled state." />
+        </Property>
       </ComplexType>
       <EntityContainer Name="GraphService">
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
@@ -13019,6 +13278,18 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <ReturnType Type="Collection(microsoft.graph.driveItem)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.listItem" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
       </Function>
       <Function Name="getByPath" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
@@ -16726,8 +16997,10 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
         <Parameter Name="storageLocation" Type="Edm.String" Unicode="false" />
       </Action>
+      <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItemUploadableProperties" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
