@@ -3096,6 +3096,7 @@
         <Member Name="bot" Value="1" />
         <Member Name="tenantBot" Value="2" />
         <Member Name="office365Connector" Value="3" />
+        <Member Name="outgoingWebhook" Value="4" />
       </EnumType>
       <EnumType Name="conversationIdentityType">
         <Member Name="team" Value="0" />
@@ -3109,6 +3110,7 @@
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
         <Member Name="high" Value="1" />
+        <Member Name="urgent" Value="2" />
       </EnumType>
       <EnumType Name="chatMessagePolicyViolationDlpActionType" IsFlags="true">
         <Member Name="none" Value="0" />
@@ -3429,6 +3431,19 @@
         <Member Name="notSecure" Value="3" />
         <Member Name="error" Value="4" />
         <Member Name="conflict" Value="5" />
+      </EnumType>
+      <EnumType Name="onPremisesPublishingType">
+        <Member Name="appProxy" Value="0" />
+        <Member Name="exchangeOnline" Value="1" />
+        <Member Name="authentication" Value="2" />
+        <Member Name="provisioning" Value="3" />
+        <Member Name="intunePfx" Value="4" />
+        <Member Name="oflineDomainJoin" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="agentStatus">
+        <Member Name="active" Value="0" />
+        <Member Name="inactive" Value="1" />
       </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Property Name="id" Type="Edm.String" Nullable="false">
@@ -5213,6 +5228,7 @@
         </NavigationProperty>
         <NavigationProperty Name="operations" Type="Collection(microsoft.graph.teamsAsyncOperation)" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(microsoft.graph.user)" />
+        <NavigationProperty Name="group" Type="microsoft.graph.group" />
       </EntityType>
       <EntityType Name="channel" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String">
@@ -15207,7 +15223,7 @@
         <Property Name="locale" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="replies" Type="Collection(microsoft.graph.chatMessage)" ContainsTarget="true" />
-        <NavigationProperty Name="hostedImages" Type="Collection(microsoft.graph.chatMessageHostedImage)" ContainsTarget="true" />
+        <NavigationProperty Name="hostedContents" Type="Collection(microsoft.graph.chatMessageHostedContent)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chatThread" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="rootMessage" Type="microsoft.graph.chatMessage" />
@@ -15230,7 +15246,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The application that is linked to the tab. This cannot be changed after tab creation." />
         </NavigationProperty>
       </EntityType>
-      <EntityType Name="chatMessageHostedImage" BaseType="microsoft.graph.entity" />
+      <EntityType Name="chatMessageHostedContent" BaseType="microsoft.graph.entity" HasStream="true" />
       <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
         <Property Name="type" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
@@ -16801,6 +16817,32 @@
         <Property Name="state" Type="microsoft.graph.securityBaselineComplianceState" Nullable="false" />
         <Property Name="settingCategoryId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="onPremisesAgent" BaseType="microsoft.graph.entity">
+        <Property Name="machineName" Type="Edm.String" Nullable="false" />
+        <Property Name="externalIp" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="microsoft.graph.agentStatus" Nullable="false" />
+        <Property Name="supportedPublishingTypes" Type="Collection(microsoft.graph.onPremisesPublishingType)" Nullable="false" />
+        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" />
+      </EntityType>
+      <EntityType Name="onPremisesAgentGroup" BaseType="microsoft.graph.entity">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="publishingType" Type="microsoft.graph.onPremisesPublishingType" Nullable="false" />
+        <Property Name="isDefault" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="agents" Type="Collection(microsoft.graph.onPremisesAgent)" />
+        <NavigationProperty Name="publishedResources" Type="Collection(microsoft.graph.publishedResource)" />
+      </EntityType>
+      <EntityType Name="publishedResource" BaseType="microsoft.graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="resourceName" Type="Edm.String" />
+        <Property Name="publishingType" Type="microsoft.graph.onPremisesPublishingType" Nullable="false" />
+        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" />
+      </EntityType>
+      <EntityType Name="onPremisesPublishingProfile" BaseType="microsoft.graph.entity">
+        <Property Name="hybridAgentUpdaterConfiguration" Type="microsoft.graph.hybridAgentUpdaterConfiguration" />
+        <NavigationProperty Name="agents" Type="Collection(microsoft.graph.onPremisesAgent)" ContainsTarget="true" />
+        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" ContainsTarget="true" />
+        <NavigationProperty Name="publishedResources" Type="Collection(microsoft.graph.publishedResource)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="MeetingParticipants">
         <Property Name="organizer" Type="microsoft.graph.MeetingParticipantInfo" Nullable="false" />
         <Property Name="attendees" Type="Collection(microsoft.graph.MeetingParticipantInfo)" />
@@ -17383,6 +17425,10 @@
         </Property>
       </ComplexType>
       <ComplexType Name="ComplexExtensionValue" OpenType="true" />
+      <ComplexType Name="directoryRolePermission">
+        <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="condition" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
       <ComplexType Name="Json" />
       <ComplexType Name="imageInfo">
@@ -22222,6 +22268,15 @@
       <ComplexType Name="deviceManagementSettingBooleanConstraint" BaseType="microsoft.graph.deviceManagementConstraint">
         <Property Name="value" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="hybridAgentUpdaterConfiguration">
+        <Property Name="deferUpdateDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="updateWindow" Type="microsoft.graph.updateWindow" />
+        <Property Name="allowUpdateConfigurationOverride" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="updateWindow">
+        <Property Name="updateWindowStartTime" Type="Edm.TimeOfDay" />
+        <Property Name="updateWindowEndTime" Type="Edm.TimeOfDay" />
+      </ComplexType>
       <EntityContainer Name="GraphService">
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
@@ -22369,6 +22424,7 @@
         <EntitySet Name="programs" EntityType="microsoft.graph.program" />
         <EntitySet Name="programControls" EntityType="microsoft.graph.programControl" />
         <EntitySet Name="programControlTypes" EntityType="microsoft.graph.programControlType" />
+        <EntitySet Name="onPremisesPublishingProfiles" EntityType="microsoft.graph.onPremisesPublishingProfile" />
         <Singleton Name="app" Type="microsoft.graph.CommsApplication" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
