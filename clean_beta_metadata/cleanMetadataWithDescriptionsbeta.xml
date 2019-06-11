@@ -3445,6 +3445,12 @@
         <Member Name="active" Value="0" />
         <Member Name="inactive" Value="1" />
       </EnumType>
+      <EnumType Name="stagedFeatureName">
+        <Member Name="passthroughAuthentication" Value="0" />
+        <Member Name="seamlessSso" Value="1" />
+        <Member Name="passwordHashSync" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Property Name="id" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
@@ -5369,6 +5375,15 @@
         <NavigationProperty Name="deletedItems" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="featureRolloutPolicies" Type="Collection(microsoft.graph.featureRolloutPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="featureRolloutPolicy" BaseType="microsoft.graph.entity">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="feature" Type="microsoft.graph.stagedFeatureName" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="appliesTo" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="extensionProperty" BaseType="microsoft.graph.directoryObject" OpenType="true">
         <Property Name="appDisplayName" Type="Edm.String" />
@@ -6799,10 +6814,18 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="mailSearchFolder" BaseType="microsoft.graph.mailFolder">
-        <Property Name="isSupported" Type="Edm.Boolean" />
-        <Property Name="includeNestedFolders" Type="Edm.Boolean" />
-        <Property Name="sourceFolderIDs" Type="Collection(Edm.String)" />
-        <Property Name="filterQuery" Type="Edm.String" />
+        <Property Name="isSupported" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a search folder is editable using REST APIs." />
+        </Property>
+        <Property Name="includeNestedFolders" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates how the mailbox folder hierarchy should be traversed in the search. true means that a deep search should be done to include child folders in the hierarchy of each folder explicitly specified in sourceFolderIds. false means a shallow search of only each of the folders explicitly specified in sourceFolderIds." />
+        </Property>
+        <Property Name="sourceFolderIds" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mailbox folders that should be mined." />
+        </Property>
+        <Property Name="filterQuery" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The OData query to filter the messages." />
+        </Property>
       </EntityType>
       <EntityType Name="eventMessageRequest" BaseType="microsoft.graph.eventMessage">
         <Property Name="previousLocation" Type="microsoft.graph.location" />
@@ -15411,7 +15434,7 @@
       </EntityType>
       <EntityType Name="educationUser" BaseType="microsoft.graph.entity">
         <Property Name="primaryRole" Type="microsoft.graph.educationUserRole" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Default role for a user. The user's role might be different in an individual class. The possible values are: student, teacher, unknownFutureValue. Supports $filter." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Default role for a user. The user's role might be different in an individual class. The possible values are: student, teacher. Supports $filter." />
         </Property>
         <Property Name="relatedContacts" Type="Collection(microsoft.graph.relatedContact)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Set of contacts related to the user.  This optional property must be specified in a $select clause and can only be retrieved for an individual user." />
@@ -15420,7 +15443,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The middle name of user." />
         </Property>
         <Property Name="externalSource" Type="microsoft.graph.educationExternalSource">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Where this user was created from. The possible values are: sis, manual, unkownFutureValue." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Where this user was created from. The possible values are: sis, manual." />
         </Property>
         <Property Name="residenceAddress" Type="microsoft.graph.physicalAddress">
           <Annotation Term="Org.OData.Core.V1.Description" String="Address where user lives." />
@@ -16822,20 +16845,20 @@
         <Property Name="externalIp" Type="Edm.String" Nullable="false" />
         <Property Name="status" Type="microsoft.graph.agentStatus" Nullable="false" />
         <Property Name="supportedPublishingTypes" Type="Collection(microsoft.graph.onPremisesPublishingType)" Nullable="false" />
-        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" />
+        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="onPremisesAgentGroup" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="publishingType" Type="microsoft.graph.onPremisesPublishingType" Nullable="false" />
         <Property Name="isDefault" Type="Edm.Boolean" Nullable="false" />
-        <NavigationProperty Name="agents" Type="Collection(microsoft.graph.onPremisesAgent)" />
-        <NavigationProperty Name="publishedResources" Type="Collection(microsoft.graph.publishedResource)" />
+        <NavigationProperty Name="agents" Type="Collection(microsoft.graph.onPremisesAgent)" ContainsTarget="true" />
+        <NavigationProperty Name="publishedResources" Type="Collection(microsoft.graph.publishedResource)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="publishedResource" BaseType="microsoft.graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="resourceName" Type="Edm.String" />
         <Property Name="publishingType" Type="microsoft.graph.onPremisesPublishingType" Nullable="false" />
-        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" />
+        <NavigationProperty Name="agentGroups" Type="Collection(microsoft.graph.onPremisesAgentGroup)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="onPremisesPublishingProfile" BaseType="microsoft.graph.entity">
         <Property Name="hybridAgentUpdaterConfiguration" Type="microsoft.graph.hybridAgentUpdaterConfiguration" />
