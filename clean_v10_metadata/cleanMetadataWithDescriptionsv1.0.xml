@@ -1664,6 +1664,9 @@
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never been synced from an on-premises directory (default). Returned by default. Read-only. Supports $filter." />
         </Property>
+        <Property Name="preferredDataLocation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The preferred data location for the group. For more information, see  OneDrive Online Multi-Geo. Returned by default." />
+        </Property>
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Email addresses for the group that direct to the same group mailbox. For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. The any operator is required to filter expressions on multi-valued properties. Returned by default. Read-only. Not nullable. Supports $filter." />
         </Property>
@@ -2374,6 +2377,9 @@
         <Property Name="showInAddressList" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the Outlook global address list should contain this user, otherwise false. If not set, this will be treated as true. For users invited through the invitation manager, this property will be set to false." />
         </Property>
+        <Property Name="signInSessionsValidFromDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Any refresh tokens or sessions tokens (session cookies) issued before this time are invalid, and applications will get an error when using an invalid refresh or sessions token to acquire a delegated access token (to access APIs such as Microsoft Graph).  If this happens, the application will need to acquire a new refresh token by making a request to the authorize endpoint. Read-only. Use revokeSignInSessions to reset." />
+        </Property>
         <Property Name="state" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The state or province in the user's address. Supports $filter." />
         </Property>
@@ -2450,7 +2456,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owned by the user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="licenseDetails" Type="Collection(microsoft.graph.licenseDetails)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of this user's license details. Nullable." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of this user's license details. Read-only." />
         </NavigationProperty>
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
         <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true">
@@ -3212,10 +3218,18 @@
         </Property>
       </EntityType>
       <EntityType Name="mailSearchFolder" BaseType="microsoft.graph.mailFolder">
-        <Property Name="isSupported" Type="Edm.Boolean" />
-        <Property Name="includeNestedFolders" Type="Edm.Boolean" />
-        <Property Name="sourceFolderIds" Type="Collection(Edm.String)" />
-        <Property Name="filterQuery" Type="Edm.String" />
+        <Property Name="isSupported" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a search folder is editable using REST APIs." />
+        </Property>
+        <Property Name="includeNestedFolders" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates how the mailbox folder hierarchy should be traversed in the search. true means that a deep search should be done to include child folders in the hierarchy of each folder explicitly specified in sourceFolderIds. false means a shallow search of only each of the folders explicitly specified in sourceFolderIds." />
+        </Property>
+        <Property Name="sourceFolderIds" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mailbox folders that should be mined." />
+        </Property>
+        <Property Name="filterQuery" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The OData query to filter the messages." />
+        </Property>
       </EntityType>
       <EntityType Name="fileAttachment" BaseType="microsoft.graph.attachment">
         <Property Name="contentId" Type="Edm.String">
@@ -4755,13 +4769,13 @@
       </EntityType>
       <EntityType Name="educationUser" BaseType="microsoft.graph.entity">
         <Property Name="primaryRole" Type="microsoft.graph.educationUserRole" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Default role for a user. The user's role might be different in an individual class. The possible values are: student, teacher, unknownFutureValue. Supports $filter." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Default role for a user. The user's role might be different in an individual class. The possible values are: student, teacher. Supports $filter." />
         </Property>
         <Property Name="middleName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The middle name of user." />
         </Property>
         <Property Name="externalSource" Type="microsoft.graph.educationExternalSource">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Where this user was created from. The possible values are: sis, manual, unkownFutureValue." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Where this user was created from. The possible values are: sis, manual." />
         </Property>
         <Property Name="residenceAddress" Type="microsoft.graph.physicalAddress">
           <Annotation Term="Org.OData.Core.V1.Description" String="Address where user lives." />
@@ -14155,6 +14169,10 @@
       <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
         <ReturnType Type="microsoft.graph.directoryObject" />
+      </Action>
+      <Action Name="revokeSignInSessions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="sendMail" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
