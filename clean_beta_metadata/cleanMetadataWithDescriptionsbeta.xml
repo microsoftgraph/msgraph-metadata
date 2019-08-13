@@ -319,16 +319,18 @@
         <Member Name="reportOnlyInterrupted" Value="9" />
       </EnumType>
       <EnumType Name="authenticationMethod">
-        <Member Name="claimInAccessToken" Value="0" />
-        <Member Name="password" Value="1" />
-        <Member Name="sms" Value="2" />
-        <Member Name="hardwareOathToken" Value="3" />
-        <Member Name="softwareOathToken" Value="4" />
-        <Member Name="fido2Token" Value="5" />
-        <Member Name="authenticatorAppPushNotification" Value="6" />
-        <Member Name="authenticatorAppPasswordlessSignIn" Value="7" />
-        <Member Name="federated" Value="8" />
-        <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="none" Value="0" />
+        <Member Name="claimInAccessToken" Value="1" />
+        <Member Name="password" Value="2" />
+        <Member Name="sms" Value="3" />
+        <Member Name="voiceCall" Value="4" />
+        <Member Name="hardwareOathToken" Value="5" />
+        <Member Name="softwareOathToken" Value="6" />
+        <Member Name="fido2Token" Value="7" />
+        <Member Name="authenticatorAppPushNotification" Value="8" />
+        <Member Name="authenticatorAppPasswordlessSignIn" Value="9" />
+        <Member Name="federated" Value="10" />
+        <Member Name="unknownFutureValue" Value="11" />
       </EnumType>
       <EnumType Name="authenticationStepRequirement">
         <Member Name="primaryAuthentication" Value="0" />
@@ -5827,6 +5829,30 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Value to use when configuring the time-to-live (ttl) property of the DNS record at the DNS host. Not nullable" />
         </Property>
       </EntityType>
+      <EntityType Name="roleManagement" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="directory" Type="microsoft.graph.rbacApplication" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="rbacApplication" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="roleDefinitions" Type="Collection(microsoft.graph.unifiedRoleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(microsoft.graph.unifiedRoleAssignment)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRoleDefinition" BaseType="microsoft.graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isBuiltIn" Type="Edm.Boolean" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="rolePermissions" Type="Collection(microsoft.graph.directoryRolePermission)" Nullable="false" />
+        <Property Name="templateId" Type="Edm.String" />
+        <Property Name="version" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="unifiedRoleAssignment" BaseType="microsoft.graph.entity">
+        <Property Name="principalId" Type="Edm.String" />
+        <Property Name="resourceScope" Type="Edm.String" />
+        <Property Name="roleDefinitionId" Type="Edm.String" />
+        <NavigationProperty Name="principal" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="roleDefinition" Type="Collection(microsoft.graph.unifiedRoleDefinition)" />
+      </EntityType>
       <EntityType Name="domainDnsCnameRecord" BaseType="microsoft.graph.domainDnsRecord">
         <Property Name="canonicalName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The canonical name of the CNAME record. Used to configure the CNAME record at the DNS host." />
@@ -7658,7 +7684,7 @@
         </Property>
         <Property Name="mfaDetail" Type="microsoft.graph.mfaDetail" />
         <Property Name="networkLocationDetails" Type="Collection(microsoft.graph.networkLocationDetail)" />
-        <Property Name="originalRequestId" Type="Edm.Guid" />
+        <Property Name="originalRequestId" Type="Edm.String" />
         <Property Name="processingTimeInMilliseconds" Type="Edm.Int32" />
         <Property Name="riskDetail" Type="microsoft.graph.riskDetail">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides the 'reason' behind a specific state of a risky user, sign-in or a risk event. The possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, unknownFutureValue. The value none means that no action has been performed on the user or sign-in so far. Note: Details for this property require an Azure AD Premium P2 license. Other licenses return the value hidden." />
@@ -7797,6 +7823,7 @@
         </NavigationProperty>
         <NavigationProperty Name="restrictedSignIns" Type="Collection(microsoft.graph.restrictedSignIn)" ContainsTarget="true" />
         <NavigationProperty Name="directoryProvisioning" Type="Collection(microsoft.graph.provisioningObjectSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="provisioning" Type="Collection(microsoft.graph.provisioningObjectSummary)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="reportRoot" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(microsoft.graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
@@ -15641,6 +15668,7 @@
         <NavigationProperty Name="timeOffReasons" Type="Collection(microsoft.graph.timeOffReason)" ContainsTarget="true" />
         <NavigationProperty Name="schedulingGroups" Type="Collection(microsoft.graph.schedulingGroup)" ContainsTarget="true" />
         <NavigationProperty Name="swapShiftsChangeRequests" Type="Collection(microsoft.graph.swapShiftsChangeRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="timeOffRequests" Type="Collection(microsoft.graph.timeOffRequest)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="microsoft.graph.entity" />
       <EntityType Name="teamsCatalogApp" BaseType="microsoft.graph.entity">
@@ -17673,6 +17701,11 @@
       <EntityType Name="swapShiftsChangeRequest" BaseType="microsoft.graph.shiftChangeRequest">
         <Property Name="recipientShiftId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="timeOffRequest" BaseType="microsoft.graph.scheduleChangeRequest">
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="timeOffReasonId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="deviceManagementSettingInstance" BaseType="microsoft.graph.entity" Abstract="true">
         <Property Name="definitionId" Type="Edm.String" Nullable="false" />
         <Property Name="valueJson" Type="Edm.String" />
@@ -18282,6 +18315,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp for when the last activity occurred. The value is updated when an operation is scheduled, the asynchronous task starts, and when the operation completes." />
         </Property>
       </ComplexType>
+      <ComplexType Name="directoryRolePermission">
+        <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="condition" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="servicePlanInfo">
         <Property Name="servicePlanId" Type="Edm.Guid">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the service plan." />
@@ -18340,10 +18377,6 @@
         </Property>
       </ComplexType>
       <ComplexType Name="ComplexExtensionValue" OpenType="true" />
-      <ComplexType Name="directoryRolePermission">
-        <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="condition" Type="Edm.String" />
-      </ComplexType>
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
       <ComplexType Name="Json" />
       <ComplexType Name="imageInfo">
@@ -23788,6 +23821,7 @@
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
         </Singleton>
+        <Singleton Name="roleManagement" Type="microsoft.graph.roleManagement" />
         <Singleton Name="directory" Type="microsoft.graph.directory" />
         <Singleton Name="drive" Type="microsoft.graph.drive">
           <NavigationPropertyBinding Path="items/createdByUser" Target="users" />
@@ -43416,6 +43450,7 @@
       <Annotations Target="microsoft.graph.schedule/timesOff" />
       <Annotations Target="microsoft.graph.schedule/timeOffReasons" />
       <Annotations Target="microsoft.graph.schedule/schedulingGroups" />
+      <Annotations Target="microsoft.graph.schedule/timeOffRequests" />
       <Annotations Target="microsoft.graph.changeTrackedEntity/createdDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
