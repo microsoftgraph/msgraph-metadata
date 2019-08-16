@@ -14,5 +14,5 @@ param([parameter(Mandatory = $true)][String]$endpointVersion)
 $endpointVersionWithoutDot = $endpointVersion.Replace(".","")  
 $inputFile = "clean_{0}_metadata\cleanMetadataWithDescriptions{1}.xml" -f $endpointVersionWithoutDot,$endpointVersion
 $outputFile = "openapi\{0}\openapi.yaml" -f $endpointVersion
-$openApiTool = ".\tools\odata2openapi\OData2OpenApi.exe --csdl={0} --output={1}" -f $inputFile, $outputFile
+$openApiTool = ".\tools\odata2openapi\OData2OpenApi.exe --KeyAsSegment=true --csdl={0} --output={1}" -f $inputFile, $outputFile
 Invoke-Expression ("& {0}" -f $openApiTool)
