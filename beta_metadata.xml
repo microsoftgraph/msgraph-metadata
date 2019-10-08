@@ -37,6 +37,19 @@
         <Member Name="premiumP2" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
+      <EnumType Name="conditionalAccessConditions" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="application" Value="1" />
+        <Member Name="users" Value="2" />
+        <Member Name="devicePlatform" Value="4" />
+        <Member Name="location" Value="8" />
+        <Member Name="clientType" Value="16" />
+        <Member Name="signInRisk" Value="32" />
+        <Member Name="userRisk" Value="64" />
+        <Member Name="time" Value="128" />
+        <Member Name="deviceState" Value="256" />
+        <Member Name="client" Value="512" />
+      </EnumType>
       <EnumType Name="conditionalAccessStatus">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
@@ -3927,6 +3940,8 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="enforcedGrantControls" Type="Collection(Edm.String)" />
         <Property Name="enforcedSessionControls" Type="Collection(Edm.String)" />
+        <Property Name="conditionsSatisfied" Type="microsoft.graph.conditionalAccessConditions" />
+        <Property Name="conditionsNotSatisfied" Type="microsoft.graph.conditionalAccessConditions" />
         <Property Name="result" Type="microsoft.graph.appliedConditionalAccessPolicyResult" />
       </ComplexType>
       <ComplexType Name="authenticationDetail">
@@ -6051,6 +6066,7 @@
         <Property Name="classId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="instructions" Type="microsoft.graph.educationItemBody" />
+        <Property Name="closeDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="dueDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="assignDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="assignedDateTime" Type="Edm.DateTimeOffset" />
@@ -6173,6 +6189,10 @@
       </ComplexType>
       <ComplexType Name="educationPowerPointResource" BaseType="microsoft.graph.educationResource">
         <Property Name="fileUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationMakeCodeResource" BaseType="microsoft.graph.educationResource">
+        <Property Name="hostWebUrl" Type="Edm.String" />
+        <Property Name="projectId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="educationExcelResource" BaseType="microsoft.graph.educationResource">
         <Property Name="fileUrl" Type="Edm.String" />
@@ -6488,7 +6508,10 @@
         <Property Name="applicationId" Type="Edm.String" />
         <Property Name="creatorId" Type="Edm.String" />
         <Property Name="includeProperties" Type="Edm.Boolean" />
+        <Property Name="includeResourceData" Type="Edm.Boolean" />
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
+        <Property Name="encryptionCertificate" Type="Edm.String" />
+        <Property Name="encryptionCertificateId" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="quota">
         <Property Name="deleted" Type="Edm.Int64" />
@@ -16802,6 +16825,15 @@
         <Property Name="mediaInfo" Type="microsoft.graph.mediaInfo" Nullable="false" />
         <Property Name="loop" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="errorDetail">
+        <Property Name="errorCode" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="details" Type="Collection(microsoft.graph.innerErrorDetail)" />
+      </ComplexType>
+      <ComplexType Name="innerErrorDetail">
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="appCatalogs" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="teamsApps" Type="Collection(microsoft.graph.teamsApp)" ContainsTarget="true" />
       </EntityType>
@@ -17089,6 +17121,472 @@
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.relyingPartyDetailedSummary)" Nullable="false" />
       </Function>
+      <Function Name="deviceConfigurationUserActivity" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="deviceConfigurationDeviceActivity" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentFailureDetails" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentFailureDetails" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentFailureTrends" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentTopFailures" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentTopFailures" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentAbandonmentSummary" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="managedDeviceEnrollmentAbandonmentDetails" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="getOffice365ActivationsUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActivationsUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ActivationCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActivationCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ActivationsUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActivationsUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ActiveUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ActiveUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ServicesUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365ServicesUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365ActiveUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityGroupCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityGroupCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityStorage" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityStorage)" Nullable="false" />
+      </Function>
+      <Function Name="getOffice365GroupsActivityFileCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityFileCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailAppUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailAppUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailAppUsageAppsUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAppUsageAppsUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailAppUsageUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getEmailAppUsageVersionsUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAppUsageVersionsUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getMailboxUsageDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mailboxUsageDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getMailboxUsageMailboxCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mailboxUsageMailboxCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getMailboxUsageQuotaStatusMailboxCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mailboxUsageQuotaStatusMailboxCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getMailboxUsageStorage" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mailboxUsageStorage)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveActivityFileCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveUsageAccountDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveUsageAccountDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveUsageAccountCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveUsageFileCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageFileCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getOneDriveUsageStorage" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.siteUsageStorage)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointActivityFileCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointActivityPages" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointActivityPages)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsageDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsageDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsageFileCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageFileCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsageSiteCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageSiteCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsageStorage" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.siteUsageStorage)" Nullable="false" />
+      </Function>
+      <Function Name="getSharePointSiteUsagePages" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsagePages)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessPeerToPeerActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessPeerToPeerActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessPeerToPeerActivityMinuteCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityMinuteCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessOrganizerActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessOrganizerActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessOrganizerActivityMinuteCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityMinuteCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessParticipantActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessParticipantActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessParticipantActivityMinuteCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityMinuteCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageDistributionUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getSkypeForBusinessDeviceUsageUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageDistributionUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerDeviceUsageUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerGroupsActivityDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerGroupsActivityDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerGroupsActivityGroupCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityGroupCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getYammerGroupsActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsUserActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsUserActivityUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsUserActivityCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsUserActivityUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsDeviceUsageUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserDetail)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsDeviceUsageUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageDistributionUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getTenantSecureScores" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="microsoft.graph.report" />
+      </Function>
       <Action Name="instantiate" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.applicationTemplate" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
@@ -17152,6 +17650,19 @@
         <Parameter Name="types" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.directoryObject)" Nullable="false" />
       </Action>
+      <Action Name="validateProperties" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.directoryObject)" Nullable="false" />
+        <Parameter Name="entityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
+        <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
+      </Action>
+      <Action Name="getUserOwnedObjects" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.directoryObject)" Nullable="false" />
+        <Parameter Name="userId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="type" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.directoryObject" />
+      </Action>
       <Action Name="checkMemberGroups" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
         <Parameter Name="groupIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
@@ -17172,16 +17683,17 @@
         <Parameter Name="securityEnabledOnly" Type="Edm.Boolean" />
         <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
       </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
+        <ReturnType Type="microsoft.graph.directoryObject" />
+      </Action>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
       </Action>
-      <Action Name="validateProperties" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.directoryObject)" Nullable="false" />
-        <Parameter Name="entityType" Type="Edm.String" Unicode="false" />
-        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
-        <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
-        <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
+      <Action Name="verify" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.domain" Nullable="false" />
+        <ReturnType Type="microsoft.graph.domain" />
       </Action>
       <Action Name="validateProperties" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
@@ -17189,13 +17701,42 @@
         <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
         <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
       </Action>
-      <Action Name="verify" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.domain" Nullable="false" />
-        <ReturnType Type="microsoft.graph.domain" />
+      <Action Name="grantResourceSpecificConsent" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
+        <Parameter Name="checkOnly" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="clientAppId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="permissionSets" Type="Collection(microsoft.graph.instanceResourceAccess)" Nullable="false" />
+        <Parameter Name="tags" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
-      <Action Name="restore" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
-        <ReturnType Type="microsoft.graph.directoryObject" />
+      <Action Name="revokeResourceSpecificConsent" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
+        <Parameter Name="clientAppId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="assignLicense" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
+        <Parameter Name="addLicenses" Type="Collection(microsoft.graph.assignedLicense)" Nullable="false" />
+        <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false" />
+        <ReturnType Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="subscribeByMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="unsubscribeByMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="addFavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="removeFavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="resetUnseenCount" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="renew" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
       </Action>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
@@ -17216,24 +17757,103 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
       </Action>
-      <Action Name="grantResourceSpecificConsent" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
-        <Parameter Name="checkOnly" Type="Edm.Boolean" Nullable="false" />
-        <Parameter Name="clientAppId" Type="Edm.String" Nullable="false" Unicode="false" />
-        <Parameter Name="permissionSets" Type="Collection(microsoft.graph.instanceResourceAccess)" Nullable="false" />
-        <Parameter Name="tags" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Edm.Boolean" />
+      <Action Name="reprocessLicenseAssignment" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
+        <ReturnType Type="microsoft.graph.user" />
       </Action>
-      <Action Name="revokeResourceSpecificConsent" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
-        <Parameter Name="clientAppId" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Edm.Boolean" />
+      <Action Name="findMeetingTimes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="attendees" Type="Collection(microsoft.graph.attendeeBase)" />
+        <Parameter Name="locationConstraint" Type="microsoft.graph.locationConstraint" />
+        <Parameter Name="timeConstraint" Type="microsoft.graph.timeConstraint" />
+        <Parameter Name="meetingDuration" Type="Edm.Duration" />
+        <Parameter Name="maxCandidates" Type="Edm.Int32" />
+        <Parameter Name="isOrganizerOptional" Type="Edm.Boolean" />
+        <Parameter Name="returnSuggestionReasons" Type="Edm.Boolean" />
+        <Parameter Name="minimumAttendeePercentage" Type="Edm.Double" />
+        <ReturnType Type="microsoft.graph.meetingTimeSuggestionsResult" />
       </Action>
-      <Action Name="getUserOwnedObjects" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.directoryObject)" Nullable="false" />
-        <Parameter Name="userId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="type" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.directoryObject" />
+      <Action Name="sendMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="Message" Type="microsoft.graph.message" Nullable="false" />
+        <Parameter Name="SaveToSentItems" Type="Edm.Boolean" />
+      </Action>
+      <Function Name="reminderView" IsBound="true">
+        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
+        <Parameter Name="StartDateTime" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="EndDateTime" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.reminder)" Nullable="false" />
+      </Function>
+      <Action Name="getMailTips" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="EmailAddresses" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="MailTipsOptions" Type="microsoft.graph.mailTipsType" />
+        <ReturnType Type="Collection(microsoft.graph.mailTips)" Nullable="false" />
+      </Action>
+      <Function Name="findRooms" IsBound="true">
+        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.emailAddress)" Nullable="false" />
+      </Function>
+      <Function Name="findRoomLists" IsBound="true">
+        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.emailAddress)" Nullable="false" />
+      </Function>
+      <Function Name="findRooms" IsBound="true">
+        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
+        <Parameter Name="RoomList" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.emailAddress)" />
+      </Function>
+      <Action Name="translateExchangeIds" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="InputIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="TargetIdType" Type="microsoft.graph.exchangeIdFormat" Nullable="false" />
+        <Parameter Name="SourceIdType" Type="microsoft.graph.exchangeIdFormat" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.convertIdResult)" Nullable="false" />
+      </Action>
+      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="microsoft.graph.deviceAndAppManagementData" />
+      </Function>
+      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="skip" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="top" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="microsoft.graph.deviceAndAppManagementData" />
+      </Function>
+      <Function Name="getEffectiveDeviceEnrollmentConfigurations" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.deviceEnrollmentConfiguration)" />
+      </Function>
+      <Action Name="removeAllDevicesFromManagement" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+      </Action>
+      <Function Name="getLoggedOnManagedDevices" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.managedDevice)" />
+      </Function>
+      <Function Name="getManagedAppDiagnosticStatuses" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.managedAppDiagnosticStatus)" />
+      </Function>
+      <Function Name="getManagedAppPolicies" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(microsoft.graph.managedAppPolicy)" />
+      </Function>
+      <Action Name="wipeManagedAppRegistrationByDeviceTag" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="deviceTag" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="wipeManagedAppRegistrationsByDeviceTag" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="deviceTag" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Function Name="getManagedDevicesWithAppFailures" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
+      <Action Name="exportPersonalData" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+        <Parameter Name="storageLocation" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="publish" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.educationAssignment" />
@@ -17311,6 +17931,7 @@
       <Action Name="createSession" IsBound="true">
         <Parameter Name="this" Type="microsoft.graph.workbook" />
         <Parameter Name="persistChanges" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="commitExplicitly" Type="Edm.Boolean" />
         <ReturnType Type="microsoft.graph.workbookSessionInfo" />
       </Action>
       <Action Name="closeSession" IsBound="true">
@@ -17372,6 +17993,10 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookChart" />
       </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChart)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
       <Action Name="clear" IsBound="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookChartFill" />
       </Action>
@@ -17387,10 +18012,18 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookChartPoint" />
       </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChartPoint)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
       <Function Name="itemAt" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChartSeries)" />
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookChartSeries" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChartSeries)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
       </Function>
       <Action Name="apply" IsBound="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookFilter" />
@@ -19876,6 +20509,10 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookRangeBorder" />
       </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookRangeBorder)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
       <Action Name="clear" IsBound="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookRangeFill" />
       </Action>
@@ -19939,6 +20576,10 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookTable" />
       </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTable)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
       <Function Name="dataBodyRange" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookTableColumn" />
         <ReturnType Type="microsoft.graph.workbookRange" />
@@ -19967,6 +20608,10 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookTableColumn" />
       </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTableColumn)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
       <Function Name="range" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookTableRow" />
         <ReturnType Type="microsoft.graph.workbookRange" />
@@ -19981,6 +20626,10 @@
         <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTableRow)" />
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.workbookTableRow" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTableRow)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
       </Function>
       <Action Name="apply" IsBound="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookTableSort" />
@@ -20030,46 +20679,6 @@
       <Action Name="unprotect" IsBound="true">
         <Parameter Name="bindparameter" Type="microsoft.graph.workbookWorksheetProtection" />
       </Action>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChart)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChartPoint)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookChartSeries)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookRangeBorder)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTable)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTableColumn)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(microsoft.graph.workbookTableRow)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Action Name="findMeetingTimes" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="attendees" Type="Collection(microsoft.graph.attendeeBase)" />
-        <Parameter Name="locationConstraint" Type="microsoft.graph.locationConstraint" />
-        <Parameter Name="timeConstraint" Type="microsoft.graph.timeConstraint" />
-        <Parameter Name="meetingDuration" Type="Edm.Duration" />
-        <Parameter Name="maxCandidates" Type="Edm.Int32" />
-        <Parameter Name="isOrganizerOptional" Type="Edm.Boolean" />
-        <Parameter Name="returnSuggestionReasons" Type="Edm.Boolean" />
-        <Parameter Name="minimumAttendeePercentage" Type="Edm.Double" />
-        <ReturnType Type="microsoft.graph.meetingTimeSuggestionsResult" />
-      </Action>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingparameter" Type="Collection(microsoft.graph.mailFolder)" Nullable="false" />
         <ReturnType Type="Collection(microsoft.graph.mailFolder)" Nullable="false" />
@@ -20082,58 +20691,6 @@
         <Parameter Name="bindingparameter" Type="Collection(microsoft.graph.contactFolder)" Nullable="false" />
         <ReturnType Type="Collection(microsoft.graph.contactFolder)" Nullable="false" />
       </Function>
-      <Action Name="sendMail" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="Message" Type="microsoft.graph.message" Nullable="false" />
-        <Parameter Name="SaveToSentItems" Type="Edm.Boolean" />
-      </Action>
-      <Function Name="reminderView" IsBound="true">
-        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
-        <Parameter Name="StartDateTime" Type="Edm.String" Nullable="false" Unicode="false" />
-        <Parameter Name="EndDateTime" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.reminder)" Nullable="false" />
-      </Function>
-      <Action Name="getMailTips" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="EmailAddresses" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
-        <Parameter Name="MailTipsOptions" Type="microsoft.graph.mailTipsType" />
-        <ReturnType Type="Collection(microsoft.graph.mailTips)" Nullable="false" />
-      </Action>
-      <Function Name="findRooms" IsBound="true">
-        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.emailAddress)" Nullable="false" />
-      </Function>
-      <Function Name="findRoomLists" IsBound="true">
-        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.emailAddress)" Nullable="false" />
-      </Function>
-      <Function Name="findRooms" IsBound="true">
-        <Parameter Name="bindingparameter" Type="microsoft.graph.user" />
-        <Parameter Name="RoomList" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAddress)" />
-      </Function>
-      <Action Name="translateExchangeIds" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="InputIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
-        <Parameter Name="TargetIdType" Type="microsoft.graph.exchangeIdFormat" Nullable="false" />
-        <Parameter Name="SourceIdType" Type="microsoft.graph.exchangeIdFormat" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.convertIdResult)" Nullable="false" />
-      </Action>
-      <Action Name="subscribeByMail" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
-      </Action>
-      <Action Name="unsubscribeByMail" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
-      </Action>
-      <Action Name="addFavorite" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
-      </Action>
-      <Action Name="removeFavorite" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
-      </Action>
-      <Action Name="resetUnseenCount" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
-      </Action>
       <Function Name="supportedLanguages" IsBound="true">
         <Parameter Name="bindingparameter" Type="microsoft.graph.outlookUser" />
         <ReturnType Type="Collection(microsoft.graph.localeInfo)" Nullable="false" />
@@ -20300,35 +20857,9 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
       </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.listItem" />
-        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
-      </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
-        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
-      </Function>
-      <Function Name="getByPath" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
-        <Parameter Name="path" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.site" />
-      </Function>
-      <Function Name="recent" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
-        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
-      </Function>
-      <Function Name="search" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
-        <Parameter Name="q" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
-      </Function>
       <Function Name="search" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
-      </Function>
-      <Function Name="sharedWithMe" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
         <ReturnType Type="Collection(microsoft.graph.driveItem)" />
       </Function>
       <Action Name="checkin" IsBound="true">
@@ -20368,22 +20899,6 @@
       <Action Name="unfollow" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
       </Action>
-      <Action Name="add" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.site)" />
-        <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
-        <ReturnType Type="Collection(microsoft.graph.site)" />
-      </Action>
-      <Action Name="remove" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.site)" />
-        <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
-        <ReturnType Type="Collection(microsoft.graph.site)" />
-      </Action>
-      <Action Name="grant" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.permission" />
-        <Parameter Name="roles" Type="Collection(Edm.String)" Unicode="false" />
-        <Parameter Name="recipients" Type="Collection(microsoft.graph.driveRecipient)" />
-        <ReturnType Type="Collection(microsoft.graph.permission)" />
-      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <Parameter Name="requireSignIn" Type="Edm.Boolean" />
@@ -20404,25 +20919,67 @@
         <Parameter Name="zoom" Type="Edm.Double" />
         <ReturnType Type="microsoft.graph.itemPreviewInfo" />
       </Action>
-      <Action Name="publish" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.sitePage" />
-      </Action>
       <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
         <Parameter Name="parentReference" Type="microsoft.graph.itemReference" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.driveItem" />
       </Action>
+      <Action Name="validatePermission" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
+        <Parameter Name="challengeToken" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.listItem" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
+        <ReturnType Type="Collection(microsoft.graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getByPath" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.site" />
+        <Parameter Name="path" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.site" />
+      </Function>
+      <Function Name="recent" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
+      </Function>
+      <Function Name="search" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
+        <Parameter Name="q" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
+      </Function>
+      <Function Name="sharedWithMe" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" />
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" />
+      </Function>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.site)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
+        <ReturnType Type="Collection(microsoft.graph.site)" />
+      </Action>
+      <Action Name="remove" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.site)" />
+        <Parameter Name="value" Type="Collection(microsoft.graph.site)" />
+        <ReturnType Type="Collection(microsoft.graph.site)" />
+      </Action>
+      <Action Name="grant" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.permission" />
+        <Parameter Name="roles" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="recipients" Type="Collection(microsoft.graph.driveRecipient)" />
+        <ReturnType Type="Collection(microsoft.graph.permission)" />
+      </Action>
+      <Action Name="publish" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.sitePage" />
+      </Action>
       <Action Name="restoreVersion" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.listItemVersion" />
       </Action>
       <Action Name="restoreVersion" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.driveItemVersion" />
-      </Action>
-      <Action Name="validatePermission" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" />
-        <Parameter Name="challengeToken" Type="Edm.String" Unicode="false" />
-        <Parameter Name="password" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="addGroup" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.groupLifecyclePolicy" />
@@ -20438,9 +20995,6 @@
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.groupLifecyclePolicy)" Nullable="false" />
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
-      </Action>
-      <Action Name="renew" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
       </Action>
       <Function Name="Ping" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.synchronization" />
@@ -20591,13 +21145,6 @@
       <Action Name="unbind" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.androidManagedStoreAccountEnterpriseSettings" />
       </Action>
-      <Action Name="revokeToken" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.androidDeviceOwnerEnrollmentProfile" />
-      </Action>
-      <Action Name="createToken" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.androidDeviceOwnerEnrollmentProfile" />
-        <Parameter Name="tokenValidityInSeconds" Type="Edm.Int32" Nullable="false" />
-      </Action>
       <Action Name="createGooglePlayWebToken" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.androidManagedStoreAccountEnterpriseSettings" />
         <Parameter Name="parentUri" Type="Edm.String" Unicode="false" />
@@ -20607,10 +21154,27 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.androidManagedStoreAccountEnterpriseSettings" />
         <Parameter Name="enabled" Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="revokeToken" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.androidDeviceOwnerEnrollmentProfile" />
+      </Action>
+      <Action Name="createToken" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.androidDeviceOwnerEnrollmentProfile" />
+        <Parameter Name="tokenValidityInSeconds" Type="Edm.Int32" Nullable="false" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
         <Parameter Name="mobileAppAssignments" Type="Collection(microsoft.graph.mobileAppAssignment)" />
       </Action>
+      <Action Name="updateRelationships" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
+        <Parameter Name="relationships" Type="Collection(microsoft.graph.mobileAppRelationship)" />
+      </Action>
+      <Function Name="getRelatedAppStates" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
+        <Parameter Name="userPrincipalName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="deviceId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.mobileAppRelationshipState)" />
+      </Function>
       <Action Name="commit" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.mobileAppContentFile" />
         <Parameter Name="fileEncryptionInfo" Type="microsoft.graph.fileEncryptionInfo" />
@@ -20634,6 +21198,11 @@
         <Parameter Name="count" Type="Edm.Int64" Nullable="false" />
         <ReturnType Type="Collection(microsoft.graph.mobileApp)" />
       </Function>
+      <Action Name="hasPayloadLinks" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.mobileApp)" />
+        <Parameter Name="payloadIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.hasPayloadLinkResultItem)" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDeviceMobileAppConfiguration" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.managedDeviceMobileAppConfigurationAssignment)" />
@@ -20652,16 +21221,6 @@
         <Parameter Name="managedDeviceId" Type="Edm.String" Unicode="false" />
         <Parameter Name="notifyManagedDevices" Type="Edm.Boolean" Nullable="false" />
       </Action>
-      <Action Name="updateRelationships" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
-        <Parameter Name="relationships" Type="Collection(microsoft.graph.mobileAppRelationship)" />
-      </Action>
-      <Function Name="getRelatedAppStates" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.mobileApp" />
-        <Parameter Name="userPrincipalName" Type="Edm.String" Unicode="false" />
-        <Parameter Name="deviceId" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.mobileAppRelationshipState)" />
-      </Function>
       <Function Name="getAuditCategories" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.auditEvent)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
@@ -20681,11 +21240,6 @@
         <Parameter Name="updatedPolicySetItems" Type="Collection(microsoft.graph.policySetItem)" />
         <Parameter Name="deletedPolicySetItems" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.policySetAssignment)" />
-      </Action>
-      <Action Name="hasPayloadLinks" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.mobileApp)" />
-        <Parameter Name="payloadIds" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.hasPayloadLinkResultItem)" />
       </Action>
       <Action Name="hasPayloadLinks" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.targetedManagedAppConfiguration)" />
@@ -20732,10 +21286,18 @@
         <Parameter Name="payloadIds" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.hasPayloadLinkResultItem)" />
       </Action>
+      <Action Name="getTargetedUsersAndDevices" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.deviceConfiguration)" />
+        <Parameter Name="deviceConfigurationIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.deviceConfigurationTargetedUserAndDevice)" />
+      </Action>
       <Action Name="hasPayloadLinks" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.deviceCompliancePolicy)" />
         <Parameter Name="payloadIds" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(microsoft.graph.hasPayloadLinkResultItem)" />
+      </Action>
+      <Action Name="refreshDeviceComplianceReportSummarization" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.deviceCompliancePolicy)" />
       </Action>
       <Action Name="hasPayloadLinks" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.windowsAutopilotDeploymentProfile)" />
@@ -20763,6 +21325,14 @@
         <Parameter Name="assignments" Type="Collection(microsoft.graph.deviceConfigurationAssignment)" />
         <ReturnType Type="Collection(microsoft.graph.deviceConfigurationAssignment)" />
       </Action>
+      <Action Name="windowsPrivacyAccessControls" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceConfiguration" />
+        <Parameter Name="windowsPrivacyAccessControls" Type="Collection(microsoft.graph.windowsPrivacyDataAccessControlItem)" />
+      </Action>
+      <Action Name="assignedAccessMultiModeProfiles" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceConfiguration" />
+        <Parameter Name="assignedAccessMultiModeProfiles" Type="Collection(microsoft.graph.windowsAssignedAccessProfile)" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.deviceCompliancePolicy" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.deviceCompliancePolicyAssignment)" />
@@ -20775,144 +21345,58 @@
       <Action Name="enableLegacyPcManagement" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
       </Action>
-      <Action Name="extendFeatureUpdatesPause" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdateForBusinessConfiguration" />
-      </Action>
-      <Action Name="extendQualityUpdatesPause" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdateForBusinessConfiguration" />
-      </Action>
-      <Action Name="windowsPrivacyAccessControls" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceConfiguration" />
-        <Parameter Name="windowsPrivacyAccessControls" Type="Collection(microsoft.graph.windowsPrivacyDataAccessControlItem)" />
-      </Action>
-      <Action Name="assignedAccessMultiModeProfiles" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceConfiguration" />
-        <Parameter Name="assignedAccessMultiModeProfiles" Type="Collection(microsoft.graph.windowsAssignedAccessProfile)" />
-      </Action>
-      <Action Name="overrideComplianceState" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
-        <Parameter Name="complianceState" Type="microsoft.graph.administratorConfiguredDeviceComplianceState" Nullable="false" />
-        <Parameter Name="remediationUrl" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="getTargetedUsersAndDevices" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.deviceConfiguration)" />
-        <Parameter Name="deviceConfigurationIds" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.deviceConfigurationTargetedUserAndDevice)" />
-      </Action>
-      <Action Name="refreshDeviceComplianceReportSummarization" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.deviceCompliancePolicy)" />
-      </Action>
       <Action Name="enableAndroidDeviceAdministratorEnrollment" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-      </Action>
-      <Function Name="deviceConfigurationUserActivity" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="deviceConfigurationDeviceActivity" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Action Name="setMobileDeviceManagementAuthority" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.organization" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Action>
-      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="microsoft.graph.deviceAndAppManagementData" />
-      </Function>
-      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="skip" Type="Edm.Int32" Nullable="false" />
-        <Parameter Name="top" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="microsoft.graph.deviceAndAppManagementData" />
-      </Function>
-      <Function Name="getEffectiveDeviceEnrollmentConfigurations" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.deviceEnrollmentConfiguration)" />
-      </Function>
-      <Action Name="syncMicrosoftStoreForBusinessApps" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceAppManagement" />
-      </Action>
-      <Action Name="syncLicenses" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.vppToken" />
-        <ReturnType Type="microsoft.graph.vppToken" />
-      </Action>
-      <Action Name="revokeLicenses" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.vppToken" />
-        <Parameter Name="notifyManagedDevices" Type="Edm.Boolean" Nullable="false" />
-      </Action>
-      <Function Name="getLicensesForApp" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.vppToken)" />
-        <Parameter Name="bundleId" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.vppTokenLicenseSummary)" />
-      </Function>
-      <Action Name="sync" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementExchangeConnector" />
-        <Parameter Name="syncType" Type="microsoft.graph.deviceManagementExchangeConnectorSyncType" Nullable="false" />
       </Action>
       <Function Name="verifyWindowsEnrollmentAutoDiscovery" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
         <Parameter Name="domainName" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
-      <Action Name="setPriority" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceEnrollmentConfiguration" />
-        <Parameter Name="priority" Type="Edm.Int32" Nullable="false" />
-      </Action>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceEnrollmentConfiguration" />
-        <Parameter Name="enrollmentConfigurationAssignments" Type="Collection(microsoft.graph.enrollmentConfigurationAssignment)" />
-      </Action>
-      <Action Name="createInstance" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementTemplate" />
-        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
-        <Parameter Name="description" Type="Edm.String" Unicode="false" />
-        <Parameter Name="settingsDelta" Type="Collection(microsoft.graph.deviceManagementSettingInstance)" />
-        <Parameter Name="roleScopeTagIds" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="microsoft.graph.deviceManagementIntent" />
-      </Action>
-      <Action Name="updateSettings" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
-        <Parameter Name="settings" Type="Collection(microsoft.graph.deviceManagementSettingInstance)" />
-      </Action>
-      <Action Name="migrateToTemplate" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
-        <Parameter Name="newTemplateId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="preserveCustomValues" Type="Edm.Boolean" Nullable="false" />
-      </Action>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
-        <Parameter Name="assignments" Type="Collection(microsoft.graph.deviceManagementIntentAssignment)" />
-      </Action>
-      <Function Name="compare" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementTemplate" />
-        <Parameter Name="templateId" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.deviceManagementSettingComparison)" />
-      </Function>
-      <Function Name="compare" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
-        <Parameter Name="templateId" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.deviceManagementSettingComparison)" />
-      </Function>
-      <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.applePushNotificationCertificate" />
-        <ReturnType Type="Edm.String" Unicode="false" />
-      </Function>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementScript" />
-        <Parameter Name="deviceManagementScriptGroupAssignments" Type="Collection(microsoft.graph.deviceManagementScriptGroupAssignment)" />
-        <Parameter Name="deviceManagementScriptAssignments" Type="Collection(microsoft.graph.deviceManagementScriptAssignment)" />
-      </Action>
-      <Action Name="executeAction" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.managedDevice)" />
-        <Parameter Name="actionName" Type="microsoft.graph.managedDeviceRemoteAction" Nullable="false" />
-        <Parameter Name="keepEnrollmentData" Type="Edm.Boolean" />
-        <Parameter Name="keepUserData" Type="Edm.Boolean" />
-        <Parameter Name="deviceIds" Type="Collection(Edm.String)" Unicode="false" />
+      <Action Name="sendCustomNotificationToCompanyPortal" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
         <Parameter Name="notificationTitle" Type="Edm.String" Unicode="false" />
         <Parameter Name="notificationBody" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.bulkManagedDeviceActionResult" />
+        <Parameter Name="groupsToNotify" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Function Name="getEffectivePermissions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
+      <Function Name="getEffectivePermissions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <Parameter Name="scope" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.rolePermission)" />
+      </Function>
+      <Function Name="getRoleScopeTagsByResource" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <Parameter Name="resource" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.roleScopeTag)" />
+      </Function>
+      <Function Name="getRoleScopeTagsByIds" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.roleScopeTag)" />
+      </Function>
+      <Function Name="getAssignedRoleDetails" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <ReturnType Type="microsoft.graph.deviceAndAppManagementAssignedRoleDetails" />
+      </Function>
+      <Function Name="scopedForResource" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
+        <Parameter Name="resource" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Function>
+      <Action Name="extendFeatureUpdatesPause" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdateForBusinessConfiguration" />
+      </Action>
+      <Action Name="extendQualityUpdatesPause" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdateForBusinessConfiguration" />
+      </Action>
+      <Action Name="overrideComplianceState" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
+        <Parameter Name="complianceState" Type="microsoft.graph.administratorConfiguredDeviceComplianceState" Nullable="false" />
+        <Parameter Name="remediationUrl" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="enableLostMode" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
@@ -20920,22 +21404,12 @@
         <Parameter Name="phoneNumber" Type="Edm.String" Unicode="false" />
         <Parameter Name="footer" Type="Edm.String" Unicode="false" />
       </Action>
-      <Action Name="consentToDataSharing" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.dataSharingConsent" />
-        <ReturnType Type="microsoft.graph.dataSharingConsent" />
-      </Action>
       <Action Name="playLostModeSound" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
       </Action>
       <Action Name="setDeviceName" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
         <Parameter Name="deviceName" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="sendCustomNotificationToCompanyPortal" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <Parameter Name="notificationTitle" Type="Edm.String" Unicode="false" />
-        <Parameter Name="notificationBody" Type="Edm.String" Unicode="false" />
-        <Parameter Name="groupsToNotify" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="rotateFileVaultKey" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
@@ -21020,13 +21494,92 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedDevice" />
         <Parameter Name="configurationManagerAction" Type="microsoft.graph.configurationManagerAction" Nullable="false" />
       </Action>
-      <Action Name="removeAllDevicesFromManagement" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
+      <Action Name="setMobileDeviceManagementAuthority" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.organization" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
       </Action>
-      <Function Name="getLoggedOnManagedDevices" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.managedDevice)" />
+      <Action Name="syncMicrosoftStoreForBusinessApps" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceAppManagement" />
+      </Action>
+      <Action Name="syncLicenses" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.vppToken" />
+        <ReturnType Type="microsoft.graph.vppToken" />
+      </Action>
+      <Action Name="revokeLicenses" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.vppToken" />
+        <Parameter Name="notifyManagedDevices" Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Function Name="getLicensesForApp" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.vppToken)" />
+        <Parameter Name="bundleId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.vppTokenLicenseSummary)" />
       </Function>
+      <Action Name="sync" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementExchangeConnector" />
+        <Parameter Name="syncType" Type="microsoft.graph.deviceManagementExchangeConnectorSyncType" Nullable="false" />
+      </Action>
+      <Action Name="setPriority" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceEnrollmentConfiguration" />
+        <Parameter Name="priority" Type="Edm.Int32" Nullable="false" />
+      </Action>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceEnrollmentConfiguration" />
+        <Parameter Name="enrollmentConfigurationAssignments" Type="Collection(microsoft.graph.enrollmentConfigurationAssignment)" />
+      </Action>
+      <Action Name="createInstance" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementTemplate" />
+        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="description" Type="Edm.String" Unicode="false" />
+        <Parameter Name="settingsDelta" Type="Collection(microsoft.graph.deviceManagementSettingInstance)" />
+        <Parameter Name="roleScopeTagIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="microsoft.graph.deviceManagementIntent" />
+      </Action>
+      <Function Name="compare" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementTemplate" />
+        <Parameter Name="templateId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.deviceManagementSettingComparison)" />
+      </Function>
+      <Action Name="updateSettings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
+        <Parameter Name="settings" Type="Collection(microsoft.graph.deviceManagementSettingInstance)" />
+      </Action>
+      <Action Name="migrateToTemplate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
+        <Parameter Name="newTemplateId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="preserveCustomValues" Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
+        <Parameter Name="assignments" Type="Collection(microsoft.graph.deviceManagementIntentAssignment)" />
+      </Action>
+      <Function Name="compare" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementIntent" />
+        <Parameter Name="templateId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.deviceManagementSettingComparison)" />
+      </Function>
+      <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.applePushNotificationCertificate" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagementScript" />
+        <Parameter Name="deviceManagementScriptGroupAssignments" Type="Collection(microsoft.graph.deviceManagementScriptGroupAssignment)" />
+        <Parameter Name="deviceManagementScriptAssignments" Type="Collection(microsoft.graph.deviceManagementScriptAssignment)" />
+      </Action>
+      <Action Name="executeAction" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.managedDevice)" />
+        <Parameter Name="actionName" Type="microsoft.graph.managedDeviceRemoteAction" Nullable="false" />
+        <Parameter Name="keepEnrollmentData" Type="Edm.Boolean" />
+        <Parameter Name="keepUserData" Type="Edm.Boolean" />
+        <Parameter Name="deviceIds" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="notificationTitle" Type="Edm.String" Unicode="false" />
+        <Parameter Name="notificationBody" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.bulkManagedDeviceActionResult" />
+      </Action>
+      <Action Name="consentToDataSharing" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.dataSharingConsent" />
+        <ReturnType Type="microsoft.graph.dataSharingConsent" />
+      </Action>
       <Action Name="createDownloadUrl" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.appLogCollectionRequest" />
         <ReturnType Type="microsoft.graph.appLogCollectionDownloadDetails" />
@@ -21061,14 +21614,14 @@
       <Action Name="syncWithAppleDeviceEnrollmentProgram" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.depOnboardingSetting" />
       </Action>
+      <Action Name="shareForSchoolDataSyncService" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.depOnboardingSetting" />
+      </Action>
+      <Action Name="unshareForSchoolDataSyncService" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.depOnboardingSetting" />
+      </Action>
       <Action Name="setDefaultProfile" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.enrollmentProfile" />
-      </Action>
-      <Action Name="importAppleDeviceIdentityList" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.importedAppleDeviceIdentity)" />
-        <Parameter Name="importedAppleDeviceIdentities" Type="Collection(microsoft.graph.importedAppleDeviceIdentity)" />
-        <Parameter Name="overwriteImportedDeviceIdentities" Type="Edm.Boolean" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.importedAppleDeviceIdentityResult)" />
       </Action>
       <Function Name="exportMobileConfig" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.enrollmentProfile" />
@@ -21078,11 +21631,11 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.enrollmentProfile" />
         <Parameter Name="deviceIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
-      <Action Name="shareForSchoolDataSyncService" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.depOnboardingSetting" />
-      </Action>
-      <Action Name="unshareForSchoolDataSyncService" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.depOnboardingSetting" />
+      <Action Name="importAppleDeviceIdentityList" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.importedAppleDeviceIdentity)" />
+        <Parameter Name="importedAppleDeviceIdentities" Type="Collection(microsoft.graph.importedAppleDeviceIdentity)" />
+        <Parameter Name="overwriteImportedDeviceIdentities" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.importedAppleDeviceIdentityResult)" />
       </Action>
       <Action Name="assignUserToDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.windowsAutopilotDeviceIdentity" />
@@ -21146,6 +21699,10 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.targetedManagedAppConfiguration" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.targetedManagedAppPolicyAssignment)" />
       </Action>
+      <Action Name="targetApps" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.targetedManagedAppConfiguration" />
+        <Parameter Name="apps" Type="Collection(microsoft.graph.managedMobileApp)" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.windowsInformationProtection" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.targetedManagedAppPolicyAssignment)" />
@@ -21158,28 +21715,8 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.managedAppProtection" />
         <Parameter Name="apps" Type="Collection(microsoft.graph.managedMobileApp)" />
       </Action>
-      <Action Name="targetApps" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.targetedManagedAppConfiguration" />
-        <Parameter Name="apps" Type="Collection(microsoft.graph.managedMobileApp)" />
-      </Action>
       <Action Name="wipe" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.windowsInformationProtectionDeviceRegistration" />
-      </Action>
-      <Function Name="getManagedAppDiagnosticStatuses" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.managedAppDiagnosticStatus)" />
-      </Function>
-      <Function Name="getManagedAppPolicies" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(microsoft.graph.managedAppPolicy)" />
-      </Function>
-      <Action Name="wipeManagedAppRegistrationByDeviceTag" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="deviceTag" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="wipeManagedAppRegistrationsByDeviceTag" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="deviceTag" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="sendTestMessage" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.notificationMessageTemplate" />
@@ -21189,38 +21726,10 @@
         <Parameter Name="status" Type="microsoft.graph.deviceAppManagementTaskStatus" Nullable="false" />
         <Parameter Name="note" Type="Edm.String" Unicode="false" />
       </Action>
-      <Function Name="getEffectivePermissions" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
-      </Function>
       <Function Name="getScopesForUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.resourceOperation" />
         <Parameter Name="userid" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
-      </Function>
-      <Function Name="getEffectivePermissions" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <Parameter Name="scope" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.rolePermission)" />
-      </Function>
-      <Function Name="getRoleScopeTagsByResource" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <Parameter Name="resource" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.roleScopeTag)" />
-      </Function>
-      <Function Name="getRoleScopeTagsByIds" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.roleScopeTag)" />
-      </Function>
-      <Function Name="getAssignedRoleDetails" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <ReturnType Type="microsoft.graph.deviceAndAppManagementAssignedRoleDetails" />
-      </Function>
-      <Function Name="scopedForResource" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.deviceManagement" />
-        <Parameter Name="resource" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.roleScopeTag" />
@@ -21247,51 +21756,6 @@
         <Parameter Name="assignments" Type="Collection(microsoft.graph.embeddedSIMActivationCodePoolAssignment)" />
         <ReturnType Type="Collection(microsoft.graph.embeddedSIMActivationCodePoolAssignment)" />
       </Action>
-      <Function Name="getManagedDevicesWithAppFailures" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentFailureDetails" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentFailureDetails" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="skip" Type="Edm.Int32" />
-        <Parameter Name="top" Type="Edm.Int32" />
-        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
-        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentFailureTrends" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentTopFailures" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentTopFailures" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentAbandonmentSummary" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="skip" Type="Edm.Int32" />
-        <Parameter Name="top" Type="Edm.Int32" />
-        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
-        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
-      <Function Name="managedDeviceEnrollmentAbandonmentDetails" IsBound="true" IsComposable="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="skip" Type="Edm.Int32" />
-        <Parameter Name="top" Type="Edm.Int32" />
-        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
-        <Parameter Name="skipToken" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.report" />
-      </Function>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.windowsFeatureUpdateProfile" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.windowsFeatureUpdateProfileAssignment)" />
@@ -21300,418 +21764,33 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.intuneBrandingProfile" />
         <Parameter Name="assignments" Type="Collection(microsoft.graph.intuneBrandingProfileAssignment)" />
       </Action>
-      <Function Name="getOffice365ActivationsUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActivationsUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ActivationCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActivationCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ActivationsUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActivationsUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ActiveUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ActiveUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ServicesUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365ServicesUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365ActiveUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365ActiveUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityGroupCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityGroupCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityStorage" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityStorage)" Nullable="false" />
-      </Function>
-      <Function Name="getOffice365GroupsActivityFileCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.office365GroupsActivityFileCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailAppUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailAppUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailAppUsageAppsUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAppUsageAppsUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailAppUsageUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAppUsageUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getEmailAppUsageVersionsUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.emailAppUsageVersionsUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getMailboxUsageDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.mailboxUsageDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getMailboxUsageMailboxCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.mailboxUsageMailboxCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getMailboxUsageQuotaStatusMailboxCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.mailboxUsageQuotaStatusMailboxCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getMailboxUsageStorage" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.mailboxUsageStorage)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveActivityFileCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveUsageAccountDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveUsageAccountDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveUsageAccountCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageAccountCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveUsageFileCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.oneDriveUsageFileCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getOneDriveUsageStorage" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.siteUsageStorage)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointActivityFileCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.siteActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointActivityPages" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointActivityPages)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsageDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsageDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsageFileCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageFileCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsageSiteCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsageSiteCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsageStorage" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.siteUsageStorage)" Nullable="false" />
-      </Function>
-      <Function Name="getSharePointSiteUsagePages" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.sharePointSiteUsagePages)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessPeerToPeerActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessPeerToPeerActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessPeerToPeerActivityMinuteCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessPeerToPeerActivityMinuteCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessOrganizerActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessOrganizerActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessOrganizerActivityMinuteCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessOrganizerActivityMinuteCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessParticipantActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessParticipantActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessParticipantActivityMinuteCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessParticipantActivityMinuteCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageDistributionUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getSkypeForBusinessDeviceUsageUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.skypeForBusinessDeviceUsageUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerActivitySummary)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageDistributionUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerDeviceUsageUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerDeviceUsageUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerGroupsActivityDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerGroupsActivityDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerGroupsActivityGroupCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityGroupCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getYammerGroupsActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.yammerGroupsActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsUserActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsUserActivityUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsUserActivityCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsUserActivityUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsUserActivityUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsDeviceUsageUserDetail" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserDetail)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsDeviceUsageUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageUserCounts)" Nullable="false" />
-      </Function>
-      <Function Name="getTeamsDeviceUsageDistributionUserCounts" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Collection(microsoft.graph.teamsDeviceUsageDistributionUserCounts)" Nullable="false" />
-      </Function>
+      <Action Name="cancelAndSend" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesInvoice" />
+      </Action>
+      <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesInvoice" />
+      </Action>
+      <Action Name="postAndSend" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesInvoice" />
+      </Action>
+      <Action Name="post" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesInvoice" />
+      </Action>
+      <Action Name="send" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesInvoice" />
+      </Action>
+      <Action Name="post" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.journal" />
+      </Action>
+      <Action Name="makeInvoice" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesQuote" />
+      </Action>
+      <Action Name="send" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.salesQuote" />
+      </Action>
+      <Action Name="post" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.purchaseInvoice" />
+      </Action>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.plannerDelta)" />
         <ReturnType Type="Collection(microsoft.graph.plannerDelta)" />
@@ -21724,6 +21803,14 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.onenotePage" />
         <ReturnType Type="microsoft.graph.onenotePagePreview" />
       </Function>
+      <Action Name="copyToSection" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.onenotePage" />
+        <Parameter Name="id" Type="Edm.String" Unicode="false" />
+        <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="siteCollectionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="siteId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.onenoteOperation" />
+      </Action>
       <Action Name="copyNotebook" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.notebook" />
         <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
@@ -21747,14 +21834,6 @@
         <Parameter Name="id" Type="Edm.String" Unicode="false" />
         <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
         <Parameter Name="renameAs" Type="Edm.String" Unicode="false" />
-        <Parameter Name="siteCollectionId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="siteId" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="microsoft.graph.onenoteOperation" />
-      </Action>
-      <Action Name="copyToSection" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.onenotePage" />
-        <Parameter Name="id" Type="Edm.String" Unicode="false" />
-        <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
         <Parameter Name="siteCollectionId" Type="Edm.String" Unicode="false" />
         <Parameter Name="siteId" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.onenoteOperation" />
@@ -21844,18 +21923,9 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.privilegedRoleAssignmentRequest" />
         <ReturnType Type="microsoft.graph.privilegedRoleAssignmentRequest" />
       </Action>
-      <Action Name="exportPersonalData" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.user" />
-        <Parameter Name="storageLocation" Type="Edm.String" Unicode="false" />
-      </Action>
       <Function Name="recent" IsBound="true" EntitySetPath="activities">
         <Parameter Name="activities" Type="Collection(microsoft.graph.userActivity)" />
         <ReturnType Type="Collection(microsoft.graph.userActivity)" />
-      </Function>
-      <Function Name="getTenantSecureScores" IsBound="true" IsComposable="true">
-        <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
-        <Parameter Name="period" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="microsoft.graph.report" />
       </Function>
       <Action Name="submitTiIndicators" IsBound="true">
         <Parameter Name="bindparameter" Type="Collection(microsoft.graph.tiIndicator)" />
