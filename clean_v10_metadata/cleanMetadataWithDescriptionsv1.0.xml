@@ -2908,6 +2908,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="certificateBasedAuthConfiguration" BaseType="microsoft.graph.entity">
+        <Property Name="certificateAuthorities" Type="Collection(microsoft.graph.certificateAuthority)" Nullable="false" />
+      </EntityType>
       <EntityType Name="device" BaseType="microsoft.graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the account is enabled; otherwise, false. Required." />
@@ -3358,6 +3361,7 @@
         <Property Name="mobileDeviceManagementAuthority" Type="microsoft.graph.mdmAuthority" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Mobile device management authority. Possible values are: unknown, intune, sccm, office365." />
         </Property>
+        <NavigationProperty Name="certificateBasedAuthConfiguration" Type="Collection(microsoft.graph.certificateBasedAuthConfiguration)" />
         <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the organization. Read-only. Nullable." />
         </NavigationProperty>
@@ -10254,6 +10258,14 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The name of a time zone. It can be a standard time zone name such as 'Hawaii-Aleutian Standard Time', or 'Customized Time Zone' for a custom time zone." />
         </Property>
       </ComplexType>
+      <ComplexType Name="certificateAuthority">
+        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="certificateRevocationListUrl" Type="Edm.String" />
+        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String" />
+        <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
+        <Property Name="issuer" Type="Edm.String" Nullable="false" />
+        <Property Name="issuerSki" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="type" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
@@ -13346,6 +13358,9 @@
       <ComplexType Name="organizerMeetingInfo" BaseType="microsoft.graph.meetingInfo" OpenType="true">
         <Property Name="organizer" Type="microsoft.graph.identitySet" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="tokenMeetingInfo" BaseType="microsoft.graph.meetingInfo">
+        <Property Name="token" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="prompt" Abstract="true" />
       <ComplexType Name="mediaPrompt" BaseType="microsoft.graph.prompt">
         <Property Name="mediaInfo" Type="microsoft.graph.mediaInfo" Nullable="false" />
@@ -13448,6 +13463,7 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
+        <EntitySet Name="certificateBasedAuthConfiguration" EntityType="microsoft.graph.certificateBasedAuthConfiguration" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
         <EntitySet Name="devices" EntityType="microsoft.graph.device">
           <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
@@ -13472,7 +13488,9 @@
           <NavigationPropertyBinding Path="members" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="directoryRoleTemplates" EntityType="microsoft.graph.directoryRoleTemplate" />
-        <EntitySet Name="organization" EntityType="microsoft.graph.organization" />
+        <EntitySet Name="organization" EntityType="microsoft.graph.organization">
+          <NavigationPropertyBinding Path="certificateBasedAuthConfiguration" Target="certificateBasedAuthConfiguration" />
+        </EntitySet>
         <EntitySet Name="groupSettings" EntityType="microsoft.graph.groupSetting" />
         <EntitySet Name="groupSettingTemplates" EntityType="microsoft.graph.groupSettingTemplate" />
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
@@ -14385,6 +14403,11 @@
       <Action Name="checkMemberGroups" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
         <Parameter Name="groupIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="checkMemberObjects" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="getMemberGroups" IsBound="true">
