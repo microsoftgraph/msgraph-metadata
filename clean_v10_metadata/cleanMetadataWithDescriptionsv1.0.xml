@@ -75,6 +75,18 @@
         <Member Name="maliciousIPAddressValidCredentialsBlockedIP" Value="13" />
         <Member Name="unknownFutureValue" Value="14" />
       </EnumType>
+      <EnumType Name="phoneType">
+        <Member Name="home" Value="0" />
+        <Member Name="business" Value="1" />
+        <Member Name="mobile" Value="2" />
+        <Member Name="other" Value="3" />
+        <Member Name="assistant" Value="4" />
+        <Member Name="homeFax" Value="5" />
+        <Member Name="businessFax" Value="6" />
+        <Member Name="otherFax" Value="7" />
+        <Member Name="pager" Value="8" />
+        <Member Name="radio" Value="9" />
+      </EnumType>
       <EnumType Name="educationUserRole">
         <Member Name="student" Value="0" />
         <Member Name="teacher" Value="1" />
@@ -267,18 +279,6 @@
       <EnumType Name="selectionLikelihoodInfo">
         <Member Name="notSpecified" Value="0" />
         <Member Name="high" Value="1" />
-      </EnumType>
-      <EnumType Name="phoneType">
-        <Member Name="home" Value="0" />
-        <Member Name="business" Value="1" />
-        <Member Name="mobile" Value="2" />
-        <Member Name="other" Value="3" />
-        <Member Name="assistant" Value="4" />
-        <Member Name="homeFax" Value="5" />
-        <Member Name="businessFax" Value="6" />
-        <Member Name="otherFax" Value="7" />
-        <Member Name="pager" Value="8" />
-        <Member Name="radio" Value="9" />
       </EnumType>
       <EnumType Name="websiteType">
         <Member Name="other" Value="0" />
@@ -2909,7 +2909,29 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="microsoft.graph.entity">
-        <Property Name="certificateAuthorities" Type="Collection(microsoft.graph.certificateAuthority)" Nullable="false" />
+        <Property Name="certificateAuthorities" Type="Collection(microsoft.graph.certificateAuthority)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Collection of certificate authorities which creates a trusted certificate chain." />
+        </Property>
+      </EntityType>
+      <EntityType Name="orgContact" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="addresses" Type="Collection(microsoft.graph.physicalOfficeAddress)" />
+        <Property Name="companyName" Type="Edm.String" />
+        <Property Name="department" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="givenName" Type="Edm.String" />
+        <Property Name="jobTitle" Type="Edm.String" />
+        <Property Name="mail" Type="Edm.String" />
+        <Property Name="mailNickname" Type="Edm.String" />
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onPremisesProvisioningErrors" Type="Collection(microsoft.graph.onPremisesProvisioningError)" />
+        <Property Name="phones" Type="Collection(microsoft.graph.phone)" />
+        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="surname" Type="Edm.String" />
+        <NavigationProperty Name="manager" Type="microsoft.graph.directoryObject" />
+        <NavigationProperty Name="directReports" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
       </EntityType>
       <EntityType Name="device" BaseType="microsoft.graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean">
@@ -3361,7 +3383,9 @@
         <Property Name="mobileDeviceManagementAuthority" Type="microsoft.graph.mdmAuthority" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Mobile device management authority. Possible values are: unknown, intune, sccm, office365." />
         </Property>
-        <NavigationProperty Name="certificateBasedAuthConfiguration" Type="Collection(microsoft.graph.certificateBasedAuthConfiguration)" />
+        <NavigationProperty Name="certificateBasedAuthConfiguration" Type="Collection(microsoft.graph.certificateBasedAuthConfiguration)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Navigation property to manage certificate-based authentication configuration. Only a single instance of certificateBasedAuthConfiguration can be created in the collection." />
+        </NavigationProperty>
         <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the organization. Read-only. Nullable." />
         </NavigationProperty>
@@ -3468,9 +3492,7 @@
         <Property Name="phone" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of school." />
         </Property>
-        <Property Name="fax" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Fax number of school." />
-        </Property>
+        <Property Name="fax" Type="Edm.String" />
         <Property Name="createdBy" Type="microsoft.graph.identitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="Entity who created the school." />
         </Property>
@@ -10259,12 +10281,54 @@
         </Property>
       </ComplexType>
       <ComplexType Name="certificateAuthority">
-        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="certificateRevocationListUrl" Type="Edm.String" />
-        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String" />
-        <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
-        <Property Name="issuer" Type="Edm.String" Nullable="false" />
-        <Property Name="issuerSki" Type="Edm.String" Nullable="false" />
+        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. true if the trusted certificate is a root authority, false if the trusted certificate is an intermediate authority." />
+        </Property>
+        <Property Name="certificateRevocationListUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the certificate revocation list." />
+        </Property>
+        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL contains the list of all revoked certificates since the last time a full certificate revocaton list was created." />
+        </Property>
+        <Property Name="certificate" Type="Edm.Binary" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The base64 encoded string representing the public certificate." />
+        </Property>
+        <Property Name="issuer" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The issuer of the certificate, calculated from the certificate value. Read-only." />
+        </Property>
+        <Property Name="issuerSki" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject key identifier of the certificate, calculated from the certificate value. Read-only." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="physicalOfficeAddress">
+        <Property Name="city" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The city." />
+        </Property>
+        <Property Name="countryOrRegion" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The country or region. It's a free-format string value, for example, 'United States'." />
+        </Property>
+        <Property Name="officeLocation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Office location such as building and office number for an organizational contact." />
+        </Property>
+        <Property Name="postalCode" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The postal code." />
+        </Property>
+        <Property Name="state" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The state." />
+        </Property>
+        <Property Name="street" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The street." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="phone">
+        <Property Name="type" Type="microsoft.graph.phoneType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of phone number. The possible values are: home, business, mobile, other, assistant, homeFax, businessFax, otherFax, pager, radio." />
+        </Property>
+        <Property Name="number" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The phone number." />
+        </Property>
+        <Property Name="region" Type="Edm.String" />
+        <Property Name="language" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="type" Type="Edm.Int32">
@@ -11282,16 +11346,6 @@
         </Property>
         <Property Name="selectionLikelihood" Type="microsoft.graph.selectionLikelihoodInfo" />
         <Property Name="itemId" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="phone">
-        <Property Name="type" Type="microsoft.graph.phoneType">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of phone number. The possible values are: home, business, mobile, other, assistant, homeFax, businessFax, otherFax, pager, radio." />
-        </Property>
-        <Property Name="number" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The phone number." />
-        </Property>
-        <Property Name="region" Type="Edm.String" />
-        <Property Name="language" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="website">
         <Property Name="type" Type="microsoft.graph.websiteType">
@@ -13465,6 +13519,12 @@
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="certificateBasedAuthConfiguration" EntityType="microsoft.graph.certificateBasedAuthConfiguration" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
+        <EntitySet Name="contacts" EntityType="microsoft.graph.orgContact">
+          <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="manager" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+        </EntitySet>
         <EntitySet Name="devices" EntityType="microsoft.graph.device">
           <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects" />
@@ -17493,6 +17553,7 @@
       </Annotations>
       <Annotations Target="microsoft.graph.userActivity" />
       <Annotations Target="microsoft.graph.group" />
+      <Annotations Target="microsoft.graph.orgContact" />
       <Annotations Target="microsoft.graph.directoryRole" />
       <Annotations Target="microsoft.graph.directoryRoleTemplate" />
       <Annotations Target="microsoft.graph.group/conversations" />
