@@ -75,6 +75,18 @@
         <Member Name="maliciousIPAddressValidCredentialsBlockedIP" Value="13" />
         <Member Name="unknownFutureValue" Value="14" />
       </EnumType>
+      <EnumType Name="phoneType">
+        <Member Name="home" Value="0" />
+        <Member Name="business" Value="1" />
+        <Member Name="mobile" Value="2" />
+        <Member Name="other" Value="3" />
+        <Member Name="assistant" Value="4" />
+        <Member Name="homeFax" Value="5" />
+        <Member Name="businessFax" Value="6" />
+        <Member Name="otherFax" Value="7" />
+        <Member Name="pager" Value="8" />
+        <Member Name="radio" Value="9" />
+      </EnumType>
       <EnumType Name="educationUserRole">
         <Member Name="student" Value="0" />
         <Member Name="teacher" Value="1" />
@@ -267,18 +279,6 @@
       <EnumType Name="selectionLikelihoodInfo">
         <Member Name="notSpecified" Value="0" />
         <Member Name="high" Value="1" />
-      </EnumType>
-      <EnumType Name="phoneType">
-        <Member Name="home" Value="0" />
-        <Member Name="business" Value="1" />
-        <Member Name="mobile" Value="2" />
-        <Member Name="other" Value="3" />
-        <Member Name="assistant" Value="4" />
-        <Member Name="homeFax" Value="5" />
-        <Member Name="businessFax" Value="6" />
-        <Member Name="otherFax" Value="7" />
-        <Member Name="pager" Value="8" />
-        <Member Name="radio" Value="9" />
       </EnumType>
       <EnumType Name="websiteType">
         <Member Name="other" Value="0" />
@@ -2186,6 +2186,40 @@
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="issuerSki" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <EntityType Name="orgContact" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="addresses" Type="Collection(microsoft.graph.physicalOfficeAddress)" />
+        <Property Name="companyName" Type="Edm.String" />
+        <Property Name="department" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="givenName" Type="Edm.String" />
+        <Property Name="jobTitle" Type="Edm.String" />
+        <Property Name="mail" Type="Edm.String" />
+        <Property Name="mailNickname" Type="Edm.String" />
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onPremisesProvisioningErrors" Type="Collection(microsoft.graph.onPremisesProvisioningError)" />
+        <Property Name="phones" Type="Collection(microsoft.graph.phone)" />
+        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="surname" Type="Edm.String" />
+        <NavigationProperty Name="manager" Type="microsoft.graph.directoryObject" />
+        <NavigationProperty Name="directReports" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
+      </EntityType>
+      <ComplexType Name="physicalOfficeAddress">
+        <Property Name="city" Type="Edm.String" />
+        <Property Name="countryOrRegion" Type="Edm.String" />
+        <Property Name="officeLocation" Type="Edm.String" />
+        <Property Name="postalCode" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+        <Property Name="street" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="phone">
+        <Property Name="type" Type="microsoft.graph.phoneType" />
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="region" Type="Edm.String" />
+        <Property Name="language" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="device" BaseType="microsoft.graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="alternativeSecurityIds" Type="Collection(microsoft.graph.alternativeSecurityId)" Nullable="false" />
@@ -3327,12 +3361,6 @@
         <Property Name="relevanceScore" Type="Edm.Double" />
         <Property Name="selectionLikelihood" Type="microsoft.graph.selectionLikelihoodInfo" />
         <Property Name="itemId" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="phone">
-        <Property Name="type" Type="microsoft.graph.phoneType" />
-        <Property Name="number" Type="Edm.String" />
-        <Property Name="region" Type="Edm.String" />
-        <Property Name="language" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="website">
         <Property Name="type" Type="microsoft.graph.websiteType" />
@@ -10354,6 +10382,12 @@
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="certificateBasedAuthConfiguration" EntityType="microsoft.graph.certificateBasedAuthConfiguration" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
+        <EntitySet Name="contacts" EntityType="microsoft.graph.orgContact">
+          <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="manager" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+        </EntitySet>
         <EntitySet Name="devices" EntityType="microsoft.graph.device">
           <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects" />
@@ -10853,6 +10887,13 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.group">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.orgContact">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
