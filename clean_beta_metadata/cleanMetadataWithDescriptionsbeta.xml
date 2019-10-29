@@ -266,6 +266,15 @@
         <Member Name="viewer" Value="2" />
         <Member Name="externalGuest" Value="3" />
       </EnumType>
+      <EnumType Name="userFlowType">
+        <Member Name="signUp" Value="1" />
+        <Member Name="signIn" Value="2" />
+        <Member Name="signUpOrSignIn" Value="3" />
+        <Member Name="passwordReset" Value="4" />
+        <Member Name="profileUpdate" Value="5" />
+        <Member Name="resourceOwner" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
       <EnumType Name="applicationMode">
         <Member Name="manual" Value="0" />
         <Member Name="automatic" Value="1" />
@@ -292,6 +301,12 @@
       <EnumType Name="encryptWith">
         <Member Name="template" Value="0" />
         <Member Name="userDefinedRights" Value="1" />
+      </EnumType>
+      <EnumType Name="permissionClassificationType">
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="phoneType">
         <Member Name="home" Value="0" />
@@ -4005,6 +4020,9 @@
         <Member Name="none" Value="0" />
         <Member Name="shift" Value="1" />
         <Member Name="swapRequest" Value="2" />
+        <Member Name="userShiftPreferences" Value="8" />
+        <Member Name="openShift" Value="16" />
+        <Member Name="openShiftRequest" Value="32" />
       </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Property Name="id" Type="Edm.String" Nullable="false">
@@ -6119,6 +6137,15 @@
       <EntityType Name="bookingCurrency" BaseType="microsoft.graph.entity">
         <Property Name="symbol" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="identityContainer" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="userFlows" Type="Collection(microsoft.graph.identityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="featureConfigurations" Type="Collection(microsoft.graph.featureConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="identityUserFlow" BaseType="microsoft.graph.entity">
+        <Property Name="userFlowType" Type="microsoft.graph.userFlowType" Nullable="false" />
+        <Property Name="userFlowTypeVersion" Type="Edm.Single" Nullable="false" />
+      </EntityType>
+      <EntityType Name="featureConfiguration" BaseType="microsoft.graph.entity" />
       <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
         <Property Name="type" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
@@ -6130,7 +6157,9 @@
         <NavigationProperty Name="keySets" Type="Collection(microsoft.graph.trustFrameworkKeySet)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="trustFrameworkPolicy" BaseType="microsoft.graph.entity" HasStream="true" />
-      <EntityType Name="trustFrameworkKeySet" BaseType="microsoft.graph.entity" />
+      <EntityType Name="trustFrameworkKeySet" BaseType="microsoft.graph.entity">
+        <Property Name="keys" Type="Collection(microsoft.graph.trustFrameworkKey)" />
+      </EntityType>
       <EntityType Name="dataClassificationService" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="exactMatchDataStores" Type="Collection(microsoft.graph.exactMatchDataStore)" ContainsTarget="true" />
         <NavigationProperty Name="sensitiveTypes" Type="Collection(microsoft.graph.sensitiveType)" ContainsTarget="true" />
@@ -6231,6 +6260,11 @@
         <Property Name="location" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
         <Property Name="domain" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="delegatedPermissionClassification" BaseType="microsoft.graph.entity">
+        <Property Name="permissionId" Type="Edm.String" />
+        <Property Name="permissionName" Type="Edm.String" />
+        <Property Name="classification" Type="microsoft.graph.permissionClassificationType" />
       </EntityType>
       <EntityType Name="resourceSpecificPermissionGrant" BaseType="microsoft.graph.directoryObject">
         <Property Name="clientId" Type="Edm.String" />
@@ -6946,8 +6980,6 @@
         <Property Name="releasedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="returnedBy" Type="microsoft.graph.identitySet" />
         <Property Name="returnedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="grade" Type="microsoft.graph.educationAssignmentGrade" />
-        <Property Name="feedback" Type="microsoft.graph.educationFeedback" />
         <Property Name="resourcesFolderUrl" Type="Edm.String" />
         <NavigationProperty Name="resources" Type="Collection(microsoft.graph.educationSubmissionResource)" ContainsTarget="true" />
         <NavigationProperty Name="submittedResources" Type="Collection(microsoft.graph.educationSubmissionResource)" ContainsTarget="true" />
@@ -7301,6 +7333,7 @@
         <NavigationProperty Name="versions" Type="Collection(microsoft.graph.driveItemVersion)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The list of previous versions of the item. For more info, see [getting previous versions][]. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="document" Type="microsoft.graph.document" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workbook" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="application" Type="microsoft.graph.workbookApplication" ContainsTarget="true" />
@@ -7371,6 +7404,9 @@
         <Property Name="size" Type="Edm.Int64">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the size of the content stream for this version of the item." />
         </Property>
+      </EntityType>
+      <EntityType Name="document" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="comments" Type="Collection(microsoft.graph.documentComment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workbookApplication" BaseType="microsoft.graph.entity">
         <Property Name="calculationMode" Type="Edm.String" Nullable="false" />
@@ -18801,10 +18837,12 @@
         <Property Name="provisionStatusCode" Type="Edm.String" />
         <Property Name="workforceIntegrationIds" Type="Collection(Edm.String)" />
         <NavigationProperty Name="shifts" Type="Collection(microsoft.graph.shift)" ContainsTarget="true" />
+        <NavigationProperty Name="openShifts" Type="Collection(microsoft.graph.openShift)" ContainsTarget="true" />
         <NavigationProperty Name="timesOff" Type="Collection(microsoft.graph.timeOff)" ContainsTarget="true" />
         <NavigationProperty Name="timeOffReasons" Type="Collection(microsoft.graph.timeOffReason)" ContainsTarget="true" />
         <NavigationProperty Name="schedulingGroups" Type="Collection(microsoft.graph.schedulingGroup)" ContainsTarget="true" />
         <NavigationProperty Name="swapShiftsChangeRequests" Type="Collection(microsoft.graph.swapShiftsChangeRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="openShiftChangeRequests" Type="Collection(microsoft.graph.openShiftChangeRequest)" ContainsTarget="true" />
         <NavigationProperty Name="timeOffRequests" Type="Collection(microsoft.graph.timeOffRequest)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="microsoft.graph.entity" />
@@ -18917,6 +18955,11 @@
         <Property Name="userId" Type="Edm.String" />
         <Property Name="schedulingGroupId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="openShift" BaseType="microsoft.graph.changeTrackedEntity">
+        <Property Name="sharedOpenShift" Type="microsoft.graph.openShiftItem" />
+        <Property Name="draftOpenShift" Type="microsoft.graph.openShiftItem" />
+        <Property Name="schedulingGroupId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="timeOff" BaseType="microsoft.graph.changeTrackedEntity">
         <Property Name="sharedTimeOff" Type="microsoft.graph.timeOffItem" />
         <Property Name="draftTimeOff" Type="microsoft.graph.timeOffItem" />
@@ -18951,10 +18994,20 @@
       <EntityType Name="swapShiftsChangeRequest" BaseType="microsoft.graph.shiftChangeRequest">
         <Property Name="recipientShiftId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="openShiftChangeRequest" BaseType="microsoft.graph.scheduleChangeRequest" Abstract="true">
+        <Property Name="openShiftId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="timeOffRequest" BaseType="microsoft.graph.scheduleChangeRequest">
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="timeOffReasonId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="documentComment" BaseType="microsoft.graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <NavigationProperty Name="replies" Type="Collection(microsoft.graph.documentCommentReply)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="documentCommentReply" BaseType="microsoft.graph.entity">
+        <Property Name="content" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="auditActivityInitiator">
         <Property Name="user" Type="microsoft.graph.userIdentity">
@@ -19545,6 +19598,15 @@
         <Property Name="userConsentDisplayName" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="credential">
+        <Property Name="fieldId" Type="Edm.String" />
+        <Property Name="value" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="passwordSingleSignOnCredentialSet">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="credentials" Type="Collection(microsoft.graph.credential)" />
+      </ComplexType>
       <ComplexType Name="applicationServicePrincipal">
         <Property Name="application" Type="microsoft.graph.application" />
         <Property Name="servicePrincipal" Type="microsoft.graph.servicePrincipal" />
@@ -19638,6 +19700,24 @@
         <Property Name="maximumAdvance" Type="Edm.Duration" Nullable="false" />
         <Property Name="sendConfirmationsToOwner" Type="Edm.Boolean" Nullable="false" />
         <Property Name="allowStaffSelection" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="trustFrameworkKey">
+        <Property Name="k" Type="Edm.String" />
+        <Property Name="x5c" Type="Collection(Edm.String)" />
+        <Property Name="x5t" Type="Edm.String" />
+        <Property Name="kty" Type="Edm.String" />
+        <Property Name="use" Type="Edm.String" />
+        <Property Name="exp" Type="Edm.Int64" />
+        <Property Name="nbf" Type="Edm.Int64" />
+        <Property Name="kid" Type="Edm.String" />
+        <Property Name="e" Type="Edm.String" />
+        <Property Name="n" Type="Edm.String" />
+        <Property Name="d" Type="Edm.String" />
+        <Property Name="p" Type="Edm.String" />
+        <Property Name="q" Type="Edm.String" />
+        <Property Name="dp" Type="Edm.String" />
+        <Property Name="dq" Type="Edm.String" />
+        <Property Name="qi" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="classifcationErrorBase">
         <Property Name="code" Type="Edm.String" />
@@ -21556,6 +21636,24 @@
       <ComplexType Name="updateWindow">
         <Property Name="updateWindowStartTime" Type="Edm.TimeOfDay" />
         <Property Name="updateWindowEndTime" Type="Edm.TimeOfDay" />
+      </ComplexType>
+      <ComplexType Name="propertyToEvaluate">
+        <Property Name="propertyName" Type="Edm.String" />
+        <Property Name="propertyValue" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="expressionEvaluationDetails">
+        <Property Name="expressionResult" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="expression" Type="Edm.String" />
+        <Property Name="expressionEvaluationDetails" Type="Collection(microsoft.graph.expressionEvaluationDetails)" />
+        <Property Name="propertyToEvaluate" Type="microsoft.graph.propertyToEvaluate" />
+      </ComplexType>
+      <ComplexType Name="membershipRuleEvaluationDetails">
+        <Property Name="membershipRuleEvaluationDetails" Type="microsoft.graph.expressionEvaluationDetails" />
+      </ComplexType>
+      <ComplexType Name="evaluateDynamicMembershipResult">
+        <Property Name="membershipRule" Type="Edm.String" />
+        <Property Name="membershipRuleEvaluationResult" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="membershipRuleEvaluationDetails" Type="microsoft.graph.expressionEvaluationDetails" />
       </ComplexType>
       <ComplexType Name="synchronizationSecretKeyStringValuePair">
         <Property Name="key" Type="microsoft.graph.synchronizationSecret" Nullable="false" />
@@ -25076,6 +25174,9 @@
         <Property Name="notes" Type="Edm.String" />
         <Property Name="activities" Type="Collection(microsoft.graph.shiftActivity)" />
       </ComplexType>
+      <ComplexType Name="openShiftItem" BaseType="microsoft.graph.shiftItem">
+        <Property Name="openSlotCount" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="timeOffItem" BaseType="microsoft.graph.scheduleEntity">
         <Property Name="timeOffReasonId" Type="Edm.String" />
       </ComplexType>
@@ -25259,6 +25360,7 @@
         <EntitySet Name="chats" EntityType="microsoft.graph.chat" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
+        <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
@@ -25813,6 +25915,10 @@
         <Parameter Name="reportRoot" Type="microsoft.graph.reportRoot" />
         <Parameter Name="period" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="microsoft.graph.report" />
+      </Function>
+      <Function Name="getActiveKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.trustFrameworkKeySet" />
+        <ReturnType Type="microsoft.graph.trustFrameworkKey" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.user)" />
@@ -26489,6 +26595,26 @@
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.applicationServicePrincipal" />
       </Action>
+      <Action Name="createPasswordSingleSignOnCredentials" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.servicePrincipal" />
+        <Parameter Name="id" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="credentials" Type="Collection(microsoft.graph.credential)" Nullable="false" />
+        <ReturnType Type="microsoft.graph.passwordSingleSignOnCredentialSet" />
+      </Action>
+      <Action Name="getPasswordSingleSignOnCredentials" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.servicePrincipal" />
+        <Parameter Name="id" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="microsoft.graph.passwordSingleSignOnCredentialSet" />
+      </Action>
+      <Action Name="deletePasswordSingleSignOnCredentials" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.servicePrincipal" />
+        <Parameter Name="id" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="updatePasswordSingleSignOnCredentials" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.servicePrincipal" />
+        <Parameter Name="id" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="credentials" Type="Collection(microsoft.graph.credential)" Nullable="false" />
+      </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bookingAppointment" Type="microsoft.graph.bookingAppointment" Nullable="false" />
         <Parameter Name="cancellationMessage" Type="Edm.String" Unicode="false" />
@@ -26499,10 +26625,43 @@
       <Action Name="unpublish" IsBound="true">
         <Parameter Name="bookingBusiness" Type="microsoft.graph.bookingBusiness" Nullable="false" />
       </Action>
+      <Action Name="generateKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.trustFrameworkKeySet" />
+        <Parameter Name="use" Type="Edm.String" Unicode="false" />
+        <Parameter Name="kty" Type="Edm.String" Unicode="false" />
+        <Parameter Name="nbf" Type="Edm.Int64" />
+        <Parameter Name="exp" Type="Edm.Int64" />
+        <ReturnType Type="microsoft.graph.trustFrameworkKey" />
+      </Action>
+      <Action Name="uploadSecret" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.trustFrameworkKeySet" />
+        <Parameter Name="use" Type="Edm.String" Unicode="false" />
+        <Parameter Name="k" Type="Edm.String" Unicode="false" />
+        <Parameter Name="nbf" Type="Edm.Int64" />
+        <Parameter Name="exp" Type="Edm.Int64" />
+        <ReturnType Type="microsoft.graph.trustFrameworkKey" />
+      </Action>
+      <Action Name="uploadCertificate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.trustFrameworkKeySet" />
+        <Parameter Name="key" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.trustFrameworkKey" />
+      </Action>
+      <Action Name="uploadPkcs12" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.trustFrameworkKeySet" />
+        <Parameter Name="key" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.trustFrameworkKey" />
+      </Action>
       <Action Name="evaluate" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.sensitivityLabel)" />
         <Parameter Name="discoveredSensitiveTypes" Type="Collection(microsoft.graph.discoveredSensitiveType)" />
         <ReturnType Type="microsoft.graph.evaluateLabelJobResponse" />
+      </Action>
+      <Action Name="evaluateDynamicMembership" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.group)" />
+        <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="membershipRule" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.evaluateDynamicMembershipResult" />
       </Action>
       <Action Name="addPassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.application" Nullable="false" />
@@ -26593,6 +26752,11 @@
       </Action>
       <Action Name="renew" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.group" />
+      </Action>
+      <Action Name="evaluateDynamicMembership" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group" Nullable="false" />
+        <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.evaluateDynamicMembershipResult" />
       </Action>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false" />
