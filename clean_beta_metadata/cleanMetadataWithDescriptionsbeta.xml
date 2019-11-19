@@ -275,6 +275,45 @@
         <Member Name="resourceOwner" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="dlpAction">
+        <Member Name="notifyUser" Value="0" />
+        <Member Name="blockAccess" Value="1" />
+        <Member Name="deviceRestriction" Value="2" />
+      </EnumType>
+      <EnumType Name="accessScope">
+        <Member Name="inOrganization" Value="0" />
+        <Member Name="notInOrganization" Value="1" />
+      </EnumType>
+      <EnumType Name="component">
+        <Member Name="Label" Value="0" />
+      </EnumType>
+      <EnumType Name="ruleMode">
+        <Member Name="audit" Value="1" />
+        <Member Name="auditAndNotify" Value="2" />
+        <Member Name="enforce" Value="3" />
+        <Member Name="pendingDeletion" Value="4" />
+        <Member Name="test" Value="5" />
+      </EnumType>
+      <EnumType Name="overrideOption">
+        <Member Name="notAllowed" Value="0" />
+        <Member Name="allowFalsePositiveOverride" Value="1" />
+        <Member Name="allowWithJustification" Value="2" />
+        <Member Name="allowWithoutJustification" Value="4" />
+      </EnumType>
+      <EnumType Name="restrictionAction">
+        <Member Name="warn" Value="0" />
+        <Member Name="audit" Value="1" />
+        <Member Name="block" Value="2" />
+      </EnumType>
+      <EnumType Name="restrictionTrigger">
+        <Member Name="copyPaste" Value="0" />
+        <Member Name="copyToNetworkShare" Value="1" />
+        <Member Name="copyToRemovableMedia" Value="2" />
+        <Member Name="screenCapture" Value="3" />
+        <Member Name="print" Value="4" />
+        <Member Name="cloudEgress" Value="5" />
+        <Member Name="unallowedApps" Value="6" />
+      </EnumType>
       <EnumType Name="applicationMode">
         <Member Name="manual" Value="0" />
         <Member Name="automatic" Value="1" />
@@ -829,6 +868,7 @@
       <EnumType Name="conditionalAccessPolicyState">
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
+        <Member Name="enabledForReportingButNotEnforced" Value="2" />
       </EnumType>
       <EnumType Name="conditionalAccessClientApp">
         <Member Name="browser" Value="0" />
@@ -4554,6 +4594,7 @@
         <NavigationProperty Name="policy" Type="microsoft.graph.informationProtectionPolicy" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityPolicySettings" Type="microsoft.graph.sensitivityPolicySettings" ContainsTarget="true" />
+        <NavigationProperty Name="dataLossPreventionPolicies" Type="Collection(microsoft.graph.dataLossPreventionPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="appRoleAssignment" BaseType="microsoft.graph.entity">
         <Property Name="appRoleId" Type="Edm.Guid" Nullable="false" />
@@ -6024,13 +6065,7 @@
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(microsoft.graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
         <NavigationProperty Name="credentialUserRegistrationDetails" Type="Collection(microsoft.graph.credentialUserRegistrationDetails)" ContainsTarget="true" />
         <NavigationProperty Name="userCredentialUsageDetails" Type="Collection(microsoft.graph.userCredentialUsageDetails)" ContainsTarget="true" />
-        <NavigationProperty Name="dailyPrintUsageSummariesByUser" Type="Collection(microsoft.graph.PrintUsageSummaryByUser)" />
-        <NavigationProperty Name="monthlyPrintUsageSummariesByUser" Type="Collection(microsoft.graph.PrintUsageSummaryByUser)" />
-        <NavigationProperty Name="dailyPrintUsageSummariesByPrinter" Type="Collection(microsoft.graph.PrintUsageSummaryByPrinter)" />
-        <NavigationProperty Name="monthlyPrintUsageSummariesByPrinter" Type="Collection(microsoft.graph.PrintUsageSummaryByPrinter)" />
       </EntityType>
-      <EntityType Name="PrintUsageSummaryByUser" BaseType="microsoft.graph.entity" />
-      <EntityType Name="PrintUsageSummaryByPrinter" BaseType="microsoft.graph.entity" />
       <EntityType Name="invitation" BaseType="microsoft.graph.entity">
         <Property Name="invitedUserDisplayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the user being invited." />
@@ -6319,13 +6354,11 @@
       </EntityType>
       <EntityType Name="identityContainer" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="userFlows" Type="Collection(microsoft.graph.identityUserFlow)" ContainsTarget="true" />
-        <NavigationProperty Name="featureConfigurations" Type="Collection(microsoft.graph.featureConfiguration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityUserFlow" BaseType="microsoft.graph.entity">
         <Property Name="userFlowType" Type="microsoft.graph.userFlowType" Nullable="false" />
         <Property Name="userFlowTypeVersion" Type="Edm.Single" Nullable="false" />
       </EntityType>
-      <EntityType Name="featureConfiguration" BaseType="microsoft.graph.entity" />
       <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
         <Property Name="type" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
@@ -6347,6 +6380,8 @@
         <NavigationProperty Name="classifyFileJobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
         <NavigationProperty Name="classifyTextJobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
         <NavigationProperty Name="evaluateLabelJobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
+        <NavigationProperty Name="evaluateDlpPoliciesJobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
+        <NavigationProperty Name="labelsAndPoliciesEvaluationJobs" Type="Collection(microsoft.graph.jobResponseBase)" ContainsTarget="true" />
         <NavigationProperty Name="classifyText" Type="Collection(microsoft.graph.textClassificationRequest)" ContainsTarget="true" />
         <NavigationProperty Name="classifyFile" Type="Collection(microsoft.graph.fileClassificationRequest)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityLabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
@@ -6394,11 +6429,16 @@
         <Property Name="labelActions" Type="Collection(microsoft.graph.labelActionBase)" />
         <Property Name="assignedPolicies" Type="Collection(microsoft.graph.labelPolicy)" />
         <Property Name="priority" Type="Edm.Int32" />
+        <Property Name="autoLabeling" Type="microsoft.graph.autoLabeling" />
         <NavigationProperty Name="sublabels" Type="Collection(microsoft.graph.sensitivityLabel)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchUploadAgent" BaseType="microsoft.graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="dataLossPreventionPolicy" BaseType="microsoft.graph.entity">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String" />
       </EntityType>
       <EntityType Name="informationProtectionPolicy" BaseType="microsoft.graph.entity">
         <NavigationProperty Name="labels" Type="Collection(microsoft.graph.informationProtectionLabel)" ContainsTarget="true" />
@@ -6410,6 +6450,12 @@
       </EntityType>
       <EntityType Name="evaluateLabelJobResponse" BaseType="microsoft.graph.jobResponseBase">
         <Property Name="result" Type="microsoft.graph.evaluateLabelJobResultGroup" />
+      </EntityType>
+      <EntityType Name="evaluateLabelsAndPoliciesJobResponse" BaseType="microsoft.graph.jobResponseBase">
+        <Property Name="result" Type="microsoft.graph.evaluateLabelsAndPoliciesResult" />
+      </EntityType>
+      <EntityType Name="dlpEvaluatePoliciesJobResponse" BaseType="microsoft.graph.jobResponseBase">
+        <Property Name="result" Type="microsoft.graph.dlpPoliciesJobResult" />
       </EntityType>
       <EntityType Name="classificationJobResponse" BaseType="microsoft.graph.jobResponseBase">
         <Property Name="result" Type="microsoft.graph.detectedSensitiveContentWrapper" />
@@ -7589,7 +7635,9 @@
         <NavigationProperty Name="comments" Type="Collection(microsoft.graph.documentComment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workbookApplication" BaseType="microsoft.graph.entity">
-        <Property Name="calculationMode" Type="Edm.String" Nullable="false" />
+        <Property Name="calculationMode" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns the calculation mode used in the workbook. Possible values are: Automatic, AutomaticExceptTables, Manual." />
+        </Property>
       </EntityType>
       <EntityType Name="workbookNamedItem" BaseType="microsoft.graph.entity">
         <Property Name="comment" Type="Edm.String">
@@ -20120,6 +20168,10 @@
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="autoLabeling">
+        <Property Name="sensitiveTypeIds" Type="Collection(Edm.String)" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="evaluateLabelJobResultGroup">
         <Property Name="automatic" Type="microsoft.graph.evaluateLabelJobResult" />
         <Property Name="recommended" Type="microsoft.graph.evaluateLabelJobResult" />
@@ -20152,6 +20204,27 @@
       <ComplexType Name="responsiblePolicy">
         <Property Name="id" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="evaluateLabelsAndPoliciesResult">
+        <Property Name="sensitivityLabelsResult" Type="microsoft.graph.evaluateLabelJobResultGroup" />
+        <Property Name="dataLossPreventionPoliciesResult" Type="microsoft.graph.dlpPoliciesJobResult" />
+        <Property Name="classificationResult" Type="microsoft.graph.detectedSensitiveContentWrapper" />
+      </ComplexType>
+      <ComplexType Name="dlpPoliciesJobResult">
+        <Property Name="matchingRules" Type="Collection(microsoft.graph.matchingDlpRule)" />
+      </ComplexType>
+      <ComplexType Name="matchingDlpRule">
+        <Property Name="ruleId" Type="Edm.String" />
+        <Property Name="ruleName" Type="Edm.String" />
+        <Property Name="policyId" Type="Edm.String" />
+        <Property Name="policyName" Type="Edm.String" />
+        <Property Name="isMostRestrictive" Type="Edm.Boolean" />
+        <Property Name="priority" Type="Edm.Int32" />
+        <Property Name="actions" Type="Collection(microsoft.graph.dlpActionInfo)" />
+        <Property Name="ruleMode" Type="microsoft.graph.ruleMode" />
+      </ComplexType>
+      <ComplexType Name="dlpActionInfo">
+        <Property Name="action" Type="microsoft.graph.dlpAction" />
       </ComplexType>
       <ComplexType Name="detectedSensitiveContentWrapper">
         <Property Name="classification" Type="Collection(microsoft.graph.detectedSensitiveContent)" />
@@ -20215,6 +20288,55 @@
       </ComplexType>
       <ComplexType Name="protectSite" BaseType="microsoft.graph.labelActionBase">
         <Property Name="accessType" Type="microsoft.graph.siteAccessType" />
+      </ComplexType>
+      <ComplexType Name="currentLabel">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="applicationMode" Type="microsoft.graph.applicationMode" />
+      </ComplexType>
+      <ComplexType Name="blockAccessAction" BaseType="microsoft.graph.dlpActionInfo" />
+      <ComplexType Name="notifyUserAction" BaseType="microsoft.graph.dlpActionInfo">
+        <Property Name="recipients" Type="Collection(Edm.String)" />
+        <Property Name="actionLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="overrideOption" Type="microsoft.graph.overrideOption" />
+        <Property Name="emailText" Type="Edm.String" />
+        <Property Name="policyTip" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="deviceRestrictionAction" BaseType="microsoft.graph.dlpActionInfo">
+        <Property Name="restrictionAction" Type="microsoft.graph.restrictionAction" />
+        <Property Name="triggers" Type="Collection(microsoft.graph.restrictionTrigger)" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="dlpEvaluationInput">
+        <Property Name="discoveredSensitiveTypes" Type="Collection(microsoft.graph.discoveredSensitiveType)" />
+        <Property Name="currentLabel" Type="microsoft.graph.currentLabel" />
+        <Property Name="accessScope" Type="microsoft.graph.accessScope" />
+      </ComplexType>
+      <ComplexType Name="dlpEvaluationWindowsDevicesInput" BaseType="microsoft.graph.dlpEvaluationInput">
+        <Property Name="contentProperties" Type="microsoft.graph.contentProperties" />
+        <Property Name="sharedBy" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="contentProperties">
+        <Property Name="extensions" Type="Collection(Edm.String)" />
+        <Property Name="metadata" Type="microsoft.graph.contentMetadata" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedBy" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="contentMetadata" OpenType="true" />
+      <ComplexType Name="dlpNotification">
+        <Property Name="author" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="dlpWindowsDevicesNotification" BaseType="microsoft.graph.dlpNotification">
+        <Property Name="lastModfiedBy" Type="Edm.String" />
+        <Property Name="contentName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="dlpEvaluatePoliciesRequest">
+        <Property Name="target" Type="Edm.String" />
+        <Property Name="evaluationInput" Type="microsoft.graph.dlpEvaluationInput" />
+        <Property Name="notificationInfo" Type="microsoft.graph.dlpNotification" />
+      </ComplexType>
+      <ComplexType Name="evaluateSensitivityLabelsRequest">
+        <Property Name="discoveredSensitiveTypes" Type="Collection(microsoft.graph.discoveredSensitiveType)" />
+        <Property Name="currentLabel" Type="microsoft.graph.currentLabel" />
       </ComplexType>
       <ComplexType Name="certificateAuthority">
         <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false">
@@ -21369,7 +21491,7 @@
       </ComplexType>
       <ComplexType Name="itemBody">
         <Property Name="contentType" Type="microsoft.graph.bodyType">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the content. Possible values are text and HTML." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the content. Possible values are text and html." />
         </Property>
         <Property Name="content" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The content of the item." />
@@ -27079,7 +27201,22 @@
       <Action Name="evaluate" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.sensitivityLabel)" />
         <Parameter Name="discoveredSensitiveTypes" Type="Collection(microsoft.graph.discoveredSensitiveType)" />
+        <Parameter Name="currentLabel" Type="microsoft.graph.currentLabel" />
         <ReturnType Type="microsoft.graph.evaluateLabelJobResponse" />
+      </Action>
+      <Action Name="evaluate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.dataLossPreventionPolicy)" />
+        <Parameter Name="target" Type="Edm.String" Unicode="false" />
+        <Parameter Name="evaluationInput" Type="microsoft.graph.dlpEvaluationInput" />
+        <Parameter Name="notificationInfo" Type="microsoft.graph.dlpNotification" />
+        <ReturnType Type="microsoft.graph.dlpEvaluatePoliciesJobResponse" />
+      </Action>
+      <Action Name="evaluateLabelsAndPolicies" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.informationProtection" />
+        <Parameter Name="evaluateSensitivityLabels" Type="microsoft.graph.evaluateSensitivityLabelsRequest" />
+        <Parameter Name="evaluateDataLossPreventionPolicies" Type="microsoft.graph.dlpEvaluatePoliciesRequest" />
+        <Parameter Name="classifyText" Type="microsoft.graph.textClassificationRequest" />
+        <ReturnType Type="microsoft.graph.evaluateLabelsAndPoliciesJobResponse" />
       </Action>
       <Action Name="evaluateDynamicMembership" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.group)" />
@@ -27322,7 +27459,6 @@
       <Action Name="createSession" IsBound="true">
         <Parameter Name="this" Type="microsoft.graph.workbook" />
         <Parameter Name="persistChanges" Type="Edm.Boolean" Nullable="false" />
-        <Parameter Name="commitExplicitly" Type="Edm.Boolean" />
         <ReturnType Type="microsoft.graph.workbookSessionInfo" />
       </Action>
       <Action Name="closeSession" IsBound="true">
