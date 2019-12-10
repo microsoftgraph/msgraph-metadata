@@ -1608,6 +1608,7 @@
         <Property Name="companyName" Type="Edm.String" />
         <Property Name="consentProvidedForMinor" Type="Edm.String" />
         <Property Name="country" Type="Edm.String" />
+        <Property Name="creationType" Type="Edm.String" />
         <Property Name="department" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="employeeId" Type="Edm.String" />
@@ -2108,7 +2109,7 @@
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="joinUrl" Type="Edm.String" />
+        <Property Name="joinWebUrl" Type="Edm.String" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="participants" Type="microsoft.graph.meetingParticipants" />
         <Property Name="audioConferencing" Type="microsoft.graph.audioConferencing" />
@@ -2553,7 +2554,6 @@
         <Property Name="country" Type="Edm.String" />
         <Property Name="countryLetterCode" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="creationType" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="marketingNotificationEmails" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
@@ -6428,10 +6428,11 @@
         <Property Name="subject" Type="Edm.String" />
         <Property Name="callbackUri" Type="Edm.String" Nullable="false" />
         <Property Name="source" Type="microsoft.graph.participantInfo" />
-        <Property Name="targets" Type="Collection(microsoft.graph.participantInfo)" />
+        <Property Name="targets" Type="Collection(microsoft.graph.invitationParticipantInfo)" />
         <Property Name="requestedModalities" Type="Collection(microsoft.graph.modality)" />
         <Property Name="mediaConfig" Type="microsoft.graph.mediaConfig" />
         <Property Name="chatInfo" Type="microsoft.graph.chatInfo" />
+        <Property Name="callOptions" Type="microsoft.graph.callOptions" />
         <Property Name="meetingInfo" Type="microsoft.graph.meetingInfo" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="myParticipantId" Type="Edm.String" />
@@ -6452,12 +6453,17 @@
         <Property Name="region" Type="Edm.String" />
         <Property Name="languageId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="invitationParticipantInfo" OpenType="true">
+        <Property Name="identity" Type="microsoft.graph.identitySet" Nullable="false" />
+        <Property Name="replacesCallId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="mediaConfig" Abstract="true" />
       <ComplexType Name="chatInfo">
         <Property Name="threadId" Type="Edm.String" />
         <Property Name="messageId" Type="Edm.String" />
         <Property Name="replyChainMessageId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="callOptions" Abstract="true" />
       <ComplexType Name="meetingInfo" Abstract="true" />
       <ComplexType Name="toneInfo">
         <Property Name="sequenceId" Type="Edm.Int64" Nullable="false" />
@@ -6477,9 +6483,6 @@
       <EntityType Name="inviteParticipantsOperation" BaseType="microsoft.graph.commsOperation" OpenType="true">
         <Property Name="participants" Type="Collection(microsoft.graph.invitationParticipantInfo)" Nullable="false" />
       </EntityType>
-      <ComplexType Name="invitationParticipantInfo" BaseType="microsoft.graph.participantInfo" OpenType="true">
-        <Property Name="replacesCallId" Type="Edm.String" />
-      </ComplexType>
       <EntityType Name="muteParticipantOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
       <EntityType Name="playPromptOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
       <EntityType Name="recordOperation" BaseType="microsoft.graph.commsOperation" OpenType="true">
@@ -6509,6 +6512,7 @@
         <Property Name="direction" Type="microsoft.graph.mediaDirection" Nullable="false" />
         <Property Name="serverMuted" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="outgoingCallOptions" BaseType="microsoft.graph.callOptions" />
       <ComplexType Name="commsNotification" OpenType="true">
         <Property Name="changeType" Type="microsoft.graph.changeType" Nullable="false" />
         <Property Name="resourceUrl" Type="Edm.String" Nullable="false" />
@@ -10450,6 +10454,9 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.call" />
         <Parameter Name="role" Type="microsoft.graph.screenSharingRole" Nullable="false" />
       </Action>
+      <Action Name="keepAlive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.call" />
+      </Action>
       <Action Name="mute" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.call" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
@@ -10461,7 +10468,7 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.playPromptOperation" />
       </Action>
-      <Action Name="record" IsBound="true">
+      <Action Name="recordResponse" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.call" />
         <Parameter Name="prompts" Type="Collection(microsoft.graph.prompt)" />
         <Parameter Name="bargeInAllowed" Type="Edm.Boolean" />
