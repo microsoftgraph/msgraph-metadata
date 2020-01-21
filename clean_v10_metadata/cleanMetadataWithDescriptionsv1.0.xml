@@ -1430,9 +1430,15 @@
         <Member Name="members" Value="16" />
       </EnumType>
       <EnumType Name="giphyRatingType">
-        <Member Name="moderate" Value="0" />
-        <Member Name="strict" Value="1" />
+        <Member Name="strict" Value="0" />
+        <Member Name="moderate" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="teamsAppDistributionMethod">
+        <Member Name="store" Value="0" />
+        <Member Name="organization" Value="1" />
+        <Member Name="sideloaded" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="teamsAsyncOperationType">
         <Member Name="invalid" Value="0" />
@@ -1449,12 +1455,6 @@
         <Member Name="succeeded" Value="3" />
         <Member Name="failed" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
-      <EnumType Name="teamsAppDistributionMethod">
-        <Member Name="store" Value="0" />
-        <Member Name="organization" Value="1" />
-        <Member Name="sideloaded" Value="2" />
-        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Property Name="id" Type="Edm.String" Nullable="false">
@@ -1635,7 +1635,9 @@
         <Property Name="country" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The country/region in which the user is located; for example, 'US' or 'UK'. Supports $filter." />
         </Property>
-        <Property Name="creationType" Type="Edm.String" />
+        <Property Name="creationType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user account was created as a regular school or work account (null), an external account (Invitation), a local account for an Azure Active Directory B2C tenant (LocalAccount) or self-service sign-up using email verification (EmailVerified). Read-only." />
+        </Property>
         <Property Name="department" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The name for the department in which the user works. Supports $filter." />
         </Property>
@@ -1650,6 +1652,9 @@
         </Property>
         <Property Name="givenName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The given name (first name) of the user. Supports $filter." />
+        </Property>
+        <Property Name="identities" Type="Collection(microsoft.graph.objectIdentity)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the identities that can be used to sign in to this user account. An identity can be provided by Microsoft (also known as a local account), by organizations, or by social identity providers such as Facebook, Google, and Microsoft, and tied to a user account. May contain multiple items with the same signInType value. Supports $filter." />
         </Property>
         <Property Name="imAddresses" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The instant message voice over IP (VOIP) session initiation protocol (SIP) addresses for the user. Read-only." />
@@ -1889,7 +1894,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user's activities across devices. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="onlineMeetings" Type="Collection(microsoft.graph.onlineMeeting)" ContainsTarget="true" />
-        <NavigationProperty Name="joinedTeams" Type="Collection(microsoft.graph.group)" ContainsTarget="true" />
+        <NavigationProperty Name="joinedTeams" Type="Collection(microsoft.graph.team)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="licenseDetails" BaseType="microsoft.graph.entity">
         <Property Name="servicePlans" Type="Collection(microsoft.graph.servicePlanInfo)" Nullable="false">
@@ -2757,165 +2762,60 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="onlineMeeting" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="joinWebUrl" Type="Edm.String" />
-        <Property Name="subject" Type="Edm.String" />
-        <Property Name="participants" Type="microsoft.graph.meetingParticipants" />
-        <Property Name="audioConferencing" Type="microsoft.graph.audioConferencing" />
-        <Property Name="chatInfo" Type="microsoft.graph.chatInfo" />
-        <Property Name="videoTeleconferenceId" Type="Edm.String" />
+        <Property Name="creationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting creation time in UTC. Read-only." />
+        </Property>
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting start time in UTC." />
+        </Property>
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting end time in UTC." />
+        </Property>
+        <Property Name="joinWebUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The join URL of the online meeting. Read-only." />
+        </Property>
+        <Property Name="subject" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the online meeting." />
+        </Property>
+        <Property Name="participants" Type="microsoft.graph.meetingParticipants">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The participants associated with the online meeting.  This includes the organizer and the attendees." />
+        </Property>
+        <Property Name="audioConferencing" Type="microsoft.graph.audioConferencing">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The phone access (dial-in) information for an online meeting. Read-only." />
+        </Property>
+        <Property Name="chatInfo" Type="microsoft.graph.chatInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The chat information associated with this online meeting." />
+        </Property>
+        <Property Name="videoTeleconferenceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The video teleconferencing ID. Read-only." />
+        </Property>
       </EntityType>
-      <EntityType Name="group" BaseType="microsoft.graph.directoryObject" OpenType="true">
-        <Property Name="assignedLicenses" Type="Collection(microsoft.graph.assignedLicense)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The licenses that are assigned to the group. Returned only on $select. Read-only." />
+      <EntityType Name="team" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="webUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A hyperlink that will go to the team in the Microsoft Teams client. This is the URL that you get when you right-click a team in the Microsoft Teams client and select Get link to team. This URL should be treated as an opaque blob, and not parsed." />
         </Property>
-        <Property Name="classification" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Describes a classification for the group (such as low, medium or high business impact). Valid values for this property are defined by creating a ClassificationList setting value, based on the template definition.Returned by default." />
+        <Property Name="memberSettings" Type="microsoft.graph.teamMemberSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure whether members can perform certain actions, for example, create channels and add bots, in the team." />
         </Property>
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of when the group was created. The value cannot be modified and is automatically populated when the group is created. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only." />
+        <Property Name="guestSettings" Type="microsoft.graph.teamGuestSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure whether guests can create, update, or delete channels in the team." />
         </Property>
-        <Property Name="description" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="An optional description for the group. Returned by default." />
+        <Property Name="messagingSettings" Type="microsoft.graph.teamMessagingSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure messaging and mentions in the team." />
         </Property>
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the group. This property is required when a group is created and cannot be cleared during updates. Returned by default. Supports $filter and $orderby." />
+        <Property Name="funSettings" Type="microsoft.graph.teamFunSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure use of Giphy, memes, and stickers in the team." />
         </Property>
-        <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are members in this group that have license errors from its group-based license assignment. This property is never returned on a GET operation. You can use it as a $filter argument to get groups that have members with license errors (that is, filter for this property being true). See an example." />
+        <Property Name="isArchived" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Whether this team is in read-only mode." />
         </Property>
-        <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the group type and its membership.  If the collection contains Unified then the group is an Office 365 group; otherwise it's a security group.  If the collection includes DynamicMembership, the group has dynamic membership; otherwise, membership is static.  Returned by default. Supports $filter." />
-        </Property>
-        <Property Name="licenseProcessingState" Type="microsoft.graph.licenseProcessingState">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates status of the group license assignment to all members of the group. Default value is false. Read-only. Possible values: QueuedForProcessing, ProcessingInProgress, and ProcessingComplete.Returned only on $select. Read-only." />
-        </Property>
-        <Property Name="mail" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the group, for example, 'serviceadmins@contoso.onmicrosoft.com'. Returned by default. Read-only. Supports $filter." />
-        </Property>
-        <Property Name="mailEnabled" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the group is mail-enabled. Returned by default." />
-        </Property>
-        <Property Name="mailNickname" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the group, unique in the organization. This property must be specified when a group is created. Returned by default. Supports $filter." />
-        </Property>
-        <Property Name="onPremisesDomainName" Type="Edm.String" />
-        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the last time at which the group was synced with the on-premises directory.The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only. Supports $filter." />
-        </Property>
-        <Property Name="onPremisesNetBiosName" Type="Edm.String" />
-        <Property Name="onPremisesProvisioningErrors" Type="Collection(microsoft.graph.onPremisesProvisioningError)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Errors when using Microsoft synchronization product during provisioning. Returned by default." />
-        </Property>
-        <Property Name="onPremisesSamAccountName" Type="Edm.String" />
-        <Property Name="onPremisesSecurityIdentifier" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the on-premises security identifier (SID) for the group that was synchronized from on-premises to the cloud. Returned by default. Read-only." />
-        </Property>
-        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never been synced from an on-premises directory (default). Returned by default. Read-only. Supports $filter." />
-        </Property>
-        <Property Name="preferredDataLocation" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The preferred data location for the group. For more information, see  OneDrive Online Multi-Geo. Returned by default." />
-        </Property>
-        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Email addresses for the group that direct to the same group mailbox. For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. The any operator is required to filter expressions on multi-valued properties. Returned by default. Read-only. Not nullable. Supports $filter." />
-        </Property>
-        <Property Name="renewedDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of when the group was last renewed. This cannot be modified directly and is only updated via the renew service action. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only." />
-        </Property>
-        <Property Name="securityEnabled" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the group is a security group. Returned by default. Supports $filter." />
-        </Property>
-        <Property Name="securityIdentifier" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Security identifier of the group, used in Windows scenarios. Returned by default." />
-        </Property>
-        <Property Name="visibility" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the visibility of an Office 365 group. Possible values are: Private, Public, or Hiddenmembership; blank values are treated as public.  See group visibility options to learn more.Visibility can be set only when a group is created; it is not editable.Visibility is supported only for unified groups; it is not supported for security groups. Returned by default." />
-        </Property>
-        <Property Name="allowExternalSenders" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if people external to the organization can send messages to the group. Default value is false. Returned only on $select." />
-        </Property>
-        <Property Name="autoSubscribeNewMembers" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if new members added to the group will be auto-subscribed to receive email notifications. You can set this property in a PATCH request for the group; do not set it in the initial POST request that creates the group. Default value is false. Returned only on $select." />
-        </Property>
-        <Property Name="isSubscribedByMail" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the signed-in user is subscribed to receive email conversations. Default value is true. Returned only on $select." />
-        </Property>
-        <Property Name="unseenCount" Type="Edm.Int32">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Count of conversations that have received new posts since the signed-in user last visited the group. Returned only on $select." />
-        </Property>
-        <Property Name="isArchived" Type="Edm.Boolean" />
-        <NavigationProperty Name="members" Type="Collection(microsoft.graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Users and groups that are members of this group. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups) Nullable." />
+        <NavigationProperty Name="channels" Type="Collection(microsoft.graph.channel)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of channels &amp; messages associated with the team." />
         </NavigationProperty>
-        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Groups that this group is a member of. HTTP Methods: GET (supported for all groups). Read-only. Nullable." />
+        <NavigationProperty Name="installedApps" Type="Collection(microsoft.graph.teamsAppInstallation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The apps installed in this team." />
         </NavigationProperty>
-        <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(microsoft.graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A list of group members with license errors from this group-based license assignment. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="transitiveMembers" Type="Collection(microsoft.graph.directoryObject)" />
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
-        <NavigationProperty Name="createdOnBehalfOf" Type="microsoft.graph.directoryObject">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The user (or application) that created the group. NOTE: This is not set if the user is an administrator. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="owners" Type="Collection(microsoft.graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 10 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="settings" Type="Collection(microsoft.graph.groupSetting)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="conversations" Type="Collection(microsoft.graph.conversation)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's conversations." />
-        </NavigationProperty>
-        <NavigationProperty Name="photos" Type="Collection(microsoft.graph.profilePhoto)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The profile photos owned by the group. Read-only. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="acceptedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of users or groups that are allowed to create post's or calendar events in this group. If this list is non-empty then only users or groups listed here are allowed to post." />
-        </NavigationProperty>
-        <NavigationProperty Name="rejectedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of users or groups that are not allowed to create posts or calendar events in this group. Nullable" />
-        </NavigationProperty>
-        <NavigationProperty Name="threads" Type="Collection(microsoft.graph.conversationThread)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's conversation threads. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="calendar" Type="microsoft.graph.calendar" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's calendar. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="calendarView" Type="Collection(microsoft.graph.event)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The calendar view for the calendar. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="events" Type="Collection(microsoft.graph.event)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's calendar events." />
-        </NavigationProperty>
-        <NavigationProperty Name="photo" Type="microsoft.graph.profilePhoto" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's profile photo" />
-        </NavigationProperty>
-        <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's default drive. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="drives" Type="Collection(microsoft.graph.drive)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The group's drives. Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="sites" Type="Collection(microsoft.graph.site)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of SharePoint sites in this group. Access the default site with /sites/root." />
-        </NavigationProperty>
-        <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the group. Read-only. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="groupLifecyclePolicies" Type="Collection(microsoft.graph.groupLifecyclePolicy)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of lifecycle policies for this group. Read-only. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="planner" Type="microsoft.graph.plannerGroup" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Entry-point to Planner resource that might exist for a Unified Group." />
-        </NavigationProperty>
-        <NavigationProperty Name="onenote" Type="microsoft.graph.onenote" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
-        </NavigationProperty>
-        <NavigationProperty Name="team" Type="microsoft.graph.team" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.teamsAsyncOperation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="microsoft.graph.entity">
         <Property Name="type" Type="Edm.String" />
@@ -3265,6 +3165,156 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides the reason why the DomainDnsUnavailableRecord entity is returned." />
         </Property>
       </EntityType>
+      <EntityType Name="group" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="assignedLicenses" Type="Collection(microsoft.graph.assignedLicense)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The licenses that are assigned to the group. Returned only on $select. Read-only." />
+        </Property>
+        <Property Name="classification" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Describes a classification for the group (such as low, medium or high business impact). Valid values for this property are defined by creating a ClassificationList setting value, based on the template definition.Returned by default." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of when the group was created. The value cannot be modified and is automatically populated when the group is created. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An optional description for the group. Returned by default." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the group. This property is required when a group is created and cannot be cleared during updates. Returned by default. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are members in this group that have license errors from its group-based license assignment. This property is never returned on a GET operation. You can use it as a $filter argument to get groups that have members with license errors (that is, filter for this property being true). See an example." />
+        </Property>
+        <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the group type and its membership.  If the collection contains Unified then the group is an Office 365 group; otherwise it's a security group.  If the collection includes DynamicMembership, the group has dynamic membership; otherwise, membership is static.  Returned by default. Supports $filter." />
+        </Property>
+        <Property Name="licenseProcessingState" Type="microsoft.graph.licenseProcessingState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates status of the group license assignment to all members of the group. Default value is false. Read-only. Possible values: QueuedForProcessing, ProcessingInProgress, and ProcessingComplete.Returned only on $select. Read-only." />
+        </Property>
+        <Property Name="mail" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the group, for example, 'serviceadmins@contoso.onmicrosoft.com'. Returned by default. Read-only. Supports $filter." />
+        </Property>
+        <Property Name="mailEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the group is mail-enabled. Returned by default." />
+        </Property>
+        <Property Name="mailNickname" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the group, unique in the organization. This property must be specified when a group is created. Returned by default. Supports $filter." />
+        </Property>
+        <Property Name="onPremisesDomainName" Type="Edm.String" />
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the last time at which the group was synced with the on-premises directory.The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only. Supports $filter." />
+        </Property>
+        <Property Name="onPremisesNetBiosName" Type="Edm.String" />
+        <Property Name="onPremisesProvisioningErrors" Type="Collection(microsoft.graph.onPremisesProvisioningError)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Errors when using Microsoft synchronization product during provisioning. Returned by default." />
+        </Property>
+        <Property Name="onPremisesSamAccountName" Type="Edm.String" />
+        <Property Name="onPremisesSecurityIdentifier" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the on-premises security identifier (SID) for the group that was synchronized from on-premises to the cloud. Returned by default. Read-only." />
+        </Property>
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never been synced from an on-premises directory (default). Returned by default. Read-only. Supports $filter." />
+        </Property>
+        <Property Name="preferredDataLocation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The preferred data location for the group. For more information, see  OneDrive Online Multi-Geo. Returned by default." />
+        </Property>
+        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email addresses for the group that direct to the same group mailbox. For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. The any operator is required to filter expressions on multi-valued properties. Returned by default. Read-only. Not nullable. Supports $filter." />
+        </Property>
+        <Property Name="renewedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of when the group was last renewed. This cannot be modified directly and is only updated via the renew service action. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only." />
+        </Property>
+        <Property Name="securityEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the group is a security group. Returned by default. Supports $filter." />
+        </Property>
+        <Property Name="securityIdentifier" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Security identifier of the group, used in Windows scenarios. Returned by default." />
+        </Property>
+        <Property Name="visibility" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the visibility of an Office 365 group. Possible values are: Private, Public, or Hiddenmembership; blank values are treated as public.  See group visibility options to learn more.Visibility can be set only when a group is created; it is not editable.Visibility is supported only for unified groups; it is not supported for security groups. Returned by default." />
+        </Property>
+        <Property Name="allowExternalSenders" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if people external to the organization can send messages to the group. Default value is false. Returned only on $select." />
+        </Property>
+        <Property Name="autoSubscribeNewMembers" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if new members added to the group will be auto-subscribed to receive email notifications. You can set this property in a PATCH request for the group; do not set it in the initial POST request that creates the group. Default value is false. Returned only on $select." />
+        </Property>
+        <Property Name="isSubscribedByMail" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the signed-in user is subscribed to receive email conversations. Default value is true. Returned only on $select." />
+        </Property>
+        <Property Name="unseenCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of conversations that have received new posts since the signed-in user last visited the group. Returned only on $select." />
+        </Property>
+        <Property Name="isArchived" Type="Edm.Boolean" />
+        <NavigationProperty Name="members" Type="Collection(microsoft.graph.directoryObject)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Users and groups that are members of this group. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups) Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Groups that this group is a member of. HTTP Methods: GET (supported for all groups). Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(microsoft.graph.directoryObject)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A list of group members with license errors from this group-based license assignment. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="transitiveMembers" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(microsoft.graph.directoryObject)" />
+        <NavigationProperty Name="createdOnBehalfOf" Type="microsoft.graph.directoryObject">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user (or application) that created the group. NOTE: This is not set if the user is an administrator. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="owners" Type="Collection(microsoft.graph.directoryObject)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 10 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="settings" Type="Collection(microsoft.graph.groupSetting)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="conversations" Type="Collection(microsoft.graph.conversation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's conversations." />
+        </NavigationProperty>
+        <NavigationProperty Name="photos" Type="Collection(microsoft.graph.profilePhoto)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The profile photos owned by the group. Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="acceptedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of users or groups that are allowed to create post's or calendar events in this group. If this list is non-empty then only users or groups listed here are allowed to post." />
+        </NavigationProperty>
+        <NavigationProperty Name="rejectedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of users or groups that are not allowed to create posts or calendar events in this group. Nullable" />
+        </NavigationProperty>
+        <NavigationProperty Name="threads" Type="Collection(microsoft.graph.conversationThread)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's conversation threads. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="calendar" Type="microsoft.graph.calendar" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's calendar. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="calendarView" Type="Collection(microsoft.graph.event)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The calendar view for the calendar. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="events" Type="Collection(microsoft.graph.event)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's calendar events." />
+        </NavigationProperty>
+        <NavigationProperty Name="photo" Type="microsoft.graph.profilePhoto" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's profile photo" />
+        </NavigationProperty>
+        <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's default drive. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="drives" Type="Collection(microsoft.graph.drive)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The group's drives. Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="sites" Type="Collection(microsoft.graph.site)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of SharePoint sites in this group. Access the default site with /sites/root." />
+        </NavigationProperty>
+        <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the group. Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="groupLifecyclePolicies" Type="Collection(microsoft.graph.groupLifecyclePolicy)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of lifecycle policies for this group. Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="planner" Type="microsoft.graph.plannerGroup" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Entry-point to Planner resource that might exist for a Unified Group." />
+        </NavigationProperty>
+        <NavigationProperty Name="onenote" Type="microsoft.graph.onenote" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
+        </NavigationProperty>
+        <NavigationProperty Name="team" Type="microsoft.graph.team" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="groupSetting" BaseType="microsoft.graph.entity" OpenType="true">
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Display name of this group of settings, which comes from the associated template." />
@@ -3381,33 +3431,6 @@
         <NavigationProperty Name="plans" Type="Collection(microsoft.graph.plannerPlan)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns the plannerPlans owned by the group." />
         </NavigationProperty>
-      </EntityType>
-      <EntityType Name="team" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="webUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A hyperlink that will go to the team in the Microsoft Teams client. This is the URL that you get when you right-click a team in the Microsoft Teams client and select Get link to team. This URL should be treated as an opaque blob, and not parsed." />
-        </Property>
-        <Property Name="memberSettings" Type="microsoft.graph.teamMemberSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure whether members can perform certain actions, for example, create channels and add bots, in the team." />
-        </Property>
-        <Property Name="guestSettings" Type="microsoft.graph.teamGuestSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure whether guests can create, update, or delete channels in the team." />
-        </Property>
-        <Property Name="messagingSettings" Type="microsoft.graph.teamMessagingSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure messaging and mentions in the team." />
-        </Property>
-        <Property Name="funSettings" Type="microsoft.graph.teamFunSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Settings to configure use of Giphy, memes, and stickers in the team." />
-        </Property>
-        <Property Name="isArchived" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Whether this team is in read-only mode." />
-        </Property>
-        <NavigationProperty Name="channels" Type="Collection(microsoft.graph.channel)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of channels &amp; messages associated with the team." />
-        </NavigationProperty>
-        <NavigationProperty Name="installedApps" Type="Collection(microsoft.graph.teamsAppInstallation)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The apps installed in this team." />
-        </NavigationProperty>
-        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.teamsAsyncOperation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="contract" BaseType="microsoft.graph.directoryObject" OpenType="true">
         <Property Name="contractType" Type="Edm.String">
@@ -9947,66 +9970,99 @@
         <NavigationProperty Name="onlineMeetings" Type="Collection(microsoft.graph.onlineMeeting)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="call" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="state" Type="microsoft.graph.callState" />
-        <Property Name="mediaState" Type="microsoft.graph.callMediaState" />
-        <Property Name="resultInfo" Type="microsoft.graph.resultInfo" />
-        <Property Name="direction" Type="microsoft.graph.callDirection" />
-        <Property Name="subject" Type="Edm.String" />
-        <Property Name="callbackUri" Type="Edm.String" Nullable="false" />
-        <Property Name="source" Type="microsoft.graph.participantInfo" />
-        <Property Name="targets" Type="Collection(microsoft.graph.invitationParticipantInfo)" />
-        <Property Name="requestedModalities" Type="Collection(microsoft.graph.modality)" />
-        <Property Name="mediaConfig" Type="microsoft.graph.mediaConfig" />
-        <Property Name="chatInfo" Type="microsoft.graph.chatInfo" />
+        <Property Name="state" Type="microsoft.graph.callState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The call state. Possible values are: incoming, establishing, ringing, established, hold, transferring, transferAccepted, redirecting, terminating, terminated. Read-only." />
+        </Property>
+        <Property Name="mediaState" Type="microsoft.graph.callMediaState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. The call media state." />
+        </Property>
+        <Property Name="resultInfo" Type="microsoft.graph.resultInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result information. For example can hold termination reason. Read-only." />
+        </Property>
+        <Property Name="direction" Type="microsoft.graph.callDirection">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The direction of the call. The possible value are incoming or outgoing. Read-only." />
+        </Property>
+        <Property Name="subject" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the conversation." />
+        </Property>
+        <Property Name="callbackUri" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The callback URL on which callbacks will be delivered. Must be https." />
+        </Property>
+        <Property Name="source" Type="microsoft.graph.participantInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The originator of the call." />
+        </Property>
+        <Property Name="targets" Type="Collection(microsoft.graph.invitationParticipantInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The targets of the call. Required information for creating peer to peer call." />
+        </Property>
+        <Property Name="requestedModalities" Type="Collection(microsoft.graph.modality)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities." />
+        </Property>
+        <Property Name="mediaConfig" Type="microsoft.graph.mediaConfig">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media configuration. Required." />
+        </Property>
+        <Property Name="chatInfo" Type="microsoft.graph.chatInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The chat information. Required information for joining a meeting." />
+        </Property>
         <Property Name="callOptions" Type="microsoft.graph.callOptions" />
-        <Property Name="meetingInfo" Type="microsoft.graph.meetingInfo" />
+        <Property Name="meetingInfo" Type="microsoft.graph.meetingInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
+        </Property>
         <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="myParticipantId" Type="Edm.String" />
+        <Property Name="myParticipantId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
+        </Property>
         <Property Name="toneInfo" Type="microsoft.graph.toneInfo" />
-        <NavigationProperty Name="participants" Type="Collection(microsoft.graph.participant)" ContainsTarget="true" />
-        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.commsOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="participants" Type="Collection(microsoft.graph.participant)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.commsOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="participant" BaseType="microsoft.graph.entity">
-        <Property Name="info" Type="microsoft.graph.participantInfo" Nullable="false" />
-        <Property Name="mediaStreams" Type="Collection(microsoft.graph.mediaStream)" />
-        <Property Name="isMuted" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="isInLobby" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="info" Type="microsoft.graph.participantInfo" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The participant of the participant." />
+        </Property>
+        <Property Name="mediaStreams" Type="Collection(microsoft.graph.mediaStream)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of media streams." />
+        </Property>
+        <Property Name="isMuted" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if the participant is muted (client or server muted)." />
+        </Property>
+        <Property Name="isInLobby" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if the participant is in lobby." />
+        </Property>
       </EntityType>
       <EntityType Name="commsOperation" BaseType="microsoft.graph.entity" OpenType="true">
-        <Property Name="status" Type="microsoft.graph.operationStatus" Nullable="false" />
-        <Property Name="clientContext" Type="Edm.String" />
-        <Property Name="resultInfo" Type="microsoft.graph.resultInfo" />
+        <Property Name="status" Type="microsoft.graph.operationStatus" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: notStarted, running, completed, failed. Read-only." />
+        </Property>
+        <Property Name="clientContext" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique Client Context string. Max limit is 256 chars." />
+        </Property>
+        <Property Name="resultInfo" Type="microsoft.graph.resultInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result information. Read-only." />
+        </Property>
       </EntityType>
       <EntityType Name="inviteParticipantsOperation" BaseType="microsoft.graph.commsOperation" OpenType="true">
-        <Property Name="participants" Type="Collection(microsoft.graph.invitationParticipantInfo)" Nullable="false" />
+        <Property Name="participants" Type="Collection(microsoft.graph.invitationParticipantInfo)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The participants to invite." />
+        </Property>
       </EntityType>
       <EntityType Name="muteParticipantOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
       <EntityType Name="playPromptOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
       <EntityType Name="recordOperation" BaseType="microsoft.graph.commsOperation" OpenType="true">
-        <Property Name="recordingLocation" Type="Edm.String" />
-        <Property Name="recordingAccessToken" Type="Edm.String" />
+        <Property Name="recordingLocation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The location where the recording is located." />
+        </Property>
+        <Property Name="recordingAccessToken" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The access token required to retrieve the recording." />
+        </Property>
       </EntityType>
       <EntityType Name="subscribeToToneOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
       <EntityType Name="unmuteParticipantOperation" BaseType="microsoft.graph.commsOperation" OpenType="true" />
-      <EntityType Name="appCatalogs" BaseType="microsoft.graph.entity">
-        <NavigationProperty Name="teamsApps" Type="Collection(microsoft.graph.teamsApp)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="teamsApp" BaseType="microsoft.graph.entity">
-        <Property Name="externalId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the catalog provided by the app developer in the Microsoft Teams zip app package." />
-        </Property>
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the catalog app provided by the app developer in the Microsoft Teams zip app package." />
-        </Property>
-        <Property Name="distributionMethod" Type="microsoft.graph.teamsAppDistributionMethod" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The method of distribution for the app." />
-        </Property>
-        <NavigationProperty Name="appDefinitions" Type="Collection(microsoft.graph.teamsAppDefinition)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The details for each version of the app." />
-        </NavigationProperty>
-      </EntityType>
       <EntityType Name="channel" BaseType="microsoft.graph.entity">
-        <Property Name="displayName" Type="Edm.String">
+        <Property Name="displayName" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Channel name as it will appear to the user in Microsoft Teams." />
         </Property>
         <Property Name="description" Type="Edm.String">
@@ -10039,6 +10095,23 @@
         <Property Name="targetResourceId" Type="Edm.String" />
         <Property Name="targetResourceLocation" Type="Edm.String" />
         <Property Name="error" Type="microsoft.graph.operationError" />
+      </EntityType>
+      <EntityType Name="appCatalogs" BaseType="microsoft.graph.entity">
+        <NavigationProperty Name="teamsApps" Type="Collection(microsoft.graph.teamsApp)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="teamsApp" BaseType="microsoft.graph.entity">
+        <Property Name="externalId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the catalog provided by the app developer in the Microsoft Teams zip app package." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the catalog app provided by the app developer in the Microsoft Teams zip app package." />
+        </Property>
+        <Property Name="distributionMethod" Type="microsoft.graph.teamsAppDistributionMethod">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The method of distribution for the app." />
+        </Property>
+        <NavigationProperty Name="appDefinitions" Type="Collection(microsoft.graph.teamsAppDefinition)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The details for each version of the app." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="teamsAppDefinition" BaseType="microsoft.graph.entity">
         <Property Name="teamsAppId" Type="Edm.String">
@@ -10260,6 +10333,17 @@
         </Property>
         <Property Name="servicePlanId" Type="Edm.Guid">
           <Annotation Term="Org.OData.Core.V1.Description" String="A GUID that identifies the service plan." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="objectIdentity">
+        <Property Name="signInType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the user sign-in types in your directory, such as emailAddress, userName or federated. Here, federated represents a unique identifier for a user from an issuer, that can be in any format chosen by the issuer. Additional validation is enforced on issuerAssignedId when the sign-in type is set to emailAddress or userName. This property can also be set to any custom string." />
+        </Property>
+        <Property Name="issuer" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the issuer of the identity, for example facebook.com.For local accounts (where signInType is not federated), this property is the local B2C tenant default domain name, for example contoso.onmicrosoft.com.For external users from other Azure AD organization, this will be the domain of the federated organization, for example contoso.com.Supports $filter. 512 character limit." />
+        </Property>
+        <Property Name="issuerAssignedId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the unique identifier assigned to the user by the issuer. The combination of issuer and issuerAssignedId must be unique within the organization. Represents the sign-in name for the user, when signInType is set to emailAddress or userName (also known as local accounts).When signInType is set to: emailAddress, (or starts with emailAddress like emailAddress1) issuerAssignedId must be a valid email addressuserName, issuerAssignedId must be a valid local part of an email addressSupports $filter. 512 character limit." />
         </Property>
       </ComplexType>
       <ComplexType Name="licenseAssignmentState">
@@ -13759,82 +13843,169 @@
         </Property>
       </ComplexType>
       <ComplexType Name="callMediaState">
-        <Property Name="audio" Type="microsoft.graph.mediaState" />
+        <Property Name="audio" Type="microsoft.graph.mediaState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The audio media state. Possible values are: active, inactive." />
+        </Property>
       </ComplexType>
       <ComplexType Name="resultInfo">
-        <Property Name="code" Type="Edm.Int32" Nullable="false" />
-        <Property Name="subcode" Type="Edm.Int32" Nullable="false" />
-        <Property Name="message" Type="Edm.String" />
+        <Property Name="code" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result code." />
+        </Property>
+        <Property Name="subcode" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result sub-code." />
+        </Property>
+        <Property Name="message" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The message." />
+        </Property>
       </ComplexType>
       <ComplexType Name="participantInfo">
-        <Property Name="identity" Type="microsoft.graph.identitySet" Nullable="false" />
-        <Property Name="region" Type="Edm.String" />
-        <Property Name="languageId" Type="Edm.String" />
+        <Property Name="identity" Type="microsoft.graph.identitySet" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identitySet associated with this participant. Read-only." />
+        </Property>
+        <Property Name="region" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The home region of the participant. This can be a country, a continent, or a larger geographic region. This does not change based on the participant's current physical location. Read-only." />
+        </Property>
+        <Property Name="languageId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The language culture string. Read-only." />
+        </Property>
       </ComplexType>
       <ComplexType Name="invitationParticipantInfo" OpenType="true">
-        <Property Name="identity" Type="microsoft.graph.identitySet" Nullable="false" />
-        <Property Name="replacesCallId" Type="Edm.String" />
+        <Property Name="identity" Type="microsoft.graph.identitySet" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identitySet associated with this invitation." />
+        </Property>
+        <Property Name="replacesCallId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. The call which the target identity is currently a part of. This call will be dropped once the participant is added." />
+        </Property>
       </ComplexType>
       <ComplexType Name="mediaConfig" Abstract="true" />
       <ComplexType Name="chatInfo">
-        <Property Name="threadId" Type="Edm.String" />
-        <Property Name="messageId" Type="Edm.String" />
-        <Property Name="replyChainMessageId" Type="Edm.String" />
+        <Property Name="threadId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for a thread in Microsoft Teams." />
+        </Property>
+        <Property Name="messageId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of a message in a Microsoft Teams channel." />
+        </Property>
+        <Property Name="replyChainMessageId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the reply message." />
+        </Property>
       </ComplexType>
       <ComplexType Name="callOptions" Abstract="true" />
       <ComplexType Name="meetingInfo" Abstract="true" />
       <ComplexType Name="toneInfo">
-        <Property Name="sequenceId" Type="Edm.Int64" Nullable="false" />
-        <Property Name="tone" Type="microsoft.graph.tone" Nullable="false" />
+        <Property Name="sequenceId" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An incremental identifier used for ordering DTMF events." />
+        </Property>
+        <Property Name="tone" Type="microsoft.graph.tone" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: tone0, tone1, tone2, tone3, tone4, tone5, tone6, tone7, tone8, tone9, star, pound" />
+        </Property>
       </ComplexType>
       <ComplexType Name="meetingParticipants">
         <Property Name="organizer" Type="microsoft.graph.meetingParticipantInfo" />
         <Property Name="attendees" Type="Collection(microsoft.graph.meetingParticipantInfo)" />
       </ComplexType>
       <ComplexType Name="meetingParticipantInfo">
-        <Property Name="identity" Type="microsoft.graph.identitySet" />
-        <Property Name="upn" Type="Edm.String" />
+        <Property Name="identity" Type="microsoft.graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity information of the participant." />
+        </Property>
+        <Property Name="upn" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the participant." />
+        </Property>
       </ComplexType>
       <ComplexType Name="audioConferencing">
         <Property Name="conferenceId" Type="Edm.String" />
-        <Property Name="tollNumber" Type="Edm.String" />
-        <Property Name="tollFreeNumber" Type="Edm.String" />
-        <Property Name="dialinUrl" Type="Edm.String" />
+        <Property Name="tollNumber" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll number that connects to the Audio Conference Provider." />
+        </Property>
+        <Property Name="tollFreeNumber" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll-free number that connects to the Audio Conference Provider." />
+        </Property>
+        <Property Name="dialinUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A URL to the externally-accessible web page that contains dial-in information." />
+        </Property>
       </ComplexType>
       <ComplexType Name="mediaStream">
-        <Property Name="mediaType" Type="microsoft.graph.modality" Nullable="false" />
-        <Property Name="label" Type="Edm.String" />
-        <Property Name="sourceId" Type="Edm.String" Nullable="false" />
-        <Property Name="direction" Type="microsoft.graph.mediaDirection" Nullable="false" />
-        <Property Name="serverMuted" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="mediaType" Type="microsoft.graph.modality" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media type. The possible value are unknown, audio, video, videoBasedScreenSharing, data." />
+        </Property>
+        <Property Name="label" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media stream label." />
+        </Property>
+        <Property Name="sourceId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The source ID." />
+        </Property>
+        <Property Name="direction" Type="microsoft.graph.mediaDirection" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The direction. The possible values are inactive, sendOnly, receiveOnly, sendReceive." />
+        </Property>
+        <Property Name="serverMuted" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the media is muted by the server." />
+        </Property>
       </ComplexType>
       <ComplexType Name="outgoingCallOptions" BaseType="microsoft.graph.callOptions" />
       <ComplexType Name="commsNotification" OpenType="true">
-        <Property Name="changeType" Type="microsoft.graph.changeType" Nullable="false" />
-        <Property Name="resourceUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="changeType" Type="microsoft.graph.changeType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: created, updated, deleted." />
+        </Property>
+        <Property Name="resourceUrl" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URI of the resource that was changed." />
+        </Property>
       </ComplexType>
       <ComplexType Name="commsNotifications">
-        <Property Name="value" Type="Collection(microsoft.graph.commsNotification)" />
+        <Property Name="value" Type="Collection(microsoft.graph.commsNotification)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The notification of a change in the resource." />
+        </Property>
       </ComplexType>
       <ComplexType Name="appHostedMediaConfig" BaseType="microsoft.graph.mediaConfig">
-        <Property Name="blob" Type="Edm.String" />
+        <Property Name="blob" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media configuration blob generated by smart media agent." />
+        </Property>
       </ComplexType>
       <ComplexType Name="serviceHostedMediaConfig" BaseType="microsoft.graph.mediaConfig">
-        <Property Name="preFetchMedia" Type="Collection(microsoft.graph.mediaInfo)" />
+        <Property Name="preFetchMedia" Type="Collection(microsoft.graph.mediaInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of media to pre-fetch." />
+        </Property>
       </ComplexType>
       <ComplexType Name="mediaInfo">
-        <Property Name="uri" Type="Edm.String" Nullable="false" />
-        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="uri" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Path to the prompt that will be played. Currently supports only Wave file (.wav) format, single-channel, 16-bit samples with a 16,000 (16KHz) sampling rate." />
+        </Property>
+        <Property Name="resourceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Used to uniquely identity the resource. If passed in, the prompt uri will be cached against this resourceId as a key." />
+        </Property>
       </ComplexType>
       <ComplexType Name="organizerMeetingInfo" BaseType="microsoft.graph.meetingInfo" OpenType="true">
-        <Property Name="organizer" Type="microsoft.graph.identitySet" Nullable="false" />
+        <Property Name="organizer" Type="microsoft.graph.identitySet" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The organizer Azure Active Directory identity." />
+        </Property>
       </ComplexType>
       <ComplexType Name="tokenMeetingInfo" BaseType="microsoft.graph.meetingInfo">
-        <Property Name="token" Type="Edm.String" Nullable="false" />
+        <Property Name="token" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The token used to join the call." />
+        </Property>
       </ComplexType>
       <ComplexType Name="prompt" Abstract="true" />
       <ComplexType Name="mediaPrompt" BaseType="microsoft.graph.prompt">
-        <Property Name="mediaInfo" Type="microsoft.graph.mediaInfo" Nullable="false" />
+        <Property Name="mediaInfo" Type="microsoft.graph.mediaInfo" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media information" />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="teamClassSettings">
+        <Property Name="notifyGuardiansAboutAssignments" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, enables sending of weekly assignments digest emails to parents/guardians, provided the tenant admin has enabled the setting globally." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="teamsTabConfiguration" OpenType="true">
+        <Property Name="entityId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier for the entity hosted by the tab provider." />
+        </Property>
+        <Property Name="contentUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Url used for rendering tab contents in Teams. Required." />
+        </Property>
+        <Property Name="removeUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Url called by Teams client when a Tab is removed using the Teams Client." />
+        </Property>
+        <Property Name="websiteUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Url for showing tab contents outside of Teams." />
+        </Property>
       </ComplexType>
       <ComplexType Name="teamMemberSettings">
         <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean">
@@ -13890,23 +14061,6 @@
         </Property>
         <Property Name="allowCustomMemes" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, enables users to include custom memes." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="teamClassSettings">
-        <Property Name="notifyGuardiansAboutAssignments" Type="Edm.Boolean" />
-      </ComplexType>
-      <ComplexType Name="teamsTabConfiguration" OpenType="true">
-        <Property Name="entityId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier for the entity hosted by the tab provider." />
-        </Property>
-        <Property Name="contentUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Url used for rendering tab contents in Teams. Required." />
-        </Property>
-        <Property Name="removeUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Url called by Teams client when a Tab is removed using the Teams Client." />
-        </Property>
-        <Property Name="websiteUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Url for showing tab contents outside of Teams." />
         </Property>
       </ComplexType>
       <ComplexType Name="operationError">
@@ -17921,6 +18075,9 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="microsoft.graph.muteParticipantOperation" />
       </Action>
+      <Action Name="upgrade" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.teamsAppInstallation" />
+      </Action>
       <Action Name="clone" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.team" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
@@ -17932,13 +18089,10 @@
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.team" />
-        <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" />
+        <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" Nullable="false" />
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.team" />
-      </Action>
-      <Action Name="upgrade" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.teamsAppInstallation" />
       </Action>
       <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
@@ -18001,11 +18155,11 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of troubleshooting events for this user." />
       </Annotations>
       <Annotations Target="microsoft.graph.userActivity" />
-      <Annotations Target="microsoft.graph.group" />
       <Annotations Target="microsoft.graph.application" />
       <Annotations Target="microsoft.graph.orgContact" />
       <Annotations Target="microsoft.graph.directoryRole" />
       <Annotations Target="microsoft.graph.directoryRoleTemplate" />
+      <Annotations Target="microsoft.graph.group" />
       <Annotations Target="microsoft.graph.group/conversations" />
       <Annotations Target="microsoft.graph.group/photos" />
       <Annotations Target="microsoft.graph.group/acceptedSenders" />
