@@ -848,14 +848,6 @@
         <Member Name="Binary" Value="0" />
         <Member Name="Unary" Value="1" />
       </EnumType>
-      <EnumType Name="modality">
-        <Member Name="unknown" Value="0" />
-        <Member Name="audio" Value="1" />
-        <Member Name="video" Value="2" />
-        <Member Name="videoBasedScreenSharing" Value="3" />
-        <Member Name="data" Value="4" />
-        <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -3977,6 +3969,14 @@
         <Member Name="questionAndAnswer" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
       </EnumType>
+      <EnumType Name="modality">
+        <Member Name="unknown" Value="0" />
+        <Member Name="audio" Value="1" />
+        <Member Name="video" Value="2" />
+        <Member Name="videoBasedScreenSharing" Value="3" />
+        <Member Name="data" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="playPromptCompletionReason">
         <Member Name="unknown" Value="0" />
         <Member Name="completedSuccessfully" Value="1" />
@@ -4823,10 +4823,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the message's parent mailFolder." />
         </Property>
         <Property Name="sender" Type="graph.recipient">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The account that is actually used to generate the message. In most cases, this value is the same as the from property. You can set this property to a different value when sending a message from a shared mailbox, or sending a message as a delegate. In any case, the value must correspond to the actual mailbox used. Find out more about setting the from and sender properties of a message." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The account that is actually used to generate the message. In most cases, this value is the same as the from property. You can set this property to a different value when sending a message from a shared mailbox, for a shared calendar, or as a delegate. In any case, the value must correspond to the actual mailbox used. Find out more about setting the from and sender properties of a message." />
         </Property>
         <Property Name="from" Type="graph.recipient">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The mailbox owner and sender of the message. The value must correspond to the actual mailbox used. Find out more about setting the from and sender properties of a message." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The owner of the mailbox from which the message is sent. In most cases, this value is the same as the sender property, except for sharing or delegation scenarios. The value must correspond to the actual mailbox used. Find out more about setting the from and sender properties of a message." />
         </Property>
         <Property Name="toRecipients" Type="Collection(graph.recipient)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The To: recipients for the message." />
@@ -5204,7 +5204,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Set to true if the event has been canceled." />
         </Property>
         <Property Name="isOrganizer" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Set to true if the message sender is also the organizer." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Set to true if the calendar owner (specified by the owner property of the calendar) is the organizer of the event (specified by the organizer property of the event). This also applies if a delegate organized the event on behalf of the owner." />
         </Property>
         <Property Name="recurrence" Type="graph.patternedRecurrence">
           <Annotation Term="Org.OData.Core.V1.Description" String="The recurrence pattern for the event." />
@@ -6117,7 +6117,9 @@
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of channels &amp; messages associated with the team." />
         </NavigationProperty>
-        <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
+        <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The general channel for the team." />
+        </NavigationProperty>
         <NavigationProperty Name="apps" Type="Collection(graph.teamsCatalogApp)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The apps installed in this team." />
@@ -6135,6 +6137,7 @@
         <Property Name="changeId" Type="Edm.String" />
         <Property Name="action" Type="Edm.String" />
         <Property Name="durationInMilliseconds" Type="Edm.Int32" />
+        <Property Name="servicePrincipal" Type="graph.provisioningServicePrincipal" />
         <Property Name="initiatedBy" Type="graph.initiator" />
         <Property Name="sourceSystem" Type="graph.provisioningSystemDetails" />
         <Property Name="targetSystem" Type="graph.provisioningSystemDetails" />
@@ -20156,6 +20159,15 @@
         <Property Name="level" Type="graph.userRiskLevel" />
         <Property Name="lastChangedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="identity" OpenType="true">
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="provisioningServicePrincipal" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="initiator">
         <Property Name="id" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -20189,14 +20201,6 @@
         <Property Name="additionalDetails" Type="Edm.String" />
         <Property Name="errorCategory" Type="Edm.String" />
         <Property Name="recommendedAction" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="identity" OpenType="true">
-        <Property Name="id" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
-        </Property>
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
-        </Property>
       </ComplexType>
       <ComplexType Name="licenseInfoDetail">
         <Property Name="licenseType" Type="graph.azureADLicenseType" />
