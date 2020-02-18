@@ -329,8 +329,10 @@
         <Member Name="diagonal" Value="1" />
       </EnumType>
       <EnumType Name="groupPrivacy">
-        <Member Name="public" Value="0" />
-        <Member Name="private" Value="1" />
+        <Member Name="unspecified" Value="0" />
+        <Member Name="public" Value="1" />
+        <Member Name="private" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="siteAccessType">
         <Member Name="block" Value="0" />
@@ -6403,6 +6405,7 @@
       <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false" />
+        <Property Name="alternativeNames" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="appDisplayName" Type="Edm.String" />
         <Property Name="appId" Type="Edm.String" />
         <Property Name="applicationTemplateId" Type="Edm.String" />
@@ -6410,21 +6413,30 @@
         <Property Name="appRoleAssignmentRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="appRoles" Type="Collection(graph.appRole)" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="errorUrl" Type="Edm.String" />
         <Property Name="homepage" Type="Edm.String" />
-        <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
         <Property Name="info" Type="graph.informationalUrl" />
+        <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
+        <Property Name="loginUrl" Type="Edm.String" />
         <Property Name="logoutUrl" Type="Edm.String" />
         <Property Name="notificationEmailAddresses" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="publishedPermissionScopes" Type="Collection(graph.permissionScope)" Nullable="false" />
         <Property Name="passwordCredentials" Type="Collection(graph.passwordCredential)" Nullable="false" />
+        <Property Name="preferredTokenSigningKeyEndDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="preferredTokenSigningKeyThumbprint" Type="Edm.String" />
+        <Property Name="preferredSingleSignOnMode" Type="Edm.String" />
         <Property Name="publisherName" Type="Edm.String" />
         <Property Name="replyUrls" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="samlMetadataUrl" Type="Edm.String" />
+        <Property Name="samlSingleSignOnSettings" Type="graph.samlSingleSignOnSettings" />
         <Property Name="servicePrincipalNames" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="servicePrincipalType" Type="Edm.String" />
+        <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
         <NavigationProperty Name="appRoleAssignedTo" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
@@ -6434,6 +6446,13 @@
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="policies" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="synchronization" Type="graph.synchronization" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="endpoint" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="capability" Type="Edm.String" Nullable="false" />
+        <Property Name="providerId" Type="Edm.String" />
+        <Property Name="providerName" Type="Edm.String" />
+        <Property Name="uri" Type="Edm.String" Nullable="false" />
+        <Property Name="providerResourceId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="oAuth2PermissionGrant" BaseType="graph.entity">
         <Property Name="clientId" Type="Edm.String" Nullable="false" />
@@ -6627,6 +6646,7 @@
         <Property Name="isMandatory" Type="Edm.Boolean" />
         <Property Name="helpWebUrl" Type="Edm.String" />
         <Property Name="downgradeSensitivityRequiresJustification" Type="Edm.Boolean" />
+        <Property Name="applicableTo" Type="graph.sensitivityLabelTarget" />
       </EntityType>
       <EntityType Name="threatAssessmentRequest" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -6663,13 +6683,6 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="endpoint" BaseType="graph.directoryObject" OpenType="true">
-        <Property Name="capability" Type="Edm.String" Nullable="false" />
-        <Property Name="providerId" Type="Edm.String" />
-        <Property Name="providerName" Type="Edm.String" />
-        <Property Name="uri" Type="Edm.String" Nullable="false" />
-        <Property Name="providerResourceId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="allowedDataLocation" BaseType="graph.entity" OpenType="true">
         <Property Name="appId" Type="Edm.String" />
@@ -8956,8 +8969,8 @@
         <Property Name="requestType" Type="Edm.String" />
         <Property Name="requestState" Type="Edm.String" />
         <Property Name="requestStatus" Type="Edm.String" />
-        <Property Name="justification" Type="Edm.String" />
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="justification" Type="Edm.String" />
         <NavigationProperty Name="accessPackageResource" Type="graph.accessPackageResource" />
         <NavigationProperty Name="requestor" Type="graph.accessPackageSubject" ContainsTarget="true" />
       </EntityType>
@@ -8984,11 +8997,9 @@
         <NavigationProperty Name="accessPackageAssignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
-        <Property Name="userType" Type="Edm.String" />
         <Property Name="accessPackageId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
-        <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="canExtend" Type="Edm.Boolean" />
         <Property Name="durationInDays" Type="Edm.Int32" />
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
@@ -8996,6 +9007,9 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="modifiedBy" Type="Edm.String" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="requestorSettings" Type="graph.requestorSettings" />
+        <Property Name="requestApprovalSettings" Type="graph.approvalSettings" />
+        <Property Name="accessReviewSettings" Type="graph.assignmentReviewSettings" />
         <NavigationProperty Name="accessPackage" Type="graph.accessPackage" />
         <NavigationProperty Name="accessPackageCatalog" Type="graph.accessPackageCatalog" ContainsTarget="true" />
       </EntityType>
@@ -20486,6 +20500,9 @@
         <Property Name="type" Type="Edm.String" Nullable="false" />
         <Property Name="properties" Type="Collection(graph.keyValue)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="samlSingleSignOnSettings">
+        <Property Name="relayState" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="credential">
         <Property Name="fieldId" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
@@ -22809,6 +22826,52 @@
       <ComplexType Name="publicErrorResponse">
         <Property Name="error" Type="graph.publicError" />
       </ComplexType>
+      <ComplexType Name="requestorSettings">
+        <Property Name="scopeType" Type="Edm.String" />
+        <Property Name="acceptRequests" Type="Edm.Boolean" />
+        <Property Name="allowedRequestors" Type="Collection(graph.userSet)" />
+      </ComplexType>
+      <ComplexType Name="userSet" Abstract="true">
+        <Property Name="isBackup" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="approvalSettings">
+        <Property Name="isApprovalRequired" Type="Edm.Boolean" />
+        <Property Name="isApprovalRequiredForExtension" Type="Edm.Boolean" />
+        <Property Name="isRequestorJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="approvalMode" Type="Edm.String" />
+        <Property Name="approvalStages" Type="Collection(graph.approvalStage)" />
+      </ComplexType>
+      <ComplexType Name="approvalStage">
+        <Property Name="approvalStageTimeOutInDays" Type="Edm.Int32" />
+        <Property Name="isApproverJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="isEscalationEnabled" Type="Edm.Boolean" />
+        <Property Name="escalationTimeInMinutes" Type="Edm.Int32" />
+        <Property Name="primaryApprovers" Type="Collection(graph.userSet)" />
+        <Property Name="escalationApprovers" Type="Collection(graph.userSet)" />
+      </ComplexType>
+      <ComplexType Name="assignmentReviewSettings">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="recurrenceType" Type="Edm.String" />
+        <Property Name="reviewerType" Type="Edm.String" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="durationInDays" Type="Edm.Int32" />
+        <Property Name="reviewers" Type="Collection(graph.userSet)" />
+      </ComplexType>
+      <ComplexType Name="singleUser" BaseType="graph.userSet">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="groupMembers" BaseType="graph.userSet">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="requestorManager" BaseType="graph.userSet" />
+      <ComplexType Name="connectedOrganizationMembers" BaseType="graph.userSet">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="internalSponsors" BaseType="graph.userSet" />
+      <ComplexType Name="externalSponsors" BaseType="graph.userSet" />
       <ComplexType Name="accessReviewSettings">
         <Property Name="mailNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="remindersEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -26210,6 +26273,7 @@
       <ComplexType Name="recordingInfo">
         <Property Name="recordingStatus" Type="graph.recordingStatus" Nullable="false" />
         <Property Name="initiatedBy" Type="graph.participantInfo" />
+        <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
       <ComplexType Name="mediaStream">
         <Property Name="mediaType" Type="graph.modality" Nullable="false">
