@@ -1369,6 +1369,13 @@
         <Member Name="updated" Value="1" />
         <Member Name="deleted" Value="2" />
       </EnumType>
+      <EnumType Name="endpointType">
+        <Member Name="default" Value="0" />
+        <Member Name="voicemail" Value="1" />
+        <Member Name="skypeForBusiness" Value="2" />
+        <Member Name="skypeForBusinessVoipPhone" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="mediaDirection">
         <Member Name="inactive" Value="0" />
         <Member Name="sendOnly" Value="1" />
@@ -1387,10 +1394,23 @@
         <Member Name="data" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
+      <EnumType Name="recordingStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="notRecording" Value="1" />
+        <Member Name="recording" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="rejectReason">
         <Member Name="none" Value="0" />
         <Member Name="busy" Value="1" />
         <Member Name="forbidden" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="routingType">
+        <Member Name="forwarded" Value="0" />
+        <Member Name="lookup" Value="1" />
+        <Member Name="selfFork" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="screenSharingRole">
@@ -1455,6 +1475,54 @@
         <Member Name="succeeded" Value="3" />
         <Member Name="failed" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="threatAssessmentContentType">
+        <Member Name="mail" Value="1" />
+        <Member Name="url" Value="2" />
+        <Member Name="file" Value="3" />
+      </EnumType>
+      <EnumType Name="threatExpectedAssessment">
+        <Member Name="block" Value="1" />
+        <Member Name="unblock" Value="2" />
+      </EnumType>
+      <EnumType Name="threatCategory">
+        <Member Name="undefined" Value="0" />
+        <Member Name="spam" Value="1" />
+        <Member Name="phishing" Value="2" />
+        <Member Name="malware" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="threatAssessmentStatus">
+        <Member Name="pending" Value="1" />
+        <Member Name="completed" Value="2" />
+      </EnumType>
+      <EnumType Name="threatAssessmentRequestSource">
+        <Member Name="undefined" Value="0" />
+        <Member Name="user" Value="1" />
+        <Member Name="administrator" Value="2" />
+      </EnumType>
+      <EnumType Name="threatAssessmentResultType">
+        <Member Name="checkPolicy" Value="1" />
+        <Member Name="rescan" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="mailDestinationRoutingReason">
+        <Member Name="none" Value="0" />
+        <Member Name="mailFlowRule" Value="1" />
+        <Member Name="safeSender" Value="2" />
+        <Member Name="blockedSender" Value="3" />
+        <Member Name="advancedSpamFiltering" Value="4" />
+        <Member Name="domainAllowList" Value="5" />
+        <Member Name="domainBlockList" Value="6" />
+        <Member Name="notInAddressBook" Value="7" />
+        <Member Name="firstTimeSender" Value="8" />
+        <Member Name="autoPurgeToInbox" Value="9" />
+        <Member Name="autoPurgeToJunk" Value="10" />
+        <Member Name="autoPurgeToDeleted" Value="11" />
+        <Member Name="outbound" Value="12" />
+        <Member Name="notJunk" Value="13" />
+        <Member Name="junk" Value="14" />
+        <Member Name="unknownFutureValue" Value="15" />
       </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Key>
@@ -2457,6 +2525,8 @@
         <Property Name="autoSubscribeNewMembers" Type="Edm.Boolean" />
         <Property Name="isSubscribedByMail" Type="Edm.Boolean" />
         <Property Name="unseenCount" Type="Edm.Int32" />
+        <Property Name="hideFromOutlookClients" Type="Edm.Boolean" />
+        <Property Name="hideFromAddressLists" Type="Edm.Boolean" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
@@ -6434,6 +6504,7 @@
         <Property Name="direction" Type="graph.callDirection" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="callbackUri" Type="Edm.String" Nullable="false" />
+        <Property Name="callRoutes" Type="Collection(graph.callRoute)" />
         <Property Name="source" Type="graph.participantInfo" />
         <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)" />
         <Property Name="requestedModalities" Type="Collection(graph.modality)" />
@@ -6444,6 +6515,7 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="myParticipantId" Type="Edm.String" />
         <Property Name="toneInfo" Type="graph.toneInfo" />
+        <Property Name="incomingContext" Type="graph.incomingContext" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
       </EntityType>
@@ -6455,10 +6527,17 @@
         <Property Name="subcode" Type="Edm.Int32" Nullable="false" />
         <Property Name="message" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="callRoute">
+        <Property Name="routingType" Type="graph.routingType" Nullable="false" />
+        <Property Name="original" Type="graph.identitySet" Nullable="false" />
+        <Property Name="final" Type="graph.identitySet" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="participantInfo">
         <Property Name="identity" Type="graph.identitySet" Nullable="false" />
+        <Property Name="endpointType" Type="graph.endpointType" />
         <Property Name="region" Type="Edm.String" />
         <Property Name="languageId" Type="Edm.String" />
+        <Property Name="countryCode" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="invitationParticipantInfo" OpenType="true">
         <Property Name="identity" Type="graph.identitySet" Nullable="false" />
@@ -6476,8 +6555,15 @@
         <Property Name="sequenceId" Type="Edm.Int64" Nullable="false" />
         <Property Name="tone" Type="graph.tone" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="incomingContext">
+        <Property Name="sourceParticipantId" Type="Edm.String" />
+        <Property Name="observedParticipantId" Type="Edm.String" />
+        <Property Name="onBehalfOf" Type="graph.identitySet" />
+        <Property Name="transferor" Type="graph.identitySet" />
+      </ComplexType>
       <EntityType Name="participant" BaseType="graph.entity">
         <Property Name="info" Type="graph.participantInfo" Nullable="false" />
+        <Property Name="recordingInfo" Type="graph.recordingInfo" />
         <Property Name="mediaStreams" Type="Collection(graph.mediaStream)" />
         <Property Name="isMuted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isInLobby" Type="Edm.Boolean" Nullable="false" />
@@ -6498,6 +6584,7 @@
       </EntityType>
       <EntityType Name="subscribeToToneOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="unmuteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="updateRecordingStatusOperation" BaseType="graph.commsOperation" OpenType="true" />
       <ComplexType Name="meetingParticipants">
         <Property Name="organizer" Type="graph.meetingParticipantInfo" />
         <Property Name="attendees" Type="Collection(graph.meetingParticipantInfo)" />
@@ -6511,6 +6598,10 @@
         <Property Name="tollNumber" Type="Edm.String" />
         <Property Name="tollFreeNumber" Type="Edm.String" />
         <Property Name="dialinUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="recordingInfo">
+        <Property Name="recordingStatus" Type="graph.recordingStatus" Nullable="false" />
+        <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
       <ComplexType Name="mediaStream">
         <Property Name="mediaType" Type="graph.modality" Nullable="false" />
@@ -6625,7 +6716,41 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
       </ComplexType>
-      <EntityType Name="informationProtection" BaseType="graph.entity" />
+      <EntityType Name="informationProtection" BaseType="graph.entity">
+        <NavigationProperty Name="threatAssessmentRequests" Type="Collection(graph.threatAssessmentRequest)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="threatAssessmentRequest" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="contentType" Type="graph.threatAssessmentContentType" />
+        <Property Name="expectedAssessment" Type="graph.threatExpectedAssessment" Nullable="false" />
+        <Property Name="category" Type="graph.threatCategory" Nullable="false" />
+        <Property Name="status" Type="graph.threatAssessmentStatus" />
+        <Property Name="requestSource" Type="graph.threatAssessmentRequestSource" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <NavigationProperty Name="results" Type="Collection(graph.threatAssessmentResult)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="threatAssessmentResult" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="resultType" Type="graph.threatAssessmentResultType" />
+        <Property Name="message" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="urlAssessmentRequest" BaseType="graph.threatAssessmentRequest">
+        <Property Name="url" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="fileAssessmentRequest" BaseType="graph.threatAssessmentRequest">
+        <Property Name="fileName" Type="Edm.String" Nullable="false" />
+        <Property Name="contentData" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="emailFileAssessmentRequest" BaseType="graph.threatAssessmentRequest">
+        <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
+        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
+        <Property Name="contentData" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="mailAssessmentRequest" BaseType="graph.threatAssessmentRequest">
+        <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
+        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
+        <Property Name="messageUri" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <Action Name="getByIds" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryObject)" Nullable="false" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
@@ -10523,6 +10648,12 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.unmuteParticipantOperation" />
       </Action>
+      <Action Name="updateRecordingStatus" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.call" />
+        <Parameter Name="status" Type="graph.recordingStatus" Nullable="false" />
+        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.updateRecordingStatusOperation" />
+      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
         <Parameter Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
@@ -10548,7 +10679,7 @@
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
-        <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" />
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
