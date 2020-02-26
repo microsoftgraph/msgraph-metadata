@@ -5,7 +5,7 @@
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
-  
+
     <!-- Copies the entire document. -->
     <xsl:template match="@* | node()">
       <xsl:copy>
@@ -56,7 +56,7 @@
                   edm:EntityType[@Name='windows81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:EntityType[@Name='windowsPhone81ImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:EntityType[@Name='windowsUniversalAppX']/edm:NavigationProperty[@Name='committedContainedApps']|
-                  edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']                         
+                  edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']
                          ">
       <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
@@ -73,6 +73,10 @@
     <!-- Remove all capability annotations-->
 
     <xsl:template match="edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+
+    <!-- Remove namespaces-->
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']"/>
 
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
