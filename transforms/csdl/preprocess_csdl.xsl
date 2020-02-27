@@ -101,12 +101,12 @@
 
     <!-- These actions have the same parameters that need reordering. Will need to create a new template
          for each reordering. -->
-    <xsl:template match="edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]|
-                         edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]|
-                         edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]">
+    <xsl:template match="edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
             <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
