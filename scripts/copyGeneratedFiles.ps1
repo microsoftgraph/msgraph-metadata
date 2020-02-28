@@ -4,7 +4,7 @@
 <#
 .Synopsis
     Moves files from a source array of directories into the destination array
-    of directories.
+    of directories.  NOTE: all files will be removed from the destination array prior to copy.
 
 .Example
     .\scripts\copyGeneratedFiles.ps1 @("D:\temp\democopy\from\1", "D:\temp\democopy\from\2") @("D:\temp\democopy\to\3", "D:\temp\democopy\to\4")
