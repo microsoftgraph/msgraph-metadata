@@ -65,7 +65,7 @@
 
 .Parameter cleanup
     Optional, with a default value of $true. Specifies whether this script should remove the downloaded
-    typewrites files.
+    typewrites files at the end of this script.
 #>
 
 Param(
@@ -92,11 +92,13 @@ $typewriter = Join-Path $tempDir "typewriter.exe"
 
 # Create our temporary working directory.
 if ((Test-Path -PathType Container -Path $tempDir)) {
-    Write-Host "$tempDir already exists" # We may want to run this script multiple times in a pipeline.
-} else {
-    New-Item -Path $tempDir -Type Directory
-    Write-Host "Created $tempDir"
+    Write-Host "$tempDir already exists"
+    Remove-Item $tempDir -Force -Recurse
+    Write-Host "Removed $tempDir"
 }
+New-Item -Path $tempDir -Type Directory
+Write-Host "Created $tempDir"
+
 
 # Create the typewriter.exe command line arguments from script arguments.
 $options = @()
@@ -112,6 +114,7 @@ if ($transform)              { $options += "-t"; $options += "$transform"}
 if ($output)                 { $options += "-o"; $options += "$output"}
 if ($generationMode)         { $options += "-g"; $options += "$generationMode"}
 
+# Only attempt to download and unpack typewriter if it isn't available.
 if ((Test-Path -Path $typewriter -PathType leaf) -ne $true)
 {
     # Get information about the GitHub releases.
