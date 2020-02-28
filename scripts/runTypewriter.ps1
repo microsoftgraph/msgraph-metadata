@@ -62,6 +62,10 @@
 .Parameter generationMode
     Optional. Specifies the typewriter.exe generation mode.
     See https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator#using-typewriter for more information.
+
+.Parameter cleanup
+    Optional, with a default value of $true. Specifies whether this script should remove the downloaded
+    typewrites files.
 #>
 
 Param(
@@ -88,9 +92,7 @@ $typewriter = Join-Path $tempDir "typewriter.exe"
 
 # Create our temporary working directory.
 if ((Test-Path -PathType Container -Path $tempDir)) {
-    # Remove-Item $tempDir -Force -Recurse
-    # Write-Host "Deleted $tempDir"
-    Write-Host "$tempDir already exists"
+    Write-Host "$tempDir already exists" # We may want to run this script multiple times in a pipeline.
 } else {
     New-Item -Path $tempDir -Type Directory
     Write-Host "Created $tempDir"
@@ -125,6 +127,8 @@ if ((Test-Path -Path $typewriter -PathType leaf) -ne $true)
     else {
         Write-Error 'typewriter.zip was not found using the release API. Check the release on GitHub. Make sure that
         you have not changed the name of the file, or that the GitHub API has not changed.'
+        Write-Host "##vso[task.complete result=Failed;]DONE"
+        exit 1
     }
 
     # Unzip and move typewriter.exe to the temp directory.
@@ -140,6 +144,8 @@ Write-Host "With options: $options"  -ForegroundColor Green
 if ($LASTEXITCODE)
 {
     Write-Error "Typewriter failed to complete with the following options: $options"
+    Write-Host "##vso[task.complete result=Failed;]DONE"
+    exit 1
 }
 
 # Delete typewriter files.
