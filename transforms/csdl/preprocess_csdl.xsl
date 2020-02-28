@@ -5,7 +5,7 @@
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
-  
+
     <!-- Copies the entire document. -->
     <xsl:template match="@* | node()">
       <xsl:copy>
@@ -56,7 +56,7 @@
                   edm:EntityType[@Name='windows81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:EntityType[@Name='windowsPhone81ImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:EntityType[@Name='windowsUniversalAppX']/edm:NavigationProperty[@Name='committedContainedApps']|
-                  edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']                         
+                  edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']
                          ">
       <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
@@ -73,6 +73,10 @@
     <!-- Remove all capability annotations-->
 
     <xsl:template match="edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+
+    <!-- Remove namespaces-->
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']"/>
 
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
@@ -97,12 +101,12 @@
 
     <!-- These actions have the same parameters that need reordering. Will need to create a new template
          for each reordering. -->
-    <xsl:template match="edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]|
-                         edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]|
-                         edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']]">
+    <xsl:template match="edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='microsoft.graph.event']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
             <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
