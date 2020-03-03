@@ -4099,6 +4099,8 @@
         <Member Name="onPremiseAadUser" Value="1" />
         <Member Name="anonymousGuest" Value="2" />
         <Member Name="federatedUser" Value="3" />
+        <Member Name="personalMicrosoftAccountUser" Value="4" />
+        <Member Name="skypeUser" Value="5" />
       </EnumType>
       <EnumType Name="applicationIdentityType">
         <Member Name="aadApplication" Value="0" />
@@ -5595,9 +5597,12 @@
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
         <Property Name="web" Type="graph.webApplication" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" />
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="policies" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
         <NavigationProperty Name="synchronization" Type="graph.synchronization" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="apiApplication">
@@ -5701,6 +5706,19 @@
         <Property Name="isSyncedFromOnPremises" Type="Edm.Boolean" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <EntityType Name="policyBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
+        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="isOrganizationDefault" Type="Edm.Boolean" />
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="synchronization" BaseType="graph.entity">
         <Property Name="secrets" Type="Collection(graph.synchronizationSecretKeyStringValuePair)" />
         <NavigationProperty Name="jobs" Type="Collection(graph.synchronizationJob)" ContainsTarget="true" />
@@ -5740,6 +5758,8 @@
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
         <NavigationProperty Name="appRoleAssignedTo" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
@@ -5748,7 +5768,8 @@
         <NavigationProperty Name="licenseDetails" Type="Collection(graph.licenseDetails)" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="policies" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
         <NavigationProperty Name="synchronization" Type="graph.synchronization" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="addIn">
@@ -6507,15 +6528,14 @@
         <Property Name="squareLogo" Type="Edm.Stream" Nullable="false" />
         <Property Name="usernameHintText" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="policy" BaseType="graph.directoryObject" OpenType="true">
-        <Property Name="alternativeIdentifier" Type="Edm.String" />
-        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="isOrganizationDefault" Type="Edm.Boolean" />
-        <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
-        <Property Name="type" Type="Edm.String" Nullable="false" />
-        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
+      <EntityType Name="policyRoot" BaseType="graph.entity">
+        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="subscribedSku" BaseType="graph.entity">
         <Property Name="capabilityStatus" Type="Edm.String" />
         <Property Name="consumedUnits" Type="Edm.Int32" />
@@ -7164,6 +7184,7 @@
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
         <Property Name="encryptionCertificate" Type="Edm.String" />
         <Property Name="encryptionCertificateId" Type="Edm.String" />
+        <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="quota">
         <Property Name="deleted" Type="Edm.Int64" />
@@ -18900,6 +18921,10 @@
         <Property Name="distributionMethod" Type="graph.teamsAppDistributionMethod" />
         <NavigationProperty Name="appDefinitions" Type="Collection(graph.teamsAppDefinition)" />
       </EntityType>
+      <ComplexType Name="teamworkNotificationAudience" Abstract="true" />
+      <ComplexType Name="aadUserNotificationAudience" BaseType="graph.teamworkNotificationAudience">
+        <Property Name="userId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <EntityType Name="teamsAppDefinition" BaseType="graph.entity">
         <Property Name="teamsAppId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -18924,8 +18949,6 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="conversationMemberRoles" />
-      <EntityType Name="chatMembersNotificationAudience" />
       <ComplexType Name="workforceIntegrationEncryption">
         <Property Name="protocol" Type="graph.workforceIntegrationEncryptionProtocol" />
         <Property Name="secret" Type="Edm.String" />
@@ -24321,6 +24344,17 @@
       <Action Name="upgrade" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
       </Action>
+      <Action Name="generateActivityNotification" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.teamwork" />
+        <Parameter Name="about" Type="Edm.String" Unicode="false" />
+        <Parameter Name="activityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="aggregationId" Type="Edm.Int64" />
+        <Parameter Name="onClickWebUrl" Type="Edm.String" Unicode="false" />
+        <Parameter Name="previewText" Type="Edm.String" Unicode="false" />
+        <Parameter Name="teamsAppId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="templateParameters" Type="Collection(graph.keyValuePair)" />
+        <Parameter Name="recipient" Type="graph.teamworkNotificationAudience" />
+      </Action>
       <Action Name="clone" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
@@ -24393,7 +24427,6 @@
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="policies" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="permissionGrants" EntityType="microsoft.graph.resourceSpecificPermissionGrant" />
         <EntitySet Name="administrativeUnits" EntityType="microsoft.graph.administrativeUnit">
@@ -24444,14 +24477,10 @@
           <NavigationPropertyBinding Path="oauth2PermissionGrants" Target="oauth2PermissionGrants" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="policies" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="settings" EntityType="microsoft.graph.directorySetting" />
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
-        <EntitySet Name="policies" EntityType="microsoft.graph.policy">
-          <NavigationPropertyBinding Path="appliesTo" Target="directoryObjects" />
-        </EntitySet>
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
         <EntitySet Name="workbooks" EntityType="microsoft.graph.driveItem" />
         <EntitySet Name="places" EntityType="microsoft.graph.place" />
@@ -24551,6 +24580,7 @@
         <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
+        <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
