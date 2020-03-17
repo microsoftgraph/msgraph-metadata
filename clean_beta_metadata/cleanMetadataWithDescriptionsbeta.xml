@@ -203,6 +203,24 @@
         <Member Name="Chat" Value="3" />
         <Member Name="Call" Value="4" />
       </EnumType>
+      <EnumType Name="authenticationMethodTargetType">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationMethodState">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+      </EnumType>
+      <EnumType Name="securityQuestionType">
+        <Member Name="predefined" Value="0" />
+        <Member Name="custom" Value="1" />
+      </EnumType>
+      <EnumType Name="fido2RestrictionEnforcementType">
+        <Member Name="allow" Value="0" />
+        <Member Name="block" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="locationType">
         <Member Name="default" Value="0" />
         <Member Name="conferenceRoom" Value="1" />
@@ -4575,7 +4593,9 @@
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com'] The any operator is required for filter expressions on multi-valued properties. Read-only, Not nullable. Supports $filter." />
         </Property>
-        <Property Name="refreshTokensValidFromDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="refreshTokensValidFromDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Any refresh tokens or sessions tokens (session cookies) issued before this time are invalid, and applications will get an error when using an invalid refresh or sessions token to acquire a delegated access token (to access APIs such as Microsoft Graph).  If this happens, the application will need to acquire a new refresh token by making a request to the authorize endpoint. Returned only on $select. Read-only." />
+        </Property>
         <Property Name="showInAddressList" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the Outlook global address list should contain this user, otherwise false. If not set, this will be treated as true. For users invited through the invitation manager, this property will be set to false." />
         </Property>
@@ -6094,6 +6114,7 @@
         <Property Name="videoTeleconferenceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The video teleconferencing ID. Read-only." />
         </Property>
+        <Property Name="externalId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="presence" BaseType="graph.entity">
         <Property Name="availability" Type="Edm.String" />
@@ -6510,6 +6531,14 @@
         <Property Name="publisher" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="policyRoot" BaseType="graph.entity">
+        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="bookingNamedEntity" BaseType="graph.entity" Abstract="true">
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
       </EntityType>
@@ -6686,14 +6715,30 @@
         <Property Name="applicableTo" Type="graph.sensitivityLabelTarget" />
       </EntityType>
       <EntityType Name="threatAssessmentRequest" BaseType="graph.entity" Abstract="true">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="contentType" Type="graph.threatAssessmentContentType" />
-        <Property Name="expectedAssessment" Type="graph.threatExpectedAssessment" Nullable="false" />
-        <Property Name="category" Type="graph.threatCategory" Nullable="false" />
-        <Property Name="status" Type="graph.threatAssessmentStatus" />
-        <Property Name="requestSource" Type="graph.threatAssessmentRequestSource" />
-        <Property Name="createdBy" Type="graph.identitySet" />
-        <NavigationProperty Name="results" Type="Collection(graph.threatAssessmentResult)" ContainsTarget="true" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'." />
+        </Property>
+        <Property Name="contentType" Type="graph.threatAssessmentContentType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The content type of threat assessment. Possible values are: mail, url, file." />
+        </Property>
+        <Property Name="expectedAssessment" Type="graph.threatExpectedAssessment" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The expected assessment from submitter. Possible values are: block, unblock." />
+        </Property>
+        <Property Name="category" Type="graph.threatCategory" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The threat category. Possible values are: spam, phishing, malware." />
+        </Property>
+        <Property Name="status" Type="graph.threatAssessmentStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The assessment process status. Possible values are: pending, completed." />
+        </Property>
+        <Property Name="requestSource" Type="graph.threatAssessmentRequestSource">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The source of the threat assessment request. Possible values are: user, administrator." />
+        </Property>
+        <Property Name="createdBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The threat assessment request creator." />
+        </Property>
+        <NavigationProperty Name="results" Type="Collection(graph.threatAssessmentResult)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of threat assessment results. Read-only. By default, a GET /threatAssessmentRequests/{id} does not return this property unless you apply $expand on it." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="evaluateLabelJobResponse" BaseType="graph.jobResponseBase">
         <Property Name="result" Type="graph.evaluateLabelJobResultGroup" />
@@ -7024,14 +7069,6 @@
         <Property Name="squareLogo" Type="Edm.Stream" Nullable="false" />
         <Property Name="usernameHintText" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="policyRoot" BaseType="graph.entity">
-        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="subscribedSku" BaseType="graph.entity">
         <Property Name="capabilityStatus" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: Enabled, Warning, Suspended, Deleted, LockedOut." />
@@ -7074,6 +7111,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of when the organization was created. The value cannot be modified and is automatically populated when the organization is created. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only." />
         </Property>
+        <Property Name="directorySizeQuota" Type="graph.directorySizeQuota" />
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the tenant." />
         </Property>
@@ -8947,6 +8985,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
         </Property>
         <Property Name="toneInfo" Type="graph.toneInfo" />
+        <Property Name="callChainId" Type="Edm.String" />
         <Property Name="incomingContext" Type="graph.incomingContext" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
@@ -12580,7 +12619,9 @@
         <Property Name="acceptedDateTime" Type="Edm.DateTimeOffset" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="DateTime when the terms were last accepted by the user." />
         </Property>
-        <Property Name="userPrincipalName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The userPrincipalName of the User that accepted the term." />
+        </Property>
         <NavigationProperty Name="termsAndConditions" Type="graph.termsAndConditions">
           <Annotation Term="Org.OData.Core.V1.Description" String="Navigation link to the terms and conditions that are assigned." />
         </NavigationProperty>
@@ -19129,6 +19170,17 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="presentation" BaseType="graph.entity">
+        <NavigationProperty Name="comments" Type="Collection(graph.documentComment)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="documentComment" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <NavigationProperty Name="replies" Type="Collection(graph.documentCommentReply)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="documentCommentReply" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="location" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="activityHistoryItem" BaseType="graph.entity">
         <Property Name="status" Type="graph.status">
           <Annotation Term="Org.OData.Core.V1.Description" String="Set by the server. A status code used to identify valid objects. Values: active, updated, deleted, ignored." />
@@ -19642,6 +19694,7 @@
         <Property Name="isActive" Type="Edm.Boolean" />
         <Property Name="url" Type="Edm.String" />
         <Property Name="supports" Type="graph.workforceIntegrationSupportedEntities" />
+        <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
       </EntityType>
       <EntityType Name="schedule" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" />
@@ -19842,36 +19895,53 @@
         <Property Name="timeOffReasonId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="threatAssessmentResult" BaseType="graph.entity">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="resultType" Type="graph.threatAssessmentResultType" />
-        <Property Name="message" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'." />
+        </Property>
+        <Property Name="resultType" Type="graph.threatAssessmentResultType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The threat assessment result type. Possible values are: checkPolicy, rescan." />
+        </Property>
+        <Property Name="message" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result message for each threat assessment." />
+        </Property>
       </EntityType>
       <EntityType Name="urlAssessmentRequest" BaseType="graph.threatAssessmentRequest">
-        <Property Name="url" Type="Edm.String" Nullable="false" />
+        <Property Name="url" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL string." />
+        </Property>
       </EntityType>
       <EntityType Name="fileAssessmentRequest" BaseType="graph.threatAssessmentRequest">
-        <Property Name="fileName" Type="Edm.String" Nullable="false" />
-        <Property Name="contentData" Type="Edm.String" Nullable="false" />
+        <Property Name="fileName" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The file name." />
+        </Property>
+        <Property Name="contentData" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Base64 encoded file content. The file content cannot fetch back because it isn't stored." />
+        </Property>
       </EntityType>
       <EntityType Name="emailFileAssessmentRequest" BaseType="graph.threatAssessmentRequest">
-        <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
-        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
-        <Property Name="contentData" Type="Edm.String" Nullable="false" />
+        <Property Name="recipientEmail" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mail recipient whose policies are used to assess the mail." />
+        </Property>
+        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The reason for mail routed to its destination. Possible values are: none, mailFlowRule, safeSender, blockedSender, advancedSpamFiltering, domainAllowList, domainBlockList, notInAddressBook, firstTimeSender, autoPurgeToInbox, autoPurgeToJunk, autoPurgeToDeleted, outbound, notJunk, junk." />
+        </Property>
+        <Property Name="contentData" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Base64 encoded .eml email file content. The file content cannot fetch back because it isn't stored." />
+        </Property>
       </EntityType>
       <EntityType Name="mailAssessmentRequest" BaseType="graph.threatAssessmentRequest">
-        <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
-        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
-        <Property Name="messageUri" Type="Edm.String" Nullable="false" />
+        <Property Name="recipientEmail" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mail recipient whose policies are used to assess the mail." />
+        </Property>
+        <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The reason for mail routed to its destination. Possible values are: none, mailFlowRule, safeSender, blockedSender, advancedSpamFiltering, domainAllowList, domainBlockList, notInAddressBook, firstTimeSender, autoPurgeToInbox, autoPurgeToJunk, autoPurgeToDeleted, outbound, notJunk, junk." />
+        </Property>
+        <Property Name="messageUri" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The resource URI of the mail message for assessment." />
+        </Property>
       </EntityType>
       <EntityType Name="document" BaseType="graph.entity">
         <NavigationProperty Name="comments" Type="Collection(graph.documentComment)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="documentComment" BaseType="graph.entity">
-        <Property Name="content" Type="Edm.String" />
-        <NavigationProperty Name="replies" Type="Collection(graph.documentCommentReply)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="documentCommentReply" BaseType="graph.entity">
-        <Property Name="content" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="auditActivityInitiator">
         <Property Name="user" Type="graph.userIdentity">
@@ -20598,6 +20668,21 @@
         <Property Name="application" Type="graph.application" />
         <Property Name="servicePrincipal" Type="graph.servicePrincipal" />
       </ComplexType>
+      <ComplexType Name="registrationAndResetTarget">
+        <Property Name="targetType" Type="graph.authenticationMethodTargetType" />
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="minAuthMethodsToRegister" Type="Edm.Int32" />
+        <Property Name="minAuthMethodsToReset" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="fido2KeyRestrictions">
+        <Property Name="isEnforced" Type="Edm.Boolean" />
+        <Property Name="enforcementType" Type="graph.fido2RestrictionEnforcementType" />
+        <Property Name="aaGuids" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="registrationEnforcement">
+        <Property Name="isAllowedToSkipRegistration" Type="Edm.Boolean" />
+        <Property Name="registrationSkipDurationInDays" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="location">
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The name associated with the location." />
@@ -21025,6 +21110,10 @@
         <Property Name="warning" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are in warning status." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="directorySizeQuota">
+        <Property Name="used" Type="Edm.Int32" />
+        <Property Name="total" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="privacyProfile">
         <Property Name="contactEmail" Type="Edm.String">
@@ -26444,6 +26533,49 @@
         </Property>
         <Property Name="loop" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="teleconferenceDeviceMediaQuality" Abstract="true" OpenType="true">
+        <Property Name="channelIndex" Type="Edm.Int64" Nullable="false" />
+        <Property Name="mediaDuration" Type="Edm.Duration" />
+        <Property Name="networkLinkSpeedInBytes" Type="Edm.Int64" />
+        <Property Name="localIPAddress" Type="Edm.String" />
+        <Property Name="localPort" Type="Edm.Int64" />
+        <Property Name="remoteIPAddress" Type="Edm.String" />
+        <Property Name="remotePort" Type="Edm.Int64" />
+        <Property Name="inboundPackets" Type="Edm.Int64" />
+        <Property Name="outboundPackets" Type="Edm.Int64" />
+        <Property Name="averageInboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="averageOutboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="maximumInboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="maximumOutboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="averageInboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="averageOutboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="maximumInboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="maximumOutboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="averageInboundJitter" Type="Edm.Duration" />
+        <Property Name="averageOutboundJitter" Type="Edm.Duration" />
+        <Property Name="maximumInboundJitter" Type="Edm.Duration" />
+        <Property Name="maximumOutboundJitter" Type="Edm.Duration" />
+      </ComplexType>
+      <ComplexType Name="teleconferenceDeviceAudioQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true" />
+      <ComplexType Name="teleconferenceDeviceVideoQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true">
+        <Property Name="averageInboundFrameRate" Type="Edm.Double" />
+        <Property Name="averageOutboundFrameRate" Type="Edm.Double" />
+        <Property Name="averageInboundBitRate" Type="Edm.Double" />
+        <Property Name="averageOutboundBitRate" Type="Edm.Double" />
+      </ComplexType>
+      <ComplexType Name="teleconferenceDeviceScreenSharingQuality" BaseType="graph.teleconferenceDeviceVideoQuality" OpenType="true" />
+      <ComplexType Name="teleconferenceDeviceQuality" OpenType="true">
+        <Property Name="callChainId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="participantId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="mediaLegId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" Nullable="false" />
+        <Property Name="deviceDescription" Type="Edm.String" Nullable="false" />
+        <Property Name="cloudServiceName" Type="Edm.String" />
+        <Property Name="cloudServiceInstanceName" Type="Edm.String" />
+        <Property Name="cloudServiceDeploymentId" Type="Edm.String" />
+        <Property Name="cloudServiceDeploymentEnvironment" Type="Edm.String" />
+        <Property Name="mediaQualityList" Type="Collection(graph.teleconferenceDeviceMediaQuality)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="configuration" OpenType="true">
         <Property Name="authorizedApps" Type="Collection(Edm.String)" />
       </ComplexType>
@@ -28085,6 +28217,27 @@
         <Parameter Name="id" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="credentials" Type="Collection(graph.credential)" Nullable="false" />
       </Action>
+      <Action Name="addKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
+        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
+        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.keyCredential" Nullable="false" />
+      </Action>
+      <Action Name="addPassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
+        <ReturnType Type="graph.passwordCredential" Nullable="false" />
+      </Action>
+      <Action Name="removeKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
+        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="removePassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
+      </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bookingAppointment" Type="graph.bookingAppointment" Nullable="false" />
         <Parameter Name="cancellationMessage" Type="Edm.String" Unicode="false" />
@@ -28147,27 +28300,6 @@
         <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
         <Parameter Name="membershipRule" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.evaluateDynamicMembershipResult" />
-      </Action>
-      <Action Name="addKey" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
-        <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
-        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
-        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="graph.keyCredential" Nullable="false" />
-      </Action>
-      <Action Name="addPassword" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
-        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
-        <ReturnType Type="graph.passwordCredential" Nullable="false" />
-      </Action>
-      <Action Name="removeKey" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
-        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
-        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
-      </Action>
-      <Action Name="removePassword" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
-        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
       </Action>
       <Action Name="getByIds" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryObject)" Nullable="false" />
@@ -32030,6 +32162,10 @@
       <Action Name="cancelSecurityAction" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.securityAction" />
       </Action>
+      <Action Name="logTeleconferenceDeviceQuality" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.call)" />
+        <Parameter Name="quality" Type="graph.teleconferenceDeviceQuality" Nullable="false" />
+      </Action>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -32124,6 +32260,16 @@
         <Parameter Name="bindingParameter" Type="graph.cloudCommunications" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.presence)" />
+      </Action>
+      <Action Name="createOrGet" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.onlineMeeting)" />
+        <Parameter Name="chatInfo" Type="graph.chatInfo" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="externalId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="participants" Type="graph.meetingParticipants" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="subject" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.onlineMeeting" />
       </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
