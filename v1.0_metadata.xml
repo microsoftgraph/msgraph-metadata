@@ -1664,6 +1664,7 @@
         <Property Name="riskLevelDuringSignIn" Type="graph.riskLevel" />
         <Property Name="riskState" Type="graph.riskState" />
         <Property Name="riskEventTypes" Type="Collection(graph.riskEventType)" />
+        <Property Name="riskEventTypes_v2" Type="Collection(Edm.String)" />
         <Property Name="resourceDisplayName" Type="Edm.String" />
         <Property Name="resourceId" Type="Edm.String" />
       </EntityType>
@@ -1822,6 +1823,7 @@
         <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
         <NavigationProperty Name="drives" Type="Collection(graph.drive)" ContainsTarget="true" />
+        <NavigationProperty Name="followedSites" Type="Collection(graph.site)" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="managedDevices" Type="Collection(graph.managedDevice)" ContainsTarget="true" />
         <NavigationProperty Name="managedAppRegistrations" Type="Collection(graph.managedAppRegistration)" />
@@ -2131,10 +2133,27 @@
         <Property Name="quota" Type="graph.quota" />
         <Property Name="sharePointIds" Type="graph.sharepointIds" />
         <Property Name="system" Type="graph.systemFacet" />
+        <NavigationProperty Name="following" Type="Collection(graph.driveItem)" ContainsTarget="true" />
         <NavigationProperty Name="items" Type="Collection(graph.driveItem)" ContainsTarget="true" />
         <NavigationProperty Name="list" Type="graph.list" ContainsTarget="true" />
         <NavigationProperty Name="root" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="special" Type="Collection(graph.driveItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="site" BaseType="graph.baseItem">
+        <Property Name="error" Type="graph.publicError" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="root" Type="graph.root" />
+        <Property Name="sharepointIds" Type="graph.sharepointIds" />
+        <Property Name="siteCollection" Type="graph.siteCollection" />
+        <NavigationProperty Name="analytics" Type="graph.itemAnalytics" />
+        <NavigationProperty Name="columns" Type="Collection(graph.columnDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="contentTypes" Type="Collection(graph.contentType)" ContainsTarget="true" />
+        <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
+        <NavigationProperty Name="drives" Type="Collection(graph.drive)" ContainsTarget="true" />
+        <NavigationProperty Name="items" Type="Collection(graph.baseItem)" ContainsTarget="true" />
+        <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true" />
+        <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true" />
+        <NavigationProperty Name="onenote" Type="graph.onenote" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="extension" BaseType="graph.entity" Abstract="true" OpenType="true" />
       <EntityType Name="managedDevice" BaseType="graph.entity">
@@ -2650,21 +2669,6 @@
         <Property Name="isLocked" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="posts" Type="Collection(graph.post)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="site" BaseType="graph.baseItem">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="root" Type="graph.root" />
-        <Property Name="sharepointIds" Type="graph.sharepointIds" />
-        <Property Name="siteCollection" Type="graph.siteCollection" />
-        <NavigationProperty Name="analytics" Type="graph.itemAnalytics" />
-        <NavigationProperty Name="columns" Type="Collection(graph.columnDefinition)" ContainsTarget="true" />
-        <NavigationProperty Name="contentTypes" Type="Collection(graph.contentType)" ContainsTarget="true" />
-        <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
-        <NavigationProperty Name="drives" Type="Collection(graph.drive)" ContainsTarget="true" />
-        <NavigationProperty Name="items" Type="Collection(graph.baseItem)" ContainsTarget="true" />
-        <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true" />
-        <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true" />
-        <NavigationProperty Name="onenote" Type="graph.onenote" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="groupLifecyclePolicy" BaseType="graph.entity">
         <Property Name="groupLifetimeInDays" Type="Edm.Int32" />
         <Property Name="managedGroupTypes" Type="Edm.String" />
@@ -2854,6 +2858,24 @@
         <Property Name="endDate" Type="Edm.Date" />
         <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="publicError">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
+        <Property Name="innerError" Type="graph.publicInnerError" />
+      </ComplexType>
+      <ComplexType Name="publicErrorDetail">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="publicInnerError" OpenType="true">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="root" />
       <ComplexType Name="sharepointIds">
         <Property Name="listId" Type="Edm.String" />
@@ -2914,6 +2936,7 @@
         <NavigationProperty Name="contentTypes" Type="Collection(graph.contentType)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
         <NavigationProperty Name="items" Type="Collection(graph.listItem)" ContainsTarget="true" />
+        <NavigationProperty Name="subscriptions" Type="Collection(graph.subscription)" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="listInfo">
         <Property Name="contentTypesEnabled" Type="Edm.Boolean" />
@@ -2928,6 +2951,16 @@
         <NavigationProperty Name="driveItem" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true" />
         <NavigationProperty Name="versions" Type="Collection(graph.listItemVersion)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="subscription" BaseType="graph.entity">
+        <Property Name="resource" Type="Edm.String" Nullable="false" />
+        <Property Name="changeType" Type="Edm.String" Nullable="false" />
+        <Property Name="clientState" Type="Edm.String" />
+        <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="applicationId" Type="Edm.String" />
+        <Property Name="creatorId" Type="Edm.String" />
+        <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="quota">
         <Property Name="deleted" Type="Edm.Int64" />
@@ -3101,16 +3134,6 @@
         <Property Name="link" Type="graph.sharingLink" />
         <Property Name="roles" Type="Collection(Edm.String)" />
         <Property Name="shareId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="subscription" BaseType="graph.entity">
-        <Property Name="resource" Type="Edm.String" Nullable="false" />
-        <Property Name="changeType" Type="Edm.String" Nullable="false" />
-        <Property Name="clientState" Type="Edm.String" />
-        <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
-        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="applicationId" Type="Edm.String" />
-        <Property Name="creatorId" Type="Edm.String" />
-        <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
       </EntityType>
       <EntityType Name="thumbnailSet" BaseType="graph.entity" OpenType="true">
         <Property Name="large" Type="graph.thumbnail" />
@@ -3849,6 +3872,7 @@
         <NavigationProperty Name="items" Type="Collection(graph.driveItem)" ContainsTarget="true" />
         <NavigationProperty Name="list" Type="graph.list" ContainsTarget="true" />
         <NavigationProperty Name="listItem" Type="graph.listItem" ContainsTarget="true" />
+        <NavigationProperty Name="permission" Type="graph.permission" ContainsTarget="true" />
         <NavigationProperty Name="root" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="site" Type="graph.site" ContainsTarget="true" />
       </EntityType>
@@ -6595,6 +6619,7 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="myParticipantId" Type="Edm.String" />
         <Property Name="toneInfo" Type="graph.toneInfo" />
+        <Property Name="callChainId" Type="Edm.String" />
         <Property Name="incomingContext" Type="graph.incomingContext" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
@@ -6717,6 +6742,49 @@
       <ComplexType Name="prompt" Abstract="true" />
       <ComplexType Name="mediaPrompt" BaseType="graph.prompt">
         <Property Name="mediaInfo" Type="graph.mediaInfo" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="teleconferenceDeviceMediaQuality" Abstract="true" OpenType="true">
+        <Property Name="channelIndex" Type="Edm.Int32" Nullable="false" />
+        <Property Name="mediaDuration" Type="Edm.Duration" />
+        <Property Name="networkLinkSpeedInBytes" Type="Edm.Int64" />
+        <Property Name="localIPAddress" Type="Edm.String" />
+        <Property Name="localPort" Type="Edm.Int32" />
+        <Property Name="remoteIPAddress" Type="Edm.String" />
+        <Property Name="remotePort" Type="Edm.Int32" />
+        <Property Name="inboundPackets" Type="Edm.Int64" />
+        <Property Name="outboundPackets" Type="Edm.Int64" />
+        <Property Name="averageInboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="averageOutboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="maximumInboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="maximumOutboundPacketLossRateInPercentage" Type="Edm.Double" />
+        <Property Name="averageInboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="averageOutboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="maximumInboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="maximumOutboundRoundTripDelay" Type="Edm.Duration" />
+        <Property Name="averageInboundJitter" Type="Edm.Duration" />
+        <Property Name="averageOutboundJitter" Type="Edm.Duration" />
+        <Property Name="maximumInboundJitter" Type="Edm.Duration" />
+        <Property Name="maximumOutboundJitter" Type="Edm.Duration" />
+      </ComplexType>
+      <ComplexType Name="teleconferenceDeviceAudioQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true" />
+      <ComplexType Name="teleconferenceDeviceVideoQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true">
+        <Property Name="averageInboundFrameRate" Type="Edm.Double" />
+        <Property Name="averageOutboundFrameRate" Type="Edm.Double" />
+        <Property Name="averageInboundBitRate" Type="Edm.Double" />
+        <Property Name="averageOutboundBitRate" Type="Edm.Double" />
+      </ComplexType>
+      <ComplexType Name="teleconferenceDeviceScreenSharingQuality" BaseType="graph.teleconferenceDeviceVideoQuality" OpenType="true" />
+      <ComplexType Name="teleconferenceDeviceQuality" OpenType="true">
+        <Property Name="callChainId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="participantId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="mediaLegId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" Nullable="false" />
+        <Property Name="deviceDescription" Type="Edm.String" Nullable="false" />
+        <Property Name="cloudServiceName" Type="Edm.String" />
+        <Property Name="cloudServiceInstanceName" Type="Edm.String" />
+        <Property Name="cloudServiceDeploymentId" Type="Edm.String" />
+        <Property Name="cloudServiceDeploymentEnvironment" Type="Edm.String" />
+        <Property Name="mediaQualityList" Type="Collection(graph.teleconferenceDeviceMediaQuality)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="teamClassSettings">
         <Property Name="notifyGuardiansAboutAssignments" Type="Edm.Boolean" />
@@ -10036,6 +10104,13 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <ReturnType Type="Collection(graph.itemActivityStat)" />
       </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
       <Function Name="search" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
@@ -10066,6 +10141,13 @@
         <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
         <ReturnType Type="graph.uploadSession" />
       </Action>
+      <Action Name="follow" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <ReturnType Type="graph.driveItem" />
+      </Action>
+      <Action Name="unfollow" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="requireSignIn" Type="Edm.Boolean" />
@@ -10086,7 +10168,21 @@
         <ReturnType Type="Collection(graph.itemActivityStat)" />
       </Function>
       <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.listItem" />
+        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.site" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.site" />
+        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.itemActivityStat)" />
       </Function>
       <Function Name="getByPath" IsBound="true" IsComposable="true">
@@ -10107,11 +10203,27 @@
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
+      <Action Name="grant" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.permission" />
+        <Parameter Name="roles" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" />
+        <ReturnType Type="Collection(graph.permission)" />
+      </Action>
       <Action Name="restoreVersion" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.listItemVersion" />
       </Action>
       <Action Name="restoreVersion" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItemVersion" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
+        <Parameter Name="value" Type="Collection(graph.site)" />
+        <ReturnType Type="Collection(graph.site)" />
+      </Action>
+      <Action Name="remove" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
+        <Parameter Name="value" Type="Collection(graph.site)" />
+        <ReturnType Type="Collection(graph.site)" />
       </Action>
       <Action Name="addGroup" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.groupLifecyclePolicy" />
@@ -10789,6 +10901,10 @@
         <Parameter Name="activities" Type="Collection(graph.userActivity)" />
         <ReturnType Type="Collection(graph.userActivity)" />
       </Function>
+      <Action Name="logTeleconferenceDeviceQuality" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.call)" />
+        <Parameter Name="quality" Type="graph.teleconferenceDeviceQuality" Nullable="false" />
+      </Action>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
