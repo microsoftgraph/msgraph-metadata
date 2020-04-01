@@ -50,6 +50,10 @@
                   edm:EntityType[@Name='plannerUser']/edm:NavigationProperty[@Name='all']|
                   edm:EntityType[@Name='plannerUser']/edm:NavigationProperty[@Name='plans']|
                   edm:EntityType[@Name='plannerUser']/edm:NavigationProperty[@Name='tasks']|
+                  edm:EntityType[@Name='printJob']/edm:NavigationProperty[@Name='documents']|
+                  edm:EntityType[@Name='printService']/edm:NavigationProperty[@Name='endpoints']|
+                  edm:EntityType[@Name='printer']/edm:NavigationProperty[@Name='allowedGroups']|
+                  edm:EntityType[@Name='printer']/edm:NavigationProperty[@Name='allowedUsers']|
                   edm:EntityType[@Name='publishedResource']/edm:NavigationProperty[@Name='agentGroups']|
                   edm:EntityType[@Name='teamsApp']/edm:NavigationProperty[@Name='appDefinitions']|
                   edm:EntityType[@Name='windows10CertificateProfileBase']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
