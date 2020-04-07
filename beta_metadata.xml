@@ -4229,6 +4229,11 @@
         <Member Name="d" Value="15" />
         <Member Name="flash" Value="16" />
       </EnumType>
+      <EnumType Name="lifecycleEventType">
+        <Member Name="missed" Value="0" />
+        <Member Name="subscriptionRemoved" Value="1" />
+        <Member Name="reauthorizationRequired" Value="2" />
+      </EnumType>
       <EnumType Name="aclType">
         <Member Name="user" Value="1" />
         <Member Name="group" Value="2" />
@@ -6662,10 +6667,15 @@
       </EntityType>
       <EntityType Name="roleManagement" BaseType="graph.entity">
         <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
+        <NavigationProperty Name="deviceManagement" Type="graph.rbacApplicationMultiple" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="rbacApplication" BaseType="graph.entity">
         <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
@@ -7257,10 +7267,6 @@
       <ComplexType Name="educationIdentityCreationConfiguration" BaseType="graph.educationIdentitySynchronizationConfiguration">
         <Property Name="userDomains" Type="Collection(graph.educationIdentityDomain)" Nullable="false" />
       </ComplexType>
-      <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
-        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="unifiedRoleAssignmentMultiple" BaseType="graph.entity">
         <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
         <Property Name="condition" Type="Edm.String" />
@@ -7581,6 +7587,7 @@
         <Property Name="fileSystemInfo" Type="graph.fileSystemInfo" />
         <Property Name="folder" Type="graph.folder" />
         <Property Name="id" Type="Edm.String" />
+        <Property Name="image" Type="graph.image" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="name" Type="Edm.String" />
@@ -7590,6 +7597,7 @@
         <Property Name="sharepointIds" Type="graph.sharepointIds" />
         <Property Name="size" Type="Edm.Int64" />
         <Property Name="specialFolder" Type="graph.specialFolder" />
+        <Property Name="video" Type="graph.video" />
         <Property Name="webDavUrl" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
@@ -7612,9 +7620,6 @@
       <ComplexType Name="specialFolder">
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="searchResult">
-        <Property Name="onClickTelemetryUrl" Type="Edm.String" />
-      </ComplexType>
       <ComplexType Name="video">
         <Property Name="audioBitsPerSample" Type="Edm.Int32" />
         <Property Name="audioChannels" Type="Edm.Int32" />
@@ -7626,6 +7631,9 @@
         <Property Name="frameRate" Type="Edm.Double" />
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="searchResult">
+        <Property Name="onClickTelemetryUrl" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="permission" BaseType="graph.entity">
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
@@ -9645,6 +9653,7 @@
         <NavigationProperty Name="appleUserInitiatedEnrollmentProfiles" Type="Collection(graph.appleUserInitiatedEnrollmentProfile)" ContainsTarget="true" />
         <NavigationProperty Name="managementConditions" Type="Collection(graph.managementCondition)" ContainsTarget="true" />
         <NavigationProperty Name="managementConditionStatements" Type="Collection(graph.managementConditionStatement)" ContainsTarget="true" />
+        <NavigationProperty Name="groupPolicyObjectFiles" Type="Collection(graph.groupPolicyObjectFile)" ContainsTarget="true" />
         <NavigationProperty Name="groupPolicyMigrationReports" Type="Collection(graph.groupPolicyMigrationReport)" ContainsTarget="true" />
         <NavigationProperty Name="groupPolicyConfigurations" Type="Collection(graph.groupPolicyConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="groupPolicyCategories" Type="Collection(graph.groupPolicyCategory)" ContainsTarget="true" />
@@ -10189,6 +10198,9 @@
         <NavigationProperty Name="userRunStates" Type="Collection(graph.deviceManagementScriptUserState)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="deviceShellScript" BaseType="graph.entity">
+        <Property Name="executionFrequency" Type="Edm.Duration" Nullable="false" />
+        <Property Name="retryCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="blockExecutionNotifications" Type="Edm.Boolean" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="scriptContent" Type="Edm.Binary" />
@@ -10441,6 +10453,9 @@
         <Property Name="eTag" Type="Edm.String" />
         <Property Name="applicablePlatforms" Type="Collection(graph.devicePlatformType)" Nullable="false" />
         <NavigationProperty Name="managementConditions" Type="Collection(graph.managementCondition)" />
+      </EntityType>
+      <EntityType Name="groupPolicyObjectFile" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="groupPolicyMigrationReport" BaseType="graph.entity">
         <Property Name="groupPolicyObjectId" Type="Edm.Guid" Nullable="false" />
@@ -19247,6 +19262,29 @@
         <Property Name="cloudServiceDeploymentEnvironment" Type="Edm.String" />
         <Property Name="mediaQualityList" Type="Collection(graph.teleconferenceDeviceMediaQuality)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="changeNotificationEncryptedContent">
+        <Property Name="data" Type="Edm.Binary" Nullable="false" />
+        <Property Name="dataSignature" Type="Edm.Binary" Nullable="false" />
+        <Property Name="dataKey" Type="Edm.Binary" Nullable="false" />
+        <Property Name="encryptionCertificateId" Type="Edm.String" Nullable="false" />
+        <Property Name="encryptionCertificateThumbprint" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="changeNotification">
+        <Property Name="subscriptionId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="subscriptionExpirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="clientState" Type="Edm.String" />
+        <Property Name="changeType" Type="graph.changeType" Nullable="false" />
+        <Property Name="resource" Type="Edm.String" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="encryptedContent" Type="graph.changeNotificationEncryptedContent" />
+        <Property Name="lifecycleEvent" Type="graph.lifecycleEventType" />
+        <Property Name="resourceData" Type="graph.resourceData" />
+      </ComplexType>
+      <ComplexType Name="resourceData" />
+      <ComplexType Name="changeNotificationCollection">
+        <Property Name="validationTokens" Type="Collection(Edm.String)" />
+        <Property Name="value" Type="Collection(graph.changeNotification)" Nullable="false" />
+      </ComplexType>
       <EntityType Name="external" BaseType="graph.entity">
         <NavigationProperty Name="connections" Type="Collection(graph.externalConnection)" ContainsTarget="true" />
       </EntityType>
@@ -24443,6 +24481,11 @@
         <Parameter Name="platform" Type="graph.devicePlatformType" Nullable="false" />
         <ReturnType Type="Collection(graph.managementConditionStatement)" />
       </Function>
+      <Action Name="createMigrationReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.groupPolicyMigrationReport)" />
+        <Parameter Name="groupPolicyObjectFile" Type="graph.groupPolicyObjectFile" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.groupPolicyConfiguration" />
         <Parameter Name="assignments" Type="Collection(graph.groupPolicyConfigurationAssignment)" />
@@ -26215,6 +26258,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.directoryRoleTemplate">
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.roleManagement/deviceManagement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The RbacApplication for Device Management" />
       </Annotations>
       <Annotations Target="microsoft.graph.group/conversations">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -28182,6 +28228,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/managementConditionStatements">
         <Annotation Term="Org.OData.Core.V1.Description" String="The management condition statements associated with device management of the company." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.groupPolicyObjectFile">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Group Policy Object file uploaded by admin." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagement/groupPolicyObjectFiles">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A list of Group Policy Object files uploaded." />
       </Annotations>
       <Annotations Target="microsoft.graph.groupPolicyMigrationReport">
         <Annotation Term="Org.OData.Core.V1.Description" String="The Group Policy migration report." />
@@ -41634,6 +41686,15 @@
       <Annotations Target="microsoft.graph.deviceManagementScriptGroupAssignment/targetGroupId">
         <Annotation Term="Org.OData.Core.V1.Description" String="The Id of the Azure Active Directory group we are targeting the script to." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceShellScript/executionFrequency">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The interval for script to run. If not defined the script will run once" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceShellScript/retryCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of times for the script to be retried if it fails" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceShellScript/blockExecutionNotifications">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Does not notify the user a script is being executed" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceShellScript/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="Name of the device management script." />
       </Annotations>
@@ -43199,6 +43260,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.networkIPv6ConfigurationManagementCondition/dnsSuffixList">
         <Annotation Term="Org.OData.Core.V1.Description" String="Valid DNS suffixes for the current network. e.g. seattle.contoso.com" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.groupPolicyObjectFile/content">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Group Policy Object file content." />
       </Annotations>
       <Annotations Target="microsoft.graph.groupPolicyMigrationReport/groupPolicyObjectId">
         <Annotation Term="Org.OData.Core.V1.Description" String="The Group Policy Object GUID from GPO Xml content" />
