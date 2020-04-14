@@ -167,6 +167,11 @@
         <Member Name="contactsOnly" Value="1" />
         <Member Name="all" Value="2" />
       </EnumType>
+      <EnumType Name="delegateMeetingMessageDeliveryOptions">
+        <Member Name="sendToDelegateAndInformationToPrincipal" Value="0" />
+        <Member Name="sendToDelegateAndPrincipal" Value="1" />
+        <Member Name="sendToDelegateOnly" Value="2" />
+      </EnumType>
       <EnumType Name="mailTipsType" IsFlags="true">
         <Member Name="automaticReplies" Value="1" />
         <Member Name="mailboxFullStatus" Value="2" />
@@ -215,6 +220,19 @@
         <Member Name="complete" Value="1" />
         <Member Name="flagged" Value="2" />
       </EnumType>
+      <EnumType Name="calendarSharingActionImportance">
+        <Member Name="primary" Value="0" />
+        <Member Name="secondary" Value="1" />
+      </EnumType>
+      <EnumType Name="calendarSharingActionType">
+        <Member Name="accept" Value="0" />
+      </EnumType>
+      <EnumType Name="calendarSharingAction">
+        <Member Name="accept" Value="0" />
+        <Member Name="acceptAndViewCalendar" Value="1" />
+        <Member Name="viewCalendar" Value="2" />
+        <Member Name="addThisCalendar" Value="3" />
+      </EnumType>
       <EnumType Name="meetingMessageType">
         <Member Name="none" Value="0" />
         <Member Name="meetingRequest" Value="1" />
@@ -235,6 +253,22 @@
         <Member Name="lightRed" Value="8" />
         <Member Name="maxColor" Value="9" />
         <Member Name="auto" Value="-1" />
+      </EnumType>
+      <EnumType Name="onlineMeetingProviderType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="skypeForBusiness" Value="1" />
+        <Member Name="skypeForConsumer" Value="2" />
+        <Member Name="teamsForBusiness" Value="3" />
+      </EnumType>
+      <EnumType Name="calendarRoleType">
+        <Member Name="none" Value="0" />
+        <Member Name="freeBusyRead" Value="1" />
+        <Member Name="limitedRead" Value="2" />
+        <Member Name="read" Value="3" />
+        <Member Name="write" Value="4" />
+        <Member Name="delegateWithoutPrivateEventAccess" Value="5" />
+        <Member Name="delegateWithPrivateEventAccess" Value="6" />
+        <Member Name="custom" Value="7" />
       </EnumType>
       <EnumType Name="responseType">
         <Member Name="none" Value="0" />
@@ -1901,6 +1935,7 @@
         <Property Name="archiveFolder" Type="Edm.String" />
         <Property Name="timeZone" Type="Edm.String" />
         <Property Name="language" Type="graph.localeInfo" />
+        <Property Name="delegateMeetingMessageDeliveryOptions" Type="graph.delegateMeetingMessageDeliveryOptions" />
         <Property Name="workingHours" Type="graph.workingHours" />
         <Property Name="dateFormat" Type="Edm.String" />
         <Property Name="timeFormat" Type="Edm.String" />
@@ -1991,8 +2026,13 @@
         <Property Name="canViewPrivateItems" Type="Edm.Boolean" />
         <Property Name="canEdit" Type="Edm.Boolean" />
         <Property Name="owner" Type="graph.emailAddress" />
+        <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)" />
+        <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
+        <Property Name="isTallyingResponses" Type="Edm.Boolean" />
+        <Property Name="isRemovable" Type="Edm.Boolean" />
         <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true" />
         <NavigationProperty Name="multiValueExtendedProperties" Type="Collection(graph.multiValueLegacyExtendedProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="calendarPermissions" Type="Collection(graph.calendarPermission)" ContainsTarget="true" />
         <NavigationProperty Name="events" Type="Collection(graph.event)" ContainsTarget="true" />
         <NavigationProperty Name="calendarView" Type="Collection(graph.event)" ContainsTarget="true" />
       </EntityType>
@@ -2032,6 +2072,9 @@
         <Property Name="organizer" Type="graph.recipient" />
         <Property Name="webLink" Type="Edm.String" />
         <Property Name="onlineMeetingUrl" Type="Edm.String" />
+        <Property Name="isOnlineMeeting" Type="Edm.Boolean" />
+        <Property Name="onlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
+        <Property Name="onlineMeeting" Type="graph.onlineMeetingInfo" />
         <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true" />
         <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true" />
         <NavigationProperty Name="multiValueExtendedProperties" Type="Collection(graph.multiValueLegacyExtendedProperty)" ContainsTarget="true" />
@@ -2326,6 +2369,8 @@
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true" />
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
       </EntityType>
       <ComplexType Name="addIn">
         <Property Name="id" Type="Edm.Guid" />
@@ -2432,6 +2477,17 @@
         <Property Name="isSyncedFromOnPremises" Type="Edm.Boolean" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <EntityType Name="policyBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
+        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="isOrganizationDefault" Type="Edm.Boolean" />
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
       </EntityType>
@@ -2677,6 +2733,16 @@
       <EntityType Name="plannerGroup" BaseType="graph.entity">
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" />
       </EntityType>
+      <EntityType Name="policyRoot" BaseType="graph.entity">
+        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="contract" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="contractType" Type="Edm.String" />
         <Property Name="customerId" Type="Edm.Guid" />
@@ -2883,9 +2949,11 @@
         <Property Name="listItemUniqueId" Type="Edm.String" />
         <Property Name="siteId" Type="Edm.String" />
         <Property Name="siteUrl" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="siteCollection">
+        <Property Name="dataLocationCode" Type="Edm.String" />
         <Property Name="hostname" Type="Edm.String" />
         <Property Name="root" Type="graph.root" />
       </ComplexType>
@@ -3130,7 +3198,10 @@
         <Property Name="onClickTelemetryUrl" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="permission" BaseType="graph.entity">
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="grantedTo" Type="graph.identitySet" />
+        <Property Name="grantedToIdentities" Type="Collection(graph.identitySet)" />
+        <Property Name="hasPassword" Type="Edm.Boolean" />
         <Property Name="inheritedFrom" Type="graph.itemReference" />
         <Property Name="invitation" Type="graph.sharingInvitation" />
         <Property Name="link" Type="graph.sharingLink" />
@@ -3607,6 +3678,17 @@
         <Property Name="size" Type="Edm.Int32" Nullable="false" />
         <Property Name="isInline" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
+      <EntityType Name="calendarSharingMessage" BaseType="graph.message">
+        <Property Name="canAccept" Type="Edm.Boolean" />
+        <Property Name="suggestedCalendarName" Type="Edm.String" />
+        <Property Name="sharingMessageAction" Type="graph.calendarSharingMessageAction" />
+        <Property Name="sharingMessageActions" Type="Collection(graph.calendarSharingMessageAction)" />
+      </EntityType>
+      <ComplexType Name="calendarSharingMessageAction">
+        <Property Name="importance" Type="graph.calendarSharingActionImportance" />
+        <Property Name="actionType" Type="graph.calendarSharingActionType" />
+        <Property Name="action" Type="graph.calendarSharingAction" />
+      </ComplexType>
       <EntityType Name="eventMessage" BaseType="graph.message">
         <Property Name="meetingMessageType" Type="graph.meetingMessageType" />
         <NavigationProperty Name="event" Type="graph.event" ContainsTarget="true" />
@@ -3626,6 +3708,13 @@
         <Property Name="includeNestedFolders" Type="Edm.Boolean" />
         <Property Name="sourceFolderIds" Type="Collection(Edm.String)" />
         <Property Name="filterQuery" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="calendarPermission" BaseType="graph.entity">
+        <Property Name="emailAddress" Type="graph.emailAddress" />
+        <Property Name="isRemovable" Type="Edm.Boolean" />
+        <Property Name="isInsideOrganization" Type="Edm.Boolean" />
+        <Property Name="role" Type="graph.calendarRoleType" />
+        <Property Name="allowedRoles" Type="Collection(graph.calendarRoleType)" />
       </EntityType>
       <ComplexType Name="scheduleInformation">
         <Property Name="scheduleId" Type="Edm.String" />
@@ -3672,6 +3761,14 @@
       </ComplexType>
       <ComplexType Name="attendee" BaseType="graph.attendeeBase">
         <Property Name="status" Type="graph.responseStatus" />
+      </ComplexType>
+      <ComplexType Name="onlineMeetingInfo">
+        <Property Name="joinUrl" Type="Edm.String" />
+        <Property Name="conferenceId" Type="Edm.String" />
+        <Property Name="tollNumber" Type="Edm.String" />
+        <Property Name="tollFreeNumbers" Type="Collection(Edm.String)" />
+        <Property Name="quickDial" Type="Edm.String" />
+        <Property Name="phones" Type="Collection(graph.phone)" />
       </ComplexType>
       <ComplexType Name="scoredEmailAddress">
         <Property Name="address" Type="Edm.String" />
@@ -3864,8 +3961,10 @@
       </ComplexType>
       <ComplexType Name="sharingLink">
         <Property Name="application" Type="graph.identity" />
+        <Property Name="preventsDownload" Type="Edm.Boolean" />
         <Property Name="scope" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
+        <Property Name="webHtml" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="sharedDriveItem" BaseType="graph.baseItem">
@@ -7049,6 +7148,10 @@
         <ReturnType Type="Collection(graph.group)" />
       </Function>
       <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.orgContact)" />
+        <ReturnType Type="Collection(graph.orgContact)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryRole)" />
         <ReturnType Type="Collection(graph.directoryRole)" />
       </Function>
@@ -10036,6 +10139,10 @@
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="accept" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
+        <ReturnType Type="graph.calendar" Nullable="false" />
+      </Action>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingparameter" Type="Collection(graph.message)" Nullable="false" />
         <ReturnType Type="Collection(graph.message)" Nullable="false" />
@@ -10058,6 +10165,11 @@
         <Parameter Name="AvailabilityViewInterval" Type="Edm.Int32" />
         <ReturnType Type="Collection(graph.scheduleInformation)" />
       </Action>
+      <Function Name="allowedCalendarSharingRoles" IsBound="true">
+        <Parameter Name="bindingparameter" Type="graph.calendar" />
+        <Parameter Name="User" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.calendarRoleType)" Nullable="false" />
+      </Function>
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
       </Action>
@@ -10136,6 +10248,9 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="scope" Type="Edm.String" Unicode="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.permission" />
       </Action>
       <Action Name="createUploadSession" IsBound="true">
@@ -10157,6 +10272,8 @@
         <Parameter Name="sendInvitation" Type="Edm.Boolean" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" Nullable="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
       <Action Name="preview" IsBound="true">
@@ -11095,6 +11212,7 @@
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
+        <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -12041,6 +12159,23 @@
             <PropertyValue Property="Navigability">
               <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
             </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.calendar/calendarPermissions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
