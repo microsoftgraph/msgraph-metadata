@@ -167,6 +167,11 @@
         <Member Name="contactsOnly" Value="1" />
         <Member Name="all" Value="2" />
       </EnumType>
+      <EnumType Name="delegateMeetingMessageDeliveryOptions">
+        <Member Name="sendToDelegateAndInformationToPrincipal" Value="0" />
+        <Member Name="sendToDelegateAndPrincipal" Value="1" />
+        <Member Name="sendToDelegateOnly" Value="2" />
+      </EnumType>
       <EnumType Name="mailTipsType" IsFlags="true">
         <Member Name="automaticReplies" Value="1" />
         <Member Name="mailboxFullStatus" Value="2" />
@@ -215,6 +220,19 @@
         <Member Name="complete" Value="1" />
         <Member Name="flagged" Value="2" />
       </EnumType>
+      <EnumType Name="calendarSharingActionImportance">
+        <Member Name="primary" Value="0" />
+        <Member Name="secondary" Value="1" />
+      </EnumType>
+      <EnumType Name="calendarSharingActionType">
+        <Member Name="accept" Value="0" />
+      </EnumType>
+      <EnumType Name="calendarSharingAction">
+        <Member Name="accept" Value="0" />
+        <Member Name="acceptAndViewCalendar" Value="1" />
+        <Member Name="viewCalendar" Value="2" />
+        <Member Name="addThisCalendar" Value="3" />
+      </EnumType>
       <EnumType Name="meetingMessageType">
         <Member Name="none" Value="0" />
         <Member Name="meetingRequest" Value="1" />
@@ -235,6 +253,22 @@
         <Member Name="lightRed" Value="8" />
         <Member Name="maxColor" Value="9" />
         <Member Name="auto" Value="-1" />
+      </EnumType>
+      <EnumType Name="onlineMeetingProviderType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="skypeForBusiness" Value="1" />
+        <Member Name="skypeForConsumer" Value="2" />
+        <Member Name="teamsForBusiness" Value="3" />
+      </EnumType>
+      <EnumType Name="calendarRoleType">
+        <Member Name="none" Value="0" />
+        <Member Name="freeBusyRead" Value="1" />
+        <Member Name="limitedRead" Value="2" />
+        <Member Name="read" Value="3" />
+        <Member Name="write" Value="4" />
+        <Member Name="delegateWithoutPrivateEventAccess" Value="5" />
+        <Member Name="delegateWithPrivateEventAccess" Value="6" />
+        <Member Name="custom" Value="7" />
       </EnumType>
       <EnumType Name="responseType">
         <Member Name="none" Value="0" />
@@ -2211,11 +2245,26 @@
         <Property Name="owner" Type="graph.emailAddress">
           <Annotation Term="Org.OData.Core.V1.Description" String="If set, this represents the user who created or added the calendar. For a calendar that the user created or added, the owner property is set to the user. For a calendar shared with the user, the owner property is set to the person who shared that calendar with the user." />
         </Property>
+        <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represent the online meeting service providers that can be used to create online meetings in this calendar. Possible values are: unknown, skypeForBusiness, skypeForConsumer, teamsForBusiness." />
+        </Property>
+        <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The default online meeting provider for meetings sent from this calendar. Possible values are: unknown, skypeForBusiness, skypeForConsumer, teamsForBusiness." />
+        </Property>
+        <Property Name="isTallyingResponses" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this user calendar supports tracking of meeting responses. Only meeting invites sent from users' primary calendars support tracking of meeting responses." />
+        </Property>
+        <Property Name="isRemovable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this user calendar can be deleted from the user mailbox." />
+        </Property>
         <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of single-value extended properties defined for the calendar. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="multiValueExtendedProperties" Type="Collection(graph.multiValueLegacyExtendedProperty)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of multi-value extended properties defined for the calendar. Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="calendarPermissions" Type="Collection(graph.calendarPermission)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The permissions of the users with whom the calendar is shared." />
         </NavigationProperty>
         <NavigationProperty Name="events" Type="Collection(graph.event)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The events in the calendar. Navigation property. Read-only." />
@@ -2325,6 +2374,15 @@
         </Property>
         <Property Name="onlineMeetingUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A URL for an online meeting. The property is set only when an organizer specifies an event as an online meeting such as a Skype meeting. Read-only." />
+        </Property>
+        <Property Name="isOnlineMeeting" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if this event has online meeting information, false otherwise. Default is false. Optional." />
+        </Property>
+        <Property Name="onlineMeetingProvider" Type="graph.onlineMeetingProviderType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the online meeting service provider. The possible values are teamsForBusiness, skypeForBusiness, and skypeForConsumer. Optional." />
+        </Property>
+        <Property Name="onlineMeeting" Type="graph.onlineMeetingInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Details for an attendee to join the meeting online. Read-only." />
         </Property>
         <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of fileAttachment and itemAttachment attachments for the event. Navigation property. Read-only. Nullable." />
@@ -3092,6 +3150,8 @@
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owners of the application. The owners are a set of non-admin users who are allowed to modify this object. Requires version 2013-11-08 or newer. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
       </EntityType>
       <EntityType Name="extensionProperty" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="appDisplayName" Type="Edm.String">
@@ -3110,6 +3170,25 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Following values are supported. Not nullable. UserGroupOrganizationDeviceApplication" />
         </Property>
       </EntityType>
+      <EntityType Name="policyBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="description" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description for this policy." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name for this policy." />
+        </Property>
+      </EntityType>
+      <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
+        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A string collection containing a JSON string that defines the rules and settings for a policy. The syntax for the definition differs for each derived policy type. Required." />
+        </Property>
+        <Property Name="isOrganizationDefault" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, activates this policy. There can be many policies for the same policy type, but only one can be activated as the organization default. Optional, default value is false." />
+        </Property>
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
@@ -3455,7 +3534,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user (or application) that created the group. NOTE: This is not set if the user is an administrator. Read-only." />
         </NavigationProperty>
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 10 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 100 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="settings" Type="Collection(graph.groupSetting)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
@@ -3586,6 +3665,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns the plannerPlans owned by the group." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="policyRoot" BaseType="graph.entity">
+        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="contract" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="contractType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Type of contract.Possible values are: SyndicationPartner - Partner that exclusively resells and manages O365 and Intune for this customer. They resell and support their customers. BreadthPartner - Partner has the ability to provide administrative support for this customer. However, the partner is not allowed to resell to the customer.ResellerPartner - Partner that is similar to a syndication partner, except that the partner doesn’t have exclusive access to a tenant. In the syndication case, the customer cannot buy additional direct subscriptions from Microsoft or from other partners." />
@@ -4173,9 +4262,12 @@
         <NavigationProperty Name="functions" Type="graph.workbookFunctions" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="permission" BaseType="graph.entity">
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="grantedTo" Type="graph.identitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="For user type permissions, the details of the users &amp; applications for this permission. Read-only." />
         </Property>
+        <Property Name="grantedToIdentities" Type="Collection(graph.identitySet)" />
+        <Property Name="hasPassword" Type="Edm.Boolean" />
         <Property Name="inheritedFrom" Type="graph.itemReference">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides a reference to the ancestor of the current permission, if it is inherited from an ancestor. Read-only." />
         </Property>
@@ -4872,6 +4964,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the attachment is an inline attachment; otherwise, false." />
         </Property>
       </EntityType>
+      <EntityType Name="calendarSharingMessage" BaseType="graph.message">
+        <Property Name="canAccept" Type="Edm.Boolean" />
+        <Property Name="suggestedCalendarName" Type="Edm.String" />
+        <Property Name="sharingMessageAction" Type="graph.calendarSharingMessageAction" />
+        <Property Name="sharingMessageActions" Type="Collection(graph.calendarSharingMessageAction)" />
+      </EntityType>
       <EntityType Name="eventMessage" BaseType="graph.message">
         <Property Name="meetingMessageType" Type="graph.meetingMessageType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of event message: none, meetingRequest, meetingCancelled, meetingAccepted, meetingTenativelyAccepted, meetingDeclined." />
@@ -4918,6 +5016,23 @@
         </Property>
         <Property Name="filterQuery" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The OData query to filter the messages." />
+        </Property>
+      </EntityType>
+      <EntityType Name="calendarPermission" BaseType="graph.entity">
+        <Property Name="emailAddress" Type="graph.emailAddress">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a sharee or delegate who has access to the calendar. For the 'My Organization' sharee, the address property is null. Read-only." />
+        </Property>
+        <Property Name="isRemovable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if the user can be removed from the list of sharees or delegates for the specified calendar, false otherwise. The 'My organization' user determines the permissions other people within your organization have to the given calendar. You cannot remove 'My organization' as a sharee to a calendar." />
+        </Property>
+        <Property Name="isInsideOrganization" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if the user in context (sharee or delegate) is inside the same organization as the calendar owner." />
+        </Property>
+        <Property Name="role" Type="graph.calendarRoleType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Current permission level of the calendar sharee or delegate." />
+        </Property>
+        <Property Name="allowedRoles" Type="Collection(graph.calendarRoleType)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of allowed sharing or delegating permission levels for the calendar. Possible values are: none, freeBusyRead, limitedRead, read, write, delegateWithoutPrivateEventAccess, delegateWithPrivateEventAccess, custom." />
         </Property>
       </EntityType>
       <EntityType Name="inferenceClassificationOverride" BaseType="graph.entity">
@@ -10793,6 +10908,9 @@
         <Property Name="language" Type="graph.localeInfo">
           <Annotation Term="Org.OData.Core.V1.Description" String="The locale information for the user, including the preferred language and country/region." />
         </Property>
+        <Property Name="delegateMeetingMessageDeliveryOptions" Type="graph.delegateMeetingMessageDeliveryOptions">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the user has a calendar delegate, this specifies whether the delegate, mailbox owner, or both receive meeting messages and meeting responses. Possible values are: sendToDelegateAndInformationToPrincipal, sendToDelegateAndPrincipal, sendToDelegateOnly." />
+        </Property>
         <Property Name="workingHours" Type="graph.workingHours">
           <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week and hours in a specific time zone that the user works." />
         </Property>
@@ -11343,11 +11461,13 @@
         <Property Name="siteUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The SharePoint URL for the site that contains the item." />
         </Property>
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier (guid) for the item's site (SPWeb)." />
         </Property>
       </ComplexType>
       <ComplexType Name="siteCollection">
+        <Property Name="dataLocationCode" Type="Edm.String" />
         <Property Name="hostname" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The hostname for the site collection. Read-only." />
         </Property>
@@ -12057,6 +12177,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The status for follow-up for an item. Possible values are notFlagged, complete, and flagged." />
         </Property>
       </ComplexType>
+      <ComplexType Name="calendarSharingMessageAction">
+        <Property Name="importance" Type="graph.calendarSharingActionImportance" />
+        <Property Name="actionType" Type="graph.calendarSharingActionType" />
+        <Property Name="action" Type="graph.calendarSharingAction" />
+      </ComplexType>
       <ComplexType Name="scheduleInformation">
         <Property Name="scheduleId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="An SMTP address of the user, distribution list, or resource, identifying an instance of scheduleInformation." />
@@ -12161,6 +12286,26 @@
       <ComplexType Name="attendee" BaseType="graph.attendeeBase">
         <Property Name="status" Type="graph.responseStatus">
           <Annotation Term="Org.OData.Core.V1.Description" String="The attendee's response (none, accepted, declined, etc.) for the event and date-time that the response was sent." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="onlineMeetingInfo">
+        <Property Name="joinUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The external link that launches the online meeting. This is a URL that clients will launch into a browser and will redirect the user to join the meeting." />
+        </Property>
+        <Property Name="conferenceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the conference." />
+        </Property>
+        <Property Name="tollNumber" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll number that can be used to join the conference." />
+        </Property>
+        <Property Name="tollFreeNumbers" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll free numbers that can be used to join the conference." />
+        </Property>
+        <Property Name="quickDial" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The pre-formatted quickdial for this call." />
+        </Property>
+        <Property Name="phones" Type="Collection(graph.phone)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="All of the phone numbers associated with this conference." />
         </Property>
       </ComplexType>
       <ComplexType Name="scoredEmailAddress">
@@ -12476,11 +12621,15 @@
         <Property Name="application" Type="graph.identity">
           <Annotation Term="Org.OData.Core.V1.Description" String="The app the link is associated with." />
         </Property>
+        <Property Name="preventsDownload" Type="Edm.Boolean" />
         <Property Name="scope" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The scope of the link represented by this permission. Value anonymous indicates the link is usable by anyone, organization indicates the link is only usable for users signed into the same tenant." />
         </Property>
         <Property Name="type" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of the link created." />
+        </Property>
+        <Property Name="webHtml" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For embed links, this property contains the HTML code for an &lt;iframe&gt; element that will embed the item in a webpage." />
         </Property>
         <Property Name="webUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A URL that opens the item in the browser on the OneDrive website." />
@@ -14700,6 +14849,7 @@
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
+        <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -14747,6 +14897,10 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.group)" />
         <ReturnType Type="Collection(graph.group)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.orgContact)" />
+        <ReturnType Type="Collection(graph.orgContact)" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryRole)" />
@@ -15068,6 +15222,11 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingparameter" Type="Collection(graph.message)" Nullable="false" />
         <ReturnType Type="Collection(graph.message)" Nullable="false" />
+      </Function>
+      <Function Name="allowedCalendarSharingRoles" IsBound="true">
+        <Parameter Name="bindingparameter" Type="graph.calendar" />
+        <Parameter Name="User" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.calendarRoleType)" Nullable="false" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -18290,6 +18449,10 @@
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="accept" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
+        <ReturnType Type="graph.calendar" Nullable="false" />
+      </Action>
       <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -18361,6 +18524,9 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="scope" Type="Edm.String" Unicode="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.permission" />
       </Action>
       <Action Name="createUploadSession" IsBound="true">
@@ -18382,6 +18548,8 @@
         <Parameter Name="sendInvitation" Type="Edm.Boolean" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" Nullable="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
       <Action Name="preview" IsBound="true">
@@ -18878,6 +19046,7 @@
       <Annotations Target="microsoft.graph.mailFolder/messages" />
       <Annotations Target="microsoft.graph.mailFolder/messageRules" />
       <Annotations Target="microsoft.graph.mailFolder/childFolders" />
+      <Annotations Target="microsoft.graph.calendar/calendarPermissions" />
       <Annotations Target="microsoft.graph.calendar/events" />
       <Annotations Target="microsoft.graph.calendar/calendarView" />
       <Annotations Target="microsoft.graph.calendarGroup/calendars" />
