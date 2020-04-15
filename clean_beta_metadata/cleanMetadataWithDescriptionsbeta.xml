@@ -4229,10 +4229,44 @@
         <Member Name="d" Value="15" />
         <Member Name="flash" Value="16" />
       </EnumType>
+      <EnumType Name="authenticationPhoneType">
+        <Member Name="mobile" Value="0" />
+        <Member Name="alternateMobile" Value="1" />
+        <Member Name="office" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="authenticationMethodSignInState">
+        <Member Name="notSupported" Value="0" />
+        <Member Name="notAllowedByPolicy" Value="1" />
+        <Member Name="notEnabled" Value="2" />
+        <Member Name="phoneNumberNotUnique" Value="3" />
+        <Member Name="ready" Value="4" />
+        <Member Name="notConfigured" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="signInState">
+        <Member Name="notSupported" Value="0" />
+        <Member Name="notAllowedByPolicy" Value="1" />
+        <Member Name="notProvisioned" Value="2" />
+        <Member Name="phoneNumberCollision" Value="3" />
+        <Member Name="provisioned" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="longRunningOperationStatus">
+        <Member Name="notstarted" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+      </EnumType>
       <EnumType Name="lifecycleEventType">
         <Member Name="missed" Value="0" />
         <Member Name="subscriptionRemoved" Value="1" />
         <Member Name="reauthorizationRequired" Value="2" />
+      </EnumType>
+      <EnumType Name="externalItemContentType">
+        <Member Name="text" Value="1" />
+        <Member Name="html" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="aclType">
         <Member Name="user" Value="1" />
@@ -4924,6 +4958,7 @@
         <NavigationProperty Name="devices" Type="Collection(graph.device)" ContainsTarget="true" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="presence" Type="graph.presence" ContainsTarget="true" />
+        <NavigationProperty Name="authentication" Type="graph.authentication" ContainsTarget="true" />
         <NavigationProperty Name="chats" Type="Collection(graph.chat)" ContainsTarget="true" />
         <NavigationProperty Name="joinedTeams" Type="Collection(graph.team)" ContainsTarget="true" />
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
@@ -5197,7 +5232,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user (or application) that created the group. NOTE: This is not set if the user is an administrator. Read-only." />
         </NavigationProperty>
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 10 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 100 owners. HTTP Methods: GET (supported for all groups), POST (supported for Office 365 groups, security groups and mail-enabled security groups), DELETE (supported for Office 365 groups and security groups). Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="settings" Type="Collection(graph.directorySetting)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
@@ -5296,7 +5331,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the color theme to distinguish the calendar from other calendars in a UI. The property values are: LightBlue=0, LightGreen=1, LightOrange=2, LightGray=3, LightYellow=4, LightTeal=5, LightPink=6, LightBrown=7, LightRed=8, MaxColor=9, Auto=-1" />
         </Property>
         <Property Name="hexColor" Type="Edm.String" />
-        <Property Name="isDefaultCalendar" Type="Edm.Boolean" />
+        <Property Name="isDefaultCalendar" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if this is the default calendar where new events are created by default, false otherwise." />
+        </Property>
         <Property Name="changeKey" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the version of the calendar object. Every time the calendar is changed, changeKey changes as well. This allows Exchange to apply changes to the correct version of the object. Read-only." />
         </Property>
@@ -5315,17 +5352,27 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="If set, this represents the user who created or added the calendar. For a calendar that the user created or added, the owner property is set to the user. For a calendar shared with the user, the owner property is set to the person who shared that calendar with the user." />
         </Property>
         <Property Name="calendarGroupId" Type="Edm.String" />
-        <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)" />
-        <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
-        <Property Name="isTallyingResponses" Type="Edm.Boolean" />
-        <Property Name="isRemovable" Type="Edm.Boolean" />
+        <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represent the online meeting service providers that can be used to create online meetings in this calendar. Possible values are: unknown, skypeForBusiness, skypeForConsumer, teamsForBusiness." />
+        </Property>
+        <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The default online meeting provider for meetings sent from this calendar. Possible values are: unknown, skypeForBusiness, skypeForConsumer, teamsForBusiness." />
+        </Property>
+        <Property Name="isTallyingResponses" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this user calendar supports tracking of meeting responses. Only meeting invites sent from users' primary calendars support tracking of meeting responses." />
+        </Property>
+        <Property Name="isRemovable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this user calendar can be deleted from the user mailbox." />
+        </Property>
         <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of single-value extended properties defined for the calendar. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="multiValueExtendedProperties" Type="Collection(graph.multiValueLegacyExtendedProperty)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of multi-value extended properties defined for the calendar. Read-only. Nullable." />
         </NavigationProperty>
-        <NavigationProperty Name="calendarPermissions" Type="Collection(graph.calendarPermission)" ContainsTarget="true" />
+        <NavigationProperty Name="calendarPermissions" Type="Collection(graph.calendarPermission)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The permissions of the users with whom the calendar is shared." />
+        </NavigationProperty>
         <NavigationProperty Name="events" Type="Collection(graph.event)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The events in the calendar. Navigation property. Read-only." />
         </NavigationProperty>
@@ -5434,9 +5481,15 @@
         <Property Name="onlineMeetingUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A URL for an online meeting. The property is set only when an organizer specifies an event as an online meeting such as a Skype meeting. Read-only." />
         </Property>
-        <Property Name="isOnlineMeeting" Type="Edm.Boolean" />
-        <Property Name="onlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
-        <Property Name="onlineMeeting" Type="graph.onlineMeetingInfo" />
+        <Property Name="isOnlineMeeting" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if this event has online meeting information, false otherwise. Default is false. Optional." />
+        </Property>
+        <Property Name="onlineMeetingProvider" Type="graph.onlineMeetingProviderType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the online meeting service provider. The possible values are teamsForBusiness, skypeForBusiness, and skypeForConsumer. Optional." />
+        </Property>
+        <Property Name="onlineMeeting" Type="graph.onlineMeetingInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Details for an attendee to join the meeting online. Read-only." />
+        </Property>
         <Property Name="allowNewTimeProposals" Type="Edm.Boolean" />
         <Property Name="isDraft" Type="Edm.Boolean" />
         <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true">
@@ -6279,6 +6332,14 @@
         <Property Name="availability" Type="Edm.String" />
         <Property Name="activity" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="smsMethods" Type="Collection(graph.smsAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="voiceMethods" Type="Collection(graph.voiceAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
         <Property Name="topic" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -6617,12 +6678,20 @@
         </Property>
       </EntityType>
       <EntityType Name="policyBase" BaseType="graph.entity" Abstract="true">
-        <Property Name="description" Type="Edm.String" Nullable="false" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description for this policy." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name for this policy." />
+        </Property>
       </EntityType>
       <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
-        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="isOrganizationDefault" Type="Edm.Boolean" />
+        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A string collection containing a JSON string that defines the rules and settings for a policy. The syntax for the definition differs for each derived policy type. Required." />
+        </Property>
+        <Property Name="isOrganizationDefault" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, activates this policy. There can be many policies for the same policy type, but only one can be activated as the organization default. Optional, default value is false." />
+        </Property>
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
@@ -7745,6 +7814,7 @@
         <Property Name="rowsPerBlock" Type="Edm.Int32" />
         <Property Name="totalJobCount" Type="Edm.Int32" />
         <Property Name="remainingJobCount" Type="Edm.Int32" />
+        <Property Name="salt" Type="Edm.String" />
         <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchLookupJob" BaseType="graph.exactMatchJobBase">
@@ -8908,11 +8978,21 @@
         </Property>
       </EntityType>
       <EntityType Name="calendarPermission" BaseType="graph.entity">
-        <Property Name="emailAddress" Type="graph.emailAddress" />
-        <Property Name="isRemovable" Type="Edm.Boolean" />
-        <Property Name="isInsideOrganization" Type="Edm.Boolean" />
-        <Property Name="role" Type="graph.calendarRoleType" />
-        <Property Name="allowedRoles" Type="Collection(graph.calendarRoleType)" />
+        <Property Name="emailAddress" Type="graph.emailAddress">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a sharee or delegate who has access to the calendar. For the 'My Organization' sharee, the address property is null. Read-only." />
+        </Property>
+        <Property Name="isRemovable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if the user can be removed from the list of sharees or delegates for the specified calendar, false otherwise. The 'My organization' user determines the permissions other people within your organization have to the given calendar. You cannot remove 'My organization' as a sharee to a calendar." />
+        </Property>
+        <Property Name="isInsideOrganization" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="True if the user in context (sharee or delegate) is inside the same organization as the calendar owner." />
+        </Property>
+        <Property Name="role" Type="graph.calendarRoleType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Current permission level of the calendar sharee or delegate." />
+        </Property>
+        <Property Name="allowedRoles" Type="Collection(graph.calendarRoleType)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of allowed sharing or delegating permission levels for the calendar. Possible values are: none, freeBusyRead, limitedRead, read, write, delegateWithoutPrivateEventAccess, delegateWithPrivateEventAccess, custom." />
+        </Property>
       </EntityType>
       <EntityType Name="inferenceClassificationOverride" BaseType="graph.entity">
         <Property Name="classifyAs" Type="graph.inferenceClassificationType">
@@ -9193,7 +9273,7 @@
         </Property>
         <Property Name="answeredBy" Type="graph.participantInfo" />
         <Property Name="requestedModalities" Type="Collection(graph.modality)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities. Possible values are: unknown, audio, video, videoBasedScreenSharing, data." />
         </Property>
         <Property Name="activeModalities" Type="Collection(graph.modality)" />
         <Property Name="mediaConfig" Type="graph.mediaConfig">
@@ -9503,6 +9583,7 @@
       <EntityType Name="riskDetection" BaseType="graph.entity">
         <Property Name="requestId" Type="Edm.String" />
         <Property Name="correlationId" Type="Edm.String" />
+        <Property Name="riskEventType" Type="Edm.String" />
         <Property Name="riskType" Type="graph.riskEventType" />
         <Property Name="riskState" Type="graph.riskState" />
         <Property Name="riskLevel" Type="graph.riskLevel" />
@@ -19984,6 +20065,32 @@
       <EntityType Name="subscribeToToneOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="unmuteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="updateRecordingStatusOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="password" Type="Edm.String" />
+        <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="phoneAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+        <Property Name="smsSignInState" Type="graph.authenticationMethodSignInState" />
+      </EntityType>
+      <EntityType Name="smsAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+        <Property Name="signInState" Type="graph.signInState" />
+      </EntityType>
+      <EntityType Name="voiceAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+      </EntityType>
+      <EntityType Name="longRunningOperation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.longRunningOperationStatus" />
+        <Property Name="statusDetail" Type="Edm.String" />
+        <Property Name="resourceLocation" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="external" BaseType="graph.entity">
         <NavigationProperty Name="connections" Type="Collection(graph.externalConnection)" ContainsTarget="true" />
       </EntityType>
@@ -20001,23 +20108,12 @@
       </EntityType>
       <EntityType Name="externalItem" BaseType="graph.entity">
         <Property Name="properties" Type="graph.properties" />
-        <Property Name="content" Type="Edm.String" />
+        <Property Name="content" Type="graph.externalItemContent" />
         <Property Name="acl" Type="Collection(graph.acl)" />
       </EntityType>
       <EntityType Name="connectionOperation" BaseType="graph.entity">
         <Property Name="status" Type="graph.connectionOperationStatus" />
         <Property Name="error" Type="graph.errorDetail" />
-      </EntityType>
-      <EntityType Name="externalFile" BaseType="graph.externalItem">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="createdBy" Type="Edm.String" />
-        <Property Name="lastModifiedBy" Type="Edm.String" />
-        <Property Name="title" Type="Edm.String" />
-        <Property Name="url" Type="Edm.String" Nullable="false" />
-        <Property Name="name" Type="Edm.String" Nullable="false" />
-        <Property Name="extension" Type="Edm.String" />
-        <Property Name="size" Type="Edm.Int64" Nullable="false" />
       </EntityType>
       <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
@@ -20597,7 +20693,9 @@
         <Property Name="language" Type="graph.localeInfo">
           <Annotation Term="Org.OData.Core.V1.Description" String="The locale information for the user, including the preferred language and country/region." />
         </Property>
-        <Property Name="delegateMeetingMessageDeliveryOptions" Type="graph.delegateMeetingMessageDeliveryOptions" />
+        <Property Name="delegateMeetingMessageDeliveryOptions" Type="graph.delegateMeetingMessageDeliveryOptions">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the user has a calendar delegate, this specifies whether the delegate, mailbox owner, or both receive meeting messages and meeting responses. Possible values are: sendToDelegateAndInformationToPrincipal, sendToDelegateAndPrincipal, sendToDelegateOnly." />
+        </Property>
         <Property Name="workingHours" Type="graph.workingHours">
           <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week and hours in a specific time zone that the user works." />
         </Property>
@@ -22618,12 +22716,24 @@
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
       </ComplexType>
       <ComplexType Name="onlineMeetingInfo">
-        <Property Name="joinUrl" Type="Edm.String" />
-        <Property Name="conferenceId" Type="Edm.String" />
-        <Property Name="tollNumber" Type="Edm.String" />
-        <Property Name="tollFreeNumbers" Type="Collection(Edm.String)" />
-        <Property Name="quickDial" Type="Edm.String" />
-        <Property Name="phones" Type="Collection(graph.phone)" />
+        <Property Name="joinUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The external link that launches the online meeting. This is a URL that clients will launch into a browser and will redirect the user to join the meeting." />
+        </Property>
+        <Property Name="conferenceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the conference." />
+        </Property>
+        <Property Name="tollNumber" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll number that can be used to join the conference." />
+        </Property>
+        <Property Name="tollFreeNumbers" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The toll free numbers that can be used to join the conference." />
+        </Property>
+        <Property Name="quickDial" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The pre-formatted quickdial for this call." />
+        </Property>
+        <Property Name="phones" Type="Collection(graph.phone)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="All of the phone numbers associated with this conference." />
+        </Property>
       </ComplexType>
       <ComplexType Name="rankedEmailAddress">
         <Property Name="address" Type="Edm.String" />
@@ -23463,6 +23573,7 @@
       </ComplexType>
       <ComplexType Name="riskUserActivity">
         <Property Name="eventTypes" Type="Collection(graph.riskEventType)" />
+        <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
         <Property Name="detail" Type="graph.riskDetail" />
       </ComplexType>
       <ComplexType Name="ipRange" Abstract="true" />
@@ -23497,6 +23608,10 @@
         <Property Name="includeStates" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="excludeStates" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="conditionalAccessDevices">
+        <Property Name="includeDeviceStates" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeDeviceStates" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="conditionalAccessConditionSet">
         <Property Name="applications" Type="graph.conditionalAccessApplications" />
         <Property Name="users" Type="graph.conditionalAccessUsers" Nullable="false" />
@@ -23505,6 +23620,7 @@
         <Property Name="locations" Type="graph.conditionalAccessLocations" />
         <Property Name="clientAppTypes" Type="Collection(graph.conditionalAccessClientApp)" Nullable="false" />
         <Property Name="deviceStates" Type="graph.conditionalAccessDeviceStates" />
+        <Property Name="devices" Type="graph.conditionalAccessDevices" />
       </ComplexType>
       <ComplexType Name="conditionalAccessGrantControls">
         <Property Name="operator" Type="Edm.String" />
@@ -27159,6 +27275,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The list of media qualities in a media session (call), such as audio quality, video quality, and/or screen sharing quality." />
         </Property>
       </ComplexType>
+      <ComplexType Name="passwordResetResponse">
+        <Property Name="newPassword" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="changeNotificationEncryptedContent">
         <Property Name="data" Type="Edm.Binary" Nullable="false" />
         <Property Name="dataSignature" Type="Edm.Binary" Nullable="false" />
@@ -27186,6 +27305,10 @@
         <Property Name="authorizedApps" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="properties" OpenType="true" />
+      <ComplexType Name="externalItemContent">
+        <Property Name="value" Type="Edm.String" />
+        <Property Name="type" Type="graph.externalItemContentType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="acl">
         <Property Name="type" Type="graph.aclType" Nullable="false" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
@@ -29210,6 +29333,7 @@
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="classifyExactMatches" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.dataClassificationService" />
         <Parameter Name="text" Type="Edm.String" Unicode="false" />
         <Parameter Name="timeoutInMs" Type="Edm.String" Unicode="false" />
         <Parameter Name="sensitiveTypeIds" Type="Collection(Edm.String)" Unicode="false" />
@@ -33019,6 +33143,18 @@
         <Parameter Name="bindingParameter" Type="graph.participant" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.muteParticipantOperation" />
+      </Action>
+      <Action Name="enableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
+      </Action>
+      <Action Name="disableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
+      </Action>
+      <Action Name="resetPassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
+        <Parameter Name="newPassword" Type="Edm.String" Unicode="false" />
+        <Parameter Name="requireChangeOnNextSignIn" Type="Edm.Boolean" />
+        <ReturnType Type="graph.passwordResetResponse" />
       </Action>
       <Action Name="upgrade" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
