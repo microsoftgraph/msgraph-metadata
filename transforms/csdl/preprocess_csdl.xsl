@@ -97,6 +97,31 @@
         <xsl:element name="Annotation" use-attribute-sets="LongDescriptionNavigable"/>
       </xsl:copy>
     </xsl:template>
+    
+    <!-- Add custom query options to calendarView -->
+    <xsl:attribute-set name="StartDateTimeQueryOption">
+      <xsl:attribute name="Term">Org.OData.Capabilities.V1.CustomQueryOptions</xsl:attribute>
+      <xsl:attribute name="Name">StartDateTime</xsl:attribute>
+      <xsl:attribute name="Required">true</xsl:attribute>
+    </xsl:attribute-set>
+    <xsl:attribute-set name="EndDateTimeQueryOption">
+      <xsl:attribute name="Term">Org.OData.Capabilities.V1.CustomQueryOptions</xsl:attribute>
+      <xsl:attribute name="Name">EndDateTime</xsl:attribute>
+      <xsl:attribute name="Required">true</xsl:attribute>
+    </xsl:attribute-set>
+  
+    <xsl:template match="
+                    edm:Annotations[@Target='microsoft.graph.user/calendarView']|
+                    edm:Annotations[@Target='microsoft.graph.group/calendarView']|
+                    edm:Annotations[@Target='microsoft.graph.calendar/calendarView']|
+                    edm:Annotations[@Target='microsoft.graph.bookingBusiness/calendarView']
+                    ">
+      <xsl:copy>
+        <xsl:apply-templates select="@* | node()"/>
+        <xsl:element name="Annotation" use-attribute-sets="StartDateTimeQueryOption"/>
+        <xsl:element name="Annotation" use-attribute-sets="EndDateTimeQueryOption"/>
+      </xsl:copy>
+    </xsl:template>
 
     <!-- Remove attribute -->
     <xsl:template match="edm:EntityType[@Name='onenotePage']/@HasStream|
