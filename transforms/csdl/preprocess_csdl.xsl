@@ -119,4 +119,116 @@
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
     </xsl:template>
+
+    <!-- Add custom query options to calendarView navigation property -->
+    <xsl:template name="CalendarViewRestrictedPopertyTemplate">
+      <xsl:param name = "propertyPath" />
+      <xsl:param name = "startDateTimeName" />
+      <xsl:param name = "endDateTimeName" />
+      <xsl:element name="Record">
+        <xsl:element name="PropertyValue">
+          <xsl:attribute name="Property">NavigationProperty</xsl:attribute>
+          <xsl:element name="PropertyPath">
+            <xsl:value-of select = "$propertyPath" />
+          </xsl:element>
+        </xsl:element>
+        <xsl:element name="PropertyValue">
+          <xsl:attribute name="Property">ReadRestrictions</xsl:attribute>
+          <xsl:element name="Record">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">CustomQueryOptions</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Name</xsl:attribute>
+                    <xsl:attribute name="String">
+                      <xsl:value-of select = "$startDateTimeName" />
+                    </xsl:attribute>
+                  </xsl:element>
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Description</xsl:attribute>
+                    <xsl:attribute name="String">The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00</xsl:attribute>
+                  </xsl:element>
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Required</xsl:attribute>
+                    <xsl:attribute name="Bool">true</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Name</xsl:attribute>
+                    <xsl:attribute name="String">
+                      <xsl:value-of select = "$endDateTimeName" />
+                    </xsl:attribute>
+                  </xsl:element>
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Description</xsl:attribute>
+                    <xsl:attribute name="String">The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00</xsl:attribute>
+                  </xsl:element>
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Required</xsl:attribute>
+                    <xsl:attribute name="Bool">true</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+    </xsl:template>
+
+    <xsl:template match="
+                  edm:EntitySet[@Name='users']|
+                  edm:EntitySet[@Name='groups']
+                      ">
+      <xsl:copy>
+        <xsl:apply-templates select="@* | node()"/>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                  <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
+                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                </xsl:call-template>
+                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                  <xsl:with-param name="propertyPath">calendar/calendarView</xsl:with-param>
+                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                </xsl:call-template>
+                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                  <xsl:with-param name="propertyPath">calendars/calendarView</xsl:with-param>
+                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                </xsl:call-template>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="edm:EntitySet[@Name='bookingBusinesses']">
+      <xsl:copy>
+        <xsl:apply-templates select="@* | node()"/>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                  <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
+                  <xsl:with-param name="startDateTimeName">start</xsl:with-param>
+                  <xsl:with-param name="endDateTimeName">end</xsl:with-param>
+                </xsl:call-template>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:copy>
+    </xsl:template>
 </xsl:stylesheet>
