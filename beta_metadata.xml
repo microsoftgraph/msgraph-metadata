@@ -293,6 +293,14 @@
         <Member Name="resourceOwner" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="caseStatus" UnderlyingType="Edm.Byte">
+        <Member Name="unknown" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="pendingDelete" Value="2" />
+        <Member Name="closing" Value="3" />
+        <Member Name="closed" Value="4" />
+        <Member Name="closedWithError" Value="5" />
+      </EnumType>
       <EnumType Name="dlpAction">
         <Member Name="notifyUser" Value="0" />
         <Member Name="blockAccess" Value="1" />
@@ -4485,6 +4493,12 @@
         <Member Name="offerShiftRequest" Value="64" />
         <Member Name="unknownFutureValue" Value="1024" />
       </EnumType>
+      <EnumType Name="eligibilityFilteringEnabledEntities" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="swapRequest" Value="1" />
+        <Member Name="offerShiftRequest" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="threatAssessmentContentType">
         <Member Name="mail" Value="1" />
         <Member Name="url" Value="2" />
@@ -4560,9 +4574,11 @@
         <Property Name="user" Type="graph.userIdentity" />
         <Property Name="app" Type="graph.appIdentity" />
       </ComplexType>
-      <ComplexType Name="userIdentity">
+      <ComplexType Name="identity" OpenType="true">
         <Property Name="id" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
@@ -4795,6 +4811,8 @@
         <NavigationProperty Name="drives" Type="Collection(graph.drive)" ContainsTarget="true" />
         <NavigationProperty Name="followedSites" Type="Collection(graph.site)" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="approvals" Type="Collection(graph.approval)" ContainsTarget="true" />
+        <NavigationProperty Name="appConsentRequestsForApproval" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
         <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)" />
         <NavigationProperty Name="deviceEnrollmentConfigurations" Type="Collection(graph.deviceEnrollmentConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="managedDevices" Type="Collection(graph.managedDevice)" ContainsTarget="true" />
@@ -5272,6 +5290,18 @@
         <NavigationProperty Name="onenote" Type="graph.onenote" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="extension" BaseType="graph.entity" Abstract="true" OpenType="true" />
+      <EntityType Name="approval" BaseType="graph.entity">
+        <NavigationProperty Name="pendingSteps" Type="Collection(graph.approvalStep)" ContainsTarget="true" />
+        <NavigationProperty Name="completedSteps" Type="Collection(graph.approvalStep)" ContainsTarget="true" />
+        <NavigationProperty Name="request" Type="graph.request" />
+      </EntityType>
+      <EntityType Name="appConsentRequest" BaseType="graph.entity">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="appDisplayName" Type="Edm.String" />
+        <Property Name="consentType" Type="Edm.String" />
+        <Property Name="pendingScopes" Type="Collection(graph.appConsentRequestScope)" />
+        <NavigationProperty Name="userConsentRequests" Type="Collection(graph.userConsentRequest)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreementAcceptance" BaseType="graph.entity">
         <Property Name="agreementId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
@@ -5609,10 +5639,6 @@
         <Property Name="provisioningSteps" Type="Collection(graph.provisioningStep)" />
         <Property Name="modifiedProperties" Type="Collection(graph.modifiedProperty)" />
       </EntityType>
-      <ComplexType Name="identity" OpenType="true">
-        <Property Name="id" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-      </ComplexType>
       <ComplexType Name="provisioningServicePrincipal" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="initiator">
         <Property Name="id" Type="Edm.String" />
@@ -6088,10 +6114,19 @@
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="version" Type="Edm.Int32" Nullable="false" />
+        <Property Name="notifyReviewers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="remindersEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="requestDurationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewScope)" />
+      </EntityType>
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
@@ -6284,6 +6319,24 @@
         <Property Name="dq" Type="Edm.String" />
         <Property Name="qi" Type="Edm.String" />
       </ComplexType>
+      <EntityType Name="compliance" BaseType="graph.entity">
+        <NavigationProperty Name="ediscovery" Type="graph.ediscovery" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="ediscovery" BaseType="graph.entity">
+        <NavigationProperty Name="cases" Type="Collection(graph.ediscoveryCase)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="ediscoveryCase" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="createdBy" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.caseStatus" />
+        <Property Name="closedBy" Type="Edm.String" />
+        <Property Name="closedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
       <EntityType Name="dataClassificationService" BaseType="graph.entity">
         <NavigationProperty Name="exactMatchDataStores" Type="Collection(graph.exactMatchDataStore)" ContainsTarget="true" />
         <NavigationProperty Name="sensitiveTypes" Type="Collection(graph.sensitiveType)" ContainsTarget="true" />
@@ -9297,8 +9350,6 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="businessFlows" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
         <NavigationProperty Name="policyTemplates" Type="Collection(graph.governancePolicyTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="requests" Type="Collection(graph.request)" ContainsTarget="true" />
-        <NavigationProperty Name="requestsAwaitingMyDecision" Type="Collection(graph.request)" ContainsTarget="true" />
         <NavigationProperty Name="businessFlowsWithRequestsAwaitingMyDecision" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="businessFlow" BaseType="graph.entity" OpenType="true">
@@ -9316,24 +9367,6 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="policy" Type="graph.governancePolicy" />
         <Property Name="settings" Type="graph.businessFlowSettings" />
-      </EntityType>
-      <EntityType Name="request" BaseType="graph.entity" OpenType="true">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="Edm.String" />
-        <Property Name="businessFlowId" Type="Edm.String" />
-        <Property Name="createdBy" Type="graph.userIdentity" />
-        <Property Name="deDuplicationId" Type="Edm.String" />
-        <Property Name="schemaId" Type="Edm.String" />
-        <Property Name="customData" Type="Edm.String" />
-        <Property Name="recordVersion" Type="Edm.String" />
-        <Property Name="policyTemplateId" Type="Edm.String" />
-        <Property Name="policy" Type="graph.governancePolicy" />
-        <Property Name="settings" Type="graph.accessReviewSettings" />
-        <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewDecision)" ContainsTarget="true" />
-        <NavigationProperty Name="myDecisions" Type="Collection(graph.accessReviewDecision)" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="governancePolicy">
         <Property Name="decisionMakerCriteria" Type="Collection(graph.governanceCriteria)" />
@@ -9354,6 +9387,28 @@
       <ComplexType Name="businessFlowSettings" BaseType="graph.accessReviewSettings">
         <Property Name="durationInDays" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
+      <EntityType Name="request" BaseType="graph.entity">
+        <NavigationProperty Name="approval" Type="graph.approval" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="approvalStep" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="reviewedBy" Type="graph.identity" />
+        <Property Name="reviewedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewResult" Type="Edm.String" />
+        <Property Name="justification" Type="Edm.String" />
+      </EntityType>
+      <ComplexType Name="accessReviewScope">
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="queryType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="appConsentRequestScope">
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="userConsentRequest" BaseType="graph.request">
+        <Property Name="reason" Type="Edm.String" />
+        <Property Name="createdBy" Type="graph.userIdentity" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
       <ComplexType Name="groupMembershipGovernanceCriteria" BaseType="graph.governanceCriteria">
         <Property Name="groupId" Type="Edm.String" />
       </ComplexType>
@@ -18576,6 +18631,8 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <NavigationProperty Name="printer" Type="graph.printer" />
+        <NavigationProperty Name="allowedUsers" Type="Collection(graph.printUserIdentity)" ContainsTarget="true" />
+        <NavigationProperty Name="allowedGroups" Type="Collection(graph.printIdentity)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="printConnector" BaseType="graph.entity">
         <Property Name="name" Type="Edm.String" />
@@ -19530,6 +19587,7 @@
         <Property Name="url" Type="Edm.String" />
         <Property Name="supports" Type="graph.workforceIntegrationSupportedEntities" />
         <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
+        <Property Name="eligibilityFilteringEnabledEntities" Type="graph.eligibilityFilteringEnabledEntities" />
       </EntityType>
       <EntityType Name="schedule" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" />
@@ -25375,6 +25433,7 @@
         <EntitySet Name="bookingBusinesses" EntityType="microsoft.graph.bookingBusiness" />
         <EntitySet Name="bookingCurrencies" EntityType="microsoft.graph.bookingCurrency" />
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
+        <EntitySet Name="cases" EntityType="microsoft.graph.ediscoveryCase" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
@@ -25530,6 +25589,7 @@
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
+        <Singleton Name="compliance" Type="microsoft.graph.compliance" />
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
