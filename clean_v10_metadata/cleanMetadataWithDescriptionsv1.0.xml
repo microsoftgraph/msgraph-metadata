@@ -349,6 +349,11 @@
         <Member Name="preset24" Value="24" />
         <Member Name="none" Value="-1" />
       </EnumType>
+      <EnumType Name="attachmentType">
+        <Member Name="file" Value="0" />
+        <Member Name="item" Value="1" />
+        <Member Name="reference" Value="2" />
+      </EnumType>
       <EnumType Name="messageActionFlag">
         <Member Name="any" Value="0" />
         <Member Name="call" Value="1" />
@@ -12337,6 +12342,24 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The secondary type of data source, such as OrganizationUser." />
         </Property>
       </ComplexType>
+      <ComplexType Name="attachmentItem">
+        <Property Name="attachmentType" Type="graph.attachmentType" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int64" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="isInline" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="uploadSession">
+        <Property Name="uploadUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL endpoint that accepts PUT requests for byte ranges of the file." />
+        </Property>
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time in UTC that the upload session will expire. The complete file must be uploaded before this expiration time is reached." />
+        </Property>
+        <Property Name="nextExpectedRanges" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of byte ranges that the server is missing for the file. These ranges are zero indexed and of the format 'start-end' (e.g. '0-26' to indicate the first 27 bytes of the file)." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="messageRulePredicates">
         <Property Name="categories" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents the categories that an incoming message should be labeled with in order for the condition or exception to apply." />
@@ -12679,17 +12702,6 @@
         <Property Name="getUrl" Type="Edm.String" />
         <Property Name="postParameters" Type="Edm.String" />
         <Property Name="postUrl" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="uploadSession">
-        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time in UTC that the upload session will expire. The complete file must be uploaded before this expiration time is reached." />
-        </Property>
-        <Property Name="nextExpectedRanges" Type="Collection(Edm.String)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of byte ranges that the server is missing for the file. These ranges are zero indexed and of the format 'start-end' (e.g. '0-26' to indicate the first 27 bytes of the file)." />
-        </Property>
-        <Property Name="uploadUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The URL endpoint that accepts PUT requests for byte ranges of the file." />
-        </Property>
       </ComplexType>
       <ComplexType Name="extensionSchemaProperty">
         <Property Name="name" Type="Edm.String">
@@ -14792,6 +14804,83 @@
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendar/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendars/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
         </EntitySet>
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
@@ -14824,6 +14913,83 @@
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMembers" Target="directoryObjects" />
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendar/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendars/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
         </EntitySet>
         <EntitySet Name="directoryRoles" EntityType="microsoft.graph.directoryRole">
           <NavigationPropertyBinding Path="members" Target="directoryObjects" />
@@ -18496,6 +18662,11 @@
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.conversationThread" />
         <Parameter Name="Post" Type="graph.post" Nullable="false" />
+      </Action>
+      <Action Name="createUploadSession" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.attachment)" />
+        <Parameter Name="AttachmentItem" Type="graph.attachmentItem" Nullable="false" />
+        <ReturnType Type="graph.uploadSession" />
       </Action>
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.post" />
