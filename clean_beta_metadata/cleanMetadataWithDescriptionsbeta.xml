@@ -293,6 +293,14 @@
         <Member Name="resourceOwner" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="caseStatus" UnderlyingType="Edm.Byte">
+        <Member Name="unknown" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="pendingDelete" Value="2" />
+        <Member Name="closing" Value="3" />
+        <Member Name="closed" Value="4" />
+        <Member Name="closedWithError" Value="5" />
+      </EnumType>
       <EnumType Name="dlpAction">
         <Member Name="notifyUser" Value="0" />
         <Member Name="blockAccess" Value="1" />
@@ -4485,6 +4493,12 @@
         <Member Name="offerShiftRequest" Value="64" />
         <Member Name="unknownFutureValue" Value="1024" />
       </EnumType>
+      <EnumType Name="eligibilityFilteringEnabledEntities" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="swapRequest" Value="1" />
+        <Member Name="offerShiftRequest" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="threatAssessmentContentType">
         <Member Name="mail" Value="1" />
         <Member Name="url" Value="2" />
@@ -4949,6 +4963,8 @@
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the user. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="approvals" Type="Collection(graph.approval)" ContainsTarget="true" />
+        <NavigationProperty Name="appConsentRequestsForApproval" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
         <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)" />
         <NavigationProperty Name="deviceEnrollmentConfigurations" Type="Collection(graph.deviceEnrollmentConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="managedDevices" Type="Collection(graph.managedDevice)" ContainsTarget="true">
@@ -5831,6 +5847,17 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="extension" BaseType="graph.entity" Abstract="true" OpenType="true" />
+      <EntityType Name="approval" BaseType="graph.entity">
+        <NavigationProperty Name="pendingSteps" Type="Collection(graph.approvalStep)" ContainsTarget="true" />
+        <NavigationProperty Name="completedSteps" Type="Collection(graph.approvalStep)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="appConsentRequest" BaseType="graph.entity">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="appDisplayName" Type="Edm.String" />
+        <Property Name="consentType" Type="Edm.String" />
+        <Property Name="pendingScopes" Type="Collection(graph.appConsentRequestScope)" />
+        <NavigationProperty Name="userConsentRequests" Type="Collection(graph.userConsentRequest)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreementAcceptance" BaseType="graph.entity">
         <Property Name="agreementId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
@@ -6805,10 +6832,19 @@
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="version" Type="Edm.Int32" Nullable="false" />
+        <Property Name="notifyReviewers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="remindersEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="requestDurationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewScope)" />
+      </EntityType>
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
@@ -6923,6 +6959,24 @@
       <EntityType Name="trustFrameworkPolicy" BaseType="graph.entity" HasStream="true" />
       <EntityType Name="trustFrameworkKeySet" BaseType="graph.entity">
         <Property Name="keys" Type="Collection(graph.trustFrameworkKey)" />
+      </EntityType>
+      <EntityType Name="compliance" BaseType="graph.entity">
+        <NavigationProperty Name="ediscovery" Type="graph.ediscovery" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="ediscovery" BaseType="graph.entity">
+        <NavigationProperty Name="cases" Type="Collection(graph.ediscoveryCase)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="ediscoveryCase" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="createdBy" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.caseStatus" />
+        <Property Name="closedBy" Type="Edm.String" />
+        <Property Name="closedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="dataClassificationService" BaseType="graph.entity">
         <NavigationProperty Name="exactMatchDataStores" Type="Collection(graph.exactMatchDataStore)" ContainsTarget="true" />
@@ -8150,12 +8204,18 @@
         <NavigationProperty Name="functions" Type="graph.workbookFunctions" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="permission" BaseType="graph.entity">
-        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A format of yyyy-MM-ddTHH:mm:ssZ of DateTimeOffset indicates the expiration time of the permission. DateTime.MinValue indicates there is no expiration set for this permission. Optional." />
+        </Property>
         <Property Name="grantedTo" Type="graph.identitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="For user type permissions, the details of the users &amp; applications for this permission. Read-only." />
         </Property>
-        <Property Name="grantedToIdentities" Type="Collection(graph.identitySet)" />
-        <Property Name="hasPassword" Type="Edm.Boolean" />
+        <Property Name="grantedToIdentities" Type="Collection(graph.identitySet)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For link type permissions, the details of the users to whom permission was granted. Read-only." />
+        </Property>
+        <Property Name="hasPassword" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="This indicates whether password is set for this permission, it's only showing in response. Optional and Read-only and for OneDrive Personal only." />
+        </Property>
         <Property Name="inheritedFrom" Type="graph.itemReference">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides a reference to the ancestor of the current permission, if it is inherited from an ancestor. Read-only." />
         </Property>
@@ -9169,7 +9229,9 @@
         <NavigationProperty Name="listItem" Type="graph.listItem" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Used to access the underlying listItem" />
         </NavigationProperty>
-        <NavigationProperty Name="permission" Type="graph.permission" ContainsTarget="true" />
+        <NavigationProperty Name="permission" Type="graph.permission" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Used to access the permission representing the underlying sharing link" />
+        </NavigationProperty>
         <NavigationProperty Name="root" Type="graph.driveItem" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Used to access the underlying driveItem. Deprecated -- use driveItem instead." />
         </NavigationProperty>
@@ -9541,8 +9603,6 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="businessFlows" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
         <NavigationProperty Name="policyTemplates" Type="Collection(graph.governancePolicyTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="requests" Type="Collection(graph.request)" ContainsTarget="true" />
-        <NavigationProperty Name="requestsAwaitingMyDecision" Type="Collection(graph.request)" ContainsTarget="true" />
         <NavigationProperty Name="businessFlowsWithRequestsAwaitingMyDecision" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="businessFlow" BaseType="graph.entity" OpenType="true">
@@ -9561,23 +9621,20 @@
         <Property Name="policy" Type="graph.governancePolicy" />
         <Property Name="settings" Type="graph.businessFlowSettings" />
       </EntityType>
-      <EntityType Name="request" BaseType="graph.entity" OpenType="true">
+      <EntityType Name="request" BaseType="graph.entity">
+        <NavigationProperty Name="approval" Type="graph.approval" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="approvalStep" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="Edm.String" />
-        <Property Name="businessFlowId" Type="Edm.String" />
+        <Property Name="reviewedBy" Type="graph.identity" />
+        <Property Name="reviewedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewResult" Type="Edm.String" />
+        <Property Name="justification" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="userConsentRequest" BaseType="graph.request">
+        <Property Name="reason" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.userIdentity" />
-        <Property Name="deDuplicationId" Type="Edm.String" />
-        <Property Name="schemaId" Type="Edm.String" />
-        <Property Name="customData" Type="Edm.String" />
-        <Property Name="recordVersion" Type="Edm.String" />
-        <Property Name="policyTemplateId" Type="Edm.String" />
-        <Property Name="policy" Type="graph.governancePolicy" />
-        <Property Name="settings" Type="graph.accessReviewSettings" />
-        <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewDecision)" ContainsTarget="true" />
-        <NavigationProperty Name="myDecisions" Type="Collection(graph.accessReviewDecision)" ContainsTarget="true" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -19618,6 +19675,8 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <NavigationProperty Name="printer" Type="graph.printer" />
+        <NavigationProperty Name="allowedUsers" Type="Collection(graph.printUserIdentity)" ContainsTarget="true" />
+        <NavigationProperty Name="allowedGroups" Type="Collection(graph.printIdentity)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="printConnector" BaseType="graph.entity">
         <Property Name="name" Type="Edm.String" />
@@ -20171,6 +20230,7 @@
         <Property Name="url" Type="Edm.String" />
         <Property Name="supports" Type="graph.workforceIntegrationSupportedEntities" />
         <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
+        <Property Name="eligibilityFilteringEnabledEntities" Type="graph.eligibilityFilteringEnabledEntities" />
       </EntityType>
       <EntityType Name="schedule" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" />
@@ -20427,13 +20487,15 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="If the resource initiating the activity is an app, this property indicates all the app related information like appId, Name, servicePrincipalId, Name." />
         </Property>
       </ComplexType>
-      <ComplexType Name="userIdentity">
+      <ComplexType Name="identity" OpenType="true">
         <Property Name="id" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
         </Property>
         <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up-to-date." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="ipAddress" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the client IP address used by user performing the activity (audit log only)." />
         </Property>
@@ -20809,14 +20871,6 @@
       <ComplexType Name="identityUserRisk">
         <Property Name="level" Type="graph.userRiskLevel" />
         <Property Name="lastChangedDateTime" Type="Edm.DateTimeOffset" />
-      </ComplexType>
-      <ComplexType Name="identity" OpenType="true">
-        <Property Name="id" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
-        </Property>
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
-        </Property>
       </ComplexType>
       <ComplexType Name="provisioningServicePrincipal" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="initiator">
@@ -21934,13 +21988,17 @@
         <Property Name="siteUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The SharePoint URL for the site that contains the item." />
         </Property>
-        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier (guid) for the tenancy." />
+        </Property>
         <Property Name="webId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier (guid) for the item's site (SPWeb)." />
         </Property>
       </ComplexType>
       <ComplexType Name="siteCollection">
-        <Property Name="dataLocationCode" Type="Edm.String" />
+        <Property Name="dataLocationCode" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The geographic region code for where this site collection resides. Read-only." />
+        </Property>
         <Property Name="hostname" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The hostname for the site collection. Read-only." />
         </Property>
@@ -22803,11 +22861,21 @@
         <Property Name="otherLabel" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="attachmentItem">
-        <Property Name="attachmentType" Type="graph.attachmentType" />
-        <Property Name="name" Type="Edm.String" />
-        <Property Name="size" Type="Edm.Int64" />
-        <Property Name="contentType" Type="Edm.String" />
-        <Property Name="isInline" Type="Edm.Boolean" />
+        <Property Name="attachmentType" Type="graph.attachmentType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of attachment. Possible values are: file, item, reference. Required." />
+        </Property>
+        <Property Name="name" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the attachment. This can be a descriptive string and does not have to be the actual file name. Required." />
+        </Property>
+        <Property Name="size" Type="Edm.Int64">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The length of the attachment in bytes. Required." />
+        </Property>
+        <Property Name="contentType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The nature of the data in the attachment. Optional." />
+        </Property>
+        <Property Name="isInline" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if the attachment is an inline attachment; otherwise, false. Optional." />
+        </Property>
       </ComplexType>
       <ComplexType Name="uploadSession">
         <Property Name="uploadUrl" Type="Edm.String">
@@ -22817,7 +22885,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The date and time in UTC that the upload session will expire. The complete file must be uploaded before this expiration time is reached." />
         </Property>
         <Property Name="nextExpectedRanges" Type="Collection(Edm.String)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of byte ranges that the server is missing for the file. These ranges are zero indexed and of the format 'start-end' (e.g. '0-26' to indicate the first 27 bytes of the file)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of byte ranges that the server is missing for the file. These ranges are zero indexed and of the format 'start-end' (e.g. '0-26' to indicate the first 27 bytes of the file). When uploading files as Outlook attachments, instead of a collection of ranges, this property always indicates a single value '{start}', the location in the file where the next upload should begin." />
         </Property>
       </ComplexType>
       <ComplexType Name="messageRulePredicates">
@@ -23205,7 +23273,9 @@
         <Property Name="application" Type="graph.identity">
           <Annotation Term="Org.OData.Core.V1.Description" String="The app the link is associated with." />
         </Property>
-        <Property Name="preventsDownload" Type="Edm.Boolean" />
+        <Property Name="preventsDownload" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If true then the user can only use this link to view the item on the web, and cannot use it to download the contents of the item. Only for OneDrive for Business and SharePoint." />
+        </Property>
         <Property Name="configuratorUrl" Type="Edm.String" />
         <Property Name="scope" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The scope of the link represented by this permission. Value anonymous indicates the link is usable by anyone, organization indicates the link is only usable for users signed into the same tenant." />
@@ -23582,6 +23652,13 @@
       </ComplexType>
       <ComplexType Name="businessFlowSettings" BaseType="graph.accessReviewSettings">
         <Property Name="durationInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="accessReviewScope">
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="queryType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="appConsentRequestScope">
+        <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="groupMembershipGovernanceCriteria" BaseType="graph.governanceCriteria">
         <Property Name="groupId" Type="Edm.String" />
@@ -27595,6 +27672,7 @@
         <EntitySet Name="bookingBusinesses" EntityType="microsoft.graph.bookingBusiness" />
         <EntitySet Name="bookingCurrencies" EntityType="microsoft.graph.bookingCurrency" />
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
+        <EntitySet Name="cases" EntityType="microsoft.graph.ediscoveryCase" />
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
@@ -27750,6 +27828,7 @@
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
+        <Singleton Name="compliance" Type="microsoft.graph.compliance" />
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
