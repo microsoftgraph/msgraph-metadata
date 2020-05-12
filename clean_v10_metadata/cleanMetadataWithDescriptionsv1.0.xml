@@ -148,6 +148,11 @@
         <Member Name="private" Value="3" />
         <Member Name="bing" Value="4" />
       </EnumType>
+      <EnumType Name="bookingType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="standard" Value="1" />
+        <Member Name="reserved" Value="2" />
+      </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
         <Member Name="monday" Value="1" />
@@ -3176,10 +3181,10 @@
         </Property>
       </EntityType>
       <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
-        <Property Name="description" Type="Edm.String" Nullable="false">
+        <Property Name="description" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Description for this policy." />
         </Property>
-        <Property Name="displayName" Type="Edm.String" Nullable="false">
+        <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Display name for this policy." />
         </Property>
       </EntityType>
@@ -4940,6 +4945,31 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if the worksheet is protected.  Read-only." />
         </Property>
       </EntityType>
+      <EntityType Name="place" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="geoCoordinates" Type="graph.outlookGeoCoordinates" />
+        <Property Name="phone" Type="Edm.String" />
+        <Property Name="address" Type="graph.physicalAddress" />
+      </EntityType>
+      <EntityType Name="room" BaseType="graph.place">
+        <Property Name="emailAddress" Type="Edm.String" />
+        <Property Name="nickname" Type="Edm.String" Nullable="false" />
+        <Property Name="building" Type="Edm.String" />
+        <Property Name="floorNumber" Type="Edm.Int32" />
+        <Property Name="label" Type="Edm.String" />
+        <Property Name="capacity" Type="Edm.Int32" />
+        <Property Name="bookingType" Type="graph.bookingType" />
+        <Property Name="audioDeviceName" Type="Edm.String" />
+        <Property Name="videoDeviceName" Type="Edm.String" />
+        <Property Name="displayDeviceName" Type="Edm.String" />
+        <Property Name="isWheelChairAccessible" Type="Edm.Boolean" />
+        <Property Name="tags" Type="Collection(Edm.String)" />
+        <Property Name="floorLabel" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="roomList" BaseType="graph.place">
+        <Property Name="emailAddress" Type="Edm.String" />
+        <NavigationProperty Name="rooms" Type="Collection(graph.room)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="outlookCategory" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A unique name that identifies a category in the user's mailbox. After a category is created, the name cannot be changed. Read-only." />
@@ -5482,7 +5512,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether device compliance is required." />
         </Property>
         <Property Name="managedBrowserToOpenLinksRequired" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether internet links should be opened in the managed browser app." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether internet links should be opened in the managed browser app, or any custom browser specified by CustomBrowserProtocol (for iOS) or CustomBrowserPackageId/CustomBrowserDisplayName (for Android)" />
         </Property>
         <Property Name="saveAsBlocked" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether users may use the 'Save As' menu item to save a copy of protected files." />
@@ -9825,12 +9855,20 @@
         </Property>
       </EntityType>
       <EntityType Name="changeTrackedEntity" BaseType="graph.entity" Abstract="true">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="lastModifiedBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the person who last modified the entity." />
+        </Property>
       </EntityType>
       <EntityType Name="shiftPreferences" BaseType="graph.changeTrackedEntity">
-        <Property Name="availability" Type="Collection(graph.shiftAvailability)" />
+        <Property Name="availability" Type="Collection(graph.shiftAvailability)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Availability of the user to be scheduled for work and its recurrence pattern." />
+        </Property>
       </EntityType>
       <EntityType Name="trending" BaseType="graph.entity">
         <Property Name="weight" Type="Edm.Double" Nullable="false">
@@ -10377,29 +10415,67 @@
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="apiVersion" Type="Edm.Int32" />
-        <Property Name="encryption" Type="graph.workforceIntegrationEncryption" />
-        <Property Name="isActive" Type="Edm.Boolean" />
-        <Property Name="url" Type="Edm.String" />
-        <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the workforce integration." />
+        </Property>
+        <Property Name="apiVersion" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="API version for the call back URL. Start with 1." />
+        </Property>
+        <Property Name="encryption" Type="graph.workforceIntegrationEncryption">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The workforce integration encryption resource." />
+        </Property>
+        <Property Name="isActive" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this workforce integration is currently active and available." />
+        </Property>
+        <Property Name="url" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Workforce Integration URL for callbacks from the Shifts service." />
+        </Property>
+        <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Shifts entities supported for synchronous change notifications. Shifts will make a call back to the url provided on client changes on those entities added here. By default, no entities are supported for change notifications. Possible values are: none, shift, swapRequest, openshift, openShiftRequest, userShiftPreferences" />
+        </Property>
       </EntityType>
       <EntityType Name="schedule" BaseType="graph.entity">
-        <Property Name="enabled" Type="Edm.Boolean" />
-        <Property Name="timeZone" Type="Edm.String" />
-        <Property Name="provisionStatus" Type="graph.operationStatus" />
-        <Property Name="provisionStatusCode" Type="Edm.String" />
+        <Property Name="enabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the schedule is enabled for the team. Required." />
+        </Property>
+        <Property Name="timeZone" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the time zone of the schedule team using tz database format. Required." />
+        </Property>
+        <Property Name="provisionStatus" Type="graph.operationStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The status of the schedule provisioning. The possible values are notStarted, running, completed, failed." />
+        </Property>
+        <Property Name="provisionStatusCode" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Additional information about why schedule provisioning failed." />
+        </Property>
         <Property Name="workforceIntegrationIds" Type="Collection(Edm.String)" />
-        <Property Name="timeClockEnabled" Type="Edm.Boolean" />
-        <Property Name="openShiftsEnabled" Type="Edm.Boolean" />
-        <Property Name="swapShiftsRequestsEnabled" Type="Edm.Boolean" />
-        <Property Name="offerShiftRequestsEnabled" Type="Edm.Boolean" />
-        <Property Name="timeOffRequestsEnabled" Type="Edm.Boolean" />
-        <NavigationProperty Name="shifts" Type="Collection(graph.shift)" ContainsTarget="true" />
+        <Property Name="timeClockEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether time clock is enabled for the schedule." />
+        </Property>
+        <Property Name="openShiftsEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether open shifts are enabled for the schedule." />
+        </Property>
+        <Property Name="swapShiftsRequestsEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether swap shifts requests are enabled for the schedule." />
+        </Property>
+        <Property Name="offerShiftRequestsEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether offer shift requests are enabled for the schedule." />
+        </Property>
+        <Property Name="timeOffRequestsEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether time off requests are enabled for the schedule." />
+        </Property>
+        <NavigationProperty Name="shifts" Type="Collection(graph.shift)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The shifts in the schedule." />
+        </NavigationProperty>
         <NavigationProperty Name="openShifts" Type="Collection(graph.openShift)" ContainsTarget="true" />
-        <NavigationProperty Name="timesOff" Type="Collection(graph.timeOff)" ContainsTarget="true" />
-        <NavigationProperty Name="timeOffReasons" Type="Collection(graph.timeOffReason)" ContainsTarget="true" />
-        <NavigationProperty Name="schedulingGroups" Type="Collection(graph.schedulingGroup)" ContainsTarget="true" />
+        <NavigationProperty Name="timesOff" Type="Collection(graph.timeOff)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The instances of times off in the schedule." />
+        </NavigationProperty>
+        <NavigationProperty Name="timeOffReasons" Type="Collection(graph.timeOffReason)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The set of reasons for a time off in the schedule." />
+        </NavigationProperty>
+        <NavigationProperty Name="schedulingGroups" Type="Collection(graph.schedulingGroup)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The logical grouping of users in the schedule (usually by role)." />
+        </NavigationProperty>
         <NavigationProperty Name="swapShiftsChangeRequests" Type="Collection(graph.swapShiftsChangeRequest)" ContainsTarget="true" />
         <NavigationProperty Name="openShiftChangeRequests" Type="Collection(graph.openShiftChangeRequest)" ContainsTarget="true" />
         <NavigationProperty Name="offerShiftRequests" Type="Collection(graph.offerShiftRequest)" ContainsTarget="true" />
@@ -10483,30 +10559,62 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="shift" BaseType="graph.changeTrackedEntity">
-        <Property Name="sharedShift" Type="graph.shiftItem" />
-        <Property Name="draftShift" Type="graph.shiftItem" />
-        <Property Name="userId" Type="Edm.String" />
-        <Property Name="schedulingGroupId" Type="Edm.String" />
+        <Property Name="sharedShift" Type="graph.shiftItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The shared version of this shift that is viewable by both employees and managers. Required." />
+        </Property>
+        <Property Name="draftShift" Type="graph.shiftItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The draft version of this shift that is viewable by managers. Required." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the user assigned to the shift. Required." />
+        </Property>
+        <Property Name="schedulingGroupId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the scheduling group the shift is part of. Required." />
+        </Property>
       </EntityType>
       <EntityType Name="openShift" BaseType="graph.changeTrackedEntity">
-        <Property Name="sharedOpenShift" Type="graph.openShiftItem" />
-        <Property Name="draftOpenShift" Type="graph.openShiftItem" />
-        <Property Name="schedulingGroupId" Type="Edm.String" />
+        <Property Name="sharedOpenShift" Type="graph.openShiftItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A published open shift." />
+        </Property>
+        <Property Name="draftOpenShift" Type="graph.openShiftItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An unpublished open shift." />
+        </Property>
+        <Property Name="schedulingGroupId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID for the scheduling group that the open shift belongs to." />
+        </Property>
       </EntityType>
       <EntityType Name="timeOff" BaseType="graph.changeTrackedEntity">
-        <Property Name="sharedTimeOff" Type="graph.timeOffItem" />
-        <Property Name="draftTimeOff" Type="graph.timeOffItem" />
-        <Property Name="userId" Type="Edm.String" />
+        <Property Name="sharedTimeOff" Type="graph.timeOffItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The shared version of this timeOff that is viewable by both employees and managers. Required." />
+        </Property>
+        <Property Name="draftTimeOff" Type="graph.timeOffItem">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The draft version of this timeOff that is viewable by managers. Required." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the user assigned to the timeOff. Required." />
+        </Property>
       </EntityType>
       <EntityType Name="timeOffReason" BaseType="graph.changeTrackedEntity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="iconType" Type="graph.timeOffReasonIconType" />
-        <Property Name="isActive" Type="Edm.Boolean" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the timeOffReason. Required." />
+        </Property>
+        <Property Name="iconType" Type="graph.timeOffReasonIconType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Supported icon types: none; car; calendar; running; plane; firstAid; doctor; notWorking; clock; juryDuty; globe; cup; phone; weather; umbrella; piggyBank; dog; cake; trafficCone; pin; sunny. Required." />
+        </Property>
+        <Property Name="isActive" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the timeOffReason can be used when creating new entities or updating existing ones. Required." />
+        </Property>
       </EntityType>
       <EntityType Name="schedulingGroup" BaseType="graph.changeTrackedEntity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="isActive" Type="Edm.Boolean" />
-        <Property Name="userIds" Type="Collection(Edm.String)" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the schedulingGroup. Required." />
+        </Property>
+        <Property Name="isActive" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the schedulingGroup can be used when creating new entities or updating existing ones. Required." />
+        </Property>
+        <Property Name="userIds" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of user IDs that are a member of the schedulingGroup. Required." />
+        </Property>
       </EntityType>
       <EntityType Name="scheduleChangeRequest" BaseType="graph.changeTrackedEntity" Abstract="true">
         <Property Name="assignedTo" Type="graph.scheduleChangeRequestActor" />
@@ -10519,21 +10627,39 @@
         <Property Name="managerUserId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="offerShiftRequest" BaseType="graph.scheduleChangeRequest">
-        <Property Name="recipientActionMessage" Type="Edm.String" />
-        <Property Name="recipientActionDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="senderShiftId" Type="Edm.String" />
-        <Property Name="recipientUserId" Type="Edm.String" />
+        <Property Name="recipientActionMessage" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Custom message sent by recipient of the offer shift request." />
+        </Property>
+        <Property Name="recipientActionDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="senderShiftId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User ID of the sender of the offer shift request." />
+        </Property>
+        <Property Name="recipientUserId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User ID of the recipient of the offer shift request." />
+        </Property>
       </EntityType>
       <EntityType Name="swapShiftsChangeRequest" BaseType="graph.offerShiftRequest">
-        <Property Name="recipientShiftId" Type="Edm.String" />
+        <Property Name="recipientShiftId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ShiftId for the recipient user with whom the request is to swap." />
+        </Property>
       </EntityType>
       <EntityType Name="openShiftChangeRequest" BaseType="graph.scheduleChangeRequest" Abstract="true">
-        <Property Name="openShiftId" Type="Edm.String" />
+        <Property Name="openShiftId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID for the open shift." />
+        </Property>
       </EntityType>
       <EntityType Name="timeOffRequest" BaseType="graph.scheduleChangeRequest">
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="timeOffReasonId" Type="Edm.String" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'" />
+        </Property>
+        <Property Name="timeOffReasonId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The reason for the time off." />
+        </Property>
       </EntityType>
       <EntityType Name="informationProtection" BaseType="graph.entity">
         <NavigationProperty Name="threatAssessmentRequests" Type="Collection(graph.threatAssessmentRequest)" ContainsTarget="true" />
@@ -14777,8 +14903,12 @@
         </Property>
       </ComplexType>
       <ComplexType Name="workforceIntegrationEncryption">
-        <Property Name="protocol" Type="graph.workforceIntegrationEncryptionProtocol" />
-        <Property Name="secret" Type="Edm.String" />
+        <Property Name="protocol" Type="graph.workforceIntegrationEncryptionProtocol">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: sharedSecret, unknownFutureValue." />
+        </Property>
+        <Property Name="secret" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Encryption shared secret." />
+        </Property>
       </ComplexType>
       <ComplexType Name="scheduleEntity">
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
@@ -14786,32 +14916,62 @@
         <Property Name="theme" Type="graph.scheduleEntityTheme" Nullable="false" />
       </ComplexType>
       <ComplexType Name="shiftActivity">
-        <Property Name="isPaid" Type="Edm.Boolean" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isPaid" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the microsoft.graph.user should be paid for the activity during their shift. Required." />
+        </Property>
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The start date and time for the shiftActivity. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Required." />
+        </Property>
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The end date and time for the shiftActivity. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Required." />
+        </Property>
+        <Property Name="code" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Customer defined code for the shiftActivity. Required." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the shiftActivity. Required." />
+        </Property>
         <Property Name="theme" Type="graph.scheduleEntityTheme" Nullable="false" />
       </ComplexType>
       <ComplexType Name="shiftItem" BaseType="graph.scheduleEntity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="notes" Type="Edm.String" />
-        <Property Name="activities" Type="Collection(graph.shiftActivity)" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The shift label of the shiftItem." />
+        </Property>
+        <Property Name="notes" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The shift notes for the shiftItem." />
+        </Property>
+        <Property Name="activities" Type="Collection(graph.shiftActivity)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An incremental part of a shift which can cover details of when and where an employee is during their shift. For example, an assignment or a scheduled break or lunch. Required." />
+        </Property>
       </ComplexType>
       <ComplexType Name="openShiftItem" BaseType="graph.shiftItem">
-        <Property Name="openSlotCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="openSlotCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of the number of slots for the given open shift." />
+        </Property>
       </ComplexType>
       <ComplexType Name="timeOffItem" BaseType="graph.scheduleEntity">
-        <Property Name="timeOffReasonId" Type="Edm.String" />
+        <Property Name="timeOffReasonId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the timeOffReason for this timeOffItem. Required." />
+        </Property>
       </ComplexType>
       <ComplexType Name="shiftAvailability">
-        <Property Name="recurrence" Type="graph.patternedRecurrence" />
-        <Property Name="timeZone" Type="Edm.String" />
-        <Property Name="timeSlots" Type="Collection(graph.timeRange)" />
+        <Property Name="recurrence" Type="graph.patternedRecurrence">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the pattern for recurrence" />
+        </Property>
+        <Property Name="timeZone" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the time zone for the indicated time." />
+        </Property>
+        <Property Name="timeSlots" Type="Collection(graph.timeRange)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The time slot(s) preferred by the user." />
+        </Property>
       </ComplexType>
       <ComplexType Name="timeRange">
-        <Property Name="startTime" Type="Edm.TimeOfDay" />
-        <Property Name="endTime" Type="Edm.TimeOfDay" />
+        <Property Name="startTime" Type="Edm.TimeOfDay">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Start time for the time range." />
+        </Property>
+        <Property Name="endTime" Type="Edm.TimeOfDay">
+          <Annotation Term="Org.OData.Core.V1.Description" String="End time for the time range." />
+        </Property>
       </ComplexType>
       <EntityContainer Name="GraphService">
         <EntitySet Name="invitations" EntityType="microsoft.graph.invitation">
@@ -14873,6 +15033,7 @@
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
         <EntitySet Name="workbooks" EntityType="microsoft.graph.driveItem" />
+        <EntitySet Name="places" EntityType="microsoft.graph.place" />
         <EntitySet Name="drives" EntityType="microsoft.graph.drive">
           <NavigationPropertyBinding Path="items/createdByUser" Target="users" />
           <NavigationPropertyBinding Path="items/lastModifiedByUser" Target="users" />
