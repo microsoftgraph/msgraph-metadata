@@ -21,3 +21,13 @@ Please use fully qualified and precise template match statements so as not to pe
 9. Perform a simple text diff of the output *preprocess_csdl_test_input.xml* with the *preprocess_csdl_test_output.xml* file and check for unexpected changes.
 10. Add the expected output to *preprocess_csdl_test_output.xml*.
 11. Checkin changes and open your pull request.
+
+## Instructions for running transform against Microsoft Graph metadata
+
+1. Clone this repo.
+2. Open Visual Studio without a project.
+3. Open a metadata file from your local repo: `beta_metadata.xml` or `v1.0_metadata.xml`.
+4. Add <?xml-stylesheet type='text/xsl' href='preprocess_csdl.xsl'?> under the XML declaration in the metadata file.
+5. Update the path to the transform file.
+6. From the top menu in Visual Studio, select XML > Start XSLT Without Debugging or Alt + F5. This will result in a transformed metadata file which will be created in your %AppData%. It will be opened in Visual Studio.
+8. Inspect the transformed file output file for the expected changes.
