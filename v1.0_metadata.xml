@@ -381,6 +381,23 @@
         <Member Name="replyToAll" Value="9" />
         <Member Name="review" Value="10" />
       </EnumType>
+      <EnumType Name="riskDetectionTimingType">
+        <Member Name="notDefined" Value="0" />
+        <Member Name="realtime" Value="1" />
+        <Member Name="nearRealtime" Value="2" />
+        <Member Name="offline" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="activityType">
+        <Member Name="signin" Value="0" />
+        <Member Name="user" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="tokenIssuerType">
+        <Member Name="AzureAD" Value="0" />
+        <Member Name="ADFederationServices" Value="1" />
+        <Member Name="UnknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="installIntent">
         <Member Name="available" Value="0" />
         <Member Name="required" Value="1" />
@@ -1399,6 +1416,12 @@
         <Member Name="unknownFutureValue" Value="32767" />
         <Member Name="unknown" Value="-1" />
       </EnumType>
+      <EnumType Name="securityResourceType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="attacked" Value="1" />
+        <Member Name="related" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="userAccountSecurityType">
         <Member Name="unknown" Value="0" />
         <Member Name="standard" Value="1" />
@@ -1834,6 +1857,8 @@
         <Property Name="department" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="employeeId" Type="Edm.String" />
+        <Property Name="externalUserState" Type="Edm.String" />
+        <Property Name="externalUserStateChangeDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="faxNumber" Type="Edm.String" />
         <Property Name="givenName" Type="Edm.String" />
         <Property Name="identities" Type="Collection(graph.objectIdentity)" />
@@ -2390,6 +2415,8 @@
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
         <Property Name="videoTeleconferenceId" Type="Edm.String" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="joinInformation" Type="graph.itemBody" />
       </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
         <Property Name="webUrl" Type="Edm.String" />
@@ -2719,17 +2746,21 @@
         <Property Name="appliesTo" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="group" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="assignedLabels" Type="Collection(graph.assignedLabel)" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" />
         <Property Name="classification" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean" />
         <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState" />
         <Property Name="mail" Type="Edm.String" />
         <Property Name="mailEnabled" Type="Edm.Boolean" />
         <Property Name="mailNickname" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
+        <Property Name="membershipRuleProcessingState" Type="Edm.String" />
         <Property Name="onPremisesDomainName" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onPremisesNetBiosName" Type="Edm.String" />
@@ -2738,10 +2769,12 @@
         <Property Name="onPremisesSecurityIdentifier" Type="Edm.String" />
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
         <Property Name="preferredDataLocation" Type="Edm.String" />
+        <Property Name="preferredLanguage" Type="Edm.String" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="renewedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="securityEnabled" Type="Edm.Boolean" />
         <Property Name="securityIdentifier" Type="Edm.String" />
+        <Property Name="theme" Type="Edm.String" />
         <Property Name="visibility" Type="Edm.String" />
         <Property Name="allowExternalSenders" Type="Edm.Boolean" />
         <Property Name="autoSubscribeNewMembers" Type="Edm.Boolean" />
@@ -2777,6 +2810,10 @@
         <NavigationProperty Name="onenote" Type="graph.onenote" ContainsTarget="true" />
         <NavigationProperty Name="team" Type="graph.team" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="assignedLabel">
+        <Property Name="labelId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="licenseProcessingState">
         <Property Name="state" Type="Edm.String" />
       </ComplexType>
@@ -4178,6 +4215,75 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </ComplexType>
+      <EntityType Name="cloudCommunications" BaseType="graph.entity">
+        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
+        <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="call" BaseType="graph.entity" OpenType="true">
+        <Property Name="state" Type="graph.callState" />
+        <Property Name="mediaState" Type="graph.callMediaState" />
+        <Property Name="resultInfo" Type="graph.resultInfo" />
+        <Property Name="direction" Type="graph.callDirection" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="callbackUri" Type="Edm.String" Nullable="false" />
+        <Property Name="callRoutes" Type="Collection(graph.callRoute)" />
+        <Property Name="source" Type="graph.participantInfo" />
+        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)" />
+        <Property Name="requestedModalities" Type="Collection(graph.modality)" />
+        <Property Name="mediaConfig" Type="graph.mediaConfig" />
+        <Property Name="chatInfo" Type="graph.chatInfo" />
+        <Property Name="callOptions" Type="graph.callOptions" />
+        <Property Name="meetingInfo" Type="graph.meetingInfo" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="myParticipantId" Type="Edm.String" />
+        <Property Name="toneInfo" Type="graph.toneInfo" />
+        <Property Name="callChainId" Type="Edm.String" />
+        <Property Name="incomingContext" Type="graph.incomingContext" />
+        <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
+      </EntityType>
+      <ComplexType Name="riskUserActivity">
+        <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
+        <Property Name="detail" Type="graph.riskDetail" />
+      </ComplexType>
+      <EntityType Name="riskDetection" BaseType="graph.entity">
+        <Property Name="requestId" Type="Edm.String" />
+        <Property Name="correlationId" Type="Edm.String" />
+        <Property Name="riskEventType" Type="Edm.String" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" />
+        <Property Name="activity" Type="graph.activityType" />
+        <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="location" Type="graph.signInLocation" />
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+        <Property Name="additionalInfo" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="riskyUser" BaseType="graph.entity">
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="isProcessing" Type="Edm.Boolean" />
+        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+        <NavigationProperty Name="history" Type="Collection(graph.riskyUserHistoryItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="riskyUserHistoryItem" BaseType="graph.riskyUser">
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="initiatedBy" Type="Edm.String" />
+        <Property Name="activity" Type="graph.riskUserActivity" />
+      </EntityType>
       <EntityType Name="deviceAppManagement" BaseType="graph.entity">
         <Property Name="microsoftStoreForBusinessLastSuccessfulSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="isEnabledForMicrosoftStoreForBusiness" Type="Edm.Boolean" Nullable="false" />
@@ -6671,12 +6777,14 @@
         <Property Name="fileStates" Type="Collection(graph.fileSecurityState)" />
         <Property Name="historyStates" Type="Collection(graph.alertHistoryState)" />
         <Property Name="hostStates" Type="Collection(graph.hostSecurityState)" />
+        <Property Name="incidentIds" Type="Collection(Edm.String)" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="malwareStates" Type="Collection(graph.malwareState)" />
         <Property Name="networkConnections" Type="Collection(graph.networkConnection)" />
         <Property Name="processes" Type="Collection(graph.process)" />
         <Property Name="recommendedActions" Type="Collection(Edm.String)" />
         <Property Name="registryKeyStates" Type="Collection(graph.registryKeyState)" />
+        <Property Name="securityResources" Type="Collection(graph.securityResource)" />
         <Property Name="severity" Type="graph.alertSeverity" Nullable="false" />
         <Property Name="sourceMaterials" Type="Collection(Edm.String)" />
         <Property Name="status" Type="graph.alertStatus" Nullable="false" />
@@ -6766,6 +6874,7 @@
         <Property Name="applicationName" Type="Edm.String" />
         <Property Name="destinationAddress" Type="Edm.String" />
         <Property Name="destinationDomain" Type="Edm.String" />
+        <Property Name="destinationLocation" Type="Edm.String" />
         <Property Name="destinationPort" Type="Edm.String" />
         <Property Name="destinationUrl" Type="Edm.String" />
         <Property Name="direction" Type="graph.connectionDirection" />
@@ -6778,6 +6887,7 @@
         <Property Name="protocol" Type="graph.securityNetworkProtocol" />
         <Property Name="riskScore" Type="Edm.String" />
         <Property Name="sourceAddress" Type="Edm.String" />
+        <Property Name="sourceLocation" Type="Edm.String" />
         <Property Name="sourcePort" Type="Edm.String" />
         <Property Name="status" Type="graph.connectionStatus" />
         <Property Name="urlParameters" Type="Edm.String" />
@@ -6807,6 +6917,10 @@
         <Property Name="valueData" Type="Edm.String" />
         <Property Name="valueName" Type="Edm.String" />
         <Property Name="valueType" Type="graph.registryValueType" />
+      </ComplexType>
+      <ComplexType Name="securityResource">
+        <Property Name="resource" Type="Edm.String" />
+        <Property Name="resourceType" Type="graph.securityResourceType" />
       </ComplexType>
       <ComplexType Name="alertTrigger">
         <Property Name="name" Type="Edm.String" />
@@ -6865,33 +6979,6 @@
         <Property Name="updatedBy" Type="Edm.String" />
         <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
-      <EntityType Name="cloudCommunications" BaseType="graph.entity">
-        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
-        <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="call" BaseType="graph.entity" OpenType="true">
-        <Property Name="state" Type="graph.callState" />
-        <Property Name="mediaState" Type="graph.callMediaState" />
-        <Property Name="resultInfo" Type="graph.resultInfo" />
-        <Property Name="direction" Type="graph.callDirection" />
-        <Property Name="subject" Type="Edm.String" />
-        <Property Name="callbackUri" Type="Edm.String" Nullable="false" />
-        <Property Name="callRoutes" Type="Collection(graph.callRoute)" />
-        <Property Name="source" Type="graph.participantInfo" />
-        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)" />
-        <Property Name="requestedModalities" Type="Collection(graph.modality)" />
-        <Property Name="mediaConfig" Type="graph.mediaConfig" />
-        <Property Name="chatInfo" Type="graph.chatInfo" />
-        <Property Name="callOptions" Type="graph.callOptions" />
-        <Property Name="meetingInfo" Type="graph.meetingInfo" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="myParticipantId" Type="Edm.String" />
-        <Property Name="toneInfo" Type="graph.toneInfo" />
-        <Property Name="callChainId" Type="Edm.String" />
-        <Property Name="incomingContext" Type="graph.incomingContext" />
-        <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
-        <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
-      </EntityType>
       <ComplexType Name="callMediaState">
         <Property Name="audio" Type="graph.mediaState" />
       </ComplexType>
@@ -10603,6 +10690,14 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mobileApp" />
         <Parameter Name="mobileAppAssignments" Type="Collection(graph.mobileAppAssignment)" />
@@ -11340,6 +11435,16 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.updateRecordingStatusOperation" />
       </Action>
+      <Action Name="createOrGet" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.onlineMeeting)" />
+        <Parameter Name="chatInfo" Type="graph.chatInfo" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="externalId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="participants" Type="graph.meetingParticipants" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="subject" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.onlineMeeting" />
+      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
         <Parameter Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
@@ -11467,6 +11572,8 @@
         <EntitySet Name="sites" EntityType="microsoft.graph.site" />
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
+        <EntitySet Name="riskDetections" EntityType="microsoft.graph.riskDetection" />
+        <EntitySet Name="riskyUsers" EntityType="microsoft.graph.riskyUser" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
@@ -11498,12 +11605,12 @@
           <NavigationPropertyBinding Path="items/createdByUser" Target="users" />
           <NavigationPropertyBinding Path="items/lastModifiedByUser" Target="users" />
         </Singleton>
+        <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="planner" Type="microsoft.graph.planner" />
         <Singleton Name="Security" Type="microsoft.graph.security" />
-        <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
@@ -12859,6 +12966,54 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskDetection">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyUser">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyUserHistoryItem">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
       </Annotations>
@@ -18867,6 +19022,251 @@
       <Annotations Target="microsoft.graph.offerShiftRequest/recipientActionDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
+    </Schema>
+    <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="callType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="groupCall" Value="1" />
+        <Member Name="peerToPeer" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="clientPlatform">
+        <Member Name="unknown" Value="0" />
+        <Member Name="windows" Value="1" />
+        <Member Name="macOS" Value="2" />
+        <Member Name="iOS" Value="3" />
+        <Member Name="android" Value="4" />
+        <Member Name="web" Value="5" />
+        <Member Name="ipPhone" Value="6" />
+        <Member Name="roomSystem" Value="7" />
+        <Member Name="surfaceHub" Value="8" />
+        <Member Name="holoLens" Value="9" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
+      <EnumType Name="failureStage">
+        <Member Name="unknown" Value="0" />
+        <Member Name="callSetup" Value="1" />
+        <Member Name="midcall" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="mediaStreamDirection">
+        <Member Name="callerToCallee" Value="0" />
+        <Member Name="calleeToCaller" Value="1" />
+      </EnumType>
+      <EnumType Name="networkConnectionType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="wired" Value="1" />
+        <Member Name="wifi" Value="2" />
+        <Member Name="mobile" Value="3" />
+        <Member Name="tunnel" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="productFamily">
+        <Member Name="unknown" Value="0" />
+        <Member Name="teams" Value="1" />
+        <Member Name="skypeForBusiness" Value="2" />
+        <Member Name="lync" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="serviceRole">
+        <Member Name="unknown" Value="0" />
+        <Member Name="customBot" Value="1" />
+        <Member Name="skypeForBusinessMicrosoftTeamsGateway" Value="2" />
+        <Member Name="skypeForBusinessAudioVideoMcu" Value="3" />
+        <Member Name="skypeForBusinessApplicationSharingMcu" Value="4" />
+        <Member Name="skypeForBusinessCallQueues" Value="5" />
+        <Member Name="skypeForBusinessAutoAttendant" Value="6" />
+        <Member Name="mediationServer" Value="7" />
+        <Member Name="mediationServerCloudConnectorEdition" Value="8" />
+        <Member Name="exchangeUnifiedMessagingService" Value="9" />
+        <Member Name="mediaController" Value="10" />
+        <Member Name="conferencingAnnouncementService" Value="11" />
+        <Member Name="conferencingAttendant" Value="12" />
+        <Member Name="audioTeleconferencerController" Value="13" />
+        <Member Name="skypeForBusinessUnifiedCommunicationApplicationPlatform" Value="14" />
+        <Member Name="responseGroupServiceAnnouncementService" Value="15" />
+        <Member Name="gateway" Value="16" />
+        <Member Name="skypeTranslator" Value="17" />
+        <Member Name="skypeForBusinessAttendant" Value="18" />
+        <Member Name="responseGroupService" Value="19" />
+        <Member Name="unknownFutureValue" Value="20" />
+      </EnumType>
+      <EnumType Name="userFeedbackRating">
+        <Member Name="notRated" Value="0" />
+        <Member Name="bad" Value="1" />
+        <Member Name="poor" Value="2" />
+        <Member Name="fair" Value="3" />
+        <Member Name="good" Value="4" />
+        <Member Name="excellent" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="wifiBand">
+        <Member Name="unknown" Value="0" />
+        <Member Name="frequency24GHz" Value="1" />
+        <Member Name="frequency50GHz" Value="2" />
+        <Member Name="frequency60GHz" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="wifiRadioType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="wifi80211a" Value="1" />
+        <Member Name="wifi80211b" Value="2" />
+        <Member Name="wifi80211g" Value="3" />
+        <Member Name="wifi80211n" Value="4" />
+        <Member Name="wifi80211ac" Value="5" />
+        <Member Name="wifi80211ax" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="modality">
+        <Member Name="audio" Value="0" />
+        <Member Name="video" Value="1" />
+        <Member Name="videoBasedScreenSharing" Value="2" />
+        <Member Name="data" Value="3" />
+        <Member Name="screenSharing" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EntityType Name="callRecord" BaseType="graph.entity">
+        <Property Name="version" Type="Edm.Int64" Nullable="false" />
+        <Property Name="type" Type="microsoft.graph.callRecords.callType" Nullable="false" />
+        <Property Name="modalities" Type="Collection(microsoft.graph.callRecords.modality)" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="organizer" Type="graph.identitySet" />
+        <Property Name="participants" Type="Collection(graph.identitySet)" />
+        <Property Name="joinWebUrl" Type="Edm.String" />
+        <NavigationProperty Name="sessions" Type="Collection(microsoft.graph.callRecords.session)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="session" BaseType="graph.entity">
+        <Property Name="modalities" Type="Collection(microsoft.graph.callRecords.modality)" Nullable="false" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="caller" Type="microsoft.graph.callRecords.endpoint" />
+        <Property Name="callee" Type="microsoft.graph.callRecords.endpoint" />
+        <Property Name="failureInfo" Type="microsoft.graph.callRecords.failureInfo" />
+        <NavigationProperty Name="segments" Type="Collection(microsoft.graph.callRecords.segment)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="segment" BaseType="graph.entity">
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="caller" Type="microsoft.graph.callRecords.endpoint" />
+        <Property Name="callee" Type="microsoft.graph.callRecords.endpoint" />
+        <Property Name="failureInfo" Type="microsoft.graph.callRecords.failureInfo" />
+        <Property Name="media" Type="Collection(microsoft.graph.callRecords.media)" />
+      </EntityType>
+      <ComplexType Name="endpoint">
+        <Property Name="userAgent" Type="microsoft.graph.callRecords.userAgent" />
+      </ComplexType>
+      <ComplexType Name="userAgent" Abstract="true">
+        <Property Name="headerValue" Type="Edm.String" />
+        <Property Name="applicationVersion" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="failureInfo">
+        <Property Name="stage" Type="microsoft.graph.callRecords.failureStage" Nullable="false" />
+        <Property Name="reason" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="media">
+        <Property Name="label" Type="Edm.String" />
+        <Property Name="callerNetwork" Type="microsoft.graph.callRecords.networkInfo" />
+        <Property Name="calleeNetwork" Type="microsoft.graph.callRecords.networkInfo" />
+        <Property Name="callerDevice" Type="microsoft.graph.callRecords.deviceInfo" />
+        <Property Name="calleeDevice" Type="microsoft.graph.callRecords.deviceInfo" />
+        <Property Name="streams" Type="Collection(microsoft.graph.callRecords.mediaStream)" />
+      </ComplexType>
+      <ComplexType Name="networkInfo">
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="subnet" Type="Edm.String" />
+        <Property Name="linkSpeed" Type="Edm.Int64" />
+        <Property Name="connectionType" Type="microsoft.graph.callRecords.networkConnectionType" Nullable="false" />
+        <Property Name="port" Type="Edm.Int32" />
+        <Property Name="reflexiveIPAddress" Type="Edm.String" />
+        <Property Name="relayIPAddress" Type="Edm.String" />
+        <Property Name="relayPort" Type="Edm.Int32" />
+        <Property Name="macAddress" Type="Edm.String" />
+        <Property Name="wifiMicrosoftDriver" Type="Edm.String" />
+        <Property Name="wifiMicrosoftDriverVersion" Type="Edm.String" />
+        <Property Name="wifiVendorDriver" Type="Edm.String" />
+        <Property Name="wifiVendorDriverVersion" Type="Edm.String" />
+        <Property Name="wifiChannel" Type="Edm.Int32" />
+        <Property Name="wifiBand" Type="microsoft.graph.callRecords.wifiBand" Nullable="false" />
+        <Property Name="basicServiceSetIdentifier" Type="Edm.String" />
+        <Property Name="wifiRadioType" Type="microsoft.graph.callRecords.wifiRadioType" Nullable="false" />
+        <Property Name="wifiSignalStrength" Type="Edm.Int32" />
+        <Property Name="wifiBatteryCharge" Type="Edm.Int32" />
+        <Property Name="dnsSuffix" Type="Edm.String" />
+        <Property Name="sentQualityEventRatio" Type="Edm.Single" />
+        <Property Name="receivedQualityEventRatio" Type="Edm.Single" />
+        <Property Name="delayEventRatio" Type="Edm.Single" />
+        <Property Name="bandwidthLowEventRatio" Type="Edm.Single" />
+      </ComplexType>
+      <ComplexType Name="deviceInfo">
+        <Property Name="captureDeviceName" Type="Edm.String" />
+        <Property Name="captureDeviceDriver" Type="Edm.String" />
+        <Property Name="renderDeviceName" Type="Edm.String" />
+        <Property Name="renderDeviceDriver" Type="Edm.String" />
+        <Property Name="sentSignalLevel" Type="Edm.Int32" />
+        <Property Name="receivedSignalLevel" Type="Edm.Int32" />
+        <Property Name="sentNoiseLevel" Type="Edm.Int32" />
+        <Property Name="receivedNoiseLevel" Type="Edm.Int32" />
+        <Property Name="initialSignalLevelRootMeanSquare" Type="Edm.Single" />
+        <Property Name="cpuInsufficentEventRatio" Type="Edm.Single" />
+        <Property Name="renderNotFunctioningEventRatio" Type="Edm.Single" />
+        <Property Name="captureNotFunctioningEventRatio" Type="Edm.Single" />
+        <Property Name="deviceGlitchEventRatio" Type="Edm.Single" />
+        <Property Name="lowSpeechToNoiseEventRatio" Type="Edm.Single" />
+        <Property Name="lowSpeechLevelEventRatio" Type="Edm.Single" />
+        <Property Name="deviceClippingEventRatio" Type="Edm.Single" />
+        <Property Name="howlingEventCount" Type="Edm.Int32" />
+        <Property Name="renderZeroVolumeEventRatio" Type="Edm.Single" />
+        <Property Name="renderMuteEventRatio" Type="Edm.Single" />
+        <Property Name="micGlitchRate" Type="Edm.Single" />
+        <Property Name="speakerGlitchRate" Type="Edm.Single" />
+      </ComplexType>
+      <ComplexType Name="mediaStream">
+        <Property Name="streamId" Type="Edm.String" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="streamDirection" Type="microsoft.graph.callRecords.mediaStreamDirection" Nullable="false" />
+        <Property Name="averageAudioDegradation" Type="Edm.Single" />
+        <Property Name="averageJitter" Type="Edm.Duration" />
+        <Property Name="maxJitter" Type="Edm.Duration" />
+        <Property Name="averagePacketLossRate" Type="Edm.Single" />
+        <Property Name="maxPacketLossRate" Type="Edm.Single" />
+        <Property Name="averageRatioOfConcealedSamples" Type="Edm.Single" />
+        <Property Name="maxRatioOfConcealedSamples" Type="Edm.Single" />
+        <Property Name="averageRoundTripTime" Type="Edm.Duration" />
+        <Property Name="maxRoundTripTime" Type="Edm.Duration" />
+        <Property Name="packetUtilization" Type="Edm.Int64" />
+        <Property Name="averageBandwidthEstimate" Type="Edm.Int64" />
+        <Property Name="wasMediaBypassed" Type="Edm.Boolean" />
+        <Property Name="postForwardErrorCorrectionPacketLossRate" Type="Edm.Single" />
+        <Property Name="averageVideoFrameLossPercentage" Type="Edm.Single" />
+        <Property Name="averageReceivedFrameRate" Type="Edm.Single" />
+        <Property Name="lowFrameRateRatio" Type="Edm.Single" />
+        <Property Name="averageVideoPacketLossRate" Type="Edm.Single" />
+        <Property Name="averageVideoFrameRate" Type="Edm.Single" />
+        <Property Name="lowVideoProcessingCapabilityRatio" Type="Edm.Single" />
+        <Property Name="averageAudioNetworkJitter" Type="Edm.Duration" />
+        <Property Name="maxAudioNetworkJitter" Type="Edm.Duration" />
+      </ComplexType>
+      <ComplexType Name="participantEndpoint" BaseType="microsoft.graph.callRecords.endpoint">
+        <Property Name="identity" Type="graph.identitySet" />
+        <Property Name="feedback" Type="microsoft.graph.callRecords.userFeedback" />
+      </ComplexType>
+      <ComplexType Name="userFeedback">
+        <Property Name="text" Type="Edm.String" />
+        <Property Name="rating" Type="microsoft.graph.callRecords.userFeedbackRating" Nullable="false" />
+        <Property Name="tokens" Type="microsoft.graph.callRecords.feedbackTokenSet" />
+      </ComplexType>
+      <ComplexType Name="feedbackTokenSet" OpenType="true" />
+      <ComplexType Name="serviceEndpoint" BaseType="microsoft.graph.callRecords.endpoint" />
+      <ComplexType Name="clientUserAgent" BaseType="microsoft.graph.callRecords.userAgent">
+        <Property Name="platform" Type="microsoft.graph.callRecords.clientPlatform" Nullable="false" />
+        <Property Name="productFamily" Type="microsoft.graph.callRecords.productFamily" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="serviceUserAgent" BaseType="microsoft.graph.callRecords.userAgent">
+        <Property Name="role" Type="microsoft.graph.callRecords.serviceRole" Nullable="false" />
+      </ComplexType>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>
