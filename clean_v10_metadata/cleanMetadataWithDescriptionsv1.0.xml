@@ -381,6 +381,23 @@
         <Member Name="replyToAll" Value="9" />
         <Member Name="review" Value="10" />
       </EnumType>
+      <EnumType Name="riskDetectionTimingType">
+        <Member Name="notDefined" Value="0" />
+        <Member Name="realtime" Value="1" />
+        <Member Name="nearRealtime" Value="2" />
+        <Member Name="offline" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="activityType">
+        <Member Name="signin" Value="0" />
+        <Member Name="user" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="tokenIssuerType">
+        <Member Name="AzureAD" Value="0" />
+        <Member Name="ADFederationServices" Value="1" />
+        <Member Name="UnknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="installIntent">
         <Member Name="available" Value="0" />
         <Member Name="required" Value="1" />
@@ -1399,6 +1416,12 @@
         <Member Name="unknownFutureValue" Value="32767" />
         <Member Name="unknown" Value="-1" />
       </EnumType>
+      <EnumType Name="securityResourceType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="attacked" Value="1" />
+        <Member Name="related" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="userAccountSecurityType">
         <Member Name="unknown" Value="0" />
         <Member Name="standard" Value="1" />
@@ -1870,6 +1893,12 @@
         </Property>
         <Property Name="employeeId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The employee identifier assigned to the user by the organization. Supports $filter." />
+        </Property>
+        <Property Name="externalUserState" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For an external user invited to the tenant using the invitation API, this property represents the invited user's invitation status. For invited users, the state can be PendingAcceptance or Accepted, or null for all other users. Returned only on $select. Supports $filter with the supported values. For example: $filter=externalUserState eq 'PendingAcceptance'." />
+        </Property>
+        <Property Name="externalUserStateChangeDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Shows the timestamp for the latest change to the externalUserState property. Returned only on $select." />
         </Property>
         <Property Name="faxNumber" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The fax number of the user." />
@@ -3125,6 +3154,8 @@
         <Property Name="videoTeleconferenceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The video teleconferencing ID. Read-only." />
         </Property>
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="joinInformation" Type="graph.itemBody" />
       </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
         <Property Name="webUrl" Type="Edm.String">
@@ -3544,6 +3575,7 @@
         </Property>
       </EntityType>
       <EntityType Name="group" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="assignedLabels" Type="Collection(graph.assignedLabel)" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The licenses that are assigned to the group. Returned only on $select. Read-only." />
         </Property>
@@ -3559,6 +3591,7 @@
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the group. This property is required when a group is created and cannot be cleared during updates. Returned by default. Supports $filter and $orderby." />
         </Property>
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are members in this group that have license errors from its group-based license assignment. This property is never returned on a GET operation. You can use it as a $filter argument to get groups that have members with license errors (that is, filter for this property being true). See an example." />
         </Property>
@@ -3577,6 +3610,8 @@
         <Property Name="mailNickname" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the group, unique in the organization. This property must be specified when a group is created. Returned by default. Supports $filter." />
         </Property>
+        <Property Name="membershipRule" Type="Edm.String" />
+        <Property Name="membershipRuleProcessingState" Type="Edm.String" />
         <Property Name="onPremisesDomainName" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the last time at which the group was synced with the on-premises directory.The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Returned by default. Read-only. Supports $filter." />
@@ -3595,6 +3630,7 @@
         <Property Name="preferredDataLocation" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The preferred data location for the group. For more information, see  OneDrive Online Multi-Geo. Returned by default." />
         </Property>
+        <Property Name="preferredLanguage" Type="Edm.String" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Email addresses for the group that direct to the same group mailbox. For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. The any operator is required to filter expressions on multi-valued properties. Returned by default. Read-only. Not nullable. Supports $filter." />
         </Property>
@@ -3607,6 +3643,7 @@
         <Property Name="securityIdentifier" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security identifier of the group, used in Windows scenarios. Returned by default." />
         </Property>
+        <Property Name="theme" Type="Edm.String" />
         <Property Name="visibility" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the visibility of an Office 365 group. Possible values are: Private, Public, or Hiddenmembership; blank values are treated as public.  See group visibility options to learn more.Visibility can be set only when a group is created; it is not editable.Visibility is supported only for unified groups; it is not supported for security groups. Returned by default." />
         </Property>
@@ -5490,6 +5527,105 @@
         <Property Name="owner" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The appId of the application that is the owner of the schema extension. This property can be supplied on creation, to set the owner.  If not supplied, then the calling application's appId will be set as the owner. In either case, the signed-in user must be the owner of the application. Once set, this property is read-only and cannot be changed." />
         </Property>
+      </EntityType>
+      <EntityType Name="cloudCommunications" BaseType="graph.entity">
+        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
+        <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="call" BaseType="graph.entity" OpenType="true">
+        <Property Name="state" Type="graph.callState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The call state. Possible values are: incoming, establishing, ringing, established, hold, transferring, transferAccepted, redirecting, terminating, terminated. Read-only." />
+        </Property>
+        <Property Name="mediaState" Type="graph.callMediaState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. The call media state." />
+        </Property>
+        <Property Name="resultInfo" Type="graph.resultInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result information. For example can hold termination reason. Read-only." />
+        </Property>
+        <Property Name="direction" Type="graph.callDirection">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The direction of the call. The possible value are incoming or outgoing. Read-only." />
+        </Property>
+        <Property Name="subject" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the conversation." />
+        </Property>
+        <Property Name="callbackUri" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The callback URL on which callbacks will be delivered. Must be https." />
+        </Property>
+        <Property Name="callRoutes" Type="Collection(graph.callRoute)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The routing information on how the call was retargeted. Read-only." />
+        </Property>
+        <Property Name="source" Type="graph.participantInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The originator of the call." />
+        </Property>
+        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The targets of the call. Required information for creating peer to peer call." />
+        </Property>
+        <Property Name="requestedModalities" Type="Collection(graph.modality)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities. Possible values are: unknown, audio, video, videoBasedScreenSharing, data." />
+        </Property>
+        <Property Name="mediaConfig" Type="graph.mediaConfig">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The media configuration. Required." />
+        </Property>
+        <Property Name="chatInfo" Type="graph.chatInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The chat information. Required information for joining a meeting." />
+        </Property>
+        <Property Name="callOptions" Type="graph.callOptions" />
+        <Property Name="meetingInfo" Type="graph.meetingInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
+        </Property>
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="myParticipantId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
+        </Property>
+        <Property Name="toneInfo" Type="graph.toneInfo" />
+        <Property Name="callChainId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for all the participant calls in a conference or a unique identifier for two participant calls in a P2P call.  This needs to be copied over from Microsoft.Graph.Call.CallChainId." />
+        </Property>
+        <Property Name="incomingContext" Type="graph.incomingContext" />
+        <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="riskDetection" BaseType="graph.entity">
+        <Property Name="requestId" Type="Edm.String" />
+        <Property Name="correlationId" Type="Edm.String" />
+        <Property Name="riskEventType" Type="Edm.String" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" />
+        <Property Name="activity" Type="graph.activityType" />
+        <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="location" Type="graph.signInLocation" />
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+        <Property Name="additionalInfo" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="riskyUser" BaseType="graph.entity">
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="isProcessing" Type="Edm.Boolean" />
+        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+        <NavigationProperty Name="history" Type="Collection(graph.riskyUserHistoryItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="riskyUserHistoryItem" BaseType="graph.riskyUser">
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="initiatedBy" Type="Edm.String" />
+        <Property Name="activity" Type="graph.riskUserActivity" />
       </EntityType>
       <EntityType Name="deviceAppManagement" BaseType="graph.entity">
         <Property Name="microsoftStoreForBusinessLastSuccessfulSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false">
@@ -10433,6 +10569,7 @@
         <Property Name="hostStates" Type="Collection(graph.hostSecurityState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the host(s) related to this alert." />
         </Property>
+        <Property Name="incidentIds" Type="Collection(Edm.String)" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the alert entity was last modified. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'." />
         </Property>
@@ -10451,6 +10588,7 @@
         <Property Name="registryKeyStates" Type="Collection(graph.registryKeyState)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the registry keys related to this alert." />
         </Property>
+        <Property Name="securityResources" Type="Collection(graph.securityResource)" />
         <Property Name="severity" Type="graph.alertSeverity" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Alert severity - set by vendor/provider. Possible values are: unknown, informational, low, medium, high. Required." />
         </Property>
@@ -10559,67 +10697,6 @@
         <Property Name="vendorInformation" Type="graph.securityVendorInformation">
           <Annotation Term="Org.OData.Core.V1.Description" String="Complex type containing details about the security product/service vendor, provider, and subprovider (for example, vendor=Microsoft; provider=SecureScore). Required." />
         </Property>
-      </EntityType>
-      <EntityType Name="cloudCommunications" BaseType="graph.entity">
-        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
-        <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="call" BaseType="graph.entity" OpenType="true">
-        <Property Name="state" Type="graph.callState">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The call state. Possible values are: incoming, establishing, ringing, established, hold, transferring, transferAccepted, redirecting, terminating, terminated. Read-only." />
-        </Property>
-        <Property Name="mediaState" Type="graph.callMediaState">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. The call media state." />
-        </Property>
-        <Property Name="resultInfo" Type="graph.resultInfo">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The result information. For example can hold termination reason. Read-only." />
-        </Property>
-        <Property Name="direction" Type="graph.callDirection">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The direction of the call. The possible value are incoming or outgoing. Read-only." />
-        </Property>
-        <Property Name="subject" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the conversation." />
-        </Property>
-        <Property Name="callbackUri" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The callback URL on which callbacks will be delivered. Must be https." />
-        </Property>
-        <Property Name="callRoutes" Type="Collection(graph.callRoute)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The routing information on how the call was retargeted. Read-only." />
-        </Property>
-        <Property Name="source" Type="graph.participantInfo">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The originator of the call." />
-        </Property>
-        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The targets of the call. Required information for creating peer to peer call." />
-        </Property>
-        <Property Name="requestedModalities" Type="Collection(graph.modality)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities. Possible values are: unknown, audio, video, videoBasedScreenSharing, data." />
-        </Property>
-        <Property Name="mediaConfig" Type="graph.mediaConfig">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The media configuration. Required." />
-        </Property>
-        <Property Name="chatInfo" Type="graph.chatInfo">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The chat information. Required information for joining a meeting." />
-        </Property>
-        <Property Name="callOptions" Type="graph.callOptions" />
-        <Property Name="meetingInfo" Type="graph.meetingInfo">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
-        </Property>
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="myParticipantId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
-        </Property>
-        <Property Name="toneInfo" Type="graph.toneInfo" />
-        <Property Name="callChainId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for all the participant calls in a conference or a unique identifier for two participant calls in a P2P call.  This needs to be copied over from Microsoft.Graph.Call.CallChainId." />
-        </Property>
-        <Property Name="incomingContext" Type="graph.incomingContext" />
-        <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
-        </NavigationProperty>
-        <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
-        </NavigationProperty>
       </EntityType>
       <EntityType Name="participant" BaseType="graph.entity">
         <Property Name="info" Type="graph.participantInfo" Nullable="false">
@@ -11734,6 +11811,10 @@
         <Property Name="appliesTo" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The object the service plan can be assigned to. Possible values:'User' - service plan can be assigned to individual users.'Company' - service plan can be assigned to the entire tenant." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="assignedLabel">
+        <Property Name="labelId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="licenseProcessingState">
         <Property Name="state" Type="Edm.String" />
@@ -13172,6 +13253,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String.  See the table below for more details." />
         </Property>
       </ComplexType>
+      <ComplexType Name="riskUserActivity">
+        <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
+        <Property Name="detail" Type="graph.riskDetail" />
+      </ComplexType>
       <ComplexType Name="deviceAndAppManagementAssignmentTarget" Abstract="true" />
       <ComplexType Name="mobileAppAssignmentSettings" Abstract="true" />
       <ComplexType Name="mimeContent">
@@ -14581,6 +14666,7 @@
         <Property Name="destinationDomain" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Destination domain portion of the destination URL. (for example 'www.contoso.com')." />
         </Property>
+        <Property Name="destinationLocation" Type="Edm.String" />
         <Property Name="destinationPort" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Destination port (of the network connection)." />
         </Property>
@@ -14617,6 +14703,7 @@
         <Property Name="sourceAddress" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Source (i.e. origin) IP address (of the network connection)." />
         </Property>
+        <Property Name="sourceLocation" Type="Edm.String" />
         <Property Name="sourcePort" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Source (i.e. origin) IP port (of the network connection)." />
         </Property>
@@ -14696,6 +14783,10 @@
         <Property Name="valueType" Type="graph.registryValueType">
           <Annotation Term="Org.OData.Core.V1.Description" String="Registry key value type REG_BINARY REG_DWORD REG_DWORD_LITTLE_ENDIAN REG_DWORD_BIG_ENDIANREG_EXPAND_SZ REG_LINK REG_MULTI_SZ REG_NONE REG_QWORD REG_QWORD_LITTLE_ENDIAN REG_SZ Possible values are: unknown, binary, dword, dwordLittleEndian, dwordBigEndian, expandSz, link, multiSz, none, qword, qwordlittleEndian, sz." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="securityResource">
+        <Property Name="resource" Type="Edm.String" />
+        <Property Name="resourceType" Type="graph.securityResourceType" />
       </ComplexType>
       <ComplexType Name="alertTrigger">
         <Property Name="name" Type="Edm.String">
@@ -15345,6 +15436,83 @@
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendar/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendars/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
         </EntitySet>
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
@@ -15377,6 +15545,83 @@
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMembers" Target="directoryObjects" />
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendar/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                  <Record>
+                    <PropertyValue Property="NavigationProperty">
+                      <PropertyPath>calendars/calendarView</PropertyPath>
+                    </PropertyValue>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="startDateTime" />
+                              <PropertyValue Property="Description" String="The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                            <Record>
+                              <PropertyValue Property="Name" String="endDateTime" />
+                              <PropertyValue Property="Description" String="The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                              <PropertyValue Property="Required" Bool="true" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
         </EntitySet>
         <EntitySet Name="directoryRoles" EntityType="microsoft.graph.directoryRole">
           <NavigationPropertyBinding Path="members" Target="directoryObjects" />
@@ -15408,6 +15653,8 @@
         <EntitySet Name="sites" EntityType="microsoft.graph.site" />
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
+        <EntitySet Name="riskDetections" EntityType="microsoft.graph.riskDetection" />
+        <EntitySet Name="riskyUsers" EntityType="microsoft.graph.riskyUser" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
@@ -15439,12 +15686,12 @@
           <NavigationPropertyBinding Path="items/createdByUser" Target="users" />
           <NavigationPropertyBinding Path="items/lastModifiedByUser" Target="users" />
         </Singleton>
+        <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="planner" Type="microsoft.graph.planner" />
         <Singleton Name="Security" Type="microsoft.graph.security" />
-        <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
@@ -19179,6 +19426,14 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mobileApp" />
         <Parameter Name="mobileAppAssignments" Type="Collection(graph.mobileAppAssignment)" />
@@ -19444,6 +19699,16 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.updateRecordingStatusOperation" />
       </Action>
+      <Action Name="createOrGet" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.onlineMeeting)" />
+        <Parameter Name="chatInfo" Type="graph.chatInfo" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="externalId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="participants" Type="graph.meetingParticipants" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="subject" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.onlineMeeting" />
+      </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
         <Parameter Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
@@ -19656,6 +19921,9 @@
       <Annotations Target="microsoft.graph.post/inReplyTo" />
       <Annotations Target="microsoft.graph.post/extensions" />
       <Annotations Target="microsoft.graph.post/attachments" />
+      <Annotations Target="microsoft.graph.riskDetection" />
+      <Annotations Target="microsoft.graph.riskyUser" />
+      <Annotations Target="microsoft.graph.riskyUserHistoryItem" />
       <Annotations Target="microsoft.graph.deviceAppManagement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device app management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device app management functionality." />
