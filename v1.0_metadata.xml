@@ -381,23 +381,6 @@
         <Member Name="replyToAll" Value="9" />
         <Member Name="review" Value="10" />
       </EnumType>
-      <EnumType Name="riskDetectionTimingType">
-        <Member Name="notDefined" Value="0" />
-        <Member Name="realtime" Value="1" />
-        <Member Name="nearRealtime" Value="2" />
-        <Member Name="offline" Value="3" />
-        <Member Name="unknownFutureValue" Value="4" />
-      </EnumType>
-      <EnumType Name="activityType">
-        <Member Name="signin" Value="0" />
-        <Member Name="user" Value="1" />
-        <Member Name="unknownFutureValue" Value="2" />
-      </EnumType>
-      <EnumType Name="tokenIssuerType">
-        <Member Name="AzureAD" Value="0" />
-        <Member Name="ADFederationServices" Value="1" />
-        <Member Name="UnknownFutureValue" Value="2" />
-      </EnumType>
       <EnumType Name="installIntent">
         <Member Name="available" Value="0" />
         <Member Name="required" Value="1" />
@@ -2871,6 +2854,7 @@
         <Property Name="alternativeNames" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="appDisplayName" Type="Edm.String" />
         <Property Name="appId" Type="Edm.String" />
+        <Property Name="applicationTemplateId" Type="Edm.String" />
         <Property Name="appOwnerOrganizationId" Type="Edm.Guid" />
         <Property Name="appRoleAssignmentRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="appRoles" Type="Collection(graph.appRole)" Nullable="false" />
@@ -2878,11 +2862,15 @@
         <Property Name="homepage" Type="Edm.String" />
         <Property Name="info" Type="graph.informationalUrl" />
         <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
+        <Property Name="loginUrl" Type="Edm.String" />
         <Property Name="logoutUrl" Type="Edm.String" />
+        <Property Name="notificationEmailAddresses" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="oauth2PermissionScopes" Type="Collection(graph.permissionScope)" Nullable="false" />
         <Property Name="passwordCredentials" Type="Collection(graph.passwordCredential)" Nullable="false" />
+        <Property Name="preferredSingleSignOnMode" Type="Edm.String" />
         <Property Name="replyUrls" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="servicePrincipalNames" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="samlSingleSignOnSettings" Type="graph.samlSingleSignOnSettings" />
         <Property Name="servicePrincipalType" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
@@ -2896,6 +2884,9 @@
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
       </EntityType>
+      <ComplexType Name="samlSingleSignOnSettings">
+        <Property Name="relayState" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
         <Property Name="capabilityStatus" Type="Edm.String" />
         <Property Name="consumedUnits" Type="Edm.Int32" />
@@ -4242,47 +4233,6 @@
         <Property Name="incomingContext" Type="graph.incomingContext" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
-      </EntityType>
-      <ComplexType Name="riskUserActivity">
-        <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
-        <Property Name="detail" Type="graph.riskDetail" />
-      </ComplexType>
-      <EntityType Name="riskDetection" BaseType="graph.entity">
-        <Property Name="requestId" Type="Edm.String" />
-        <Property Name="correlationId" Type="Edm.String" />
-        <Property Name="riskEventType" Type="Edm.String" />
-        <Property Name="riskState" Type="graph.riskState" />
-        <Property Name="riskLevel" Type="graph.riskLevel" />
-        <Property Name="riskDetail" Type="graph.riskDetail" />
-        <Property Name="source" Type="Edm.String" />
-        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" />
-        <Property Name="activity" Type="graph.activityType" />
-        <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
-        <Property Name="ipAddress" Type="Edm.String" />
-        <Property Name="location" Type="graph.signInLocation" />
-        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="userId" Type="Edm.String" />
-        <Property Name="userDisplayName" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-        <Property Name="additionalInfo" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="riskyUser" BaseType="graph.entity">
-        <Property Name="isDeleted" Type="Edm.Boolean" />
-        <Property Name="isProcessing" Type="Edm.Boolean" />
-        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="riskLevel" Type="graph.riskLevel" />
-        <Property Name="riskState" Type="graph.riskState" />
-        <Property Name="riskDetail" Type="graph.riskDetail" />
-        <Property Name="userDisplayName" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-        <NavigationProperty Name="history" Type="Collection(graph.riskyUserHistoryItem)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="riskyUserHistoryItem" BaseType="graph.riskyUser">
-        <Property Name="userId" Type="Edm.String" />
-        <Property Name="initiatedBy" Type="Edm.String" />
-        <Property Name="activity" Type="graph.riskUserActivity" />
       </EntityType>
       <EntityType Name="deviceAppManagement" BaseType="graph.entity">
         <Property Name="microsoftStoreForBusinessLastSuccessfulSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -10690,14 +10640,6 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
-      <Action Name="dismiss" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
-        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
-      </Action>
-      <Action Name="confirmCompromised" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
-        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
-      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mobileApp" />
         <Parameter Name="mobileAppAssignments" Type="Collection(graph.mobileAppAssignment)" />
@@ -11572,8 +11514,6 @@
         <EntitySet Name="sites" EntityType="microsoft.graph.site" />
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
-        <EntitySet Name="riskDetections" EntityType="microsoft.graph.riskDetection" />
-        <EntitySet Name="riskyUsers" EntityType="microsoft.graph.riskyUser" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
@@ -12966,54 +12906,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.riskDetection">
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.riskyUser">
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.riskyUserHistoryItem">
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
       </Annotations>
@@ -19089,7 +18981,8 @@
         <Member Name="skypeTranslator" Value="17" />
         <Member Name="skypeForBusinessAttendant" Value="18" />
         <Member Name="responseGroupService" Value="19" />
-        <Member Name="unknownFutureValue" Value="20" />
+        <Member Name="voicemail" Value="20" />
+        <Member Name="unknownFutureValue" Value="21" />
       </EnumType>
       <EnumType Name="userFeedbackRating">
         <Member Name="notRated" Value="0" />
