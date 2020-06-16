@@ -381,6 +381,52 @@
         <Member Name="replyToAll" Value="9" />
         <Member Name="review" Value="10" />
       </EnumType>
+      <EnumType Name="conditionalAccessPolicyState">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+        <Member Name="enabledForReportingButNotEnforced" Value="2" />
+      </EnumType>
+      <EnumType Name="conditionalAccessClientApp">
+        <Member Name="all" Value="0" />
+        <Member Name="browser" Value="1" />
+        <Member Name="mobileAppsAndDesktopClients" Value="2" />
+        <Member Name="exchangeActiveSync" Value="3" />
+        <Member Name="easSupported" Value="4" />
+        <Member Name="other" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="conditionalAccessGrantControl">
+        <Member Name="block" Value="0" />
+        <Member Name="mfa" Value="1" />
+        <Member Name="compliantDevice" Value="2" />
+        <Member Name="domainJoinedDevice" Value="3" />
+        <Member Name="approvedApplication" Value="4" />
+        <Member Name="compliantApplication" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="cloudAppSecuritySessionControlType">
+        <Member Name="mcasConfigured" Value="0" />
+        <Member Name="monitorOnly" Value="1" />
+        <Member Name="blockDownloads" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="signinFrequencyType">
+        <Member Name="days" Value="0" />
+        <Member Name="hours" Value="1" />
+      </EnumType>
+      <EnumType Name="persistentBrowserSessionMode">
+        <Member Name="always" Value="0" />
+        <Member Name="never" Value="1" />
+      </EnumType>
+      <EnumType Name="conditionalAccessDevicePlatform">
+        <Member Name="android" Value="0" />
+        <Member Name="iOS" Value="1" />
+        <Member Name="windows" Value="2" />
+        <Member Name="windowsPhone" Value="3" />
+        <Member Name="macOS" Value="4" />
+        <Member Name="all" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="installIntent">
         <Member Name="available" Value="0" />
         <Member Name="required" Value="1" />
@@ -3173,6 +3219,13 @@
         </NavigationProperty>
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="identityContainer" BaseType="graph.entity">
+        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="type" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
@@ -3810,10 +3863,25 @@
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
+        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
+        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls" />
+        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls" />
+      </EntityType>
       <EntityType Name="contract" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="contractType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Type of contract.Possible values are: SyndicationPartner - Partner that exclusively resells and manages O365 and Intune for this customer. They resell and support their customers. BreadthPartner - Partner has the ability to provide administrative support for this customer. However, the partner is not allowed to resell to the customer.ResellerPartner - Partner that is similar to a syndication partner, except that the partner doesn’t have exclusive access to a tenant. In the syndication case, the customer cannot buy additional direct subscriptions from Microsoft or from other partners." />
@@ -5595,6 +5663,19 @@
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="namedLocation" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
+        <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="includeUnknownCountriesAndRegions" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
+        <Property Name="ipRanges" Type="Collection(graph.ipRange)" Nullable="false" />
+        <Property Name="isTrusted" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="deviceAppManagement" BaseType="graph.entity">
         <Property Name="microsoftStoreForBusinessLastSuccessfulSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false">
@@ -10539,7 +10620,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the host(s) related to this alert." />
         </Property>
         <Property Name="incidentIds" Type="Collection(Edm.String)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="IDs of incidents related to current alert. (new)" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="IDs of incidents related to current alert." />
         </Property>
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Time at which the alert entity was last modified. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'." />
@@ -10548,7 +10629,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Threat Intelligence pertaining to malware related to this alert." />
         </Property>
         <Property Name="networkConnections" Type="Collection(graph.networkConnection)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the network connection(s) related to this alert. (updated)" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the network connection(s) related to this alert." />
         </Property>
         <Property Name="processes" Type="Collection(graph.process)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the process or processes related to this alert." />
@@ -10560,7 +10641,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Security-related stateful information generated by the provider about the registry keys related to this alert." />
         </Property>
         <Property Name="securityResources" Type="Collection(graph.securityResource)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Resources related to current alert. For example, for some alerts this can have the Azure Resource value. (new)" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Resources related to current alert. For example, for some alerts this can have the Azure Resource value." />
         </Property>
         <Property Name="severity" Type="graph.alertSeverity" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Alert severity - set by vendor/provider. Possible values are: unknown, informational, low, medium, high. Required." />
@@ -13231,6 +13312,73 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String.  See the table below for more details." />
         </Property>
       </ComplexType>
+      <ComplexType Name="conditionalAccessSessionControl" Abstract="true">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
+      <ComplexType Name="cloudAppSecuritySessionControl" BaseType="graph.conditionalAccessSessionControl">
+        <Property Name="cloudAppSecurityType" Type="graph.cloudAppSecuritySessionControlType" />
+      </ComplexType>
+      <ComplexType Name="signInFrequencySessionControl" BaseType="graph.conditionalAccessSessionControl">
+        <Property Name="value" Type="Edm.Int32" />
+        <Property Name="type" Type="graph.signinFrequencyType" />
+      </ComplexType>
+      <ComplexType Name="persistentBrowserSessionControl" BaseType="graph.conditionalAccessSessionControl">
+        <Property Name="mode" Type="graph.persistentBrowserSessionMode" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessSessionControls">
+        <Property Name="applicationEnforcedRestrictions" Type="graph.applicationEnforcedRestrictionsSessionControl" />
+        <Property Name="cloudAppSecurity" Type="graph.cloudAppSecuritySessionControl" />
+        <Property Name="signInFrequency" Type="graph.signInFrequencySessionControl" />
+        <Property Name="persistentBrowser" Type="graph.persistentBrowserSessionControl" />
+      </ComplexType>
+      <ComplexType Name="ipRange" Abstract="true" />
+      <ComplexType Name="iPv4CidrRange" BaseType="graph.ipRange">
+        <Property Name="cidrAddress" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="iPv6CidrRange" BaseType="graph.ipRange">
+        <Property Name="cidrAddress" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessApplications">
+        <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeApplications" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="includeUserActions" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessUsers">
+        <Property Name="includeUsers" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeUsers" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="includeGroups" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeGroups" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="includeRoles" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeRoles" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessPlatforms">
+        <Property Name="includePlatforms" Type="Collection(graph.conditionalAccessDevicePlatform)" Nullable="false" />
+        <Property Name="excludePlatforms" Type="Collection(graph.conditionalAccessDevicePlatform)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessLocations">
+        <Property Name="includeLocations" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeLocations" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessDevices">
+        <Property Name="includeDeviceStates" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="excludeDeviceStates" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessConditionSet">
+        <Property Name="applications" Type="graph.conditionalAccessApplications" />
+        <Property Name="users" Type="graph.conditionalAccessUsers" Nullable="false" />
+        <Property Name="signInRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
+        <Property Name="platforms" Type="graph.conditionalAccessPlatforms" />
+        <Property Name="locations" Type="graph.conditionalAccessLocations" />
+        <Property Name="clientAppTypes" Type="Collection(graph.conditionalAccessClientApp)" Nullable="false" />
+        <Property Name="devices" Type="graph.conditionalAccessDevices" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessGrantControls">
+        <Property Name="operator" Type="Edm.String" />
+        <Property Name="builtInControls" Type="Collection(graph.conditionalAccessGrantControl)" Nullable="false" />
+        <Property Name="customAuthenticationFactors" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="termsOfUse" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deviceAndAppManagementAssignmentTarget" Abstract="true" />
       <ComplexType Name="mobileAppAssignmentSettings" Abstract="true" />
       <ComplexType Name="mimeContent">
@@ -14214,7 +14362,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection of Internet protocol address ranges" />
         </Property>
       </ComplexType>
-      <ComplexType Name="ipRange" Abstract="true" />
       <ComplexType Name="androidMobileAppIdentifier" BaseType="graph.mobileAppIdentifier">
         <Property Name="packageId" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The identifier for an app, as specified in the play store." />
@@ -15639,6 +15786,7 @@
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
+        <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
@@ -19801,6 +19949,7 @@
       <Annotations Target="microsoft.graph.group/calendarView" />
       <Annotations Target="microsoft.graph.group/events" />
       <Annotations Target="microsoft.graph.group/photo" />
+      <Annotations Target="microsoft.graph.conditionalAccessPolicy" />
       <Annotations Target="microsoft.graph.servicePrincipal" />
       <Annotations Target="microsoft.graph.subscribedSku" />
       <Annotations Target="microsoft.graph.organization">
@@ -19893,6 +20042,7 @@
       <Annotations Target="microsoft.graph.post/inReplyTo" />
       <Annotations Target="microsoft.graph.post/extensions" />
       <Annotations Target="microsoft.graph.post/attachments" />
+      <Annotations Target="microsoft.graph.namedLocation" />
       <Annotations Target="microsoft.graph.deviceAppManagement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device app management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device app management functionality." />
