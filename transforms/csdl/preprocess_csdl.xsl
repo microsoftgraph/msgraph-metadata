@@ -1,6 +1,7 @@
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:edm="http://docs.oasis-open.org/odata/ns/edm"
-                xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                xmlns="http://docs.oasis-open.org/odata/ns/edm"
+                exclude-result-prefixes="edm">
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
 
@@ -78,16 +79,20 @@
         <xsl:apply-templates select="node()"/>
       </xsl:copy>
     </xsl:template>
+    
+    <!-- Remove Property -->
 
-    <!-- Remove NavigationProperty-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='changeNotification']/edm:Property[@Name='sequenceNumber']"/>
+
+    <!-- Remove NavigationProperty -->
       
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='approval']/edm:NavigationProperty[@Name='request']"/>
-  
-    <!-- Remove all capability annotations-->
+
+    <!-- Remove all capability annotations -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
-    <!-- Remove namespaces-->
+    <!-- Remove namespaces -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']"/>
 
@@ -128,6 +133,20 @@
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
     </xsl:template>
+
+    <!-- Add action -->
+    <!-- This should be a temp fix to the scenario where a property was added to the CreateUploadSession action.
+         We have a request to have the metadata fixed. -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+      <xsl:copy>
+        <xsl:apply-templates select="@* | node()"/>
+          <Action Name="createUploadSession" IsBound="true">   
+            <Parameter Name="bindingParameter" Type="graph.driveItem" />
+            <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
+            <ReturnType Type="graph.uploadSession" />
+          </Action>
+      </xsl:copy>
+    </xsl:template>    
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">

@@ -7,7 +7,9 @@ param (
     [string]
     $inputPath = "preprocess_csdl_test_input.xml",
     [string]
-    $outputPath = "preprocess_csdl_test_output.xml"
+    $outputPath = "preprocess_csdl_test_output.xml",
+    [bool]
+    $dbg = $false
 )
 
 $xslFullPath = Join-Path $PWD $xslPath
@@ -24,6 +26,6 @@ if (!(Test-Path $inputFullPath)) {
 
 $outputFullPath = Join-Path $PWD $outputPath
 
-$xslt = New-Object System.Xml.Xsl.XslCompiledTransform
+$xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
 $xslt.Load((Join-Path $PWD $xslPath))
-$xslt.Transform($inputFullPath, $outputFullPath) 
+$xslt.Transform($inputFullPath, $outputFullPath)
