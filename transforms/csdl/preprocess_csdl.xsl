@@ -99,6 +99,7 @@
     <!-- Remove singleton -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[contains(@Name, 'settings') and contains(@Type, 'microsoft.graph.entitlementManagementSettings')]" /> <!-- Tempfix: requested this change of the owners. Check whether this is still needed. -->
   
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
