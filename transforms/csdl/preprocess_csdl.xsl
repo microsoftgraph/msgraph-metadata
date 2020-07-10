@@ -1,7 +1,7 @@
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:edm="http://docs.oasis-open.org/odata/ns/edm"
                 xmlns="http://docs.oasis-open.org/odata/ns/edm"
-                exclude-result-prefixes="edm">
+                >
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
 
@@ -134,19 +134,11 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Add action -->
-    <!-- This should be a temp fix to the scenario where a property was added to the CreateUploadSession action.
-         We have a request to have the metadata fixed. -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-          <Action Name="createUploadSession" IsBound="true">   
-            <Parameter Name="bindingParameter" Type="graph.driveItem" />
-            <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
-            <ReturnType Type="graph.uploadSession" />
-          </Action>
-      </xsl:copy>
-    </xsl:template>    
+    <!-- Remove action parameters -->
+    <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
+    <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/>
+
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
