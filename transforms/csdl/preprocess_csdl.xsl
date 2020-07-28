@@ -1,6 +1,7 @@
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:edm="http://docs.oasis-open.org/odata/ns/edm"
-                xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                xmlns="http://docs.oasis-open.org/odata/ns/edm"
+                >
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
 
@@ -38,6 +39,7 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='iosPkcsCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='iosScepCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityStat']/edm:NavigationProperty[@Name='activities']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='macOSEnterpriseWiFiConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='macOSImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='macOSPkcsCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='macOSScepCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
@@ -53,6 +55,7 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerUser']/edm:NavigationProperty[@Name='plans']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerUser']/edm:NavigationProperty[@Name='tasks']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printJob']/edm:NavigationProperty[@Name='documents']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printJob']/edm:NavigationProperty[@Name='tasks']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printService']/edm:NavigationProperty[@Name='endpoints']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printer']/edm:NavigationProperty[@Name='allowedGroups']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printer']/edm:NavigationProperty[@Name='allowedUsers']|
@@ -78,22 +81,28 @@
         <xsl:apply-templates select="node()"/>
       </xsl:copy>
     </xsl:template>
+    
+    <!-- Remove Property -->
 
-    <!-- Remove NavigationProperty-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='changeNotification']/edm:Property[@Name='sequenceNumber']"/>
+
+    <!-- Remove NavigationProperty -->
       
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='approval']/edm:NavigationProperty[@Name='request']"/>
-  
-    <!-- Remove all capability annotations-->
+
+    <!-- Remove all capability annotations -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
-    <!-- Remove namespaces-->
+    <!-- Remove namespaces -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.termStore']"/>
 
     <!-- Remove singleton -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[contains(@Name, 'settings') and contains(@Type, 'microsoft.graph.entitlementManagementSettings')]" /> <!-- Tempfix: requested this change of the owners. Check whether this is still needed. -->
   
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
@@ -128,6 +137,12 @@
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
     </xsl:template>
+
+    <!-- Remove action parameters -->
+    <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
+    <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/>
+
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">

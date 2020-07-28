@@ -16,11 +16,16 @@ Please use fully qualified and precise template match statements so as not to pe
 4. Make the transform change in *preprocess_csdl.xsl*.
 5. Add corresponding test input to *preprocess_csdl_test_input.xml*.
 6. Give the *preprocess_csdl_test_input.xml* file focus.
-7. From the top menu in Visual Studio, select XML > Start XSLT Without Debugging or Alt + F5. This will result in a file named *preprocess_csdl_test_input.xml* which will be created in your %AppData%.
+7. From the top menu in Visual Studio, select XML > Start XSLT Without Debugging or Alt + F5. This will result in a file named *preprocess_csdl_test_input.xml* which will be created in your %AppData%. See [command line instructions](#command-line-instructions-for-running-the-transform) if you prefer command line.
 8. Inspect the transformed file output named *preprocess_csdl_test_input.xml* for the expected changes.
-9. Perform a simple text diff of the output *preprocess_csdl_test_input.xml* with the *preprocess_csdl_test_output.xml* file and check for unexpected changes.
+9.  Perform a simple text diff of the output *preprocess_csdl_test_input.xml* with the *preprocess_csdl_test_output.xml* file and check for unexpected changes.
 10. Add the expected output to *preprocess_csdl_test_output.xml*.
 11. Check in changes and open your pull request.
+
+## Command line instructions for running the transform
+1. Start PowerShell
+2. `cd` into `transforms\csdl` folder
+3. Run `transform.ps1 <xsl_file> <input_file> <output_file>`. If files are not specified, the script will apply transformations from  *preprocess_csdl.xsl* on  *preprocess_csdl_test_input.xml* and override *preprocess_csdl_test_output.xml* file.
 
 ## Instructions for running transform against Microsoft Graph metadata
 
