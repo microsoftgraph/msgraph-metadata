@@ -6718,15 +6718,19 @@
         <NavigationProperty Name="account" Type="Collection(graph.userAccountInformation)" ContainsTarget="true" />
         <NavigationProperty Name="addresses" Type="Collection(graph.itemAddress)" ContainsTarget="true" />
         <NavigationProperty Name="anniversaries" Type="Collection(graph.personAnniversary)" ContainsTarget="true" />
+        <NavigationProperty Name="awards" Type="Collection(graph.personAward)" ContainsTarget="true" />
+        <NavigationProperty Name="certifications" Type="Collection(graph.personCertification)" ContainsTarget="true" />
         <NavigationProperty Name="educationalActivities" Type="Collection(graph.educationalActivity)" ContainsTarget="true" />
         <NavigationProperty Name="emails" Type="Collection(graph.itemEmail)" ContainsTarget="true" />
         <NavigationProperty Name="interests" Type="Collection(graph.personInterest)" ContainsTarget="true" />
         <NavigationProperty Name="languages" Type="Collection(graph.languageProficiency)" ContainsTarget="true" />
         <NavigationProperty Name="names" Type="Collection(graph.personName)" ContainsTarget="true" />
+        <NavigationProperty Name="notes" Type="Collection(graph.personAnnotation)" ContainsTarget="true" />
+        <NavigationProperty Name="patents" Type="Collection(graph.itemPatent)" ContainsTarget="true" />
         <NavigationProperty Name="phones" Type="Collection(graph.itemPhone)" ContainsTarget="true" />
         <NavigationProperty Name="positions" Type="Collection(graph.workPosition)" ContainsTarget="true" />
         <NavigationProperty Name="projects" Type="Collection(graph.projectParticipation)" ContainsTarget="true" />
-        <NavigationProperty Name="notes" Type="Collection(graph.personAnnotation)" ContainsTarget="true" />
+        <NavigationProperty Name="publications" Type="Collection(graph.itemPublication)" ContainsTarget="true" />
         <NavigationProperty Name="skills" Type="Collection(graph.skillProficiency)" ContainsTarget="true" />
         <NavigationProperty Name="webAccounts" Type="Collection(graph.webAccount)" ContainsTarget="true" />
         <NavigationProperty Name="websites" Type="Collection(graph.personWebsite)" ContainsTarget="true" />
@@ -6943,6 +6947,7 @@
         <Property Name="isArchived" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Whether this team is in read-only mode." />
         </Property>
+        <Property Name="isMembershipLimitedToOwners" Type="Edm.Boolean" />
         <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
         <NavigationProperty Name="group" Type="graph.group" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
@@ -7456,8 +7461,10 @@
         <NavigationProperty Name="authenticationFlowsPolicy" Type="graph.authenticationFlowsPolicy" ContainsTarget="true" />
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="authorizationPolicy" Type="Collection(graph.authorizationPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
@@ -7472,6 +7479,16 @@
       </EntityType>
       <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity" />
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
+        <Property Name="blockMsolPowerShell" Type="Edm.Boolean" />
+        <Property Name="enabledPreviewFeatures" Type="Collection(Edm.String)" />
+        <Property Name="guestUserRoleId" Type="Edm.Guid" />
+        <Property Name="permissionGrantPolicyIdsAssignedToDefaultUserRole" Type="Collection(Edm.String)" />
+      </EntityType>
+      <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
+        <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+        <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
@@ -7608,6 +7625,8 @@
       <EntityType Name="identityContainer" BaseType="graph.entity">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
         <NavigationProperty Name="userFlows" Type="Collection(graph.identityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="b2cUserFlows" Type="Collection(graph.b2cIdentityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
@@ -7616,6 +7635,12 @@
       <EntityType Name="identityUserFlow" BaseType="graph.entity">
         <Property Name="userFlowType" Type="graph.userFlowType" Nullable="false" />
         <Property Name="userFlowTypeVersion" Type="Edm.Single" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2cIdentityUserFlow" BaseType="graph.identityUserFlow">
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
+      </EntityType>
+      <EntityType Name="b2xIdentityUserFlow" BaseType="graph.identityUserFlow">
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="type" Type="Edm.String" />
@@ -7809,12 +7834,6 @@
         <Property Name="location" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
         <Property Name="domain" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
-        <Property Name="blockMsolPowerShell" Type="Edm.Boolean" />
-        <Property Name="enabledPreviewFeatures" Type="Collection(Edm.String)" />
-        <Property Name="guestUserRoleId" Type="Edm.Guid" />
-        <Property Name="permissionGrantPolicyIdsAssignedToDefaultUserRole" Type="Collection(Edm.String)" />
       </EntityType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="permissionId" Type="Edm.String" />
@@ -8126,10 +8145,6 @@
         <Property Name="signInPageText" Type="Edm.String" />
         <Property Name="squareLogo" Type="Edm.Stream" Nullable="false" />
         <Property Name="usernameHintText" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
-        <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
-        <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="permissionGrantConditionSet" BaseType="graph.entity">
         <Property Name="permissionClassification" Type="Edm.String" />
@@ -10518,7 +10533,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Correlation ID of the sign-in associated with the risk detection. This property is null if the risk detection is not associated with a sign-in." />
         </Property>
         <Property Name="riskEventType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected. The possible values are unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence, genericadminConfirmedUserCompromised, mcasImpossibleTravel, mcasSuspiciousInboxManipulationRules, investigationsThreatIntelligenceSigninLinked, maliciousIPAddressValidCredentialsBlockedIP, and unknownFutureValue." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected. The possible values are unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence, genericadminConfirmedUserCompromised, mcasImpossibleTravel, mcasSuspiciousInboxManipulationRules, investigationsThreatIntelligenceSigninLinked, maliciousIPAddressValidCredentialsBlockedIP, and unknownFutureValue. If the risk detection is a premium detection, will show generic" />
         </Property>
         <Property Name="riskType" Type="graph.riskEventType" />
         <Property Name="riskState" Type="graph.riskState">
@@ -20651,6 +20666,26 @@
         <Property Name="type" Type="graph.anniversaryType" />
         <Property Name="date" Type="Edm.Date" />
       </EntityType>
+      <EntityType Name="personAward" BaseType="graph.itemFacet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="issuedDate" Type="Edm.Date" />
+        <Property Name="issuingAuthority" Type="Edm.String" />
+        <Property Name="thumbnailUrl" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="personCertification" BaseType="graph.itemFacet">
+        <Property Name="certificationId" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="endDate" Type="Edm.Date" />
+        <Property Name="issuedDate" Type="Edm.Date" />
+        <Property Name="issuingAuthority" Type="Edm.String" />
+        <Property Name="issuingCompany" Type="Edm.String" />
+        <Property Name="startDate" Type="Edm.Date" />
+        <Property Name="thumbnailUrl" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="educationalActivity" BaseType="graph.itemFacet">
         <Property Name="completionMonthYear" Type="Edm.Date" />
         <Property Name="endMonthYear" Type="Edm.Date" />
@@ -20691,6 +20726,19 @@
         <Property Name="title" Type="Edm.String" />
         <Property Name="pronunciation" Type="graph.yomiPersonName" />
       </EntityType>
+      <EntityType Name="personAnnotation" BaseType="graph.itemFacet">
+        <Property Name="detail" Type="graph.itemBody" />
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="itemPatent" BaseType="graph.itemFacet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="isPending" Type="Edm.Boolean" />
+        <Property Name="issuedDate" Type="Edm.Date" />
+        <Property Name="issuingAuthority" Type="Edm.String" />
+        <Property Name="number" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="itemPhone" BaseType="graph.itemFacet">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="graph.phoneType" Nullable="false" />
@@ -20712,9 +20760,13 @@
         <Property Name="sponsors" Type="Collection(graph.relatedPerson)" />
         <Property Name="collaborationTags" Type="Collection(Edm.String)" />
       </EntityType>
-      <EntityType Name="personAnnotation" BaseType="graph.itemFacet">
-        <Property Name="detail" Type="graph.itemBody" />
-        <Property Name="displayName" Type="Edm.String" />
+      <EntityType Name="itemPublication" BaseType="graph.itemFacet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="publishedDate" Type="Edm.Date" />
+        <Property Name="publisher" Type="Edm.String" />
+        <Property Name="thumbnailUrl" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
       </EntityType>
       <EntityType Name="skillProficiency" BaseType="graph.itemFacet">
         <Property Name="categories" Type="Collection(Edm.String)" />
@@ -24874,6 +24926,7 @@
         <Property Name="apiExpressions" Type="Collection(graph.stringKeyStringValuePair)" />
         <Property Name="caseExact" Type="Edm.Boolean" Nullable="false" />
         <Property Name="defaultValue" Type="Edm.String" />
+        <Property Name="flowNullValues" Type="Edm.Boolean" Nullable="false" />
         <Property Name="metadata" Type="Collection(graph.metadataEntry)" />
         <Property Name="multivalued" Type="Edm.Boolean" Nullable="false" />
         <Property Name="mutability" Type="graph.mutability" Nullable="false" />
@@ -31158,6 +31211,10 @@
         <Parameter Name="chats" Type="Collection(graph.chat)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
+      <Function Name="allMessages" IsBound="true">
+        <Parameter Name="channels" Type="Collection(graph.channel)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="messages" Type="Collection(graph.chatMessage)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
@@ -34224,6 +34281,10 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.groupLifecyclePolicy)" Nullable="false" />
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Action Name="acquireAccessToken" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.synchronization" />
+        <Parameter Name="credentials" Type="Collection(graph.synchronizationSecretKeyStringValuePair)" />
       </Action>
       <Action Name="pause" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
