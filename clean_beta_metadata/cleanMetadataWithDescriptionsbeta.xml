@@ -4751,6 +4751,14 @@
         <Member Name="completed" Value="2" />
         <Member Name="failed" Value="3" />
       </EnumType>
+      <EnumType Name="externalGroupMemberType">
+        <Member Name="user" Value="1" />
+        <Member Name="group" Value="2" />
+      </EnumType>
+      <EnumType Name="identitySourceType">
+        <Member Name="azureActiveDirectory" Value="1" />
+        <Member Name="external" Value="2" />
+      </EnumType>
       <EnumType Name="userIdentityType">
         <Member Name="aadUser" Value="0" />
         <Member Name="onPremiseAadUser" Value="1" />
@@ -6018,7 +6026,10 @@
         <Property Name="allowNewTimeProposals" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="True if the meeting organizer allows invitees to propose a new time when responding, false otherwise. Optional. Default is true." />
         </Property>
+        <Property Name="cancelledOccurrences" Type="Collection(Edm.String)" />
+        <Property Name="occurrenceId" Type="Edm.String" />
         <Property Name="isDraft" Type="Edm.Boolean" />
+        <NavigationProperty Name="exceptionOccurrences" Type="Collection(graph.event)" ContainsTarget="true" />
         <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of fileAttachment and itemAttachment attachments for the event. Navigation property. Read-only. Nullable." />
         </NavigationProperty>
@@ -7288,6 +7299,7 @@
         <NavigationProperty Name="templates" Type="Collection(graph.synchronizationTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="passwordSingleSignOnSettings" Type="graph.passwordSingleSignOnSettings" />
         <Property Name="accountEnabled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the service principal account is enabled; otherwise, false." />
         </Property>
@@ -21421,6 +21433,7 @@
         <NavigationProperty Name="schema" Type="graph.schema" ContainsTarget="true" />
         <NavigationProperty Name="items" Type="Collection(graph.externalItem)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.connectionOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="groups" Type="Collection(graph.externalGroup)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="schema" BaseType="graph.entity">
         <Property Name="baseType" Type="Edm.String" Nullable="false" />
@@ -21434,6 +21447,15 @@
       <EntityType Name="connectionOperation" BaseType="graph.entity">
         <Property Name="status" Type="graph.connectionOperationStatus" />
         <Property Name="error" Type="graph.errorDetail" />
+      </EntityType>
+      <EntityType Name="externalGroup" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.externalGroupMember)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="externalGroupMember" BaseType="graph.entity">
+        <Property Name="type" Type="graph.externalGroupMemberType" Nullable="false" />
+        <Property Name="identitySource" Type="graph.identitySourceType" />
       </EntityType>
       <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
@@ -21608,7 +21630,10 @@
         <NavigationProperty Name="replies" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
         <NavigationProperty Name="hostedContents" Type="Collection(graph.chatMessageHostedContent)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="chatMessageHostedContent" BaseType="graph.entity" HasStream="true" />
+      <EntityType Name="chatMessageHostedContent" BaseType="graph.entity" HasStream="true">
+        <Property Name="contentBytes" Type="Edm.Binary" />
+        <Property Name="contentType" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="appCatalogs" BaseType="graph.entity">
         <NavigationProperty Name="teamsApps" Type="Collection(graph.teamsApp)" ContainsTarget="true" />
       </EntityType>
@@ -22554,6 +22579,15 @@
       <ComplexType Name="kerberosSignOnSettings">
         <Property Name="KerberosServicePrincipalName" Type="Edm.String" />
         <Property Name="KerberosSignOnMappingAttributeType" Type="graph.kerberosSignOnMappingAttributeType" />
+      </ComplexType>
+      <ComplexType Name="passwordSingleSignOnSettings">
+        <Property Name="fields" Type="Collection(graph.passwordSingleSignOnField)" />
+      </ComplexType>
+      <ComplexType Name="passwordSingleSignOnField">
+        <Property Name="fieldId" Type="Edm.String" />
+        <Property Name="customizedLabel" Type="Edm.String" />
+        <Property Name="defaultLabel" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="addIn">
         <Property Name="id" Type="Edm.Guid" />
@@ -29617,6 +29651,14 @@
         </EntitySet>
         <EntitySet Name="activitystatistics" EntityType="microsoft.graph.activityStatistics" />
         <EntitySet Name="applicationTemplates" EntityType="microsoft.graph.applicationTemplate" />
+        <EntitySet Name="servicePrincipals" EntityType="microsoft.graph.servicePrincipal">
+          <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="oauth2PermissionGrants" Target="oauth2PermissionGrants" />
+          <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+        </EntitySet>
         <EntitySet Name="bookingBusinesses" EntityType="microsoft.graph.bookingBusiness">
           <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
             <Record>
@@ -29777,14 +29819,6 @@
         </EntitySet>
         <EntitySet Name="oauth2PermissionGrants" EntityType="microsoft.graph.oAuth2PermissionGrant" />
         <EntitySet Name="scopedRoleMemberships" EntityType="microsoft.graph.scopedRoleMembership" />
-        <EntitySet Name="servicePrincipals" EntityType="microsoft.graph.servicePrincipal">
-          <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="oauth2PermissionGrants" Target="oauth2PermissionGrants" />
-          <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
-        </EntitySet>
         <EntitySet Name="settings" EntityType="microsoft.graph.directorySetting" />
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
@@ -30399,6 +30433,26 @@
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.teamsDeviceUsageDistributionUserCounts)" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="graph.report" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserDetail" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.report" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.report" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppPlatformUserCounts" IsBound="true" IsComposable="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.report" Nullable="false" />
       </Function>
       <Function Name="getTenantSecureScores" IsBound="true" IsComposable="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
@@ -35581,6 +35635,7 @@
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItemUploadableProperties" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
@@ -35963,6 +36018,7 @@
       <Annotations Target="microsoft.graph.calendar/events" />
       <Annotations Target="microsoft.graph.calendar/calendarView" />
       <Annotations Target="microsoft.graph.calendarGroup/calendars" />
+      <Annotations Target="microsoft.graph.event/exceptionOccurrences" />
       <Annotations Target="microsoft.graph.event/attachments" />
       <Annotations Target="microsoft.graph.event/calendar" />
       <Annotations Target="microsoft.graph.event/instances" />
