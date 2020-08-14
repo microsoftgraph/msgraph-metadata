@@ -119,6 +119,8 @@
 
     <!-- Remove attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/@HasStream|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentSection']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteResource']/@HasStream">
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
