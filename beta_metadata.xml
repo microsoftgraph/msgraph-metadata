@@ -4629,8 +4629,8 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
-      <EnumType Name="transcriptionState">
-        <Member Name="unknown" Value="0" />
+      <EnumType Name="callTranscriptionState">
+        <Member Name="notStarted" Value="0" />
         <Member Name="active" Value="1" />
         <Member Name="inactive" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
@@ -6015,19 +6015,27 @@
         <Property Name="alternativeSecurityIds" Type="Collection(graph.alternativeSecurityId)" Nullable="false" />
         <Property Name="approximateLastSignInDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deviceCategory" Type="Edm.String" />
         <Property Name="deviceId" Type="Edm.String" />
         <Property Name="deviceMetadata" Type="Edm.String" />
+        <Property Name="deviceOwnership" Type="Edm.String" />
         <Property Name="deviceVersion" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="domainName" Type="Edm.String" />
+        <Property Name="enrollmentProfileName" Type="Edm.String" />
+        <Property Name="enrollmentType" Type="Edm.String" />
         <Property Name="extensionAttributes" Type="graph.onPremisesExtensionAttributes" />
         <Property Name="isCompliant" Type="Edm.Boolean" />
         <Property Name="isManaged" Type="Edm.Boolean" />
+        <Property Name="isRooted" Type="Edm.Boolean" />
+        <Property Name="managementType" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
         <Property Name="operatingSystem" Type="Edm.String" />
         <Property Name="operatingSystemVersion" Type="Edm.String" />
         <Property Name="physicalIds" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="profileType" Type="Edm.String" />
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="trustType" Type="Edm.String" />
         <Property Name="Name" Type="Edm.String" />
@@ -6685,7 +6693,11 @@
       <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity" />
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
+        <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToUseSSPR" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowEmailVerifiedUsersToJoinOrganization" Type="Edm.Boolean" Nullable="false" />
         <Property Name="blockMsolPowerShell" Type="Edm.Boolean" />
+        <Property Name="defaultUserRolePermissions" Type="graph.defaultUserRolePermissions" Nullable="false" />
         <Property Name="enabledPreviewFeatures" Type="Collection(Edm.String)" />
         <Property Name="guestUserRoleId" Type="Edm.Guid" />
         <Property Name="permissionGrantPolicyIdsAssignedToDefaultUserRole" Type="Collection(Edm.String)" />
@@ -7288,6 +7300,11 @@
         <Property Name="isDefault" Type="Edm.Boolean" />
         <Property Name="domain" Type="Edm.String" />
       </EntityType>
+      <ComplexType Name="defaultUserRolePermissions">
+        <Property Name="allowedToCreateApps" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToCreateSecurityGroups" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToReadOtherUsers" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="permissionId" Type="Edm.String" />
         <Property Name="permissionName" Type="Edm.String" />
@@ -7445,6 +7462,7 @@
         <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
         <Property Name="templateId" Type="Edm.String" />
         <Property Name="version" Type="Edm.String" />
+        <NavigationProperty Name="inheritsPermissionsFrom" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="unifiedRoleAssignment" BaseType="graph.entity">
         <Property Name="roleDefinitionId" Type="Edm.String" />
@@ -9719,7 +9737,7 @@
         <Property Name="chatInfo" Type="graph.chatInfo" />
         <Property Name="callOptions" Type="graph.callOptions" />
         <Property Name="meetingInfo" Type="graph.meetingInfo" />
-        <Property Name="transcriptionInfo" Type="graph.transcriptionInfo" />
+        <Property Name="transcription" Type="graph.callTranscriptionInfo" />
         <Property Name="meetingCapability" Type="graph.meetingCapability" />
         <Property Name="routingPolicies" Type="Collection(graph.routingPolicy)" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -10128,6 +10146,9 @@
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
+      <ComplexType Name="accessReviewReviewerScope" BaseType="graph.accessReviewScope">
+        <Property Name="queryRoot" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="removeAccessApplyAction" BaseType="graph.accessReviewApplyAction" />
       <ComplexType Name="disableAndDeleteUserApplyAction" BaseType="graph.accessReviewApplyAction" />
       <EntityType Name="accessReviewScheduleDefinition" BaseType="graph.entity">
@@ -10139,7 +10160,7 @@
         <Property Name="descriptionForReviewers" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.userIdentity" />
         <Property Name="scope" Type="graph.accessReviewScope" />
-        <Property Name="reviewers" Type="Collection(graph.accessReviewScope)" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="settings" Type="graph.accessReviewScheduleSettings" />
         <NavigationProperty Name="instances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true" />
       </EntityType>
@@ -20537,9 +20558,9 @@
       <ComplexType Name="meetingInfo" Abstract="true">
         <Property Name="allowConversationWithoutHost" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="transcriptionInfo">
-        <Property Name="state" Type="graph.transcriptionState" Nullable="false" />
-        <Property Name="stateUpdatedTime" Type="Edm.DateTimeOffset" />
+      <ComplexType Name="callTranscriptionInfo">
+        <Property Name="state" Type="graph.callTranscriptionState" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="meetingCapability">
         <Property Name="allowAnonymousUsersToDialOut" Type="Edm.Boolean" Nullable="false" />
