@@ -4629,8 +4629,8 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
-      <EnumType Name="transcriptionState">
-        <Member Name="unknown" Value="0" />
+      <EnumType Name="callTranscriptionState">
+        <Member Name="notStarted" Value="0" />
         <Member Name="active" Value="1" />
         <Member Name="inactive" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
@@ -6803,18 +6803,23 @@
         <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The timestamp when the device is no longer deemed compliant. The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Read-only." />
         </Property>
+        <Property Name="deviceCategory" Type="Edm.String" />
         <Property Name="deviceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier set by Azure Device Registration Service at the time of registration." />
         </Property>
         <Property Name="deviceMetadata" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="For interal use only. Set to null." />
         </Property>
+        <Property Name="deviceOwnership" Type="Edm.String" />
         <Property Name="deviceVersion" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="For interal use only." />
         </Property>
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the device. Required." />
         </Property>
+        <Property Name="domainName" Type="Edm.String" />
+        <Property Name="enrollmentProfileName" Type="Edm.String" />
+        <Property Name="enrollmentType" Type="Edm.String" />
         <Property Name="extensionAttributes" Type="graph.onPremisesExtensionAttributes" />
         <Property Name="isCompliant" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the device complies with Mobile Device Management (MDM) policies; otherwise, false. Read-only. This can only be updated by Intune for any device OS type or by an approved MDM app for Windows OS devices." />
@@ -6822,6 +6827,8 @@
         <Property Name="isManaged" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the device is managed by a Mobile Device Management (MDM) app; otherwise, false. This can only be updated by Intune for any device OS type or by an approved MDM app for Windows OS devices." />
         </Property>
+        <Property Name="isRooted" Type="Edm.Boolean" />
+        <Property Name="managementType" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The last time at which the object was synced with the on-premises directory.The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z' Read-only." />
         </Property>
@@ -6840,6 +6847,7 @@
         <Property Name="profileType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The profile type of the device. Possible values:RegisteredDevice (default)SecureVMPrinterSharedIoT" />
         </Property>
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of labels applied to the device by the system." />
         </Property>
@@ -7492,7 +7500,11 @@
       <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity" />
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
+        <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToUseSSPR" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowEmailVerifiedUsersToJoinOrganization" Type="Edm.Boolean" Nullable="false" />
         <Property Name="blockMsolPowerShell" Type="Edm.Boolean" />
+        <Property Name="defaultUserRolePermissions" Type="graph.defaultUserRolePermissions" Nullable="false" />
         <Property Name="enabledPreviewFeatures" Type="Collection(Edm.String)" />
         <Property Name="guestUserRoleId" Type="Edm.Guid" />
         <Property Name="permissionGrantPolicyIdsAssignedToDefaultUserRole" Type="Collection(Edm.String)" />
@@ -8024,6 +8036,7 @@
         <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
         <Property Name="templateId" Type="Edm.String" />
         <Property Name="version" Type="Edm.String" />
+        <NavigationProperty Name="inheritsPermissionsFrom" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="unifiedRoleAssignment" BaseType="graph.entity">
         <Property Name="roleDefinitionId" Type="Edm.String" />
@@ -10197,7 +10210,7 @@
         <Property Name="meetingInfo" Type="graph.meetingInfo">
           <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
         </Property>
-        <Property Name="transcriptionInfo" Type="graph.transcriptionInfo" />
+        <Property Name="transcription" Type="graph.callTranscriptionInfo" />
         <Property Name="meetingCapability" Type="graph.meetingCapability" />
         <Property Name="routingPolicies" Type="Collection(graph.routingPolicy)" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -10501,7 +10514,7 @@
         <Property Name="descriptionForReviewers" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.userIdentity" />
         <Property Name="scope" Type="graph.accessReviewScope" />
-        <Property Name="reviewers" Type="Collection(graph.accessReviewScope)" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="settings" Type="graph.accessReviewScheduleSettings" />
         <NavigationProperty Name="instances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true" />
       </EntityType>
@@ -21645,7 +21658,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The name of the catalog app provided by the app developer in the Microsoft Teams zip app package." />
         </Property>
         <Property Name="distributionMethod" Type="graph.teamsAppDistributionMethod">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The method of distribution for the app." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The method of distribution for the app. Read-only." />
         </Property>
         <NavigationProperty Name="appDefinitions" Type="Collection(graph.teamsAppDefinition)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The details for each version of the app." />
@@ -21653,7 +21666,7 @@
       </EntityType>
       <EntityType Name="teamsAppDefinition" BaseType="graph.entity">
         <Property Name="teamsAppId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The id from the Teams App manifest." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID from the Teams app manifest." />
         </Property>
         <Property Name="azureADAppId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String">
@@ -21662,7 +21675,9 @@
         <Property Name="version" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The version number of the application." />
         </Property>
-        <Property Name="publishingState" Type="graph.teamsAppPublishingState" />
+        <Property Name="publishingState" Type="graph.teamsAppPublishingState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The published status of a specific version of a Teams app. Possible values are:submitted — The specific version of the Teams app has been submitted and is under review. published  — The request to publish the specific version of the Teams app has been approved by the admin and the app is published.  rejected — The request to publish the specific version of the Teams app was rejected by the admin." />
+        </Property>
         <Property Name="shortdescription" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -22939,6 +22954,11 @@
       <ComplexType Name="evaluateSensitivityLabelsRequest">
         <Property Name="discoveredSensitiveTypes" Type="Collection(graph.discoveredSensitiveType)" />
         <Property Name="currentLabel" Type="graph.currentLabel" />
+      </ComplexType>
+      <ComplexType Name="defaultUserRolePermissions">
+        <Property Name="allowedToCreateApps" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToCreateSecurityGroups" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowedToReadOtherUsers" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="certificateAuthority">
         <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false">
@@ -25126,6 +25146,9 @@
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
+      <ComplexType Name="accessReviewReviewerScope" BaseType="graph.accessReviewScope">
+        <Property Name="queryRoot" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="removeAccessApplyAction" BaseType="graph.accessReviewApplyAction" />
       <ComplexType Name="disableAndDeleteUserApplyAction" BaseType="graph.accessReviewApplyAction" />
       <ComplexType Name="accessReviewInstanceDecisionItemTarget" Abstract="true" />
@@ -28996,9 +29019,9 @@
       <ComplexType Name="meetingInfo" Abstract="true">
         <Property Name="allowConversationWithoutHost" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="transcriptionInfo">
-        <Property Name="state" Type="graph.transcriptionState" Nullable="false" />
-        <Property Name="stateUpdatedTime" Type="Edm.DateTimeOffset" />
+      <ComplexType Name="callTranscriptionInfo">
+        <Property Name="state" Type="graph.callTranscriptionState" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="meetingCapability">
         <Property Name="allowAnonymousUsersToDialOut" Type="Edm.Boolean" Nullable="false" />
