@@ -119,6 +119,10 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
+    <!--Remove functions that are blocking beta generation-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
+
     <!-- Reorder action parameters -->
 
     <!-- These actions have the same parameters that need reordering. Will need to create a new template
