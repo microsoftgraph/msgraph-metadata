@@ -1517,6 +1517,12 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="callTranscriptionState">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="inactive" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="rejectReason">
         <Member Name="none" Value="0" />
         <Member Name="busy" Value="1" />
@@ -3207,14 +3213,24 @@
         </Property>
       </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the team." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An optional description for the team." />
+        </Property>
         <Property Name="internalId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A unique ID for the team that has been used in a few places such as the audit log/Office 365 Management Activity API." />
         </Property>
-        <Property Name="classification" Type="Edm.String" />
-        <Property Name="specialization" Type="graph.teamSpecialization" />
-        <Property Name="visibility" Type="graph.teamVisibilityType" />
+        <Property Name="classification" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An optional label. Typically describes the data or business sensitivity of the team. Must match one of a pre-configured set in the tenant's directory." />
+        </Property>
+        <Property Name="specialization" Type="graph.teamSpecialization">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Indicates whether the team is intended for a particular use case.  Each team specialization has access to unique behaviors and experiences targeted to its use case." />
+        </Property>
+        <Property Name="visibility" Type="graph.teamVisibilityType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The visibility of a the group and team. Defaults to Public." />
+        </Property>
         <Property Name="webUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A hyperlink that will go to the team in the Microsoft Teams client. This is the URL that you get when you right-click a team in the Microsoft Teams client and select Get link to team. This URL should be treated as an opaque blob, and not parsed." />
         </Property>
@@ -3233,10 +3249,16 @@
         <Property Name="isArchived" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Whether this team is in read-only mode." />
         </Property>
-        <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
+        <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The schedule of shifts for this team." />
+        </NavigationProperty>
         <NavigationProperty Name="group" Type="graph.group" />
-        <NavigationProperty Name="template" Type="graph.teamsTemplate" />
-        <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
+        <NavigationProperty Name="template" Type="graph.teamsTemplate">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The template this team was created from. See available templates." />
+        </NavigationProperty>
+        <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Members and owners of the team." />
+        </NavigationProperty>
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of channels &amp; messages associated with the team." />
         </NavigationProperty>
@@ -3246,7 +3268,9 @@
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The apps installed in this team." />
         </NavigationProperty>
-        <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The async operations that ran or are running on this team." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="identityContainer" BaseType="graph.entity">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
@@ -5756,6 +5780,7 @@
         <Property Name="meetingInfo" Type="graph.meetingInfo">
           <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
         </Property>
+        <Property Name="transcription" Type="graph.callTranscriptionInfo" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="myParticipantId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
@@ -10934,6 +10959,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The result information. Read-only." />
         </Property>
       </EntityType>
+      <EntityType Name="cancelMediaProcessingOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="inviteParticipantsOperation" BaseType="graph.commsOperation" OpenType="true">
         <Property Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The participants to invite." />
@@ -11024,8 +11050,12 @@
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="conversationMember" BaseType="graph.entity" Abstract="true">
-        <Property Name="roles" Type="Collection(Edm.String)" />
-        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="roles" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The roles for that user." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the user." />
+        </Property>
       </EntityType>
       <EntityType Name="channel" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" Nullable="false">
@@ -11059,14 +11089,30 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="teamsAsyncOperation" BaseType="graph.entity" OpenType="true">
-        <Property Name="operationType" Type="graph.teamsAsyncOperationType" Nullable="false" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="status" Type="graph.teamsAsyncOperationStatus" Nullable="false" />
-        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="attemptsCount" Type="Edm.Int32" Nullable="false" />
-        <Property Name="targetResourceId" Type="Edm.String" />
-        <Property Name="targetResourceLocation" Type="Edm.String" />
-        <Property Name="error" Type="graph.operationError" />
+        <Property Name="operationType" Type="graph.teamsAsyncOperationType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Denotes which type of operation is being described." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Time when the operation was created." />
+        </Property>
+        <Property Name="status" Type="graph.teamsAsyncOperationStatus" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Operation status." />
+        </Property>
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Time when the async operation was last updated." />
+        </Property>
+        <Property Name="attemptsCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of times the operation was attempted before being marked successful or failed." />
+        </Property>
+        <Property Name="targetResourceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the object that's created or modified as result of this async operation, typically a team." />
+        </Property>
+        <Property Name="targetResourceLocation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The location of the object that's created or modified as result of this async operation. This URL should be treated as an opaque value and not parsed into its component paths." />
+        </Property>
+        <Property Name="error" Type="graph.operationError">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Any error that causes the async operation to fail." />
+        </Property>
       </EntityType>
       <EntityType Name="chatMessage" BaseType="graph.entity">
         <Property Name="replyToId" Type="Edm.String">
@@ -11161,8 +11207,12 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="aadUserConversationMember" BaseType="graph.conversationMember">
-        <Property Name="userId" Type="Edm.String" />
-        <Property Name="email" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The guid of the user." />
+        </Property>
+        <Property Name="email" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The email address of the user." />
+        </Property>
         <NavigationProperty Name="user" Type="graph.user" />
       </EntityType>
       <EntityType Name="shift" BaseType="graph.changeTrackedEntity">
@@ -15396,6 +15446,10 @@
       </ComplexType>
       <ComplexType Name="callOptions" Abstract="true" />
       <ComplexType Name="meetingInfo" Abstract="true" />
+      <ComplexType Name="callTranscriptionInfo">
+        <Property Name="state" Type="graph.callTranscriptionState" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="toneInfo">
         <Property Name="sequenceId" Type="Edm.Int64" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="An incremental identifier used for ordering DTMF events." />
@@ -20106,6 +20160,11 @@
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="mediaConfig" Type="graph.mediaConfig" Nullable="false" />
         <Parameter Name="acceptedModalities" Type="Collection(graph.modality)" />
+      </Action>
+      <Action Name="cancelMediaProcessing" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.call" />
+        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.cancelMediaProcessingOperation" />
       </Action>
       <Action Name="changeScreenSharingRole" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
