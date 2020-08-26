@@ -95,11 +95,6 @@
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
-    <!-- Remove namespaces -->
-
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']"/>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.termStore']"/>
-
     <!-- Remove singleton -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
@@ -123,6 +118,10 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteResource']/@HasStream">
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
+
+    <!--Remove functions that are blocking beta generation-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
 
     <!-- Reorder action parameters -->
 
