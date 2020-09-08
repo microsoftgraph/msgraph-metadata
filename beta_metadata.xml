@@ -5656,6 +5656,7 @@
         <Property Name="timeFormat" Type="Edm.String" />
         <Property Name="timeZone" Type="Edm.String" />
         <Property Name="userPurpose" Type="graph.userPurpose" />
+        <Property Name="userPurposeV2" Type="graph.mailboxRecipientType" />
         <Property Name="workingHours" Type="graph.workingHours" />
       </ComplexType>
       <ComplexType Name="automaticRepliesSetting">
@@ -6477,6 +6478,7 @@
         <Property Name="publisherDomain" Type="Edm.String" />
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false" />
         <Property Name="signInAudience" Type="Edm.String" />
+        <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
         <Property Name="uniqueName" Type="Edm.String" />
@@ -6643,6 +6645,9 @@
       <ComplexType Name="resourceAccess">
         <Property Name="id" Type="Edm.Guid" Nullable="false" />
         <Property Name="type" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="spaApplication">
+        <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="webApplication">
         <Property Name="homePageUrl" Type="Edm.String" />
@@ -7056,10 +7061,18 @@
         <NavigationProperty Name="b2cUserFlows" Type="Collection(graph.b2cIdentityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="userFlows" Type="Collection(graph.identityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="continuousAccessEvaluationPolicy" Type="graph.continuousAccessEvaluationPolicy" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="continuousAccessEvaluationPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="groups" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="users" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="openIdConnectProvider" BaseType="graph.identityProvider">
         <Property Name="claimsMapping" Type="graph.claimsMapping" />
@@ -9251,6 +9264,16 @@
         <Property Name="mentioned" Type="graph.emailAddress" Nullable="false" />
         <Property Name="mentionText" Type="Edm.String" />
         <Property Name="serverCreatedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="note" BaseType="graph.outlookItem">
+        <Property Name="body" Type="graph.itemBody" />
+        <Property Name="hasAttachments" Type="Edm.Boolean" />
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="subject" Type="Edm.String" />
+        <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true" />
+        <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="multiValueExtendedProperties" Type="Collection(graph.multiValueLegacyExtendedProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="openTypeExtension" BaseType="graph.extension" OpenType="true">
         <Property Name="extensionName" Type="Edm.String" Nullable="false" />
@@ -17785,7 +17808,7 @@
         <Property Name="hitsContainers" Type="Collection(graph.searchHitsContainer)" />
         <Property Name="searchTerms" Type="Collection(Edm.String)" />
       </ComplexType>
-      <EntityType Name="search" BaseType="graph.entity" />
+      <EntityType Name="searchEntity" BaseType="graph.entity" />
       <ComplexType Name="dateTimeTimeZoneType">
         <Property Name="dateTime" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -25299,6 +25322,10 @@
         <Parameter Name="bindingparameter" Type="Collection(graph.message)" Nullable="false" />
         <ReturnType Type="Collection(graph.message)" Nullable="false" />
       </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.note)" Nullable="false" />
+        <ReturnType Type="Collection(graph.note)" Nullable="false" />
+      </Function>
       <Function Name="supportedLanguages" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.outlookUser" />
         <ReturnType Type="Collection(graph.localeInfo)" Nullable="false" />
@@ -26610,7 +26637,7 @@
         <Parameter Name="assignments" Type="Collection(graph.intuneBrandingProfileAssignment)" />
       </Action>
       <Action Name="query" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.search" />
+        <Parameter Name="bindingParameter" Type="graph.searchEntity" />
         <Parameter Name="requests" Type="Collection(graph.searchRequest)" Nullable="false" />
         <ReturnType Type="Collection(graph.searchResponse)" Nullable="false" />
       </Action>
@@ -27337,7 +27364,7 @@
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="officeConfiguration" Type="microsoft.graph.officeConfiguration" />
-        <Singleton Name="search" Type="microsoft.graph.search" />
+        <Singleton Name="search" Type="microsoft.graph.searchEntity" />
         <Singleton Name="financials" Type="microsoft.graph.financials" />
         <Singleton Name="planner" Type="microsoft.graph.planner">
           <NavigationPropertyBinding Path="buckets/tasks" Target="planner/tasks" />
@@ -28298,6 +28325,13 @@
       <Annotations Target="microsoft.graph.bookingService/defaultReminders">
         <Annotation Term="Org.OData.Core.V1.Description" String="The default reminders set in an appointment of this service." />
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The value of this property is only available when reading an individual booking service by id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.continuousAccessEvaluationPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.administrativeUnit">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -29308,6 +29342,35 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.note/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.note/extensions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
