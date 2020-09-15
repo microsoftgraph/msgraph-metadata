@@ -75,6 +75,17 @@
         <Member Name="confirmedCompromised" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
+      <EnumType Name="permissionClassificationType">
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="permissionType">
+        <Member Name="application" Value="3" />
+        <Member Name="delegated" Value="2" />
+        <Member Name="delegatedUserConsentable" Value="1" />
+      </EnumType>
       <EnumType Name="phoneType">
         <Member Name="home" Value="0" />
         <Member Name="business" Value="1" />
@@ -2135,6 +2146,7 @@
         <NavigationProperty Name="registeredDevices" Type="Collection(graph.directoryObject)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Devices that are registered for the user. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="scopedRoleMemberOf" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="calendar" Type="graph.calendar" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user's primary calendar. Read-only." />
@@ -2259,6 +2271,11 @@
         <Property Name="scope" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A space-separated list of the claim values for delegated permissions which should be included in access tokens for the resource application (the API). For example, openid User.Read GroupMember.Read.All. Each claim value should match the value field of one of the delegated permissions defined by the API, listed in the publishedPermissionScopes property of the resource service principal." />
         </Property>
+      </EntityType>
+      <EntityType Name="scopedRoleMembership" BaseType="graph.entity">
+        <Property Name="administrativeUnitId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleMemberInfo" Type="graph.identity" Nullable="false" />
       </EntityType>
       <EntityType Name="calendar" BaseType="graph.entity">
         <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)">
@@ -3281,38 +3298,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The template this team was created from. See available templates." />
         </NavigationProperty>
       </EntityType>
-      <EntityType Name="identityContainer" BaseType="graph.entity">
-        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
-        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
-        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="identityProvider" BaseType="graph.entity">
-        <Property Name="clientId" Type="Edm.String" />
-        <Property Name="clientSecret" Type="Edm.String" />
-        <Property Name="name" Type="Edm.String" />
-        <Property Name="type" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
-        <Property Name="description" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Description for this policy." />
-        </Property>
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Display name for this policy." />
-        </Property>
-      </EntityType>
-      <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
-        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A string collection containing a JSON string that defines the rules and settings for a policy. The syntax for the definition differs for each derived policy type. Required." />
-        </Property>
-        <Property Name="isOrganizationDefault" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, activates this policy. There can be many policies for the same policy type, but only one can be activated as the organization default. Optional, default value is false." />
-        </Property>
-        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
-      </EntityType>
-      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
-      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true" />
       <EntityType Name="application" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Defines custom behavior that a consuming service can use to call an app in specific contexts. For example, applications that can render file streams may set the addIns property for its 'FileHandler' functionality. This will let services like Microsoft 365 call the application in the context of a document the user is working on." />
@@ -3415,9 +3400,48 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Following values are supported. Not nullable. UserGroupOrganizationDeviceApplication" />
         </Property>
       </EntityType>
+      <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description for this policy." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name for this policy." />
+        </Property>
+      </EntityType>
+      <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
+        <Property Name="definition" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A string collection containing a JSON string that defines the rules and settings for a policy. The syntax for the definition differs for each derived policy type. Required." />
+        </Property>
+        <Property Name="isOrganizationDefault" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, activates this policy. There can be many policies for the same policy type, but only one can be activated as the organization default. Optional, default value is false." />
+        </Property>
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
+      </EntityType>
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="identityContainer" BaseType="graph.entity">
+        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="identityProvider" BaseType="graph.entity">
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="clientSecret" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="visibility" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="scopedRoleMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
+        <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
         <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection of certificate authorities which creates a trusted certificate chain." />
@@ -3437,6 +3461,11 @@
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A copy of the customer tenant's display name. The copy is made when the partnership with the customer is established. It is not automatically updated if the customer tenant's display name changes." />
         </Property>
+      </EntityType>
+      <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
+        <Property Name="classification" Type="graph.permissionClassificationType" />
+        <Property Name="permissionId" Type="Edm.String" />
+        <Property Name="permissionName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="device" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean">
@@ -3511,6 +3540,7 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="directory" BaseType="graph.entity">
+        <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
         </NavigationProperty>
@@ -3542,6 +3572,7 @@
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Users that are members of this directory role. HTTP Methods: GET, POST, DELETE. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="scopedMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryRoleTemplate" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String">
@@ -4030,10 +4061,25 @@
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
       </EntityType>
+      <EntityType Name="permissionGrantConditionSet" BaseType="graph.entity">
+        <Property Name="clientApplicationIds" Type="Collection(Edm.String)" />
+        <Property Name="clientApplicationPublisherIds" Type="Collection(Edm.String)" />
+        <Property Name="clientApplicationsFromVerifiedPublisherOnly" Type="Edm.Boolean" />
+        <Property Name="clientApplicationTenantIds" Type="Collection(Edm.String)" />
+        <Property Name="permissionClassification" Type="Edm.String" />
+        <Property Name="permissions" Type="Collection(Edm.String)" />
+        <Property Name="permissionType" Type="graph.permissionType" />
+        <Property Name="resourceApplication" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
+        <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+        <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
@@ -11775,17 +11821,6 @@
         <Property Name="properties" Type="Collection(graph.keyValue)" Nullable="false" />
         <Property Name="type" Type="Edm.String" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="alternativeSecurityId">
-        <Property Name="identityProvider" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
-        </Property>
-        <Property Name="key" Type="Edm.Binary">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
-        </Property>
-        <Property Name="type" Type="Edm.Int32">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
-        </Property>
-      </ComplexType>
       <ComplexType Name="apiApplication">
         <Property Name="acceptMappedClaims" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="When true, allows an application to use claims mapping without specifying a custom signing key." />
@@ -11861,54 +11896,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the value to include in the roles claim in ID tokens and access tokens authenticating an assigned user or service principal. Must not exceed 120 characters in length. Allowed characters are : ! # $ % &amp; ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, as well as characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, are not allowed." />
         </Property>
       </ComplexType>
-      <ComplexType Name="assignedLabel">
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the label. Read-only." />
-        </Property>
-        <Property Name="labelId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the label." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="certificateAuthority">
-        <Property Name="certificate" Type="Edm.Binary" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The base64 encoded string representing the public certificate." />
-        </Property>
-        <Property Name="certificateRevocationListUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the certificate revocation list." />
-        </Property>
-        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The URL contains the list of all revoked certificates since the last time a full certificate revocaton list was created." />
-        </Property>
-        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. true if the trusted certificate is a root authority, false if the trusted certificate is an intermediate authority." />
-        </Property>
-        <Property Name="issuer" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The issuer of the certificate, calculated from the certificate value. Read-only." />
-        </Property>
-        <Property Name="issuerSki" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The subject key identifier of the certificate, calculated from the certificate value. Read-only." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="ComplexExtensionValue" OpenType="true" />
-      <ComplexType Name="domainState">
-        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp for when the last activity occurred. The value is updated when an operation is scheduled, the asynchronous task starts, and when the operation completes." />
-        </Property>
-        <Property Name="operation" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Type of asynchronous operation. The values can be ForceDelete or Verification" />
-        </Property>
-        <Property Name="status" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Current status of the operation.  Scheduled - Operation has been scheduled but has not started.  InProgress - Task has started and is in progress.  Failed - Operation has failed." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="implicitGrantSettings">
-        <Property Name="enableAccessTokenIssuance" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an access token using the OAuth 2.0 implicit flow." />
-        </Property>
-        <Property Name="enableIdTokenIssuance" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="informationalUrl">
         <Property Name="logoUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="CDN URL to the application's logo, Read-only." />
@@ -11952,18 +11939,15 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="A string that describes the purpose for which the key can be used; for example, 'Verify'." />
         </Property>
       </ComplexType>
-      <ComplexType Name="licenseProcessingState">
-        <Property Name="state" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="licenseUnitsDetail">
-        <Property Name="enabled" Type="Edm.Int32">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are enabled." />
+      <ComplexType Name="optionalClaims">
+        <Property Name="accessToken" Type="Collection(graph.optionalClaim)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the JWT access token." />
         </Property>
-        <Property Name="suspended" Type="Edm.Int32">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are suspended." />
+        <Property Name="idToken" Type="Collection(graph.optionalClaim)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the JWT ID token." />
         </Property>
-        <Property Name="warning" Type="Edm.Int32">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are in warning status." />
+        <Property Name="saml2Token" Type="Collection(graph.optionalClaim)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the SAML token." />
         </Property>
       </ComplexType>
       <ComplexType Name="optionalClaim">
@@ -11978,17 +11962,6 @@
         </Property>
         <Property Name="source" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The source (directory object) of the claim. There are predefined claims and user-defined claims from extension properties. If the source value is null, the claim is a predefined optional claim. If the source value is user, the value in the name property is the extension property from the user object." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="optionalClaims">
-        <Property Name="accessToken" Type="Collection(graph.optionalClaim)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the JWT access token." />
-        </Property>
-        <Property Name="idToken" Type="Collection(graph.optionalClaim)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the JWT ID token." />
-        </Property>
-        <Property Name="saml2Token" Type="Collection(graph.optionalClaim)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the SAML token." />
         </Property>
       </ComplexType>
       <ComplexType Name="parentalControlSettings">
@@ -12020,6 +11993,122 @@
         </Property>
         <Property Name="startDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The date and time at which the password becomes valid. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Optional." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="publicClientApplication">
+        <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="requiredResourceAccess">
+        <Property Name="resourceAccess" Type="Collection(graph.resourceAccess)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of OAuth2.0 permission scopes and app roles that the application requires from the specified resource." />
+        </Property>
+        <Property Name="resourceAppId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the resource that the application requires access to.  This should be equal to the appId declared on the target resource application." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="resourceAccess">
+        <Property Name="id" Type="Edm.Guid" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for one of the oauth2PermissionScopes or appRole instances that the resource application exposes." />
+        </Property>
+        <Property Name="type" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the id property references an oauth2PermissionScopes or an appRole. Possible values are Scope or Role." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="webApplication">
+        <Property Name="homePageUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Home page or landing page of the application." />
+        </Property>
+        <Property Name="implicitGrantSettings" Type="graph.implicitGrantSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request tokens using the OAuth 2.0 implicit flow." />
+        </Property>
+        <Property Name="logoutUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URL that will be used by Microsoft's authorization service to logout an user using front-channel, back-channel or SAML logout protocols." />
+        </Property>
+        <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="implicitGrantSettings">
+        <Property Name="enableAccessTokenIssuance" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an access token using the OAuth 2.0 implicit flow." />
+        </Property>
+        <Property Name="enableIdTokenIssuance" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="alternativeSecurityId">
+        <Property Name="identityProvider" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
+        </Property>
+        <Property Name="key" Type="Edm.Binary">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
+        </Property>
+        <Property Name="type" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="assignedLabel">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the label. Read-only." />
+        </Property>
+        <Property Name="labelId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the label." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="certificateAuthority">
+        <Property Name="certificate" Type="Edm.Binary" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The base64 encoded string representing the public certificate." />
+        </Property>
+        <Property Name="certificateRevocationListUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the certificate revocation list." />
+        </Property>
+        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL contains the list of all revoked certificates since the last time a full certificate revocaton list was created." />
+        </Property>
+        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. true if the trusted certificate is a root authority, false if the trusted certificate is an intermediate authority." />
+        </Property>
+        <Property Name="issuer" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The issuer of the certificate, calculated from the certificate value. Read-only." />
+        </Property>
+        <Property Name="issuerSki" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject key identifier of the certificate, calculated from the certificate value. Read-only." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="ComplexExtensionValue" OpenType="true" />
+      <ComplexType Name="domainState">
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp for when the last activity occurred. The value is updated when an operation is scheduled, the asynchronous task starts, and when the operation completes." />
+        </Property>
+        <Property Name="operation" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Type of asynchronous operation. The values can be ForceDelete or Verification" />
+        </Property>
+        <Property Name="status" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Current status of the operation.  Scheduled - Operation has been scheduled but has not started.  InProgress - Task has started and is in progress.  Failed - Operation has failed." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="identity" OpenType="true">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
+        </Property>
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="licenseProcessingState">
+        <Property Name="state" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="licenseUnitsDetail">
+        <Property Name="enabled" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are enabled." />
+        </Property>
+        <Property Name="suspended" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are suspended." />
+        </Property>
+        <Property Name="warning" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are in warning status." />
         </Property>
       </ComplexType>
       <ComplexType Name="phone">
@@ -12058,27 +12147,6 @@
         </Property>
         <Property Name="statementUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A valid URL format that begins with http:// or https://. Maximum length is 255 characters. The URL that directs to the company's privacy statement. Not required." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="publicClientApplication">
-        <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="requiredResourceAccess">
-        <Property Name="resourceAccess" Type="Collection(graph.resourceAccess)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The list of OAuth2.0 permission scopes and app roles that the application requires from the specified resource." />
-        </Property>
-        <Property Name="resourceAppId" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the resource that the application requires access to.  This should be equal to the appId declared on the target resource application." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="resourceAccess">
-        <Property Name="id" Type="Edm.Guid" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for one of the oauth2PermissionScopes or appRole instances that the resource application exposes." />
-        </Property>
-        <Property Name="type" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the id property references an oauth2PermissionScopes or an appRole. Possible values are Scope or Role." />
         </Property>
       </ComplexType>
       <ComplexType Name="samlSingleSignOnSettings">
@@ -12139,20 +12207,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="For example, 'Managed'." />
         </Property>
       </ComplexType>
-      <ComplexType Name="webApplication">
-        <Property Name="homePageUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Home page or landing page of the application." />
-        </Property>
-        <Property Name="implicitGrantSettings" Type="graph.implicitGrantSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request tokens using the OAuth 2.0 implicit flow." />
-        </Property>
-        <Property Name="logoutUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URL that will be used by Microsoft's authorization service to logout an user using front-channel, back-channel or SAML logout protocols." />
-        </Property>
-        <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="educationStudent">
         <Property Name="birthDate" Type="Edm.Date">
           <Annotation Term="Org.OData.Core.V1.Description" String="Birth date of the student." />
@@ -12193,14 +12247,6 @@
         </Property>
         <Property Name="startDate" Type="Edm.Date">
           <Annotation Term="Org.OData.Core.V1.Description" String="Start of the term." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="identity" OpenType="true">
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The identity's display name. Note that this may not always be available or up to date. For example, if a user changes their display name, the API may show the new value in a future response, but the items associated with the user won't show up as having changed when using delta." />
-        </Property>
-        <Property Name="id" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
         </Property>
       </ComplexType>
       <ComplexType Name="identitySet" OpenType="true">
@@ -16134,6 +16180,7 @@
         <EntitySet Name="organization" EntityType="microsoft.graph.organization">
           <NavigationPropertyBinding Path="certificateBasedAuthConfiguration" Target="certificateBasedAuthConfiguration" />
         </EntitySet>
+        <EntitySet Name="scopedRoleMemberships" EntityType="microsoft.graph.scopedRoleMembership" />
         <EntitySet Name="servicePrincipals" EntityType="microsoft.graph.servicePrincipal">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
@@ -16245,8 +16292,61 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.user)" />
         <ReturnType Type="Collection(graph.user)" />
       </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.contact)" Nullable="false" />
+        <ReturnType Type="Collection(graph.contact)" Nullable="false" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.contactFolder)" Nullable="false" />
+        <ReturnType Type="Collection(graph.contactFolder)" Nullable="false" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.event)" Nullable="false" />
+        <ReturnType Type="Collection(graph.event)" Nullable="false" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.mailFolder)" Nullable="false" />
+        <ReturnType Type="Collection(graph.mailFolder)" Nullable="false" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.message)" Nullable="false" />
+        <ReturnType Type="Collection(graph.message)" Nullable="false" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="token" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
       <Function Name="count" IsBound="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
         <ReturnType Type="Edm.Int32" Nullable="false" />
       </Function>
       <Function Name="item" IsBound="true" IsComposable="true">
@@ -16259,32 +16359,40 @@
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.workbookChart" />
       </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
       <Function Name="itemAt" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.workbookTable" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
       </Function>
       <Function Name="itemAt" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.workbookTableColumn" />
       </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
       <Function Name="itemAt" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
         <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.workbookTableRow" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookChartPoint" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookChartSeries" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRangeBorder" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeView)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRangeView" />
       </Function>
       <Function Name="boundingRect" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
@@ -16293,6 +16401,12 @@
       </Function>
       <Function Name="cell" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="cell" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
         <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
         <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.workbookRange" />
@@ -16389,6 +16503,15 @@
         <Parameter Name="valuesOnly" Type="Edm.Boolean" Nullable="false" />
         <ReturnType Type="graph.workbookRange" />
       </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <Parameter Name="valuesOnly" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="visibleView" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
         <ReturnType Type="graph.workbookRangeView" />
@@ -16397,16 +16520,53 @@
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
         <ReturnType Type="graph.workbookRange" />
       </Function>
+      <Function Name="dataBodyRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="headerRowRange" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="headerRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
         <ReturnType Type="graph.workbookRange" />
       </Function>
       <Function Name="range" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
         <ReturnType Type="graph.workbookRange" />
       </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <Parameter Name="address" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookNamedItem" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeView" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableRow" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="totalRowRange" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="totalRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
         <ReturnType Type="graph.workbookRange" />
       </Function>
       <Function Name="sessionInfoResource" IsBound="true">
@@ -16436,114 +16596,10 @@
         <Parameter Name="fittingMode" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.String" Unicode="false" />
       </Function>
-      <Function Name="cell" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
-        <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
-        <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
-        <Parameter Name="address" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="usedRange" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="usedRange" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
-        <Parameter Name="valuesOnly" Type="Edm.Boolean" Nullable="false" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="itemAt" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
-        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="graph.workbookChartPoint" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="itemAt" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
-        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="graph.workbookChartSeries" />
-      </Function>
-      <Function Name="count" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
-        <ReturnType Type="Edm.Int32" Nullable="false" />
-      </Function>
-      <Function Name="itemAt" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
-        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="graph.workbookRangeBorder" />
-      </Function>
-      <Function Name="dataBodyRange" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="headerRowRange" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="totalRowRange" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="itemAt" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeView)" />
-        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
-        <ReturnType Type="graph.workbookRangeView" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookNamedItem" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookRangeView" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
-      <Function Name="range" IsBound="true" IsComposable="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableRow" />
-        <ReturnType Type="graph.workbookRange" />
-      </Function>
       <Function Name="allowedCalendarSharingRoles" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.calendar" />
         <Parameter Name="User" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.calendarRoleType)" Nullable="false" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingparameter" Type="Collection(graph.contact)" Nullable="false" />
-        <ReturnType Type="Collection(graph.contact)" Nullable="false" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingparameter" Type="Collection(graph.contactFolder)" Nullable="false" />
-        <ReturnType Type="Collection(graph.contactFolder)" Nullable="false" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingparameter" Type="Collection(graph.event)" Nullable="false" />
-        <ReturnType Type="Collection(graph.event)" Nullable="false" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingparameter" Type="Collection(graph.mailFolder)" Nullable="false" />
-        <ReturnType Type="Collection(graph.mailFolder)" Nullable="false" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingparameter" Type="Collection(graph.message)" Nullable="false" />
-        <ReturnType Type="Collection(graph.message)" Nullable="false" />
       </Function>
       <Function Name="supportedLanguages" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.outlookUser" />
@@ -16558,14 +16614,9 @@
         <Parameter Name="TimeZoneStandard" Type="graph.timeZoneStandard" Nullable="false" />
         <ReturnType Type="Collection(graph.timeZoneInformation)" Nullable="false" />
       </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <ReturnType Type="Collection(graph.driveItem)" />
-      </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <Parameter Name="token" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(graph.driveItem)" />
+      <Function Name="preview" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.onenotePage" />
+        <ReturnType Type="graph.onenotePagePreview" />
       </Function>
       <Function Name="getActivitiesByInterval" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -16573,6 +16624,28 @@
       </Function>
       <Function Name="getActivitiesByInterval" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.listItem" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.listItem" />
+        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.site" />
+        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      </Function>
+      <Function Name="getActivitiesByInterval" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.site" />
         <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
         <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
         <Parameter Name="interval" Type="Edm.String" Unicode="false" />
@@ -16583,27 +16656,10 @@
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.listItem" />
-        <ReturnType Type="Collection(graph.itemActivityStat)" />
-      </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.listItem" />
-        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
-        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
-        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(graph.itemActivityStat)" />
-      </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.site" />
-        <ReturnType Type="Collection(graph.itemActivityStat)" />
-      </Function>
-      <Function Name="getActivitiesByInterval" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.site" />
-        <Parameter Name="startDateTime" Type="Edm.String" Unicode="false" />
-        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
-        <Parameter Name="interval" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(graph.itemActivityStat)" />
+      <Function Name="search" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.drive" />
+        <Parameter Name="q" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
       <Function Name="getByPath" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="graph.site" />
@@ -16614,10 +16670,9 @@
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
-      <Function Name="search" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.drive" />
-        <Parameter Name="q" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Collection(graph.driveItem)" />
+      <Function EntitySetPath="activities" Name="recent" IsBound="true">
+        <Parameter Name="activities" Type="Collection(graph.userActivity)" />
+        <ReturnType Type="Collection(graph.userActivity)" />
       </Function>
       <Function Name="sharedWithMe" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
@@ -17082,21 +17137,20 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.managedAppRegistration)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
-      <Function Name="preview" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.onenotePage" />
-        <ReturnType Type="graph.onenotePagePreview" />
-      </Function>
       <Function Name="getRecentNotebooks" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.notebook)" />
         <Parameter Name="includePersonalNotebooks" Type="Edm.Boolean" Nullable="false" />
         <ReturnType Type="Collection(graph.recentNotebook)" />
       </Function>
-      <Function EntitySetPath="activities" Name="recent" IsBound="true">
-        <Parameter Name="activities" Type="Collection(graph.userActivity)" />
-        <ReturnType Type="Collection(graph.userActivity)" />
-      </Function>
       <Action Name="addKey" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
+        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
+        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.keyCredential" Nullable="false" />
+      </Action>
+      <Action Name="addKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
         <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
         <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
         <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -17107,31 +17161,24 @@
         <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
         <ReturnType Type="graph.passwordCredential" Nullable="false" />
       </Action>
+      <Action Name="addPassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
+        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
+        <ReturnType Type="graph.passwordCredential" Nullable="false" />
+      </Action>
       <Action Name="removeKey" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
+        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
+        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="removeKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
         <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="removePassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
-      </Action>
-      <Action Name="addKey" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
-        <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
-        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
-        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="graph.keyCredential" Nullable="false" />
-      </Action>
-      <Action Name="addPassword" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
-        <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
-        <ReturnType Type="graph.passwordCredential" Nullable="false" />
-      </Action>
-      <Action Name="removeKey" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
-        <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
-        <Parameter Name="proof" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="removePassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
@@ -17143,8 +17190,21 @@
         <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false" />
         <ReturnType Type="graph.group" />
       </Action>
+      <Action Name="assignLicense" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
+        <Parameter Name="addLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
+        <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false" />
+        <ReturnType Type="graph.user" />
+      </Action>
       <Action Name="validateProperties" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
+        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
+        <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
+      </Action>
+      <Action Name="validateProperties" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="Collection(graph.directoryObject)" Nullable="false" />
+        <Parameter Name="entityType" Type="Edm.String" Unicode="false" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
         <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
@@ -17166,12 +17226,6 @@
       </Action>
       <Action Name="renew" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
-      </Action>
-      <Action Name="assignLicense" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
-        <Parameter Name="addLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
-        <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false" />
-        <ReturnType Type="graph.user" />
       </Action>
       <Action Name="changePassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
@@ -17251,6 +17305,12 @@
         <Parameter Name="bindingParameter" Type="graph.directoryObject" Nullable="false" />
         <ReturnType Type="graph.directoryObject" />
       </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="parentReference" Type="graph.itemReference" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.driveItem" />
+      </Action>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
@@ -17270,12 +17330,11 @@
         <Parameter Name="types" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(graph.directoryObject)" Nullable="false" />
       </Action>
-      <Action Name="validateProperties" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="Collection(graph.directoryObject)" Nullable="false" />
-        <Parameter Name="entityType" Type="Edm.String" Unicode="false" />
-        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
-        <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
-        <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
+      <Action Name="delta" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number1" Type="graph.Json" />
+        <Parameter Name="number2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="abs" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -17878,12 +17937,6 @@
       <Action Name="degrees" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="angle" Type="graph.Json" />
-        <ReturnType Type="graph.workbookFunctionResult" />
-      </Action>
-      <Action Name="delta" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
-        <Parameter Name="number1" Type="graph.Json" />
-        <Parameter Name="number2" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="devSq" IsBound="true">
@@ -19570,13 +19623,6 @@
         <Parameter Name="comment" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.workbookNamedItem" />
       </Action>
-      <Action Name="addFormulaLocal" IsBound="true">
-        <Parameter Name="bindparameter" Type="Collection(graph.workbookNamedItem)" />
-        <Parameter Name="name" Type="Edm.String" Unicode="false" />
-        <Parameter Name="formula" Type="Edm.String" Unicode="false" />
-        <Parameter Name="comment" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.workbookNamedItem" />
-      </Action>
       <Action Name="add" IsBound="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
         <Parameter Name="address" Type="Edm.String" Unicode="false" />
@@ -19601,9 +19647,35 @@
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.workbookWorksheet" />
       </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
+        <Parameter Name="value" Type="Collection(graph.site)" />
+        <ReturnType Type="Collection(graph.site)" />
+      </Action>
+      <Action Name="addFormulaLocal" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookNamedItem)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="formula" Type="Edm.String" Unicode="false" />
+        <Parameter Name="comment" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookNamedItem" />
+      </Action>
       <Action Name="apply" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFilter" />
         <Parameter Name="criteria" Type="graph.workbookFilterCriteria" />
+      </Action>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeSort" />
+        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
+        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="hasHeaders" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="orientation" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
+        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
+        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="applyBottomItemsFilter" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFilter" />
@@ -19650,22 +19722,21 @@
       <Action Name="clear" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFilter" />
       </Action>
-      <Action Name="apply" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookRangeSort" />
-        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
-        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
-        <Parameter Name="hasHeaders" Type="Edm.Boolean" Nullable="false" />
-        <Parameter Name="orientation" Type="Edm.String" Nullable="false" Unicode="false" />
-        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
-      </Action>
-      <Action Name="apply" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
-        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
-        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
-        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
-      </Action>
       <Action Name="clear" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChartFill" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChartLineFormat" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="applyTo" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeFill" />
       </Action>
       <Action Name="reapply" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
@@ -19680,19 +19751,9 @@
         <Parameter Name="bindparameter" Type="graph.workbookApplication" />
         <Parameter Name="calculationType" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
-      <Action Name="clear" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookChartFill" />
-      </Action>
       <Action Name="setSolidColor" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookChartFill" />
         <Parameter Name="color" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="clear" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookChartLineFormat" />
-      </Action>
-      <Action Name="clear" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookRange" />
-        <Parameter Name="applyTo" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="delete" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
@@ -19709,9 +19770,6 @@
       </Action>
       <Action Name="unmerge" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
-      </Action>
-      <Action Name="clear" IsBound="true">
-        <Parameter Name="bindparameter" Type="graph.workbookRangeFill" />
       </Action>
       <Action Name="clearFilters" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
@@ -19771,6 +19829,10 @@
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
       </Action>
+      <Action Name="decline" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.scheduleChangeRequest" />
+        <Parameter Name="message" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
       </Action>
@@ -19788,12 +19850,23 @@
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="graph.mailFolder" />
       </Action>
+      <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="graph.message" />
+        <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.message" />
+      </Action>
+      <Action Name="copy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="parentReference" Type="graph.itemReference" />
+        <ReturnType Type="graph.driveItem" />
+      </Action>
       <Action Name="move" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="graph.mailFolder" />
       </Action>
-      <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
+      <Action Name="move" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.message" />
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="graph.message" />
@@ -19823,15 +19896,23 @@
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
-      <Action Name="move" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="graph.message" />
-        <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="graph.message" />
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.post" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="reply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.post" />
+        <Parameter Name="Post" Type="graph.post" Nullable="false" />
+      </Action>
+      <Action Name="reply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.conversationThread" />
+        <Parameter Name="Post" Type="graph.post" Nullable="false" />
       </Action>
       <Action Name="replyAll" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
@@ -19846,14 +19927,10 @@
         <Parameter Name="AttachmentItem" Type="graph.attachmentItem" Nullable="false" />
         <ReturnType Type="graph.uploadSession" />
       </Action>
-      <Action Name="forward" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.post" />
-        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
-        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
-      </Action>
-      <Action Name="reply" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.post" />
-        <Parameter Name="Post" Type="graph.post" Nullable="false" />
+      <Action Name="createUploadSession" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
+        <ReturnType Type="graph.uploadSession" />
       </Action>
       <Action Name="getSchedule" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.calendar" />
@@ -19862,15 +19939,6 @@
         <Parameter Name="StartTime" Type="graph.dateTimeTimeZone" />
         <Parameter Name="AvailabilityViewInterval" Type="Edm.Int32" />
         <ReturnType Type="Collection(graph.scheduleInformation)" />
-      </Action>
-      <Action Name="reply" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.conversationThread" />
-        <Parameter Name="Post" Type="graph.post" Nullable="false" />
-      </Action>
-      <Action Name="add" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
-        <Parameter Name="value" Type="Collection(graph.site)" />
-        <ReturnType Type="Collection(graph.site)" />
       </Action>
       <Action Name="remove" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
@@ -19885,12 +19953,6 @@
       <Action Name="checkout" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
       </Action>
-      <Action Name="copy" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <Parameter Name="name" Type="Edm.String" Unicode="false" />
-        <Parameter Name="parentReference" Type="graph.itemReference" />
-        <ReturnType Type="graph.driveItem" />
-      </Action>
       <Action Name="createLink" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -19899,11 +19961,6 @@
         <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.permission" />
-      </Action>
-      <Action Name="createUploadSession" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
-        <ReturnType Type="graph.uploadSession" />
       </Action>
       <Action Name="follow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -19920,17 +19977,17 @@
         <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
+      <Action Name="invite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
+        <Parameter Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
+        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.inviteParticipantsOperation" />
+      </Action>
       <Action Name="preview" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="page" Type="Edm.String" Unicode="false" />
         <Parameter Name="zoom" Type="Edm.Double" />
         <ReturnType Type="graph.itemPreviewInfo" />
-      </Action>
-      <Action Name="restore" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <Parameter Name="parentReference" Type="graph.itemReference" />
-        <Parameter Name="name" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.driveItem" />
       </Action>
       <Action Name="unfollow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -19970,13 +20027,6 @@
         <Parameter Name="bindingParameter" Type="graph.mobileApp" />
         <Parameter Name="mobileAppAssignments" Type="Collection(graph.mobileAppAssignment)" />
       </Action>
-      <Action Name="commit" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.mobileAppContentFile" />
-        <Parameter Name="fileEncryptionInfo" Type="graph.fileEncryptionInfo" />
-      </Action>
-      <Action Name="renewUpload" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.mobileAppContentFile" />
-      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedEBook" />
         <Parameter Name="managedEBookAssignments" Type="Collection(graph.managedEBookAssignment)" />
@@ -19986,10 +20036,6 @@
         <Parameter Name="assignments" Type="Collection(graph.deviceCompliancePolicyAssignment)" />
         <ReturnType Type="Collection(graph.deviceCompliancePolicyAssignment)" />
       </Action>
-      <Action Name="scheduleActionsForRules" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.deviceCompliancePolicy" />
-        <Parameter Name="deviceComplianceScheduledActionForRules" Type="Collection(graph.deviceComplianceScheduledActionForRule)" />
-      </Action>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceConfiguration" />
         <Parameter Name="assignments" Type="Collection(graph.deviceConfigurationAssignment)" />
@@ -19998,6 +20044,29 @@
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceEnrollmentConfiguration" />
         <Parameter Name="enrollmentConfigurationAssignments" Type="Collection(graph.enrollmentConfigurationAssignment)" />
+      </Action>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.targetedManagedAppConfiguration" />
+        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
+      </Action>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.targetedManagedAppProtection" />
+        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
+      </Action>
+      <Action Name="assign" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.windowsInformationProtection" />
+        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
+      </Action>
+      <Action Name="commit" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.mobileAppContentFile" />
+        <Parameter Name="fileEncryptionInfo" Type="graph.fileEncryptionInfo" />
+      </Action>
+      <Action Name="renewUpload" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.mobileAppContentFile" />
+      </Action>
+      <Action Name="scheduleActionsForRules" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deviceCompliancePolicy" />
+        <Parameter Name="deviceComplianceScheduledActionForRules" Type="Collection(graph.deviceComplianceScheduledActionForRule)" />
       </Action>
       <Action Name="setPriority" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceEnrollmentConfiguration" />
@@ -20079,21 +20148,9 @@
         <Parameter Name="keepUserData" Type="Edm.Boolean" />
         <Parameter Name="macOsUnlockCode" Type="Edm.String" Unicode="false" />
       </Action>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.targetedManagedAppConfiguration" />
-        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
-      </Action>
       <Action Name="targetApps" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.targetedManagedAppConfiguration" />
         <Parameter Name="apps" Type="Collection(graph.managedMobileApp)" />
-      </Action>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.targetedManagedAppProtection" />
-        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
-      </Action>
-      <Action Name="assign" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.windowsInformationProtection" />
-        <Parameter Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" />
       </Action>
       <Action Name="targetApps" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedAppPolicy" />
@@ -20179,6 +20236,11 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.muteParticipantOperation" />
       </Action>
+      <Action Name="mute" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.participant" />
+        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.muteParticipantOperation" />
+      </Action>
       <Action Name="playPrompt" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="prompts" Type="Collection(graph.prompt)" Nullable="false" />
@@ -20238,20 +20300,9 @@
         <Parameter Name="subject" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.onlineMeeting" />
       </Action>
-      <Action Name="invite" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
-        <Parameter Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
-        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.inviteParticipantsOperation" />
-      </Action>
       <Action Name="logTeleconferenceDeviceQuality" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.call)" />
         <Parameter Name="quality" Type="graph.teleconferenceDeviceQuality" Nullable="false" />
-      </Action>
-      <Action Name="mute" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.participant" />
-        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.muteParticipantOperation" />
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
@@ -20273,10 +20324,6 @@
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
       </Action>
       <Action Name="approve" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.scheduleChangeRequest" />
-        <Parameter Name="message" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="decline" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.scheduleChangeRequest" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
       </Action>
@@ -20349,6 +20396,7 @@
       </Annotations>
       <Annotations Target="microsoft.graph.userActivity" />
       <Annotations Target="microsoft.graph.application" />
+      <Annotations Target="microsoft.graph.administrativeUnit" />
       <Annotations Target="microsoft.graph.directoryRole" />
       <Annotations Target="microsoft.graph.directoryRoleTemplate" />
       <Annotations Target="microsoft.graph.group" />
