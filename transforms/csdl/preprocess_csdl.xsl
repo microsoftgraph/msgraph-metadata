@@ -113,6 +113,14 @@
       </xsl:copy>
     </xsl:template>
 
+    <!-- Add  attribute -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='message']">
+      <xsl:copy>
+        <xsl:attribute name="HasStream" value="true">true</xsl:attribute>
+        <xsl:apply-templates select="@* | node()"/>
+      </xsl:copy>
+    </xsl:template>
+
     <!-- Remove attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/@HasStream|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteResource']/@HasStream">
