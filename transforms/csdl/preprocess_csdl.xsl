@@ -121,6 +121,19 @@
       </xsl:copy>
     </xsl:template>
 
+    <!-- Add odata cast annotation -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.user</String>
+            <String>microsoft.graph.group</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+
     <!-- Remove attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/@HasStream|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteResource']/@HasStream">
