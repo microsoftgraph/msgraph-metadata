@@ -122,13 +122,145 @@
     </xsl:template>
 
     <!-- Add odata cast annotation -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='membersWithLicenseErrors']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='owners']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='transitiveMembers']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='transitiveMemberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='administrativeUnit']/edm:NavigationProperty[@Name='members']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='transitiveMemberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directoryRole']/edm:NavigationProperty[@Name='members']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='transitiveMemberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='transitiveMemberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveMemberOf']">
       <xsl:copy>
         <xsl:copy-of select="@* | node()" />
         <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
           <Collection>
             <String>microsoft.graph.user</String>
             <String>microsoft.graph.group</String>
+            <String>microsoft.graph.application</String>
+            <String>microsoft.graph.servicePrincipal</String>
+            <String>microsoft.graph.device</String>
+            <String>microsoft.graph.orgContact</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='directReports']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='directReports']">
+    <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.user</String>
+            <String>microsoft.graph.orgContact</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='ownedObjects']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.appRoleAssignment</String>
+            <String>microsoft.graph.application</String>
+            <String>microsoft.graph.directoryObjectPartnerReference</String>
+            <String>microsoft.graph.endpoint</String>
+            <String>microsoft.graph.group</String>
+            <String>microsoft.graph.servicePrincipal</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='ownedObjects']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.application</String>
+            <String>microsoft.graph.group</String>
+            <String>microsoft.graph.servicePrincipal</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='owners']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredOwners']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredUsers']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='owners']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.appRoleAssignment</String>
+            <String>microsoft.graph.endpoint</String>
+            <String>microsoft.graph.servicePrincipal</String>
+            <String>microsoft.graph.user</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='createdObjects']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='createdObjects']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.servicePrincipal</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directory']/edm:NavigationProperty[@Name='deletedItems']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.user</String>
+            <String>microsoft.graph.group</String>
+            <String>microsoft.graph.application</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='ownedDevices']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='registeredDevices']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.device</String>
+            <String>microsoft.graph.appRoleAssignment</String>
+            <String>microsoft.graph.endpoint</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceAppManagement']/edm:NavigationProperty[@Name='mobileApps']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.mobileLobApp</String>
+            <String>microsoft.graph.managedMobileLobApp</String>
+          </Collection>
+        </Annotation>
+      </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntitySet[@Name='places']">
+      <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+          <Collection>
+            <String>microsoft.graph.room</String>
+            <String>microsoft.graph.roomlist</String>
           </Collection>
         </Annotation>
       </xsl:copy>
