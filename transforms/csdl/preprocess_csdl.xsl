@@ -171,7 +171,6 @@
           <Collection>
             <String>microsoft.graph.appRoleAssignment</String>
             <String>microsoft.graph.application</String>
-            <String>microsoft.graph.directoryObjectPartnerReference</String>
             <String>microsoft.graph.endpoint</String>
             <String>microsoft.graph.group</String>
             <String>microsoft.graph.servicePrincipal</String>
