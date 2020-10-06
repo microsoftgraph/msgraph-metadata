@@ -827,6 +827,9 @@
         <Member Name="none" Value="0" />
         <Member Name="onPremisesKerberos" Value="1" />
         <Member Name="saml" Value="3" />
+        <Member Name="pingHeaderBased" Value="4" />
+        <Member Name="aadHeaderBased" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="stagedFeatureName">
         <Member Name="passthroughAuthentication" Value="0" />
@@ -6407,12 +6410,12 @@
         <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="trustType" Type="Edm.String" />
-        <Property Name="Kind" Type="Edm.String" />
-        <Property Name="Manufacturer" Type="Edm.String" />
-        <Property Name="Model" Type="Edm.String" />
-        <Property Name="Name" Type="Edm.String" />
-        <Property Name="Platform" Type="Edm.String" />
-        <Property Name="Status" Type="Edm.String" />
+        <Property Name="kind" Type="Edm.String" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="platform" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="registeredOwners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="registeredUsers" Type="Collection(graph.directoryObject)" />
@@ -6804,12 +6807,12 @@
         <Property Name="verifiedCustomDomainPasswordCredential" Type="graph.passwordCredential" />
       </ComplexType>
       <ComplexType Name="onPremisesPublishingSingleSignOn">
-        <Property Name="KerberosSignOnSettings" Type="graph.kerberosSignOnSettings" />
-        <Property Name="SingleSignOnMode" Type="graph.singleSignOnMode" />
+        <Property Name="kerberosSignOnSettings" Type="graph.kerberosSignOnSettings" />
+        <Property Name="singleSignOnMode" Type="graph.singleSignOnMode" />
       </ComplexType>
       <ComplexType Name="kerberosSignOnSettings">
-        <Property Name="KerberosServicePrincipalName" Type="Edm.String" />
-        <Property Name="KerberosSignOnMappingAttributeType" Type="graph.kerberosSignOnMappingAttributeType" />
+        <Property Name="kerberosServicePrincipalName" Type="Edm.String" />
+        <Property Name="kerberosSignOnMappingAttributeType" Type="graph.kerberosSignOnMappingAttributeType" />
       </ComplexType>
       <ComplexType Name="verifiedCustomDomainCertificatesMetadata">
         <Property Name="expiryDate" Type="Edm.DateTimeOffset" />
@@ -6898,6 +6901,7 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="privateLinkResourcePolicies" Type="Collection(graph.privateLinkResource)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
@@ -6931,6 +6935,10 @@
       <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
         <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="privateLinkResource" BaseType="graph.entity">
+        <Property Name="allowedTenantIds" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="armResourceId" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -7016,6 +7024,7 @@
         <Property Name="start" Type="graph.dateTimeTimeZone" Nullable="false" />
       </ComplexType>
       <EntityType Name="bookingAppointment" BaseType="graph.entity">
+        <Property Name="additionalInformation" Type="Edm.String" />
         <Property Name="customerEmailAddress" Type="Edm.String" />
         <Property Name="customerId" Type="Edm.String" />
         <Property Name="customerLocation" Type="graph.location" />
@@ -7029,6 +7038,8 @@
         <Property Name="invoiceId" Type="Edm.String" />
         <Property Name="invoiceStatus" Type="graph.bookingInvoiceStatus" Nullable="false" />
         <Property Name="invoiceUrl" Type="Edm.String" />
+        <Property Name="isLocationOnline" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="onlineMeetingUrl" Type="Edm.String" />
         <Property Name="optOutOfCustomerEmail" Type="Edm.Boolean" Nullable="false" />
         <Property Name="postBuffer" Type="Edm.Duration" Nullable="false" />
         <Property Name="preBuffer" Type="Edm.Duration" Nullable="false" />
@@ -7068,6 +7079,7 @@
       </EntityType>
       <EntityType Name="bookingCustomer" BaseType="graph.bookingPerson" />
       <EntityType Name="bookingService" BaseType="graph.bookingNamedEntity">
+        <Property Name="additionalInformation" Type="Edm.String" />
         <Property Name="defaultDuration" Type="Edm.Duration" Nullable="false" />
         <Property Name="defaultLocation" Type="graph.location" />
         <Property Name="defaultPrice" Type="Edm.Double" Nullable="false" />
@@ -7075,6 +7087,7 @@
         <Property Name="defaultReminders" Type="Collection(graph.bookingReminder)" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="isHiddenFromCustomers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isLocationOnline" Type="Edm.Boolean" Nullable="false" />
         <Property Name="notes" Type="Edm.String" />
         <Property Name="postBuffer" Type="Edm.Duration" Nullable="false" />
         <Property Name="preBuffer" Type="Edm.Duration" Nullable="false" />
@@ -7240,6 +7253,10 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="errorDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="classificationAttribute">
+        <Property Name="confidence" Type="Edm.Int32" />
+        <Property Name="count" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="classificationError" BaseType="graph.classifcationErrorBase">
         <Property Name="details" Type="Collection(graph.classifcationErrorBase)" />
       </ComplexType>
@@ -7258,11 +7275,17 @@
         <Property Name="confidence" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.Guid" />
-        <Property Name="matches" Type="Collection(graph.sensitiveContentLocation)" />
         <Property Name="recommendedConfidence" Type="Edm.Int32" />
         <Property Name="uniqueCount" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="sensitiveContentLocation">
+      <ComplexType Name="detectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase">
+        <Property Name="classificationAttributes" Type="Collection(graph.classificationAttribute)" />
+        <Property Name="classificationMethod" Type="graph.classificationMethod" />
+        <Property Name="matches" Type="Collection(graph.sensitiveContentLocation)" />
+        <Property Name="scope" Type="graph.sensitiveTypeScope" />
+        <Property Name="sensitiveTypeSource" Type="graph.sensitiveTypeSource" />
+      </ComplexType>
+      <ComplexType Name="sensitiveContentLocationBase">
         <Property Name="evidences" Type="Collection(graph.sensitiveContentEvidence)" />
         <Property Name="idMatch" Type="Edm.String" />
         <Property Name="length" Type="Edm.Int32" />
@@ -7273,8 +7296,8 @@
         <Property Name="match" Type="Edm.String" />
         <Property Name="offset" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="detectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase">
-        <Property Name="scope" Type="graph.sensitiveTypeScope" />
+      <ComplexType Name="sensitiveContentLocation" BaseType="graph.sensitiveContentLocationBase">
+        <Property Name="confidence" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="detectedSensitiveContentWrapper">
         <Property Name="classification" Type="Collection(graph.detectedSensitiveContent)" />
@@ -7285,6 +7308,7 @@
         <Property Name="triggers" Type="Collection(graph.restrictionTrigger)" />
       </ComplexType>
       <ComplexType Name="discoveredSensitiveType">
+        <Property Name="classificationAttributes" Type="Collection(graph.classificationAttribute)" />
         <Property Name="confidence" Type="Edm.Int32" />
         <Property Name="count" Type="Edm.Int32" />
         <Property Name="id" Type="Edm.Guid" Nullable="false" />
@@ -7633,14 +7657,14 @@
         <Property Name="permissionName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="command" BaseType="graph.entity">
-        <Property Name="AppServiceName" Type="Edm.String" />
-        <Property Name="Error" Type="Edm.String" />
-        <Property Name="PackageFamilyName" Type="Edm.String" />
-        <Property Name="Payload" Type="graph.PayloadRequest" />
-        <Property Name="PermissionTicket" Type="Edm.String" />
-        <Property Name="PostBackUri" Type="Edm.String" />
-        <Property Name="Status" Type="Edm.String" />
-        <Property Name="Type" Type="Edm.String" />
+        <Property Name="appServiceName" Type="Edm.String" />
+        <Property Name="error" Type="Edm.String" />
+        <Property Name="packageFamilyName" Type="Edm.String" />
+        <Property Name="payload" Type="graph.payloadRequest" />
+        <Property Name="permissionTicket" Type="Edm.String" />
+        <Property Name="postBackUri" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
         <NavigationProperty Name="responsepayload" Type="graph.payloadResponse" />
       </EntityType>
       <EntityType Name="directory">
@@ -7846,8 +7870,13 @@
         <Property Name="resourceApplication" Type="Edm.String" />
       </EntityType>
       <EntityType Name="rbacApplication" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
         <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRbacResourceNamespace" BaseType="graph.entity">
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="resourceActions" Type="Collection(graph.unifiedRbacResourceAction)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="unifiedRoleAssignment" BaseType="graph.entity">
         <Property Name="appScopeId" Type="Edm.String" />
@@ -7877,6 +7906,7 @@
         <NavigationProperty Name="deviceManagement" Type="graph.rbacApplicationMultiple" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
         <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
         <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
@@ -8299,6 +8329,18 @@
         <NavigationProperty Name="principals" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
       </EntityType>
+      <EntityType Name="unifiedRbacResourceAction" BaseType="graph.entity">
+        <Property Name="actionVerb" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="resourceScopeId" Type="Edm.String" />
+        <NavigationProperty Name="resourceScope" Type="graph.unifiedRbacResourceScope" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRbacResourceScope" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="scope" Type="Edm.String" Nullable="false" />
+        <Property Name="type" Type="Edm.String" />
+      </EntityType>
       <ComplexType Name="contentClassification">
         <Property Name="confidence" Type="Edm.Int32" />
         <Property Name="matches" Type="Collection(graph.matchLocation)" />
@@ -8330,7 +8372,10 @@
         <Property Name="classification" Type="Collection(graph.exactMatchDetectedSensitiveContent)" />
         <Property Name="errors" Type="Collection(graph.classificationError)" />
       </ComplexType>
-      <ComplexType Name="exactMatchDetectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase" />
+      <ComplexType Name="exactMatchDetectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase">
+        <Property Name="matches" Type="Collection(graph.exactMatchSensitiveContentLocation)" />
+      </ComplexType>
+      <ComplexType Name="exactMatchSensitiveContentLocation" BaseType="graph.sensitiveContentLocationBase" />
       <EntityType Name="exactMatchJobBase" BaseType="graph.entity" Abstract="true">
         <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
@@ -10136,13 +10181,17 @@
       <EntityType Name="accessReviewSet" BaseType="graph.entity">
         <NavigationProperty Name="definitions" Type="Collection(graph.accessReviewScheduleDefinition)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="appConsentApprovalRoute" BaseType="graph.entity">
+        <NavigationProperty Name="appConsentRequests" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="request" BaseType="graph.entity">
         <NavigationProperty Name="approval" Type="graph.approval" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="userConsentRequest" BaseType="graph.request">
-        <Property Name="createdBy" Type="graph.userIdentity" />
+        <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="reason" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="approvalStep" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -10178,6 +10227,7 @@
       </EntityType>
       <EntityType Name="identityGovernance">
         <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
+        <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
         <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
       </EntityType>
@@ -20600,7 +20650,7 @@
         <Property Name="userTimezone" Type="Edm.String" />
         <NavigationProperty Name="activity" Type="graph.userActivity" Nullable="false" />
       </EntityType>
-      <ComplexType Name="PayloadRequest" OpenType="true" />
+      <ComplexType Name="payloadRequest" OpenType="true" />
       <EntityType Name="payloadResponse" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="dataPolicyOperation" BaseType="graph.entity">
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
@@ -21422,10 +21472,6 @@
       <ComplexType Name="aadUserConversationMemberResult" BaseType="graph.actionResultPart">
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="teamworkNotificationAudience" Abstract="true" />
-      <ComplexType Name="aadUserNotificationAudience" BaseType="graph.teamworkNotificationAudience">
-        <Property Name="userId" Type="Edm.String" Nullable="false" />
-      </ComplexType>
       <ComplexType Name="teamworkNotificationRecipient" Abstract="true" />
       <ComplexType Name="aadUserNotificationRecipient" BaseType="graph.teamworkNotificationRecipient">
         <Property Name="userId" Type="Edm.String" Nullable="false" />
@@ -21634,7 +21680,7 @@
         <Property Name="teamsAppId" Type="Edm.String" />
         <Property Name="version" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="teamwork" BaseType="graph.entity">
+      <EntityType Name="teamwork">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
@@ -22888,6 +22934,13 @@
         <Parameter Name="bindingParameter" Type="graph.educationSynchronizationProfile" />
         <ReturnType Type="Edm.String" Unicode="false" />
       </Function>
+      <Action Name="importResourceActions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.unifiedRbacResourceNamespace" />
+        <Parameter Name="format" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="value" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="overwriteResourceNamespace" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.unifiedRbacResourceNamespace" />
+      </Action>
       <Action Name="commit" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.exactMatchSession" />
       </Action>
@@ -27782,8 +27835,6 @@
         <EntitySet Name="shares" EntityType="microsoft.graph.sharedDriveItem" />
         <EntitySet Name="sites" EntityType="microsoft.graph.site" />
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
-        <EntitySet Name="connectorGroups" EntityType="microsoft.graph.connectorGroup" />
-        <EntitySet Name="connectors" EntityType="microsoft.graph.connector" />
         <EntitySet Name="onPremisesPublishingProfiles" EntityType="microsoft.graph.onPremisesPublishingProfile" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
         <EntitySet Name="filterOperators" EntityType="microsoft.graph.filterOperatorSchema" />
@@ -28766,6 +28817,9 @@
       <Annotations Target="microsoft.graph.bookingAppointment/invoiceUrl">
         <Annotation Term="Org.OData.Core.V1.IsURL" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.bookingAppointment/onlineMeetingUrl">
+        <Annotation Term="Org.OData.Core.V1.IsURL" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.bookingAppointment/reminders">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The value of this property is only available when reading an individual booking appointment by id." />
       </Annotations>
@@ -28848,6 +28902,13 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/administrativeUnits">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
@@ -29263,6 +29324,12 @@
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.appScope/type">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/displayName">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/type">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.subscription">
