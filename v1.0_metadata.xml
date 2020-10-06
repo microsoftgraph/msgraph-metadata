@@ -1837,6 +1837,13 @@
         <Member Name="block" Value="1" />
         <Member Name="unblock" Value="2" />
       </EnumType>
+      <EnumType Name="taskStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="waitingOnOthers" Value="3" />
+        <Member Name="deferred" Value="4" />
+      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Key>
           <PropertyRef Name="id" />
@@ -1908,7 +1915,7 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
-      <EntityType Name="auditLogRoot">
+      <EntityType Name="auditLogRoot" BaseType="graph.entity">
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true" />
         <NavigationProperty Name="restrictedSignIns" Type="Collection(graph.restrictedSignIn)" ContainsTarget="true" />
         <NavigationProperty Name="signIns" Type="Collection(graph.signIn)" ContainsTarget="true" />
@@ -2087,6 +2094,7 @@
         <NavigationProperty Name="activities" Type="Collection(graph.userActivity)" ContainsTarget="true" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="joinedTeams" Type="Collection(graph.team)" ContainsTarget="true" />
+        <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="assignedLicense">
         <Property Name="disabledPlans" Type="Collection(Edm.Guid)" Nullable="false" />
@@ -2212,6 +2220,7 @@
         <Property Name="changeKey" Type="Edm.String" />
         <Property Name="color" Type="graph.calendarColor" />
         <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
+        <Property Name="hexColor" Type="Edm.String" />
         <Property Name="isRemovable" Type="Edm.Boolean" />
         <Property Name="isTallyingResponses" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" />
@@ -2245,6 +2254,7 @@
         <Property Name="importance" Type="graph.importance" />
         <Property Name="isAllDay" Type="Edm.Boolean" />
         <Property Name="isCancelled" Type="Edm.Boolean" />
+        <Property Name="isDraft" Type="Edm.Boolean" />
         <Property Name="isOnlineMeeting" Type="Edm.Boolean" />
         <Property Name="isOrganizer" Type="Edm.Boolean" />
         <Property Name="isReminderOn" Type="Edm.Boolean" />
@@ -2585,6 +2595,9 @@
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
       </EntityType>
+      <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="application" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false" />
         <Property Name="api" Type="graph.apiApplication" />
@@ -2737,7 +2750,7 @@
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
-      <EntityType Name="identityContainer">
+      <EntityType Name="identityContainer" BaseType="graph.entity">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
@@ -2879,7 +2892,7 @@
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="directory">
+      <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
       </EntityType>
@@ -3115,7 +3128,7 @@
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
         <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="policyRoot">
+      <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
@@ -3290,7 +3303,7 @@
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" />
         <NavigationProperty Name="users" Type="Collection(graph.educationUser)" />
       </EntityType>
-      <EntityType Name="educationRoot">
+      <EntityType Name="educationRoot" BaseType="graph.entity">
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" ContainsTarget="true" />
         <NavigationProperty Name="me" Type="graph.educationUser" ContainsTarget="true" />
         <NavigationProperty Name="schools" Type="Collection(graph.educationSchool)" ContainsTarget="true" />
@@ -4472,7 +4485,7 @@
         <Property Name="status" Type="Edm.String" Nullable="false" />
         <Property Name="targetTypes" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
-      <EntityType Name="cloudCommunications">
+      <EntityType Name="cloudCommunications" BaseType="graph.entity">
         <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
         <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
@@ -6854,7 +6867,7 @@
       <ComplexType Name="plannerExternalReferences" OpenType="true" />
       <ComplexType Name="plannerOrderHintsByAssignee" OpenType="true" />
       <ComplexType Name="plannerUserIds" OpenType="true" />
-      <EntityType Name="planner">
+      <EntityType Name="planner" BaseType="graph.entity">
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" ContainsTarget="true" />
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" ContainsTarget="true" />
         <NavigationProperty Name="tasks" Type="Collection(graph.plannerTask)" ContainsTarget="true" />
@@ -7361,7 +7374,7 @@
         <Property Name="userImpact" Type="Edm.String" />
         <Property Name="vendorInformation" Type="graph.securityVendorInformation" />
       </EntityType>
-      <EntityType Name="security">
+      <EntityType Name="security" BaseType="graph.entity">
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
@@ -7634,7 +7647,7 @@
         <Property Name="userId" Type="Edm.String" />
         <NavigationProperty Name="user" Type="graph.user" />
       </EntityType>
-      <EntityType Name="appCatalogs">
+      <EntityType Name="appCatalogs" BaseType="graph.entity">
         <NavigationProperty Name="teamsApps" Type="Collection(graph.teamsApp)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsApp" BaseType="graph.entity">
@@ -7725,7 +7738,7 @@
         <Property Name="teamsAppId" Type="Edm.String" />
         <Property Name="version" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="teamwork">
+      <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
@@ -7735,6 +7748,9 @@
         <Property Name="isActive" Type="Edm.Boolean" />
         <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
         <Property Name="url" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
+        <NavigationProperty Name="chat" Type="graph.chat" />
       </EntityType>
       <ComplexType Name="scheduleEntity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
@@ -7845,7 +7861,7 @@
         <Property Name="contentData" Type="Edm.String" Nullable="false" />
         <Property Name="fileName" Type="Edm.String" Nullable="false" />
       </EntityType>
-      <EntityType Name="informationProtection">
+      <EntityType Name="informationProtection" BaseType="graph.entity">
         <NavigationProperty Name="threatAssessmentRequests" Type="Collection(graph.threatAssessmentRequest)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="mailAssessmentRequest" BaseType="graph.threatAssessmentRequest">
@@ -10898,6 +10914,10 @@
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.event" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="decline" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="ProposedNewTime" Type="graph.timeSlot" />
@@ -10910,6 +10930,22 @@
       </Action>
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.event" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.message" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
+        <Parameter Name="Message" Type="graph.message" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.post" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
       <Action Name="snoozeReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
@@ -10965,17 +11001,6 @@
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.message" />
-      </Action>
-      <Action Name="forward" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.message" />
-        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
-        <Parameter Name="Message" Type="graph.message" />
-        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="forward" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.post" />
-        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
-        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
@@ -12526,6 +12551,13 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/administrativeUnits">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
