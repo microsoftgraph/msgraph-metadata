@@ -1837,6 +1837,13 @@
         <Member Name="block" Value="1" />
         <Member Name="unblock" Value="2" />
       </EnumType>
+      <EnumType Name="taskStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="waitingOnOthers" Value="3" />
+        <Member Name="deferred" Value="4" />
+      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Property Name="id" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only." />
@@ -1845,7 +1852,7 @@
           <PropertyRef Name="id" />
         </Key>
       </EntityType>
-      <EntityType Name="auditLogRoot" BaseType="microsoft.graph.entity">
+      <EntityType Name="auditLogRoot" BaseType="graph.entity">
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
@@ -2192,9 +2199,20 @@
         </Property>
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.servicePrincipal</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that were created by the user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="The users and contacts that report to the user. (The users and contacts that have their manager property set to this user.) Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="licenseDetails" Type="Collection(graph.licenseDetails)" ContainsTarget="true">
@@ -2204,20 +2222,62 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user or contact that is this user’s manager. Read-only. (HTTP Methods: GET, PUT, DELETE.)" />
         </NavigationProperty>
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="The groups and directory roles that the user is a member of. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="ownedDevices" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Devices that are owned by the user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.servicePrincipal</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owned by the user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="registeredDevices" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Devices that are registered for the user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="scopedRoleMemberOf" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
         <NavigationProperty Name="calendar" Type="graph.calendar" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user's primary calendar. Read-only." />
         </NavigationProperty>
@@ -2292,6 +2352,7 @@
         </NavigationProperty>
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="joinedTeams" Type="Collection(graph.team)" ContainsTarget="true" />
+        <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="appRoleAssignment" BaseType="graph.directoryObject">
         <Property Name="appRoleId" Type="Edm.Guid" Nullable="false">
@@ -2375,6 +2436,7 @@
         <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The default online meeting provider for meetings sent from this calendar. Possible values are: unknown, skypeForBusiness, skypeForConsumer, teamsForBusiness." />
         </Property>
+        <Property Name="hexColor" Type="Edm.String" />
         <Property Name="isRemovable" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this user calendar can be deleted from the user mailbox." />
         </Property>
@@ -2462,6 +2524,7 @@
         <Property Name="isCancelled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Set to true if the event has been canceled." />
         </Property>
+        <Property Name="isDraft" Type="Edm.Boolean" />
         <Property Name="isOnlineMeeting" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="True if this event has online meeting information, false otherwise. Default is false. Optional." />
         </Property>
@@ -3376,6 +3439,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The template this team was created from. See available templates." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The apps installed in the personal scope of this user." />
+        </NavigationProperty>
+      </EntityType>
       <EntityType Name="application" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Defines custom behavior that a consuming service can use to call an app in specific contexts. For example, applications that can render file streams may set the addIns property for its 'FileHandler' functionality. This will let services like Microsoft 365 call the application in the context of a document the user is working on." />
@@ -3456,6 +3524,14 @@
         </NavigationProperty>
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.user</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owners of the application. The owners are a set of non-admin users who are allowed to modify this object. Requires version 2013-11-08 or newer. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
@@ -3498,7 +3574,7 @@
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
-      <EntityType Name="identityContainer">
+      <EntityType Name="identityContainer" BaseType="graph.entity">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
@@ -3523,6 +3599,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Controls whether the adminstrative unit and its members are hidden or public. Can be set to HiddenMembership or Public. If not set, default behavior is Public. When set to HiddenMembership, only members of the administrative unit can list other members of the adminstrative unit." />
         </Property>
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Users and groups that are members of this Adminsitrative Unit. HTTP Methods: GET (list members), POST (add members), DELETE (remove members)." />
         </NavigationProperty>
         <NavigationProperty Name="scopedRoleMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true">
@@ -3614,22 +3700,66 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Type of trust for the joined device. Read-only. Possible values: Workplace - indicates bring your own personal devicesAzureAd - Cloud only joined devicesServerAd - on-premises domain joined devices joined to Azure AD. For more details, see Introduction to device management in Azure Active Directory" />
         </Property>
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Groups that this group is a member of. HTTP Methods: GET (supported for all groups). Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="registeredOwners" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.user</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="The user that cloud joined the device or registered their personal device. The registered owner is set at the time of registration. Currently, there can be only one owner. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="registeredUsers" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.user</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Collection of registered users of the device. For cloud joined devices and registered personal devices, registered users are set to the same value as registered owners at the time of registration. Read-only. Nullable." />
         </NavigationProperty>
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the device. Read-only. Nullable." />
         </NavigationProperty>
       </EntityType>
-      <EntityType Name="directory" BaseType="microsoft.graph.entity">
+      <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
         </NavigationProperty>
       </EntityType>
@@ -3658,6 +3788,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The id of the directoryRoleTemplate that this role is based on. The property must be specified when activating a directory role in a tenant with a POST operation. After the directory role has been activated, the property is read only." />
         </Property>
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Users that are members of this directory role. HTTP Methods: GET, POST, DELETE. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="scopedMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
@@ -3831,7 +3971,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the group is mail-enabled. Returned by default." />
         </Property>
         <Property Name="mailNickname" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the group, unique in the organization. This property must be specified when a group is created. Returned by default. Supports $filter." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the group, unique in the organization. This property must be specified when a group is created. These characters cannot be used in the mailNickName: @()/[]';:.&lt;&gt;,SPACE. Returned by default. Supports $filter." />
         </Property>
         <Property Name="membershipRule" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The rule that determines members for this group if the group is a dynamic group (groupTypes contains DynamicMembership). For more information about the syntax of the membership rule, see Membership Rules syntax. Returned by default." />
@@ -3908,22 +4048,84 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user (or application) that created the group. NOTE: This is not set if the user is an administrator. Read-only." />
         </NavigationProperty>
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Groups that this group is a member of. HTTP Methods: GET (supported for all groups). Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Users and groups that are members of this group. HTTP Methods: GET (supported for all groups), POST (supported for Microsoft 365 groups, security groups and mail-enabled security groups), DELETE (supported for Microsoft 365 groups and security groups) Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="A list of group members with license errors from this group-based license assignment. Read-only." />
         </NavigationProperty>
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="The owners of the group. The owners are a set of non-admin users who are allowed to modify this object. Limited to 100 owners. HTTP Methods: GET (supported for all groups), POST (supported for Microsoft 365 groups, security groups and mail-enabled security groups), DELETE (supported for Microsoft 365 groups and security groups). Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="settings" Type="Collection(graph.groupSetting)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="transitiveMembers" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
+        <NavigationProperty Name="transitiveMembers" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
         <NavigationProperty Name="acceptedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The list of users or groups that are allowed to create post's or calendar events in this group. If this list is non-empty then only users or groups listed here are allowed to post." />
         </NavigationProperty>
@@ -4144,10 +4346,39 @@
         <Property Name="phones" Type="Collection(graph.phone)" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="surname" Type="Edm.String" />
-        <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
-        <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="permissionGrantConditionSet" BaseType="graph.entity">
         <Property Name="clientApplicationIds" Type="Collection(Edm.String)" />
@@ -4163,7 +4394,7 @@
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
         <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="policyRoot">
+      <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
@@ -4292,6 +4523,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The claimsMappingPolicies assigned to this service principal." />
         </NavigationProperty>
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.servicePrincipal</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects created by this service principal. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true">
@@ -4301,15 +4537,42 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The homeRealmDiscoveryPolicies assigned to this service principal." />
         </NavigationProperty>
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Roles that this service principal is a member of. HTTP Methods: GET Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Delegated permission grants authorizing this service principal to access an API on behalf of a signed-in user. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.endpoint</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.servicePrincipal</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owned by this service principal. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.appRoleAssignment</String>
+              <String>microsoft.graph.endpoint</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.user</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owners of this servicePrincipal. The owners are a set of non-admin users or servicePrincipals who are allowed to modify this object. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)">
@@ -4318,7 +4581,18 @@
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The tokenLifetimePolicies assigned to this service principal." />
         </NavigationProperty>
-        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.user</String>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.device</String>
+              <String>microsoft.graph.orgContact</String>
+            </Collection>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
         <Property Name="appliesTo" Type="Edm.String">
@@ -4526,7 +4800,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Users in the school. Nullable." />
         </NavigationProperty>
       </EntityType>
-      <EntityType Name="educationRoot" BaseType="microsoft.graph.entity">
+      <EntityType Name="educationRoot" BaseType="graph.entity">
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
@@ -4757,7 +5031,9 @@
         <Property Name="includeResourceData" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="When set to true, change notifications include resource data (such as content of a chat message). Optional." />
         </Property>
-        <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
+        <Property Name="latestSupportedTlsVersion" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the latest version of Transport Layer Security (TLS) that the notification endpoint, specified by notificationUrl, supports. The possible values are: v1_0, v1_1, v1_2, v1_3. For subscribers whose notification endpoint supports a version lower than the currently recommended version (TLS 1.2), specifying this property by a set timeline allows them to temporarily use their deprecated version of TLS before completing their upgrade to TLS 1.2. For these subscribers, not setting this property per the timeline would result in subscription operations failing. For subscribers whose notification endpoint already supports TLS 1.2, setting this property is optional. In such cases, Microsoft Graph defaults the property to v1_2." />
+        </Property>
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Required. The URL of the endpoint that will receive the change notifications. This URL must make use of the HTTPS protocol." />
@@ -5886,7 +6162,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Set of Microsoft Graph types (that can support extensions) that the schema extension can be applied to. Select from contact, device, event, group, message, organization, post, or user." />
         </Property>
       </EntityType>
-      <EntityType Name="cloudCommunications">
+      <EntityType Name="cloudCommunications" BaseType="graph.entity">
         <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
         <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
@@ -6071,6 +6347,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The Managed Device Mobile Application Configurations." />
         </NavigationProperty>
         <NavigationProperty Name="mobileApps" Type="Collection(graph.mobileApp)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+            <Collection>
+              <String>microsoft.graph.mobileLobApp</String>
+              <String>microsoft.graph.managedMobileLobApp</String>
+            </Collection>
+          </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="The mobile apps." />
         </NavigationProperty>
         <NavigationProperty Name="vppTokens" Type="Collection(graph.vppToken)" ContainsTarget="true">
@@ -10492,7 +10774,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier for the user that tried to enroll the device." />
         </Property>
       </EntityType>
-      <EntityType Name="planner" BaseType="microsoft.graph.entity">
+      <EntityType Name="planner" BaseType="graph.entity">
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified buckets" />
         </NavigationProperty>
@@ -11103,7 +11385,7 @@
         <Property Name="userImpact" Type="Edm.String" />
         <Property Name="vendorInformation" Type="graph.securityVendorInformation" />
       </EntityType>
-      <EntityType Name="security" BaseType="microsoft.graph.entity">
+      <EntityType Name="security" BaseType="graph.entity">
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
@@ -11174,7 +11456,7 @@
         </Property>
         <NavigationProperty Name="user" Type="graph.user" />
       </EntityType>
-      <EntityType Name="appCatalogs">
+      <EntityType Name="appCatalogs" BaseType="graph.entity">
         <NavigationProperty Name="teamsApps" Type="Collection(graph.teamsApp)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsApp" BaseType="graph.entity">
@@ -11203,7 +11485,7 @@
         </Property>
         <Property Name="membershipType" Type="graph.channelMembershipType" />
         <Property Name="webUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A hyperlink that will navigate to the channel in Microsoft Teams. This is the URL that you get when you right-click a channel in Microsoft Teams and select Get link to channel. This URL should be treated as an opaque blob, and not parsed. Read-only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A hyperlink that will go to the channel in Microsoft Teams. This is the URL that you get when you right-click a channel in Microsoft Teams and select Get link to channel. This URL should be treated as an opaque blob, and not parsed. Read-only." />
         </Property>
         <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Metadata for the location where the channel's files are stored." />
@@ -11379,7 +11661,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The version number of the application." />
         </Property>
       </EntityType>
-      <EntityType Name="teamwork" BaseType="microsoft.graph.entity">
+      <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
@@ -11401,6 +11683,9 @@
         <Property Name="url" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Workforce Integration URL for callbacks from the Shifts service." />
         </Property>
+      </EntityType>
+      <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
+        <NavigationProperty Name="chat" Type="graph.chat" />
       </EntityType>
       <EntityType Name="scheduleChangeRequest" BaseType="graph.changeTrackedEntity" Abstract="true">
         <Property Name="assignedTo" Type="graph.scheduleChangeRequestActor" />
@@ -11550,7 +11835,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The file name." />
         </Property>
       </EntityType>
-      <EntityType Name="informationProtection">
+      <EntityType Name="informationProtection" BaseType="graph.entity">
         <NavigationProperty Name="threatAssessmentRequests" Type="Collection(graph.threatAssessmentRequest)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="mailAssessmentRequest" BaseType="graph.threatAssessmentRequest">
@@ -12018,7 +12303,7 @@
       </ComplexType>
       <ComplexType Name="appRole">
         <Property Name="allowedMemberTypes" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this app role can be assigned to users and groups (by setting to ['User']), to other application's (by setting to ['Application'], or both (by setting to ['User', 'Application']). App roles supporting assignment of other applications' service principals are also known as application permissions." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this app role can be assigned to users and groups (by setting to ['User']), to other application's (by setting to ['Application'], or both (by setting to ['User', 'Application']). App roles supporting assignment to other applications' service principals are also known as application permissions. The 'Application' value is only supported for app roles defined on application entities." />
         </Property>
         <Property Name="description" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The description for the app role. This is displayed when the app role is being assigned and, if the app role functions as an application permission, during  consent experiences." />
@@ -20166,6 +20451,10 @@
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
       </Action>
+      <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.event" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="decline" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
@@ -20177,6 +20466,22 @@
       </Action>
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.event" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.message" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
+        <Parameter Name="Message" Type="graph.message" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.post" />
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
       <Action Name="snoozeReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
@@ -20231,17 +20536,6 @@
         <Parameter Name="Message" Type="graph.message" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.message" />
-      </Action>
-      <Action Name="forward" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.message" />
-        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" />
-        <Parameter Name="Message" Type="graph.message" />
-        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="forward" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.post" />
-        <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
-        <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
@@ -20739,6 +21033,7 @@
       <Annotations Target="microsoft.graph.userActivity" />
       <Annotations Target="microsoft.graph.application" />
       <Annotations Target="microsoft.graph.administrativeUnit" />
+      <Annotations Target="microsoft.graph.directory/administrativeUnits" />
       <Annotations Target="microsoft.graph.directoryRole" />
       <Annotations Target="microsoft.graph.directoryRoleTemplate" />
       <Annotations Target="microsoft.graph.group" />
