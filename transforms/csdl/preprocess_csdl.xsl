@@ -357,6 +357,50 @@
       </xsl:element>
     </xsl:template>
 
+    <!-- Add custom headers (ConsistencyLevel) to AAD objects -->
+    <xsl:template name="ConsistencyLevelHeaderTemplate">
+      <xsl:element name="Record" namespace="{namespace-uri()}">
+        <xsl:element name="PropertyValue">
+          <xsl:attribute name="Property">CustomHeaders</xsl:attribute>
+          <xsl:element name="Collection">
+            <xsl:element name="Record">
+              <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">Name</xsl:attribute>
+                <xsl:attribute name="String">ConsistencyLevel</xsl:attribute>
+              </xsl:element>
+              <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">Description</xsl:attribute>
+                <xsl:attribute name="String">Indicates the requested consistency level.</xsl:attribute>
+              </xsl:element>
+              <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">DocumentationURL</xsl:attribute>
+                <xsl:attribute name="String">https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-advanced-queries-for-directory-objects-are-now-generally-available/</xsl:attribute>
+              </xsl:element>
+              <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">Required</xsl:attribute>
+                <xsl:attribute name="Bool">false</xsl:attribute>
+              </xsl:element>
+              <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">ExampleValues</xsl:attribute>
+                <xsl:element name="Collection">
+                  <xsl:element name="Record">
+                    <xsl:element name="PropertyValue">
+                      <xsl:attribute name="Property">Value</xsl:attribute>
+                      <xsl:attribute name="String">eventual</xsl:attribute>
+                    </xsl:element>
+                    <xsl:element name="PropertyValue">
+                      <xsl:attribute name="Property">Description</xsl:attribute>
+                      <xsl:attribute name="String">$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'.</xsl:attribute>
+                    </xsl:element>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+    </xsl:template>
+
     <xsl:template match="
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='users']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='groups']
@@ -388,6 +432,10 @@
             </xsl:element>
           </xsl:element>
         </xsl:element>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+          <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+        </xsl:element>
       </xsl:copy>
     </xsl:template>
 
@@ -411,4 +459,18 @@
         </xsl:element>
       </xsl:copy>
     </xsl:template>
+
+  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='applications']|
+                       edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='servicePrincipals']|
+                       edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='administrativeUnits']|
+                       edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='contacts']|
+                       edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='devices']">
+    <xsl:copy>
+      <xsl:apply-templates select="@* | node()"/>
+      <xsl:element name="Annotation">
+        <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+        <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+      </xsl:element>
+    </xsl:copy>
+  </xsl:template>
 </xsl:stylesheet>

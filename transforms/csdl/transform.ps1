@@ -28,4 +28,9 @@ $outputFullPath = Join-Path $PWD $outputPath
 
 $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
 $xslt.Load((Join-Path $PWD $xslPath))
-$xslt.Transform($inputFullPath, $outputFullPath)
+try {
+    $xslt.Transform($inputFullPath, $outputFullPath)
+}
+catch {
+    Write-Error $_.Exception
+}
