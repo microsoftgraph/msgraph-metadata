@@ -64,9 +64,8 @@ elseif ($result |Where {$_ -notmatch '^\?\?'}) {
 }
 else {
     # tree is clean
-    Write-Host "downloadDiff.ps1 - No changes reported. Build is aborted as succeeded."
-    Write-Host "##vso[task.setvariable variable=agent.jobstatus;]canceled"
-    Write-Host "##vso[task.complete result=Canceled;]DONE"
+    # make sure that pipelines have failOnStderr:true and errorActionPreference:stop set.
+    Write-Error "downloadDiff.ps1 - No changes reported. Cancel pipeline."
     Exit
 }
 
