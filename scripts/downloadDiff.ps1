@@ -7,9 +7,12 @@
 #
 #.Parameter endpointVersion
 #   Specifies the metadata endpoint to target. Expected values are "v1.0" and "beta"
+#.Parameter targetBranch
+#   Optional. Specifies the branch to target. The default value is 'master'.
 #>
 
-param([parameter(Mandatory = $true)][String]$endpointVersion)
+param([parameter(Mandatory = $true)]  [String] $endpointVersion,
+      [parameter(Mandatory = $false)] [String] $targetBranch = 'master')
 
 # Contains Format-Xml function.
 Import-Module .\scripts\utility.ps1 -Force
@@ -17,11 +20,11 @@ Import-Module .\scripts\utility.ps1 -Force
 # Are we on master? If not, we will want our changes committed on master.
 $branch = &git rev-parse --abbrev-ref HEAD
 Write-Host "downloadDiff.ps1 - Current branch: $branch"
-if ($branch -ne "master") {
-    git checkout master | Write-Host
+if ($branch -ne $targetBranch) {
+    git checkout $targetBranch | Write-Host
     $branch = &git rev-parse --abbrev-ref HEAD
     Write-Host "downloadDiff.ps1 - Current branch: $branch"
-    git pull origin master --allow-unrelated-histories | Write-Host
+    git pull origin $targetBranch --allow-unrelated-histories | Write-Host
 }
 
 # Download the metadata from livesite.
@@ -71,4 +74,4 @@ else {
 
 git add $metadataFileName | Write-Host
 git commit -m "downloadDiff.ps1 - Updated $metadataFileName from downloadDiff.ps1" | Write-Host
-git push origin master | Write-Host
+git push origin $targetBranch | Write-Host
