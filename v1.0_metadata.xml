@@ -1837,6 +1837,19 @@
         <Member Name="block" Value="1" />
         <Member Name="unblock" Value="2" />
       </EnumType>
+      <EnumType Name="taskStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="waitingOnOthers" Value="3" />
+        <Member Name="deferred" Value="4" />
+      </EnumType>
+      <EnumType Name="wellknownListName">
+        <Member Name="none" Value="0" />
+        <Member Name="defaultList" Value="1" />
+        <Member Name="flaggedEmails" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EntityType Name="entity" Abstract="true">
         <Key>
           <PropertyRef Name="id" />
@@ -2088,6 +2101,7 @@
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="joinedTeams" Type="Collection(graph.team)" ContainsTarget="true" />
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
+        <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="assignedLicense">
         <Property Name="disabledPlans" Type="Collection(Edm.Guid)" Nullable="false" />
@@ -2214,6 +2228,7 @@
         <Property Name="color" Type="graph.calendarColor" />
         <Property Name="defaultOnlineMeetingProvider" Type="graph.onlineMeetingProviderType" />
         <Property Name="hexColor" Type="Edm.String" />
+        <Property Name="isDefaultCalendar" Type="Edm.Boolean" />
         <Property Name="isRemovable" Type="Edm.Boolean" />
         <Property Name="isTallyingResponses" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" />
@@ -2590,6 +2605,9 @@
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="todo" BaseType="graph.entity">
+        <NavigationProperty Name="lists" Type="Collection(graph.todoTaskList)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="application" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false" />
@@ -3178,6 +3196,7 @@
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" />
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="delegatedPermissionClassifications" Type="Collection(graph.delegatedPermissionClassification)" ContainsTarget="true" />
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
@@ -7870,6 +7889,36 @@
       <EntityType Name="urlAssessmentRequest" BaseType="graph.threatAssessmentRequest">
         <Property Name="url" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="linkedResource" BaseType="graph.entity">
+        <Property Name="applicationName" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="todoTaskList" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isOwner" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="wellknownListName" Type="graph.wellknownListName" Nullable="false" />
+        <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="tasks" Type="Collection(graph.todoTask)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="todoTask" BaseType="graph.entity">
+        <Property Name="body" Type="graph.itemBody" />
+        <Property Name="bodyLastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="completedDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="dueDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="importance" Type="graph.importance" Nullable="false" />
+        <Property Name="isReminderOn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="recurrence" Type="graph.patternedRecurrence" />
+        <Property Name="reminderDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="status" Type="graph.taskStatus" Nullable="false" />
+        <Property Name="title" Type="Edm.String" />
+        <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="linkedResources" Type="Collection(graph.linkedResource)" ContainsTarget="true" />
+      </EntityType>
       <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
@@ -8143,6 +8192,14 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="token" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.todoTask)" />
+        <ReturnType Type="Collection(graph.todoTask)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.todoTaskList)" />
+        <ReturnType Type="Collection(graph.todoTaskList)" />
       </Function>
       <Action Name="abs" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -20016,6 +20073,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.schedulingGroup/isActive">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.todo/lists">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.todoTaskList/tasks">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">
