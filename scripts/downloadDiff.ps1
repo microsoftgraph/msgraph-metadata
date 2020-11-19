@@ -21,6 +21,7 @@ Import-Module .\scripts\utility.ps1 -Force
 $branch = &git rev-parse --abbrev-ref HEAD
 Write-Host "downloadDiff.ps1 - Current branch: $branch"
 if ($branch -ne $targetBranch) {
+    git fetch origin $targetBranch | Write-Host
     git checkout $targetBranch | Write-Host
     $branch = &git rev-parse --abbrev-ref HEAD
     Write-Host "downloadDiff.ps1 - Current branch: $branch"
