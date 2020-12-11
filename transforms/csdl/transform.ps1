@@ -11,23 +11,29 @@ param (
     [bool]
     $dbg = $false
 )
-
-$xslFullPath = Join-Path $PWD $xslPath
+function Get-PathWithPrefix([string]$requestedPath) {
+    if([System.IO.Path]::IsPathRooted($requestedPath)) {
+        return $requestedPath
+    } else {
+        return Join-Path $PWD $requestedPath
+    }
+}
+$xslFullPath = Get-PathWithPrefix -requestedPath $xslPath
 if (!(Test-Path $xslFullPath)) {
-    Write-Host "please provide a path to XSL relative to working directory" -ForegroundColor Red
+    Write-Host "could not find XSL" -ForegroundColor Red
     exit
 }
 
-$inputFullPath = Join-Path $PWD $inputPath
+$inputFullPath = Get-PathWithPrefix -requestedPath $inputPath
 if (!(Test-Path $inputFullPath)) {
-    Write-Host "please provide a path to input XML relative to working directory" -ForegroundColor Red
+    Write-Host "could not find input XML" -ForegroundColor Red
     exit
 }
 
-$outputFullPath = Join-Path $PWD $outputPath
+$outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
 $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
-$xslt.Load((Join-Path $PWD $xslPath))
+$xslt.Load($xslFullPath)
 try {
     $xslt.Transform($inputFullPath, $outputFullPath)
 }
