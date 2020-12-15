@@ -9265,8 +9265,13 @@
         <Property Name="title" Type="Edm.String" />
         <Property Name="webParts" Type="Collection(graph.webPart)" />
       </EntityType>
+      <ComplexType Name="apiAuthenticationConfigurationBase" Abstract="true" />
       <ComplexType Name="assignmentOrder">
         <Property Name="order" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="basicAuthentication" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="password" Type="Edm.String" />
+        <Property Name="username" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="claimsMapping" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
@@ -9301,12 +9306,25 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="userFlowApiConnectorConfiguration">
+        <NavigationProperty Name="postAttributeCollection" Type="graph.identityApiConnector" ContainsTarget="true" />
+        <NavigationProperty Name="postFederationSignup" Type="graph.identityApiConnector" ContainsTarget="true" />
+      </ComplexType>
+      <EntityType Name="identityApiConnector" BaseType="graph.entity">
+        <Property Name="authenticationConfiguration" Type="graph.apiAuthenticationConfigurationBase" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="targetUrl" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="identityUserFlow" BaseType="graph.entity">
         <Property Name="userFlowType" Type="graph.userFlowType" Nullable="false" />
         <Property Name="userFlowTypeVersion" Type="Edm.Single" Nullable="false" />
       </EntityType>
       <EntityType Name="b2cIdentityUserFlow" BaseType="graph.identityUserFlow">
+        <Property Name="apiConnectorConfiguration" Type="graph.userFlowApiConnectorConfiguration" />
+        <Property Name="defaultLanguageTag" Type="Edm.String" />
+        <Property Name="isLanguageCustomizationEnabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
+        <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
@@ -9314,6 +9332,12 @@
         <Property Name="clientSecret" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="userFlowLanguageConfiguration" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="defaultPages" Type="Collection(graph.userFlowLanguagePage)" ContainsTarget="true" />
+        <NavigationProperty Name="overridesPages" Type="Collection(graph.userFlowLanguagePage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityUserFlowAttributeAssignment" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -9324,7 +9348,9 @@
         <NavigationProperty Name="userAttribute" Type="graph.identityUserFlowAttribute" />
       </EntityType>
       <EntityType Name="b2xIdentityUserFlow" BaseType="graph.identityUserFlow">
+        <Property Name="apiConnectorConfiguration" Type="graph.userFlowApiConnectorConfiguration" />
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
+        <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityUserFlowAttribute" BaseType="graph.entity">
@@ -9336,6 +9362,7 @@
       <EntityType Name="identityBuiltInUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
       <EntityType Name="identityContainer">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
+        <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true" />
         <NavigationProperty Name="b2cUserFlows" Type="Collection(graph.b2cIdentityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
@@ -9371,6 +9398,7 @@
         <Property Name="keys" Type="Collection(graph.trustFrameworkKey)" />
       </EntityType>
       <EntityType Name="trustFrameworkPolicy" BaseType="graph.entity" HasStream="true" />
+      <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
       <ComplexType Name="labelActionBase" Abstract="true">
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
@@ -10403,6 +10431,7 @@
         <Property Name="reportableIdentifier" Type="Edm.String" />
       </EntityType>
       <EntityType Name="educationSynchronizationProfileStatus" BaseType="graph.entity">
+        <Property Name="lastActivityDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSynchronizationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="graph.educationSynchronizationStatus" />
       </EntityType>
@@ -11117,7 +11146,9 @@
       <EntityType Name="roomList" BaseType="graph.place">
         <Property Name="emailAddress" Type="Edm.String" />
         <NavigationProperty Name="rooms" Type="Collection(graph.room)" ContainsTarget="true" />
+        <NavigationProperty Name="spaces" Type="Collection(graph.space)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="space" BaseType="graph.place" />
       <ComplexType Name="attachmentItem">
         <Property Name="attachmentType" Type="graph.attachmentType" />
         <Property Name="contentType" Type="Edm.String" />
@@ -12537,7 +12568,9 @@
         <Property Name="id" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="internalSponsors" BaseType="graph.userSet" />
-      <ComplexType Name="requestorManager" BaseType="graph.userSet" />
+      <ComplexType Name="requestorManager" BaseType="graph.userSet">
+        <Property Name="managerLevel" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="requestorSettings">
         <Property Name="acceptRequests" Type="Edm.Boolean" />
         <Property Name="allowedRequestors" Type="Collection(graph.userSet)" />
@@ -21468,6 +21501,7 @@
         <Property Name="building" Type="Edm.String" />
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
+        <Property Name="floor" Type="Edm.String" />
         <Property Name="floorDescription" Type="Edm.String" />
         <Property Name="floorNumber" Type="Edm.Int32" />
         <Property Name="latitude" Type="Edm.Single" />
@@ -21475,6 +21509,7 @@
         <Property Name="organization" Type="Collection(Edm.String)" />
         <Property Name="postalCode" Type="Edm.String" />
         <Property Name="roomDescription" Type="Edm.String" />
+        <Property Name="roomName" Type="Edm.String" />
         <Property Name="roomNumber" Type="Edm.Int32" />
         <Property Name="site" Type="Edm.String" />
         <Property Name="stateOrProvince" Type="Edm.String" />
