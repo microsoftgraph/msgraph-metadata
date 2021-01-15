@@ -283,61 +283,40 @@
 
     <!-- These actions have the same parameters that need reordering. Will need to create a new template
          for each reordering. -->
+    <xsl:template name="BackwardsCompatibleEventAction">
+      <xsl:param name="actionName" />
+      <xsl:element name="Action">
+        <xsl:attribute name="Name"><xsl:value-of select = "$actionName" /></xsl:attribute>
+        <xsl:attribute name="IsBound">true</xsl:attribute>
+        <xsl:element name="Parameter">
+          <xsl:attribute name="Name">bindingParameter</xsl:attribute>
+          <xsl:attribute name="Type">graph.event</xsl:attribute>
+        </xsl:element>
+        <xsl:element name="Parameter">
+          <xsl:attribute name="Name">Comment</xsl:attribute>
+          <xsl:attribute name="Type">Edm.String</xsl:attribute>
+          <xsl:attribute name="Unicode">false</xsl:attribute>
+        </xsl:element>
+        <xsl:element name="Parameter">
+          <xsl:attribute name="Name">SendResponse</xsl:attribute>
+          <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
+        </xsl:element>
+      </xsl:element>
+    </xsl:template>
+
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
       <xsl:copy>
         <xsl:apply-templates select="@* | node()"/>
-        <xsl:element name="Action">
-          <xsl:attribute name="Name">accept</xsl:attribute>
-          <xsl:attribute name="IsBound">true</xsl:attribute>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
-            <xsl:attribute name="Type">graph.event</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">Comment</xsl:attribute>
-            <xsl:attribute name="Type">Edm.String</xsl:attribute>
-            <xsl:attribute name="Unicode">false</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">SendResponse</xsl:attribute>
-            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="Action">
-          <xsl:attribute name="Name">decline</xsl:attribute>
-          <xsl:attribute name="IsBound">true</xsl:attribute>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
-            <xsl:attribute name="Type">graph.event</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">Comment</xsl:attribute>
-            <xsl:attribute name="Type">Edm.String</xsl:attribute>
-            <xsl:attribute name="Unicode">false</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">SendResponse</xsl:attribute>
-            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="Action">
-          <xsl:attribute name="Name">tentativelyAccept</xsl:attribute>
-          <xsl:attribute name="IsBound">true</xsl:attribute>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
-            <xsl:attribute name="Type">graph.event</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">Comment</xsl:attribute>
-            <xsl:attribute name="Type">Edm.String</xsl:attribute>
-            <xsl:attribute name="Unicode">false</xsl:attribute>
-          </xsl:element>
-          <xsl:element name="Parameter">
-            <xsl:attribute name="Name">SendResponse</xsl:attribute>
-            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
-          </xsl:element>
-        </xsl:element>
-      </xsl:copy>
+        <xsl:call-template name="BackwardsCompatibleEventAction">
+          <xsl:with-param name="actionName">accept</xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="BackwardsCompatibleEventAction">
+          <xsl:with-param name="actionName">decline</xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="BackwardsCompatibleEventAction">
+          <xsl:with-param name="actionName">tentativelyAccept</xsl:with-param>
+        </xsl:call-template>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Remove action parameters -->
