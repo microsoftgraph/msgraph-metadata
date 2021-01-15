@@ -279,6 +279,67 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
 
+    <!-- Reorder action parameters -->
+
+    <!-- These actions have the same parameters that need reordering. Will need to create a new template
+         for each reordering. -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+      <xsl:copy>
+        <xsl:apply-templates select="@* | node()"/>
+        <xsl:element name="Action">
+          <xsl:attribute name="Name">accept</xsl:attribute>
+          <xsl:attribute name="IsBound">true</xsl:attribute>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
+            <xsl:attribute name="Type">graph.event</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">Comment</xsl:attribute>
+            <xsl:attribute name="Type">Edm.String</xsl:attribute>
+            <xsl:attribute name="Unicode">false</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">SendResponse</xsl:attribute>
+            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
+          </xsl:element>
+        </xsl:element>
+        <xsl:element name="Action">
+          <xsl:attribute name="Name">decline</xsl:attribute>
+          <xsl:attribute name="IsBound">true</xsl:attribute>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
+            <xsl:attribute name="Type">graph.event</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">Comment</xsl:attribute>
+            <xsl:attribute name="Type">Edm.String</xsl:attribute>
+            <xsl:attribute name="Unicode">false</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">SendResponse</xsl:attribute>
+            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
+          </xsl:element>
+        </xsl:element>
+        <xsl:element name="Action">
+          <xsl:attribute name="Name">tentativelyAccept</xsl:attribute>
+          <xsl:attribute name="IsBound">true</xsl:attribute>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">bindingParameter</xsl:attribute>
+            <xsl:attribute name="Type">graph.event</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">Comment</xsl:attribute>
+            <xsl:attribute name="Type">Edm.String</xsl:attribute>
+            <xsl:attribute name="Unicode">false</xsl:attribute>
+          </xsl:element>
+          <xsl:element name="Parameter">
+            <xsl:attribute name="Name">SendResponse</xsl:attribute>
+            <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
+          </xsl:element>
+        </xsl:element>
+      </xsl:copy>
+    </xsl:template>
+
     <!-- Remove action parameters -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
