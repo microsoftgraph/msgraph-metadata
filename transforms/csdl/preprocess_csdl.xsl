@@ -279,10 +279,8 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
 
-    <!-- Reorder action parameters -->
-
-    <!-- These actions have the same parameters that need reordering. Will need to create a new template
-         for each reordering. -->
+    <!-- accept, decline and tentativelyAccept action signatures have changed. Following rule set keeps the old signaure in the clean metadata.
+    New signatures are copied as is, so we have redundant implmenetations to avoid breaking change for existing client applications. -->
     <xsl:template name="BackwardsCompatibleEventAction">
       <xsl:param name="actionName" />
       <xsl:element name="Action">
