@@ -279,21 +279,6 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
 
-    <!-- Reorder action parameters -->
-
-    <!-- These actions have the same parameters that need reordering. Will need to create a new template
-         for each reordering. -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
-        <xsl:copy>
-            <xsl:apply-templates select="@*"/>
-            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
-            <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
-            <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
-        </xsl:copy>
-    </xsl:template>
-
     <!-- Remove action parameters -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
