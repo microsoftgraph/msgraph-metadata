@@ -1,0 +1,34 @@
+name: Open API descriptions update
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Update v1.0 OpenAPI description
+      run: ./scripts/GenerateOpenApi.ps1 -endpointVersion "v1.0"
+      shell: pwsh
+    - name: Update beta OpenAPI description
+      run: ./scripts/GenerateOpenApi.ps1 -endpointVersion "beta"
+      shell: pwsh
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+    - name: Commit & Push changes
+      uses: actions-js/push@v1.2
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        directory: openapi
+        message: 'Auto-updates OpenAPI descriptions'
+        branch: ${{ steps.extract_branch.outputs.branch }}

@@ -11,8 +11,8 @@
 
 param([parameter(Mandatory = $true)][String]$endpointVersion)
 
-$endpointVersionWithoutDot = $endpointVersion.Replace(".","")  
-$inputFile = "clean_{0}_metadata\cleanMetadataWithDescriptions{1}.xml" -f $endpointVersionWithoutDot,$endpointVersion
+$url = "https://graphexplorerapi.azurewebsites.net/openapi?operationIds=*&openApiVersion=3&graphVersion=$endpointVersion&format=yaml"
+
 $outputFile = "openapi\{0}\openapi.yaml" -f $endpointVersion
-$openApiTool = ".\tools\odata2openapi\OData2OpenApi.exe --KeyAsSegment=true --csdl={0} --output={1}" -f $inputFile, $outputFile
-Invoke-Expression ("& {0}" -f $openApiTool)
+
+Invoke-WebRequest -Uri $url -OutFile $outputFile
