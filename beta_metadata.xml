@@ -14,6 +14,13 @@
         <Member Name="reportOnlyNotApplied" Value="8" />
         <Member Name="reportOnlyInterrupted" Value="9" />
       </EnumType>
+      <EnumType Name="authenticationMethodFeature">
+        <Member Name="ssprRegistered" Value="0" />
+        <Member Name="ssprEnabled" Value="1" />
+        <Member Name="ssprCapable" Value="2" />
+        <Member Name="passwordlessCapable" Value="3" />
+        <Member Name="mfaCapable" Value="4" />
+      </EnumType>
       <EnumType Name="authMethodsType">
         <Member Name="email" Value="0" />
         <Member Name="mobileSMS" Value="1" />
@@ -65,6 +72,19 @@
         <Member Name="unifiedGroups" Value="0" />
         <Member Name="azureAD" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="includedUserRoles">
+        <Member Name="all" Value="0" />
+        <Member Name="privilegedAdmin" Value="1" />
+        <Member Name="admin" Value="2" />
+        <Member Name="user" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="includedUserTypes">
+        <Member Name="all" Value="0" />
+        <Member Name="member" Value="1" />
+        <Member Name="guest" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="initiatorType">
         <Member Name="user" Value="0" />
@@ -353,6 +373,13 @@
         <Member Name="inGracePeriod" Value="4" />
         <Member Name="deprovisioning" Value="5" />
         <Member Name="failed" Value="6" />
+      </EnumType>
+      <EnumType Name="usageRightState">
+        <Member Name="active" Value="0" />
+        <Member Name="inactive" Value="1" />
+        <Member Name="warning" Value="2" />
+        <Member Name="suspended" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="identityUserFlowAttributeDataType">
         <Member Name="string" Value="1" />
@@ -5285,6 +5312,7 @@
         <Member Name="standard" Value="0" />
         <Member Name="private" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="shared" Value="3" />
       </EnumType>
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
@@ -5370,6 +5398,8 @@
         <Member Name="unarchiveTeam" Value="3" />
         <Member Name="createTeam" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="teamifyGroup" Value="6" />
+        <Member Name="createChannel" Value="7" />
       </EnumType>
       <EnumType Name="teamSpecialization">
         <Member Name="none" Value="0" />
@@ -5706,6 +5736,26 @@
         <Property Name="registrationCount" Type="Edm.Int64" Nullable="false" />
         <Property Name="registrationStatus" Type="graph.registrationStatusType" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="userRegistrationFeatureCount">
+        <Property Name="feature" Type="graph.authenticationMethodFeature" Nullable="false" />
+        <Property Name="userCount" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationFeatureSummary">
+        <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="userRegistrationFeatureCounts" Type="Collection(graph.userRegistrationFeatureCount)" Nullable="false" />
+        <Property Name="userRoles" Type="graph.includedUserRoles" />
+        <Property Name="userTypes" Type="graph.includedUserTypes" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationMethodCount">
+        <Property Name="authenticationMethod" Type="Edm.String" Nullable="false" />
+        <Property Name="userCount" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationMethodSummary">
+        <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="userRegistrationMethodCounts" Type="Collection(graph.userRegistrationMethodCount)" Nullable="false" />
+        <Property Name="userRoles" Type="graph.includedUserRoles" />
+        <Property Name="userTypes" Type="graph.includedUserTypes" />
+      </ComplexType>
       <EntityType Name="applicationSignInDetailedSummary" BaseType="graph.entity">
         <Property Name="aggregatedEventDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="appDisplayName" Type="Edm.String" Nullable="false" />
@@ -5802,6 +5852,7 @@
       <EntityType Name="restrictedSignIn" BaseType="graph.signIn">
         <Property Name="targetTenantId" Type="Edm.Guid" />
       </EntityType>
+      <EntityType Name="authenticationMethodsRoot" BaseType="graph.entity" />
       <EntityType Name="azureADFeatureUsage" BaseType="graph.entity">
         <Property Name="featureName" Type="Edm.String" Nullable="false" />
         <Property Name="snapshotDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -5854,6 +5905,7 @@
       </EntityType>
       <EntityType Name="reportRoot" BaseType="graph.entity">
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationMethods" Type="graph.authenticationMethodsRoot" ContainsTarget="true" />
         <NavigationProperty Name="credentialUserRegistrationDetails" Type="Collection(graph.credentialUserRegistrationDetails)" ContainsTarget="true" />
         <NavigationProperty Name="userCredentialUsageDetails" Type="Collection(graph.userCredentialUsageDetails)" ContainsTarget="true" />
         <NavigationProperty Name="dailyPrintUsageSummariesByPrinter" Type="Collection(graph.PrintUsageSummaryByPrinter)" ContainsTarget="true" />
@@ -5963,6 +6015,7 @@
         <Property Name="schools" Type="Collection(Edm.String)" />
         <Property Name="skills" Type="Collection(Edm.String)" />
         <NavigationProperty Name="analytics" Type="graph.userAnalytics" ContainsTarget="true" />
+        <NavigationProperty Name="usageRights" Type="Collection(graph.usageRight)" ContainsTarget="true" />
         <NavigationProperty Name="informationProtection" Type="graph.informationProtection" ContainsTarget="true" />
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)" />
@@ -6024,6 +6077,11 @@
       <EntityType Name="userAnalytics" BaseType="graph.entity">
         <Property Name="settings" Type="graph.settings" />
         <NavigationProperty Name="activityStatistics" Type="Collection(graph.activityStatistics)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="usageRight" BaseType="graph.entity">
+        <Property Name="catalogId" Type="Edm.String" Nullable="false" />
+        <Property Name="serviceIdentifier" Type="Edm.String" Nullable="false" />
+        <Property Name="state" Type="graph.usageRightState" Nullable="false" />
       </EntityType>
       <EntityType Name="informationProtection" BaseType="graph.entity">
         <NavigationProperty Name="bitlocker" Type="graph.bitlocker" ContainsTarget="true" />
@@ -6766,6 +6824,7 @@
         <Property Name="enrollmentProfileName" Type="Edm.String" />
         <Property Name="enrollmentType" Type="Edm.String" />
         <Property Name="extensionAttributes" Type="graph.onPremisesExtensionAttributes" />
+        <Property Name="hostnames" Type="Collection(Edm.String)" />
         <Property Name="isCompliant" Type="Edm.Boolean" />
         <Property Name="isManaged" Type="Edm.Boolean" />
         <Property Name="isRooted" Type="Edm.Boolean" />
@@ -6785,6 +6844,7 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="platform" Type="Edm.String" />
         <Property Name="status" Type="Edm.String" />
+        <NavigationProperty Name="usageRights" Type="Collection(graph.usageRight)" ContainsTarget="true" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="registeredOwners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="registeredUsers" Type="Collection(graph.directoryObject)" />
@@ -9008,6 +9068,22 @@
         <Property Name="thumbprint" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
+      <ComplexType Name="alternativeSecurityId">
+        <Property Name="identityProvider" Type="Edm.String" />
+        <Property Name="key" Type="Edm.Binary" />
+        <Property Name="type" Type="Edm.Int32" />
+      </ComplexType>
+      <EntityType Name="command" BaseType="graph.entity">
+        <Property Name="appServiceName" Type="Edm.String" />
+        <Property Name="error" Type="Edm.String" />
+        <Property Name="packageFamilyName" Type="Edm.String" />
+        <Property Name="payload" Type="graph.payloadRequest" />
+        <Property Name="permissionTicket" Type="Edm.String" />
+        <Property Name="postBackUri" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+        <NavigationProperty Name="responsepayload" Type="graph.payloadResponse" />
+      </EntityType>
       <ComplexType Name="identitySet" OpenType="true">
         <Property Name="application" Type="graph.identity" />
         <Property Name="device" Type="graph.identity" />
@@ -9576,11 +9652,6 @@
         <Property Name="result" Type="graph.evaluateLabelsAndPoliciesResult" />
       </EntityType>
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
-      <ComplexType Name="alternativeSecurityId">
-        <Property Name="identityProvider" Type="Edm.String" />
-        <Property Name="key" Type="Edm.Binary" />
-        <Property Name="type" Type="Edm.Int32" />
-      </ComplexType>
       <ComplexType Name="apiServicePrincipal">
         <Property Name="resourceSpecificApplicationPermissions" Type="Collection(graph.resourceSpecificPermission)" Nullable="false" />
       </ComplexType>
@@ -9697,17 +9768,6 @@
         <Property Name="customerId" Type="Edm.Guid" />
         <Property Name="defaultDomainName" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="command" BaseType="graph.entity">
-        <Property Name="appServiceName" Type="Edm.String" />
-        <Property Name="error" Type="Edm.String" />
-        <Property Name="packageFamilyName" Type="Edm.String" />
-        <Property Name="payload" Type="graph.payloadRequest" />
-        <Property Name="permissionTicket" Type="Edm.String" />
-        <Property Name="postBackUri" Type="Edm.String" />
-        <Property Name="status" Type="Edm.String" />
-        <Property Name="type" Type="Edm.String" />
-        <NavigationProperty Name="responsepayload" Type="graph.payloadResponse" />
       </EntityType>
       <EntityType Name="directory">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
@@ -10694,10 +10754,10 @@
         <Property Name="encryptionCertificate" Type="Edm.String" />
         <Property Name="encryptionCertificateId" Type="Edm.String" />
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="includeProperties" Type="Edm.Boolean" />
         <Property Name="includeResourceData" Type="Edm.Boolean" />
         <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
+        <Property Name="notificationContentType" Type="Edm.String" />
         <Property Name="notificationQueryOptions" Type="Edm.String" />
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
         <Property Name="resource" Type="Edm.String" Nullable="false" />
@@ -21560,7 +21620,7 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="tasks" Type="Collection(graph.printTask)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="printDocument" BaseType="graph.entity">
+      <EntityType Name="printDocument" BaseType="graph.entity" HasStream="true">
         <Property Name="configuration" Type="graph.printerDocumentConfiguration" Nullable="false" />
         <Property Name="contentType" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -23453,6 +23513,26 @@
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.Int32" Nullable="false" />
         <ReturnType Type="graph.report" />
+      </Function>
+      <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="includedUserTypes" Type="graph.includedUserTypes" />
+        <Parameter Name="includedUserRoles" Type="graph.includedUserRoles" />
+        <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByMethod" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <ReturnType Type="graph.userRegistrationMethodSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByMethod" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="includedUserTypes" Type="graph.includedUserTypes" />
+        <Parameter Name="includedUserRoles" Type="graph.includedUserRoles" />
+        <ReturnType Type="graph.userRegistrationMethodSummary" Nullable="false" />
       </Function>
       <Action Name="createPasswordSingleSignOnCredentials" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.servicePrincipal" />
@@ -29022,6 +29102,12 @@
         </EntitySet>
         <EntitySet Name="bookingBusinesses" EntityType="microsoft.graph.bookingBusiness" />
         <EntitySet Name="bookingCurrencies" EntityType="microsoft.graph.bookingCurrency" />
+        <EntitySet Name="devices" EntityType="microsoft.graph.device">
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+        </EntitySet>
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="administrativeUnits" EntityType="microsoft.graph.administrativeUnit">
           <NavigationPropertyBinding Path="members" Target="directoryObjects" />
@@ -29040,12 +29126,6 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
-        <EntitySet Name="devices" EntityType="microsoft.graph.device">
-          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects" />
-          <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
-        </EntitySet>
         <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
         <EntitySet Name="directoryRoles" EntityType="microsoft.graph.directoryRole">
           <NavigationPropertyBinding Path="members" Target="directoryObjects" />
