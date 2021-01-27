@@ -285,41 +285,18 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
 
-    <!-- accept, decline and tentativelyAccept action signatures have changed. Following rule set keeps the old signaure in the clean metadata.
-    New signatures are copied as is, so we have redundant implmenetations to avoid breaking change for existing client applications. -->
-    <xsl:template name="BackwardsCompatibleEventAction">
-      <xsl:param name="actionName" />
-      <xsl:element name="Action">
-        <xsl:attribute name="Name"><xsl:value-of select = "$actionName" /></xsl:attribute>
-        <xsl:attribute name="IsBound">true</xsl:attribute>
-        <xsl:element name="Parameter">
-          <xsl:attribute name="Name">bindingParameter</xsl:attribute>
-          <xsl:attribute name="Type">graph.event</xsl:attribute>
-        </xsl:element>
-        <xsl:element name="Parameter">
-          <xsl:attribute name="Name">Comment</xsl:attribute>
-          <xsl:attribute name="Type">Edm.String</xsl:attribute>
-          <xsl:attribute name="Unicode">false</xsl:attribute>
-        </xsl:element>
-        <xsl:element name="Parameter">
-          <xsl:attribute name="Name">SendResponse</xsl:attribute>
-          <xsl:attribute name="Type">Edm.Boolean</xsl:attribute>
-        </xsl:element>
-      </xsl:element>
-    </xsl:template>
+    <!-- Reorder action parameters -->
 
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-        <xsl:call-template name="BackwardsCompatibleEventAction">
-          <xsl:with-param name="actionName">accept</xsl:with-param>
-        </xsl:call-template>
-        <xsl:call-template name="BackwardsCompatibleEventAction">
-          <xsl:with-param name="actionName">decline</xsl:with-param>
-        </xsl:call-template>
-        <xsl:call-template name="BackwardsCompatibleEventAction">
-          <xsl:with-param name="actionName">tentativelyAccept</xsl:with-param>
-        </xsl:call-template>
+    <!-- These actions have the same parameters that need reordering. Will need to create a new template
+         for each reordering. -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
         </xsl:copy>
     </xsl:template>
 
