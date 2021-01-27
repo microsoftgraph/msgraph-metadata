@@ -274,6 +274,12 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
+    <!-- Remove ContainsTarget -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget">
+        <xsl:apply-templates select="@* | node()"/>
+    </xsl:template>
+
     <!--Remove functions that are blocking beta generation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
