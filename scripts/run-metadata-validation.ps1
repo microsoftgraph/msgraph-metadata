@@ -45,4 +45,4 @@ Write-Host "Tranforming v1.0 metadata using xslt..."
 & $transformScript -xslPath $xsltPath -inputPath $v1Snapshot -outputPath $transformedV1
 
 Write-Host "Validating v1.0 metadata after the transform..."
-& dotnet run -p $metadataParserTool $transformedBeta
+& dotnet run -p $metadataParserTool $transformedV1
