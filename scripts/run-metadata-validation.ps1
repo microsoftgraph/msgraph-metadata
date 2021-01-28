@@ -35,14 +35,14 @@ $metadataParserTool = Join-Path $repoDirectory "tools/MetadataParser/MetadataPar
 $transformedBeta = Join-Path $repoDirectory "transformed_beta_metadata.xml"
 $transformedV1 = Join-Path $repoDirectory "transformed_v1.0_metadata.xml"
 
-Write-Host "Tranforming beta metadata using xslt..."
+Write-Host "Tranforming beta metadata using xslt..." -ForegroundColor Green
 & $transformScript -xslPath $xsltPath -inputPath $betaSnapshot -outputPath $transformedBeta
 
-Write-Host "Validating beta metadata after the transform..."
+Write-Host "Validating beta metadata after the transform..." -ForegroundColor Green
 & dotnet run -p $metadataParserTool $transformedBeta
 
-Write-Host "Tranforming v1.0 metadata using xslt..."
+Write-Host "Tranforming v1.0 metadata using xslt..." -ForegroundColor Green
 & $transformScript -xslPath $xsltPath -inputPath $v1Snapshot -outputPath $transformedV1
 
-Write-Host "Validating v1.0 metadata after the transform..."
+Write-Host "Validating v1.0 metadata after the transform..." -ForegroundColor Green
 & dotnet run -p $metadataParserTool $transformedV1
