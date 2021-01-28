@@ -1,4 +1,7 @@
-﻿using Microsoft.OData.Edm.Csdl;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Microsoft.OData.Edm.Csdl;
 using System.Xml;
 using System;
 using Microsoft.OData.Edm;
