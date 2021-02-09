@@ -75,6 +75,34 @@
         <Member Name="confirmedCompromised" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
+      <EnumType Name="authenticationMethodState">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+      </EnumType>
+      <EnumType Name="authenticationMethodTargetType">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticatorAppFeatureSettings" IsFlags="true">
+        <Member Name="requireNumberMatching" Value="1" />
+      </EnumType>
+      <EnumType Name="externalEmailOtpState">
+        <Member Name="default" Value="0" />
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="fido2RestrictionEnforcementType">
+        <Member Name="allow" Value="0" />
+        <Member Name="block" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="microsoftAuthenticatorAuthenticationMode">
+        <Member Name="deviceBasedPush" Value="0" />
+        <Member Name="push" Value="1" />
+        <Member Name="any" Value="2" />
+      </EnumType>
       <EnumType Name="allowInvitesFrom">
         <Member Name="none" Value="0" />
         <Member Name="adminsAndGuestInviters" Value="1" />
@@ -1672,6 +1700,16 @@
         <Member Name="d" Value="15" />
         <Member Name="flash" Value="16" />
       </EnumType>
+      <EnumType Name="attestationLevel">
+        <Member Name="attested" Value="0" />
+        <Member Name="notAttested" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationMethodKeyStrength">
+        <Member Name="normal" Value="0" />
+        <Member Name="weak" Value="1" />
+        <Member Name="unknown" Value="2" />
+      </EnumType>
       <EnumType Name="lifecycleEventType">
         <Member Name="missed" Value="0" />
         <Member Name="subscriptionRemoved" Value="1" />
@@ -2405,6 +2443,7 @@
         </NavigationProperty>
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="presence" Type="graph.presence" ContainsTarget="true" />
+        <NavigationProperty Name="authentication" Type="graph.authentication" ContainsTarget="true" />
         <NavigationProperty Name="joinedTeams" Type="Collection(graph.team)" ContainsTarget="true" />
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
         <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true">
@@ -3117,6 +3156,9 @@
         <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of lists under this site." />
         </NavigationProperty>
+        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The permissions associated with the site. Nullable." />
+        </NavigationProperty>
         <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of the sub-sites under this site." />
         </NavigationProperty>
@@ -3463,6 +3505,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The base presence information for a user. Possible values are Available, AvailableIdle,  Away, BeRightBack, Busy, BusyIdle, DoNotDisturb, Offline, PresenceUnknown" />
         </Property>
       </EntityType>
+      <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="fido2Methods" Type="Collection(graph.fido2AuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
         <Property Name="classification" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="An optional label. Typically describes the data or business sensitivity of the team. Must match one of a pre-configured set in the tenant's directory." />
@@ -3622,7 +3670,7 @@
               <String>microsoft.graph.user</String>
             </Collection>
           </Annotation>
-          <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owners of the application. The owners are a set of non-admin users who are allowed to modify this object. Requires version 2013-11-08 or newer. Read-only. Nullable." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that are owners of the application. Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
@@ -3844,6 +3892,108 @@
         <Property Name="providerResourceId" Type="Edm.String" />
         <Property Name="uri" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="authenticationMethodConfiguration" BaseType="graph.entity" Abstract="true">
+        <Property Name="state" Type="graph.authenticationMethodState" />
+      </EntityType>
+      <EntityType Name="authenticationMethodsPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="policyVersion" Type="Edm.String" />
+        <Property Name="reconfirmationInDays" Type="Edm.Int32" />
+        <NavigationProperty Name="authenticationMethodConfigurations" Type="Collection(graph.authenticationMethodConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationMethodTarget" BaseType="graph.entity">
+        <Property Name="isRegistrationRequired" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
+      </EntityType>
+      <EntityType Name="emailAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="allowExternalIdToUseEmailOtp" Type="graph.externalEmailOtpState" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="fido2AuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="isAttestationEnforced" Type="Edm.Boolean" />
+        <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
+        <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="microsoftAuthenticatorAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="microsoftAuthenticatorAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
+        <Property Name="authenticationMode" Type="graph.microsoftAuthenticatorAuthenticationMode" Nullable="false" />
+        <Property Name="featureSettings" Type="graph.authenticatorAppFeatureSettings" />
+      </EntityType>
+      <EntityType Name="policyRoot" BaseType="graph.entity">
+        <NavigationProperty Name="authenticationMethodsPolicy" Type="graph.authenticationMethodsPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
+        <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether users can sign up for email based subscriptions." />
+        </Property>
+        <Property Name="allowedToUseSSPR" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the Self-Serve Password Reset feature can be used by users on the tenant." />
+        </Property>
+        <Property Name="allowEmailVerifiedUsersToJoinOrganization" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a user can join the tenant by email validation." />
+        </Property>
+        <Property Name="allowInvitesFrom" Type="graph.allowInvitesFrom">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates who can invite external users to the organization. Possible values are:none - Prevent everyone, including admins, from inviting external users. Default setting for US Government.adminsAndGuestInviters - Allow members of Global Administrators, User Administrators, and Guest Inviter roles to invite external users.adminsGuestInvitersAndAllMembers - Allow the above admin roles and all other User role members to invite external users.everyone - Allow everyone in the organization, including guest users, to invite external users. Default setting for all cloud environments except US Government." />
+        </Property>
+        <Property Name="blockMsolPowerShell" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="To disable the use of MSOL PowerShell set this property to true. Setting to true will also disable user-based access to the legacy service endpoint used by MSOL PowerShell. This does not affect Azure AD Connect or Microsoft Graph." />
+        </Property>
+        <Property Name="defaultUserRolePermissions" Type="graph.defaultUserRolePermissions" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies certain customizable permissions for default user role." />
+        </Property>
+      </EntityType>
+      <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
+        <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Condition sets which are excluded in this permission grant policy. Automatically expanded on GET." />
+        </NavigationProperty>
+        <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Condition sets which are included in this permission grant policy. Automatically expanded on GET." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
+        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the rules that must be met for the policy to apply. Required." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Readonly." />
+        </Property>
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies a display name for the conditionalAccessPolicy object." />
+        </Property>
+        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the grant controls that must be fulfilled to pass the policy." />
+        </Property>
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Readonly." />
+        </Property>
+        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the session controls that are enforced after sign-in." />
+        </Property>
+        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the state of the conditionalAccessPolicy object. Possible values are: enabled, disabled, enabledForReportingButNotEnforced. Required." />
+        </Property>
+      </EntityType>
+      <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, Azure Active Directory security defaults is enabled for the tenant." />
+        </Property>
+      </EntityType>
       <EntityType Name="identityContainer" BaseType="graph.entity">
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
       </EntityType>
@@ -3857,7 +4007,6 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="An optional description for the administrative unit." />
@@ -3885,26 +4034,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Scoped-role members of this Administrative Unit.  HTTP Methods: GET (list scopedRoleMemberships), POST (add scopedRoleMembership), DELETE (remove scopedRoleMembership)." />
         </NavigationProperty>
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
-        <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether users can sign up for email based subscriptions." />
-        </Property>
-        <Property Name="allowedToUseSSPR" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the Self-Serve Password Reset feature can be used by users on the tenant." />
-        </Property>
-        <Property Name="allowEmailVerifiedUsersToJoinOrganization" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a user can join the tenant by email validation." />
-        </Property>
-        <Property Name="allowInvitesFrom" Type="graph.allowInvitesFrom">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates who can invite external users to the organization. Possible values are:none - Prevent everyone, including admins, from inviting external users. Default setting for US Government.adminsAndGuestInviters - Allow members of Global Administrators, User Administrators, and Guest Inviter roles to invite external users.adminsGuestInvitersAndAllMembers - Allow the above admin roles and all other User role members to invite external users.everyone - Allow everyone in the organization, including guest users, to invite external users. Default setting for all cloud environments except US Government." />
-        </Property>
-        <Property Name="blockMsolPowerShell" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="To disable the use of MSOL PowerShell set this property to true. Setting to true will also disable user-based access to the legacy service endpoint used by MSOL PowerShell. This does not affect Azure AD Connect or Microsoft Graph." />
-        </Property>
-        <Property Name="defaultUserRolePermissions" Type="graph.defaultUserRolePermissions" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies certain customizable permissions for default user role." />
-        </Property>
       </EntityType>
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
         <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false">
@@ -4669,54 +4798,6 @@
         </Property>
         <Property Name="resourceApplication" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The appId of the resource application (e.g. the API) for which a permission is being granted, or any to match with any resource application or API. Default is any." />
-        </Property>
-      </EntityType>
-      <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
-        <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Condition sets which are excluded in this permission grant policy. Automatically expanded on GET." />
-        </NavigationProperty>
-        <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Condition sets which are included in this permission grant policy. Automatically expanded on GET." />
-        </NavigationProperty>
-      </EntityType>
-      <EntityType Name="policyRoot" BaseType="graph.entity">
-        <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
-        <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
-        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the rules that must be met for the policy to apply. Required." />
-        </Property>
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Readonly." />
-        </Property>
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies a display name for the conditionalAccessPolicy object." />
-        </Property>
-        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the grant controls that must be fulfilled to pass the policy." />
-        </Property>
-        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Readonly." />
-        </Property>
-        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the session controls that are enforced after sign-in." />
-        </Property>
-        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the state of the conditionalAccessPolicy object. Possible values are: enabled, disabled, enabledForReportingButNotEnforced. Required." />
-        </Property>
-      </EntityType>
-      <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
-        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, Azure Active Directory security defaults is enabled for the tenant." />
         </Property>
       </EntityType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
@@ -11575,6 +11656,28 @@
       <EntityType Name="subscribeToToneOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="unmuteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="updateRecordingStatusOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="aaGuid" Type="Edm.String" />
+        <Property Name="attestationCertificates" Type="Collection(Edm.String)" />
+        <Property Name="attestationLevel" Type="graph.attestationLevel" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="microsoftAuthenticatorAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deviceTag" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="phoneAppVersion" Type="Edm.String" />
+        <NavigationProperty Name="device" Type="graph.device" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="windowsHelloForBusinessAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
+        <NavigationProperty Name="device" Type="graph.device" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="conversationMember" BaseType="graph.entity" Abstract="true">
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the user." />
@@ -12420,61 +12523,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week and hours in a specific time zone that the user works." />
         </Property>
       </ComplexType>
-      <ComplexType Name="automaticRepliesSetting">
-        <Property Name="externalAudience" Type="graph.externalAudienceScope">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The set of audience external to the signed-in user's organization who will receive the ExternalReplyMessage, if Status is AlwaysEnabled or Scheduled. The possible values are: none, contactsOnly, all." />
-        </Property>
-        <Property Name="externalReplyMessage" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The automatic reply to send to the specified external audience, if Status is AlwaysEnabled or Scheduled." />
-        </Property>
-        <Property Name="internalReplyMessage" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The automatic reply to send to the audience internal to the signed-in user's organization, if Status is AlwaysEnabled or Scheduled." />
-        </Property>
-        <Property Name="scheduledEndDateTime" Type="graph.dateTimeTimeZone">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that automatic replies are set to end, if Status is set to Scheduled." />
-        </Property>
-        <Property Name="scheduledStartDateTime" Type="graph.dateTimeTimeZone">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that automatic replies are set to begin, if Status is set to Scheduled." />
-        </Property>
-        <Property Name="status" Type="graph.automaticRepliesStatus">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Configurations status for automatic replies. The possible values are: disabled, alwaysEnabled, scheduled." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="dateTimeTimeZone">
-        <Property Name="dateTime" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A single point of time in a combined date and time representation ({date}T{time}; for example, 2017-08-29T04:00:00.0000000)." />
-        </Property>
-        <Property Name="timeZone" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a time zone, for example, 'Pacific Standard Time'. See below for more possible values." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="localeInfo">
-        <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A name representing the user's locale in natural language, for example, 'English (United States)'." />
-        </Property>
-        <Property Name="locale" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A locale representation for the user, which includes the user's preferred language and country/region. For example, 'en-us'. The language component follows 2-letter codes as defined in ISO 639-1, and the country component follows 2-letter codes as defined in ISO 3166-1 alpha-2." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="workingHours">
-        <Property Name="daysOfWeek" Type="Collection(graph.dayOfWeek)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week on which the user works." />
-        </Property>
-        <Property Name="endTime" Type="Edm.TimeOfDay">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time of the day that the user stops working." />
-        </Property>
-        <Property Name="startTime" Type="Edm.TimeOfDay">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time of the day that the user starts working." />
-        </Property>
-        <Property Name="timeZone" Type="graph.timeZoneBase">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time zone to which the working hours apply." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="timeZoneBase">
-        <Property Name="name" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The name of a time zone. It can be a standard time zone name such as 'Hawaii-Aleutian Standard Time', or 'Customized Time Zone' for a custom time zone." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="addIn">
         <Property Name="id" Type="Edm.Guid" />
         <Property Name="properties" Type="Collection(graph.keyValue)" Nullable="false" />
@@ -12495,41 +12543,6 @@
         </Property>
         <Property Name="requestedAccessTokenVersion" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the access token version expected by this resource. This changes the version and format of the JWT produced independent of the endpoint or client used to request the access token.  The endpoint used, v1.0 or v2.0, is chosen by the client and only impacts the version of id_tokens. Resources need to explicitly configure requestedAccessTokenVersion to indicate the supported access token format.  Possible values for requestedAccessTokenVersion are 1, 2, or null. If the value is null, this defaults to 1, which corresponds to the v1.0 endpoint.  If signInAudience on the application is configured as AzureADandPersonalMicrosoftAccount, the value for this property must be 2" />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="permissionScope">
-        <Property Name="adminConsentDescription" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A description of the delegated permissions, intended to be read by an administrator granting the permission on behalf of all users. This text appears in tenant-wide admin consent experiences." />
-        </Property>
-        <Property Name="adminConsentDisplayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The permission's title, intended to be read by an administrator granting the permission on behalf of all users." />
-        </Property>
-        <Property Name="id" Type="Edm.Guid" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique delegated permission identifier inside the collection of delegated permissions defined for a resource application." />
-        </Property>
-        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="When creating or updating a permission, this property must be set to true (which is the default). To delete a permission, this property must first be set to false.  At that point, in a subsequent call, the permission may be removed." />
-        </Property>
-        <Property Name="origin" Type="Edm.String" />
-        <Property Name="type" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this delegated permission should be considered safe for non-admin users to consent to on behalf of themselves, or whether an administrator should be required for consent to the permissions. This will be the default behavior, but each customer can choose to customize the behavior in their organization (by allowing, restricting or limiting user consent to this delegated permission.)" />
-        </Property>
-        <Property Name="userConsentDescription" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A description of the delegated permissions, intended to be read by a user granting the permission on their own behalf. This text appears in consent experiences where the user is consenting only on behalf of themselves." />
-        </Property>
-        <Property Name="userConsentDisplayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A title for the permission, intended to be read by a user granting the permission on their own behalf. This text appears in consent experiences where the user is consenting only on behalf of themselves." />
-        </Property>
-        <Property Name="value" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the value to include in the scp (scope) claim in access tokens. Must not exceed 120 characters in length. Allowed characters are : ! # $ % &amp; ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, as well as characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, are not allowed." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="preAuthorizedApplication">
-        <Property Name="appId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the application." />
-        </Property>
-        <Property Name="delegatedPermissionIds" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the oauth2PermissionScopes the application requires." />
         </Property>
       </ComplexType>
       <ComplexType Name="appRole">
@@ -12609,20 +12622,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The optional claims returned in the SAML token." />
         </Property>
       </ComplexType>
-      <ComplexType Name="optionalClaim">
-        <Property Name="additionalProperties" Type="Collection(Edm.String)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Additional properties of the claim. If a property exists in this collection, it modifies the behavior of the optional claim specified in the name property." />
-        </Property>
-        <Property Name="essential" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="If the value is true, the claim specified by the client is necessary to ensure a smooth authorization experience for the specific task requested by the end user. The default value is false." />
-        </Property>
-        <Property Name="name" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the optional claim." />
-        </Property>
-        <Property Name="source" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The source (directory object) of the claim. There are predefined claims and user-defined claims from extension properties. If the source value is null, the claim is a predefined optional claim. If the source value is user, the value in the name property is the extension property from the user object." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="parentalControlSettings">
         <Property Name="countriesBlockedForMinors" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the two-letter ISO country codes. Access to the application will be blocked for minors from the countries specified in this list." />
@@ -12667,14 +12666,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the resource that the application requires access to.  This should be equal to the appId declared on the target resource application." />
         </Property>
       </ComplexType>
-      <ComplexType Name="resourceAccess">
-        <Property Name="id" Type="Edm.Guid" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for one of the oauth2PermissionScopes or appRole instances that the resource application exposes." />
-        </Property>
-        <Property Name="type" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the id property references an oauth2PermissionScopes or an appRole. Possible values are Scope or Role." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="spaApplication">
         <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
@@ -12692,18 +12683,42 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent." />
         </Property>
       </ComplexType>
-      <ComplexType Name="implicitGrantSettings">
-        <Property Name="enableAccessTokenIssuance" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an access token using the OAuth 2.0 implicit flow." />
+      <ComplexType Name="permissionScope">
+        <Property Name="adminConsentDescription" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A description of the delegated permissions, intended to be read by an administrator granting the permission on behalf of all users. This text appears in tenant-wide admin consent experiences." />
         </Property>
-        <Property Name="enableIdTokenIssuance" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow." />
+        <Property Name="adminConsentDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The permission's title, intended to be read by an administrator granting the permission on behalf of all users." />
+        </Property>
+        <Property Name="id" Type="Edm.Guid" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique delegated permission identifier inside the collection of delegated permissions defined for a resource application." />
+        </Property>
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When creating or updating a permission, this property must be set to true (which is the default). To delete a permission, this property must first be set to false.  At that point, in a subsequent call, the permission may be removed." />
+        </Property>
+        <Property Name="origin" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this delegated permission should be considered safe for non-admin users to consent to on behalf of themselves, or whether an administrator should be required for consent to the permissions. This will be the default behavior, but each customer can choose to customize the behavior in their organization (by allowing, restricting or limiting user consent to this delegated permission.)" />
+        </Property>
+        <Property Name="userConsentDescription" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A description of the delegated permissions, intended to be read by a user granting the permission on their own behalf. This text appears in consent experiences where the user is consenting only on behalf of themselves." />
+        </Property>
+        <Property Name="userConsentDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A title for the permission, intended to be read by a user granting the permission on their own behalf. This text appears in consent experiences where the user is consenting only on behalf of themselves." />
+        </Property>
+        <Property Name="value" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the value to include in the scp (scope) claim in access tokens. Must not exceed 120 characters in length. Allowed characters are : ! # $ % &amp; ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, as well as characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, are not allowed." />
         </Property>
       </ComplexType>
       <ComplexType Name="samlSingleSignOnSettings">
         <Property Name="relayState" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The relative URI the service provider would redirect to after completion of the single sign-on flow." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="fido2KeyRestrictions">
+        <Property Name="aaGuids" Type="Collection(Edm.String)" />
+        <Property Name="enforcementType" Type="graph.fido2RestrictionEnforcementType" />
+        <Property Name="isEnforced" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String">
@@ -12714,6 +12729,14 @@
         </Property>
         <Property Name="type" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only" />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="preAuthorizedApplication">
+        <Property Name="appId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the application." />
+        </Property>
+        <Property Name="delegatedPermissionIds" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the oauth2PermissionScopes the application requires." />
         </Property>
       </ComplexType>
       <ComplexType Name="assignedLabel">
@@ -12778,6 +12801,14 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the identity." />
         </Property>
       </ComplexType>
+      <ComplexType Name="implicitGrantSettings">
+        <Property Name="enableAccessTokenIssuance" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an access token using the OAuth 2.0 implicit flow." />
+        </Property>
+        <Property Name="enableIdTokenIssuance" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="instanceResourceAccess">
         <Property Name="permissions" Type="Collection(graph.resourcePermission)" Nullable="false" />
         <Property Name="resourceAppId" Type="Edm.String" Nullable="false" />
@@ -12798,6 +12829,20 @@
         </Property>
         <Property Name="warning" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="The number of units that are in warning status." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="optionalClaim">
+        <Property Name="additionalProperties" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Additional properties of the claim. If a property exists in this collection, it modifies the behavior of the optional claim specified in the name property." />
+        </Property>
+        <Property Name="essential" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If the value is true, the claim specified by the client is necessary to ensure a smooth authorization experience for the specific task requested by the end user. The default value is false." />
+        </Property>
+        <Property Name="name" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the optional claim." />
+        </Property>
+        <Property Name="source" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The source (directory object) of the claim. There are predefined claims and user-defined claims from extension properties. If the source value is null, the claim is a predefined optional claim. If the source value is user, the value in the name property is the extension property from the user object." />
         </Property>
       </ComplexType>
       <ComplexType Name="phone">
@@ -12836,6 +12881,14 @@
         </Property>
         <Property Name="statementUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A valid URL format that begins with http:// or https://. Maximum length is 255 characters. The URL that directs to the company's privacy statement. Not required." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="resourceAccess">
+        <Property Name="id" Type="Edm.Guid" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for one of the oauth2PermissionScopes or appRole instances that the resource application exposes." />
+        </Property>
+        <Property Name="type" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether the id property references an oauth2PermissionScopes or an appRole. Possible values are Scope or Role." />
         </Property>
       </ComplexType>
       <ComplexType Name="servicePlanInfo">
@@ -13079,11 +13132,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Total space used, in bytes. Read-only." />
         </Property>
       </ComplexType>
-      <ComplexType Name="storagePlanInformation">
-        <Property Name="upgradeAvailable" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are higher storage quota plans available. Read-only." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="sharepointIds">
         <Property Name="listId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier (guid) for the item's list in SharePoint." />
@@ -13172,20 +13220,6 @@
         </Property>
         <Property Name="processingMetadata" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="hashes">
-        <Property Name="crc32Hash" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The CRC32 value of the file in little endian (if available). Read-only." />
-        </Property>
-        <Property Name="quickXorHash" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A proprietary hash of the file that can be used to determine if the contents of the file have changed (if available). Read-only." />
-        </Property>
-        <Property Name="sha1Hash" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="SHA1 hash for the contents of the file (if available). Read-only." />
-        </Property>
-        <Property Name="sha256Hash" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="SHA256 hash for the contents of the file (if available). Read-only." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="fileSystemInfo">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The UTC date and time the file was created on a client." />
@@ -13205,17 +13239,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of properties defining the recommended view for the folder." />
         </Property>
       </ComplexType>
-      <ComplexType Name="folderView">
-        <Property Name="sortBy" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The method by which the folder should be sorted." />
-        </Property>
-        <Property Name="sortOrder" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="If true, indicates that items should be sorted in descending order. Otherwise, items should be sorted ascending." />
-        </Property>
-        <Property Name="viewType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of view that should be used to represent the folder." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="image">
         <Property Name="height" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Height of the image, in pixels. Read-only." />
@@ -13232,11 +13255,6 @@
       <ComplexType Name="pendingOperations">
         <Property Name="pendingContentUpdate" Type="graph.pendingContentUpdate">
           <Annotation Term="Org.OData.Core.V1.Description" String="A property that indicates that an operation that might update the binary content of a file is pending completion." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="pendingContentUpdate">
-        <Property Name="queuedDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time the pending binary operation was queued in UTC time. Read-only." />
         </Property>
       </ComplexType>
       <ComplexType Name="photo">
@@ -13335,30 +13353,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="URL that displays the resource in the browser. Read-only." />
         </Property>
       </ComplexType>
-      <ComplexType Name="itemReference">
-        <Property Name="driveId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the drive instance that contains the item. Read-only." />
-        </Property>
-        <Property Name="driveType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the type of drive. See [drive][] resource for values." />
-        </Property>
-        <Property Name="id" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the item in the drive. Read-only." />
-        </Property>
-        <Property Name="name" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the item being referenced. Read-only." />
-        </Property>
-        <Property Name="path" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Path that can be used to navigate to the item. Read-only." />
-        </Property>
-        <Property Name="shareId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for a shared resource that can be accessed via the [Shares][] API." />
-        </Property>
-        <Property Name="sharepointIds" Type="graph.sharepointIds">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Returns identifiers useful for SharePoint REST compatibility. Read-only." />
-        </Property>
-        <Property Name="siteId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For OneDrive for Business and SharePoint, this property represents the ID of the site that contains the parent document library of the driveItem resource. The value is the same as the id property of that [site][] resource. It is an opaque string that consists of three identifiers of the site. For OneDrive, this property is not populated." />
+      <ComplexType Name="root" />
+      <ComplexType Name="searchResult">
+        <Property Name="onClickTelemetryUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A callback URL that can be used to record telemetry information. The application should issue a GET on this URL if the user interacts with this item to improve the quality of results." />
         </Property>
       </ComplexType>
       <ComplexType Name="shared">
@@ -13412,12 +13410,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Width of the video, in pixels." />
         </Property>
       </ComplexType>
-      <ComplexType Name="root" />
-      <ComplexType Name="searchResult">
-        <Property Name="onClickTelemetryUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A callback URL that can be used to record telemetry information. The application should issue a GET on this URL if the user interacts with this item to improve the quality of results." />
-        </Property>
-      </ComplexType>
       <ComplexType Name="listInfo">
         <Property Name="contentTypesEnabled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="If true, indicates that content types are enabled for this list." />
@@ -13433,17 +13425,6 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
         <Property Name="innerError" Type="graph.publicInnerError" />
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="target" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="publicErrorDetail">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="target" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="publicInnerError" OpenType="true">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
         <Property Name="message" Type="Edm.String" />
         <Property Name="target" Type="Edm.String" />
       </ComplexType>
@@ -13469,6 +13450,14 @@
       <ComplexType Name="attendeeBase" BaseType="graph.recipient">
         <Property Name="type" Type="graph.attendeeType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of attendee. The possible values are: required, optional, resource. Currently if the attendee is a person, findMeetingTimes always considers the person is of the Required type." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="dateTimeTimeZone">
+        <Property Name="dateTime" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A single point of time in a combined date and time representation ({date}T{time}; for example, 2017-08-29T04:00:00.0000000)." />
+        </Property>
+        <Property Name="timeZone" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a time zone, for example, 'Pacific Standard Time'. See below for more possible values." />
         </Property>
       </ComplexType>
       <ComplexType Name="location">
@@ -13622,6 +13611,34 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that automatic replies are set to begin." />
         </Property>
       </ComplexType>
+      <ComplexType Name="localeInfo">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A name representing the user's locale in natural language, for example, 'English (United States)'." />
+        </Property>
+        <Property Name="locale" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A locale representation for the user, which includes the user's preferred language and country/region. For example, 'en-us'. The language component follows 2-letter codes as defined in ISO 639-1, and the country component follows 2-letter codes as defined in ISO 3166-1 alpha-2." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="automaticRepliesSetting">
+        <Property Name="externalAudience" Type="graph.externalAudienceScope">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The set of audience external to the signed-in user's organization who will receive the ExternalReplyMessage, if Status is AlwaysEnabled or Scheduled. The possible values are: none, contactsOnly, all." />
+        </Property>
+        <Property Name="externalReplyMessage" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The automatic reply to send to the specified external audience, if Status is AlwaysEnabled or Scheduled." />
+        </Property>
+        <Property Name="internalReplyMessage" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The automatic reply to send to the audience internal to the signed-in user's organization, if Status is AlwaysEnabled or Scheduled." />
+        </Property>
+        <Property Name="scheduledEndDateTime" Type="graph.dateTimeTimeZone">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that automatic replies are set to end, if Status is set to Scheduled." />
+        </Property>
+        <Property Name="scheduledStartDateTime" Type="graph.dateTimeTimeZone">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that automatic replies are set to begin, if Status is set to Scheduled." />
+        </Property>
+        <Property Name="status" Type="graph.automaticRepliesStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Configurations status for automatic replies. The possible values are: disabled, alwaysEnabled, scheduled." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="calendarSharingMessageAction">
         <Property Name="action" Type="graph.calendarSharingAction" />
         <Property Name="actionType" Type="graph.calendarSharingActionType" />
@@ -13644,6 +13661,11 @@
         </Property>
         <Property Name="message" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The error message." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="timeZoneBase">
+        <Property Name="name" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of a time zone. It can be a standard time zone name such as 'Hawaii-Aleutian Standard Time', or 'Customized Time Zone' for a custom time zone." />
         </Property>
       </ComplexType>
       <ComplexType Name="customTimeZone" BaseType="graph.timeZoneBase">
@@ -13715,6 +13737,20 @@
         </Property>
         <Property Name="contentType" Type="graph.bodyType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of the content. Possible values are text and html." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="workingHours">
+        <Property Name="daysOfWeek" Type="Collection(graph.dayOfWeek)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The days of the week on which the user works." />
+        </Property>
+        <Property Name="endTime" Type="Edm.TimeOfDay">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The time of the day that the user stops working." />
+        </Property>
+        <Property Name="startTime" Type="Edm.TimeOfDay">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The time of the day that the user starts working." />
+        </Property>
+        <Property Name="timeZone" Type="graph.timeZoneBase">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The time zone to which the working hours apply." />
         </Property>
       </ComplexType>
       <ComplexType Name="mailTips">
@@ -14163,6 +14199,31 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the recipient in the directory." />
         </Property>
       </ComplexType>
+      <ComplexType Name="hashes">
+        <Property Name="crc32Hash" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The CRC32 value of the file in little endian (if available). Read-only." />
+        </Property>
+        <Property Name="quickXorHash" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A proprietary hash of the file that can be used to determine if the contents of the file have changed (if available). Read-only." />
+        </Property>
+        <Property Name="sha1Hash" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="SHA1 hash for the contents of the file (if available). Read-only." />
+        </Property>
+        <Property Name="sha256Hash" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="SHA256 hash for the contents of the file (if available). Read-only." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="folderView">
+        <Property Name="sortBy" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The method by which the folder should be sorted." />
+        </Property>
+        <Property Name="sortOrder" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If true, indicates that items should be sorted in descending order. Otherwise, items should be sorted ascending." />
+        </Property>
+        <Property Name="viewType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of view that should be used to represent the folder." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="geolocationColumn" />
       <ComplexType Name="incompleteData" OpenType="true">
         <Property Name="missingDataBeforeDateTime" Type="Edm.DateTimeOffset">
@@ -14184,6 +14245,32 @@
         <Property Name="getUrl" Type="Edm.String" />
         <Property Name="postParameters" Type="Edm.String" />
         <Property Name="postUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="itemReference">
+        <Property Name="driveId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the drive instance that contains the item. Read-only." />
+        </Property>
+        <Property Name="driveType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the type of drive. See [drive][] resource for values." />
+        </Property>
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the item in the drive. Read-only." />
+        </Property>
+        <Property Name="name" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the item being referenced. Read-only." />
+        </Property>
+        <Property Name="path" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Path that can be used to navigate to the item. Read-only." />
+        </Property>
+        <Property Name="shareId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for a shared resource that can be accessed via the [Shares][] API." />
+        </Property>
+        <Property Name="sharepointIds" Type="graph.sharepointIds">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns identifiers useful for SharePoint REST compatibility. Read-only." />
+        </Property>
+        <Property Name="siteId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For OneDrive for Business and SharePoint, this property represents the ID of the site that contains the parent document library of the driveItem resource. The value is the same as the id property of that [site][] resource. It is an opaque string that consists of three identifiers of the site. For OneDrive, this property is not populated." />
+        </Property>
       </ComplexType>
       <ComplexType Name="lookupColumn">
         <Property Name="allowMultipleValues" Type="Edm.Boolean">
@@ -14216,6 +14303,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The minimum permitted value." />
         </Property>
       </ComplexType>
+      <ComplexType Name="pendingContentUpdate">
+        <Property Name="queuedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time the pending binary operation was queued in UTC time. Read-only." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="personOrGroupColumn">
         <Property Name="allowMultipleSelection" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether multiple values can be selected from the source." />
@@ -14225,6 +14317,22 @@
         </Property>
         <Property Name="displayAs" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="How to display the information about the person or group chosen. See below." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="publicErrorDetail">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="publicInnerError" OpenType="true">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="storagePlanInformation">
+        <Property Name="upgradeAvailable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are higher storage quota plans available. Read-only." />
         </Property>
       </ComplexType>
       <ComplexType Name="sharingInvitation">
@@ -14786,17 +14894,6 @@
         </Property>
         <Property Name="themeColor" Type="graph.rgbColor">
           <Annotation Term="Org.OData.Core.V1.Description" String="Primary theme color used in the Company Portal applications and web portal." />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="rgbColor">
-        <Property Name="b" Type="Edm.Byte" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Blue value" />
-        </Property>
-        <Property Name="g" Type="Edm.Byte" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Green value" />
-        </Property>
-        <Property Name="r" Type="Edm.Byte" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Red value" />
         </Property>
       </ComplexType>
       <ComplexType Name="appListItem">
@@ -15364,6 +15461,17 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Block the platform from enrolling" />
         </Property>
       </ComplexType>
+      <ComplexType Name="rgbColor">
+        <Property Name="b" Type="Edm.Byte" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Blue value" />
+        </Property>
+        <Property Name="g" Type="Edm.Byte" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Green value" />
+        </Property>
+        <Property Name="r" Type="Edm.Byte" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Red value" />
+        </Property>
+      </ComplexType>
       <ComplexType Name="deleteUserFromSharedAppleDeviceActionResult" BaseType="graph.deviceActionResult">
         <Property Name="userPrincipalName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the user to be deleted" />
@@ -15847,14 +15955,14 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Opens the notebook in OneNote on the web." />
         </Property>
       </ComplexType>
+      <ComplexType Name="diagnostic">
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="url" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="externalLink">
         <Property Name="href" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The url of the link." />
         </Property>
-      </ComplexType>
-      <ComplexType Name="diagnostic">
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="url" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="onenoteOperationError">
         <Property Name="code" Type="Edm.String">
@@ -16870,6 +16978,11 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The shift notes for the shiftItem." />
         </Property>
       </ComplexType>
+      <ComplexType Name="openShiftItem" BaseType="graph.shiftItem">
+        <Property Name="openSlotCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of the number of slots for the given open shift." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="shiftActivity">
         <Property Name="code" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Customer defined code for the shiftActivity. Required." />
@@ -16887,11 +17000,6 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The start date and time for the shiftActivity. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Required." />
         </Property>
         <Property Name="theme" Type="graph.scheduleEntityTheme" Nullable="false" />
-      </ComplexType>
-      <ComplexType Name="openShiftItem" BaseType="graph.shiftItem">
-        <Property Name="openSlotCount" Type="Edm.Int32" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Count of the number of slots for the given open shift." />
-        </Property>
       </ComplexType>
       <ComplexType Name="shiftAvailability">
         <Property Name="recurrence" Type="graph.patternedRecurrence">
@@ -17038,6 +17146,7 @@
             </Record>
           </Annotation>
         </EntitySet>
+        <EntitySet Name="authenticationMethodConfigurations" EntityType="microsoft.graph.authenticationMethodConfiguration" />
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
@@ -17316,6 +17425,7 @@
         </EntitySet>
         <EntitySet Name="teamsTemplates" EntityType="microsoft.graph.teamsTemplate" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
+        <Singleton Name="authenticationMethodsPolicy" Type="microsoft.graph.authenticationMethodsPolicy" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="directory" Type="microsoft.graph.directory" />
         <Singleton Name="me" Type="microsoft.graph.user">
@@ -21641,6 +21751,7 @@
       <Annotations Target="microsoft.graph.userActivity" />
       <Annotations Target="microsoft.graph.application" />
       <Annotations Target="microsoft.graph.servicePrincipal" />
+      <Annotations Target="microsoft.graph.conditionalAccessPolicy" />
       <Annotations Target="microsoft.graph.administrativeUnit" />
       <Annotations Target="microsoft.graph.directory/administrativeUnits" />
       <Annotations Target="microsoft.graph.directoryRole" />
@@ -21663,7 +21774,6 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Mobile device management authority." />
       </Annotations>
       <Annotations Target="microsoft.graph.orgContact" />
-      <Annotations Target="microsoft.graph.conditionalAccessPolicy" />
       <Annotations Target="microsoft.graph.subscribedSku" />
       <Annotations Target="microsoft.graph.educationClass/createdBy">
         <Annotation Qualifier="createdBy.application.displayName" Term="graph.TransparentContainerProperty" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
@@ -21802,9 +21912,6 @@
       <Annotations Target="microsoft.graph.groupAssignmentTarget">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an assignment to a group." />
       </Annotations>
-      <Annotations Target="microsoft.graph.groupAssignmentTarget/groupId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The group Id that is the target of the assignment." />
-      </Annotations>
       <Annotations Target="microsoft.graph.exclusionGroupAssignmentTarget">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents a group that should be excluded from an assignment." />
       </Annotations>
@@ -21831,6 +21938,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.fileEncryptionInfo/profileIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="The the profile identifier." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.groupAssignmentTarget/groupId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The group Id that is the target of the assignment." />
       </Annotations>
       <Annotations Target="microsoft.graph.iosDeviceType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties of the possible iOS device types the mobile app can run on." />
@@ -21934,23 +22044,11 @@
       <Annotations Target="microsoft.graph.win32LobAppRestartSettings">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties describing restart coordination following an app installation." />
       </Annotations>
-      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/countdownDisplayBeforeRestartInMinutes">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes before the restart time to display the countdown dialog for pending restarts." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/gracePeriodInMinutes">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes to wait before restarting the device after an app installation." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/restartNotificationSnoozeDurationInMinutes">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes to snooze the restart notification dialog when the snooze button is selected." />
-      </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppAssignmentSettings/restartSettings">
         <Annotation Term="Org.OData.Core.V1.Description" String="The reboot settings to apply for this app assignment." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppRule">
         <Annotation Term="Org.OData.Core.V1.Description" String="A base complex type to store the detection or requirement rule data for a Win32 LOB app." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.win32LobAppRule/ruleType">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The rule type indicating the purpose of the rule." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppFileSystemRule">
         <Annotation Term="Org.OData.Core.V1.Description" String="A complex type to store file or folder rule data for a Win32 LOB app." />
@@ -22066,6 +22164,15 @@
       <Annotations Target="microsoft.graph.win32LobAppRegistryRule/valueName">
         <Annotation Term="Org.OData.Core.V1.Description" String="The name of the registry value to detect." />
       </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/countdownDisplayBeforeRestartInMinutes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes before the restart time to display the countdown dialog for pending restarts." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/gracePeriodInMinutes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes to wait before restarting the device after an app installation." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRestartSettings/restartNotificationSnoozeDurationInMinutes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of minutes to snooze the restart notification dialog when the snooze button is selected." />
+      </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppReturnCode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains return code properties for a Win32 App" />
       </Annotations>
@@ -22074,6 +22181,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppReturnCode/type">
         <Annotation Term="Org.OData.Core.V1.Description" String="The type of return code." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppRule/ruleType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The rule type indicating the purpose of the rule." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsMinimumOperatingSystem">
         <Annotation Term="Org.OData.Core.V1.Description" String="The minimum operating system required for a Windows mobile app." />
@@ -22912,15 +23022,6 @@
       <Annotations Target="microsoft.graph.deviceManagement/termsAndConditions">
         <Annotation Term="Org.OData.Core.V1.Description" String="The terms and conditions associated with device management of the company." />
       </Annotations>
-      <Annotations Target="microsoft.graph.deviceManagementSettings/deviceComplianceCheckinThresholdDays">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of days a device is allowed to go without checking in to remain compliant." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceManagementSettings/isScheduledActionEnabled">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Is feature enabled or not for scheduled action for rule." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceManagementSettings/secureByDefault">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device should be noncompliant when there is no compliance policy targeted when this is true" />
-      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/settings">
         <Annotation Term="Org.OData.Core.V1.Description" String="Account level settings." />
       </Annotations>
@@ -22956,60 +23057,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.intuneBrand">
         <Annotation Term="Org.OData.Core.V1.Description" String="intuneBrand contains data which is used in customizing the appearance of the Company Portal applications as well as the end user web portal." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/contactITEmailAddress">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the person/organization responsible for IT support." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/contactITName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the person/organization responsible for IT support." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/contactITNotes">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Text comments regarding the person/organization responsible for IT support." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/contactITPhoneNumber">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of the person/organization responsible for IT support." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/darkBackgroundLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Logo image displayed in Company Portal apps which have a dark background behind the logo." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/displayName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Company/organization name that is displayed to end users." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/lightBackgroundLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Logo image displayed in Company Portal apps which have a light background behind the logo." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/onlineSupportSiteName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the company/organization?s IT helpdesk site." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/onlineSupportSiteUrl">
-        <Annotation Term="Org.OData.Core.V1.Description" String="URL to the company/organization?s IT helpdesk site." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/privacyUrl">
-        <Annotation Term="Org.OData.Core.V1.Description" String="URL to the company/organization?s privacy policy." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/showDisplayNameNextToLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/showLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied logo images are shown or not shown." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/showNameNextToLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.rgbColor">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Color in RGB." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.rgbColor/b">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Blue value" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.rgbColor/g">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Green value" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.rgbColor/r">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Red value" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.intuneBrand/themeColor">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Primary theme color used in the Company Portal applications and web portal." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/intuneBrand">
         <Annotation Term="Org.OData.Core.V1.Description" String="intuneBrand contains data which is used in customizing the appearance of the Company Portal applications as well as the end user web portal." />
@@ -23308,6 +23355,15 @@
       <Annotations Target="microsoft.graph.deviceConfigurationSettingState/userPrincipalName">
         <Annotation Term="Org.OData.Core.V1.Description" String="UserPrincipalName." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementSettings/deviceComplianceCheckinThresholdDays">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of days a device is allowed to go without checking in to remain compliant." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementSettings/isScheduledActionEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Is feature enabled or not for scheduled action for rule." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementSettings/secureByDefault">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Device should be noncompliant when there is no compliance policy targeted when this is true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.edgeSearchEngineBase">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allows IT admins to set a default search engine for MDM-Controlled devices. Users can override this and change their default search engine provided the AllowSearchEngineCustomization policy is not set." />
       </Annotations>
@@ -23326,9 +23382,6 @@
       <Annotations Target="microsoft.graph.iosHomeScreenItem">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an item on the iOS Home Screen" />
       </Annotations>
-      <Annotations Target="microsoft.graph.iosHomeScreenItem/displayName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the app" />
-      </Annotations>
       <Annotations Target="microsoft.graph.iosHomeScreenApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an icon for an app on the Home Screen" />
       </Annotations>
@@ -23341,14 +23394,17 @@
       <Annotations Target="microsoft.graph.iosHomeScreenFolderPage">
         <Annotation Term="Org.OData.Core.V1.Description" String="A folder containing apps on the Home Screen" />
       </Annotations>
+      <Annotations Target="microsoft.graph.iosHomeScreenFolder/pages">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Pages of Home Screen Layout Icons which must be Application Type. This collection can contain a maximum of 500 elements." />
+      </Annotations>
       <Annotations Target="microsoft.graph.iosHomeScreenFolderPage/apps">
         <Annotation Term="Org.OData.Core.V1.Description" String="A list of apps to appear on a page within a folder. This collection can contain a maximum of 500 elements." />
       </Annotations>
       <Annotations Target="microsoft.graph.iosHomeScreenFolderPage/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="Name of the folder page" />
       </Annotations>
-      <Annotations Target="microsoft.graph.iosHomeScreenFolder/pages">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Pages of Home Screen Layout Icons which must be Application Type. This collection can contain a maximum of 500 elements." />
+      <Annotations Target="microsoft.graph.iosHomeScreenItem/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the app" />
       </Annotations>
       <Annotations Target="microsoft.graph.iosHomeScreenPage">
         <Annotation Term="Org.OData.Core.V1.Description" String="A page containing apps and folders on the Home Screen" />
@@ -25105,24 +25161,6 @@
       <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures">
         <Annotation Term="Org.OData.Core.V1.Description" String="configuration Manager client enabled features" />
       </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/compliancePolicy">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether compliance policy is managed by Intune" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/deviceConfiguration">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether device configuration is managed by Intune" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/inventory">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether inventory is managed by Intune" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/modernApps">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether modern application is managed by Intune" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/resourceAccess">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether resource access is managed by Intune" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/windowsUpdateForBusiness">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether Windows Update for Business is managed by Intune" />
-      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/configurationManagerClientEnabledFeatures">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="ConfigrMgr client enabled features. This property is read-only." />
@@ -25132,18 +25170,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceActionResult">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device action result" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceActionResult/actionName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Action name" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceActionResult/actionState">
-        <Annotation Term="Org.OData.Core.V1.Description" String="State of the action" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceActionResult/lastUpdatedDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Time the action state was last updated" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceActionResult/startDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Time the action was initiated" />
       </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/deviceActionResults">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
@@ -25165,102 +25191,6 @@
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/attestationIdentityKey">
-        <Annotation Term="Org.OData.Core.V1.Description" String="TWhen an Attestation Identity Key (AIK) is present on a device, it indicates that the device has an endorsement key (EK) certificate." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bitLockerStatus">
-        <Annotation Term="Org.OData.Core.V1.Description" String="On or Off of BitLocker Drive Encryption" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootAppSecurityVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootDebugging">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When bootDebugging is enabled, the device is used in development and testing" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootManagerSecurityVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootManagerVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The version of the Boot Manager" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootRevisionListInfo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The Boot Revision List that was loaded during initial boot on the attested device" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrity">
-        <Annotation Term="Org.OData.Core.V1.Description" String=" When code integrity is enabled, code execution is restricted to integrity verified code" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrityCheckVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The version of the Boot Manager" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrityPolicy">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The Code Integrity policy that is controlling the security of the boot environment" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/contentNamespaceUrl">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The DHA report version. (Namespace version)" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/contentVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The HealthAttestation state schema version" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/dataExcutionPolicy">
-        <Annotation Term="Org.OData.Core.V1.Description" String="DEP Policy defines a set of hardware and software technologies that perform additional checks on memory " />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/deviceHealthAttestationStatus">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The DHA report version. (Namespace version)" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/earlyLaunchAntiMalwareDriverProtection">
-        <Annotation Term="Org.OData.Core.V1.Description" String="ELAM provides protection for the computers in your network when they start up" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/healthAttestationSupportedStatus">
-        <Annotation Term="Org.OData.Core.V1.Description" String="This attribute indicates if DHA is supported for the device" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/healthStatusMismatchInfo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="This attribute appears if DHA-Service detects an integrity issue" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/issuedDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The DateTime when device was evaluated or issued to MDM" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/lastUpdateDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp of the last update." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/operatingSystemKernelDebugging">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When operatingSystemKernelDebugging is enabled, the device is used in development and testing" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/operatingSystemRevListInfo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The Operating System Revision List that was loaded during initial boot on the attested device" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/pcr0">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The measurement that is captured in PCR[0]" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/pcrHashAlgorithm">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Informational attribute that identifies the HASH algorithm that was used by TPM" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/resetCount">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of times a PC device has hibernated or resumed" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/restartCount">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The number of times a PC device has rebooted" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/safeMode">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Safe mode is a troubleshooting option for Windows that starts your computer in a limited state" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/secureBoot">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When Secure Boot is enabled, the core components must have the correct cryptographic signatures" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/secureBootConfigurationPolicyFingerPrint">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Fingerprint of the Custom Secure Boot Configuration Policy" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/testSigning">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When test signing is allowed, the device does not enforce signature validation during boot" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/tpmVersion">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/virtualSecureMode">
-        <Annotation Term="Org.OData.Core.V1.Description" String="VSM is a container that protects high value assets from a compromised kernel" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deviceHealthAttestationState/windowsPE">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Operating system running with limited services that is used to prepare a computer for Windows" />
       </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/deviceHealthAttestationState">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
@@ -26895,6 +26825,60 @@
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/platformBlocked">
         <Annotation Term="Org.OData.Core.V1.Description" String="Block the platform from enrolling" />
       </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/contactITEmailAddress">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the person/organization responsible for IT support." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/contactITName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the person/organization responsible for IT support." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/contactITNotes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Text comments regarding the person/organization responsible for IT support." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/contactITPhoneNumber">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of the person/organization responsible for IT support." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/darkBackgroundLogo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Logo image displayed in Company Portal apps which have a dark background behind the logo." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Company/organization name that is displayed to end users." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/lightBackgroundLogo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Logo image displayed in Company Portal apps which have a light background behind the logo." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/onlineSupportSiteName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the company/organization?s IT helpdesk site." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/onlineSupportSiteUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="URL to the company/organization?s IT helpdesk site." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/privacyUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="URL to the company/organization?s privacy policy." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/showDisplayNameNextToLogo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/showLogo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied logo images are shown or not shown." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/showNameNextToLogo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Boolean that represents whether the administrator-supplied display name will be shown next to the logo image." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.rgbColor">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Color in RGB." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.intuneBrand/themeColor">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Primary theme color used in the Company Portal applications and web portal." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.rgbColor/b">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Blue value" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.rgbColor/g">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Green value" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.rgbColor/r">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Red value" />
+      </Annotations>
       <Annotations Target="microsoft.graph.complianceManagementPartner/androidEnrollmentAssignments">
         <Annotation Term="Org.OData.Core.V1.Description" String="User groups which enroll Android devices through partner." />
       </Annotations>
@@ -27138,11 +27122,41 @@
       <Annotations Target="microsoft.graph.vppToken/vppTokenAccountType">
         <Annotation Term="Org.OData.Core.V1.Description" String="The type of volume purchase program which the given Apple Volume Purchase Program Token is associated with. Possible values are: `business`, `education`." />
       </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/compliancePolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether compliance policy is managed by Intune" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/deviceConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether device configuration is managed by Intune" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/inventory">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether inventory is managed by Intune" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/modernApps">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether modern application is managed by Intune" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/resourceAccess">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether resource access is managed by Intune" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.configurationManagerClientEnabledFeatures/windowsUpdateForBusiness">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether Windows Update for Business is managed by Intune" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deleteUserFromSharedAppleDeviceActionResult">
         <Annotation Term="Org.OData.Core.V1.Description" String="Delete user from shared apple device action result" />
       </Annotations>
       <Annotations Target="microsoft.graph.deleteUserFromSharedAppleDeviceActionResult/userPrincipalName">
         <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the user to be deleted" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceActionResult/actionName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Action name" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceActionResult/actionState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="State of the action" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceActionResult/lastUpdatedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Time the action state was last updated" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceActionResult/startDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Time the action was initiated" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceExchangeAccessStateSummary">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device Exchange Access State summary" />
@@ -27188,6 +27202,102 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceGeoLocation/verticalAccuracy">
         <Annotation Term="Org.OData.Core.V1.Description" String="Accuracy of altitude in meters" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/attestationIdentityKey">
+        <Annotation Term="Org.OData.Core.V1.Description" String="TWhen an Attestation Identity Key (AIK) is present on a device, it indicates that the device has an endorsement key (EK) certificate." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bitLockerStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="On or Off of BitLocker Drive Encryption" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootAppSecurityVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootDebugging">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When bootDebugging is enabled, the device is used in development and testing" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootManagerSecurityVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootManagerVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The version of the Boot Manager" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/bootRevisionListInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Boot Revision List that was loaded during initial boot on the attested device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrity">
+        <Annotation Term="Org.OData.Core.V1.Description" String=" When code integrity is enabled, code execution is restricted to integrity verified code" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrityCheckVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The version of the Boot Manager" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/codeIntegrityPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Code Integrity policy that is controlling the security of the boot environment" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/contentNamespaceUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The DHA report version. (Namespace version)" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/contentVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The HealthAttestation state schema version" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/dataExcutionPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="DEP Policy defines a set of hardware and software technologies that perform additional checks on memory " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/deviceHealthAttestationStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The DHA report version. (Namespace version)" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/earlyLaunchAntiMalwareDriverProtection">
+        <Annotation Term="Org.OData.Core.V1.Description" String="ELAM provides protection for the computers in your network when they start up" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/healthAttestationSupportedStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This attribute indicates if DHA is supported for the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/healthStatusMismatchInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This attribute appears if DHA-Service detects an integrity issue" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/issuedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The DateTime when device was evaluated or issued to MDM" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/lastUpdateDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp of the last update." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/operatingSystemKernelDebugging">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When operatingSystemKernelDebugging is enabled, the device is used in development and testing" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/operatingSystemRevListInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Operating System Revision List that was loaded during initial boot on the attested device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/pcr0">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The measurement that is captured in PCR[0]" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/pcrHashAlgorithm">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Informational attribute that identifies the HASH algorithm that was used by TPM" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/resetCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of times a PC device has hibernated or resumed" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/restartCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The number of times a PC device has rebooted" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/safeMode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Safe mode is a troubleshooting option for Windows that starts your computer in a limited state" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/secureBoot">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When Secure Boot is enabled, the core components must have the correct cryptographic signatures" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/secureBootConfigurationPolicyFingerPrint">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Fingerprint of the Custom Secure Boot Configuration Policy" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/testSigning">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When test signing is allowed, the device does not enforce signature validation during boot" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/tpmVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The security version number of the Boot Application" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/virtualSecureMode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="VSM is a container that protects high value assets from a compromised kernel" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceHealthAttestationState/windowsPE">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Operating system running with limited services that is used to prepare a computer for Windows" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceOperatingSystemSummary">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device operating system summary." />
