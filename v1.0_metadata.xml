@@ -433,6 +433,13 @@
         <Member Name="fourth" Value="3" />
         <Member Name="last" Value="4" />
       </EnumType>
+      <EnumType Name="stagedFeatureName">
+        <Member Name="passthroughAuthentication" Value="0" />
+        <Member Name="seamlessSso" Value="1" />
+        <Member Name="passwordHashSync" Value="2" />
+        <Member Name="emailAsAlternateId" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -3132,6 +3139,7 @@
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
       </EntityType>
@@ -3147,6 +3155,14 @@
       <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
         <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="feature" Type="graph.stagedFeatureName" Nullable="false" />
+        <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
         <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
@@ -3966,6 +3982,7 @@
         <Property Name="includeResourceData" Type="Edm.Boolean" />
         <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
+        <Property Name="notificationQueryOptions" Type="Edm.String" />
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
         <Property Name="resource" Type="Edm.String" Nullable="false" />
       </EntityType>
@@ -8505,7 +8522,11 @@
         <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
         <NavigationProperty Name="teamsAppDefinition" Type="graph.teamsAppDefinition" />
       </EntityType>
-      <EntityType Name="chatMessageHostedContent" BaseType="graph.entity" HasStream="true" />
+      <EntityType Name="teamworkHostedContent" BaseType="graph.entity" HasStream="true">
+        <Property Name="contentBytes" Type="Edm.Binary" />
+        <Property Name="contentType" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
       <EntityType Name="schedule" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" />
         <Property Name="offerShiftRequestsEnabled" Type="Edm.Boolean" />
@@ -13114,6 +13135,27 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an Azure Active Directory object. The directoryObject type is the base type for many other directory entity types." />
       </Annotations>
       <Annotations Target="microsoft.graph.user">
@@ -21099,6 +21141,13 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.channel/messages">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.changeTrackedEntity/createdDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
