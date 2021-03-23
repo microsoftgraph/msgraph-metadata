@@ -440,6 +440,10 @@
         <Member Name="emailAsAlternateId" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="consentRequestFilterByCurrentUserOptions">
+        <Member Name="reviewer" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -2853,6 +2857,7 @@
       </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
         <Property Name="classification" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="funSettings" Type="graph.teamFunSettings" />
@@ -3140,6 +3145,7 @@
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
       </EntityType>
@@ -3163,6 +3169,14 @@
         <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="notifyReviewers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="remindersEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="requestDurationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="version" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
         <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
@@ -4951,6 +4965,55 @@
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="accessReviewReviewerScope">
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="queryRoot" Type="Edm.String" />
+        <Property Name="queryType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="appConsentRequestScope">
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="appConsentApprovalRoute" BaseType="graph.entity">
+        <NavigationProperty Name="appConsentRequests" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="appConsentRequest" BaseType="graph.entity">
+        <Property Name="appDisplayName" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="pendingScopes" Type="Collection(graph.appConsentRequestScope)" />
+        <NavigationProperty Name="userConsentRequests" Type="Collection(graph.userConsentRequest)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="request" BaseType="graph.entity">
+        <Property Name="approvalId" Type="Edm.String" />
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="customData" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="userConsentRequest" BaseType="graph.request">
+        <Property Name="reason" Type="Edm.String" />
+        <NavigationProperty Name="approval" Type="graph.approval" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="approval" BaseType="graph.entity">
+        <NavigationProperty Name="stages" Type="Collection(graph.approvalStage)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="approvalStage" BaseType="graph.entity">
+        <Property Name="assignedToMe" Type="Edm.Boolean" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="justification" Type="Edm.String" />
+        <Property Name="reviewedBy" Type="graph.identity" />
+        <Property Name="reviewedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewResult" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="identityGovernance">
+        <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
+        <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="termsOfUseContainer" BaseType="graph.entity">
+        <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)" ContainsTarget="true" />
+        <NavigationProperty Name="agreements" Type="Collection(graph.agreement)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="agreementFileData">
         <Property Name="data" Type="Edm.Binary" />
       </ComplexType>
@@ -4984,13 +5047,6 @@
         <NavigationProperty Name="versions" Type="Collection(graph.agreementFileVersion)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="agreementFileVersion" BaseType="graph.agreementFileProperties" />
-      <EntityType Name="identityGovernance">
-        <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="termsOfUseContainer" BaseType="graph.entity">
-        <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)" ContainsTarget="true" />
-        <NavigationProperty Name="agreements" Type="Collection(graph.agreement)" ContainsTarget="true" />
-      </EntityType>
       <ComplexType Name="conditionalAccessSessionControl" Abstract="true">
         <Property Name="isEnabled" Type="Edm.Boolean" />
       </ComplexType>
@@ -7819,6 +7875,7 @@
       <EntityType Name="printer" BaseType="graph.printerBase">
         <Property Name="hasPhysicalDevice" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="registeredDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <NavigationProperty Name="connectors" Type="Collection(graph.printConnector)" />
         <NavigationProperty Name="shares" Type="Collection(graph.printerShare)" />
@@ -8470,6 +8527,7 @@
         <NavigationProperty Name="appDefinitions" Type="Collection(graph.teamsAppDefinition)" />
       </EntityType>
       <EntityType Name="channel" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="email" Type="Edm.String" />
@@ -8745,6 +8803,9 @@
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel" />
+      <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team" />
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent" />
       <Action Name="instantiate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applicationTemplate" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
@@ -9034,6 +9095,10 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="token" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="messages" Type="Collection(graph.chatMessage)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.todoTask)" />
@@ -12103,6 +12168,16 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.appConsentRequest)" />
+        <Parameter Name="on" Type="graph.consentRequestFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.appConsentRequest)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.userConsentRequest)" />
+        <Parameter Name="on" Type="graph.consentRequestFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.userConsentRequest)" />
+      </Function>
       <Action Name="assign" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDeviceMobileAppConfiguration" />
         <Parameter Name="assignments" Type="Collection(graph.managedDeviceMobileAppConfigurationAssignment)" />
@@ -12922,6 +12997,12 @@
         <Parameter Name="classification" Type="Edm.String" Unicode="false" />
         <Parameter Name="visibility" Type="graph.teamVisibilityType" Nullable="false" />
         <Parameter Name="partsToClone" Type="graph.clonableTeamParts" Nullable="false" />
+      </Action>
+      <Action Name="completeMigration" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.team" />
+      </Action>
+      <Action Name="completeMigration" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
