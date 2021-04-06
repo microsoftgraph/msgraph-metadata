@@ -419,6 +419,10 @@
         <Member Name="suspended" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="bodyType">
+        <Member Name="text" Value="0" />
+        <Member Name="html" Value="1" />
+      </EnumType>
       <EnumType Name="identityUserFlowAttributeDataType">
         <Member Name="string" Value="1" />
         <Member Name="boolean" Value="2" />
@@ -600,10 +604,6 @@
         <Member Name="otherFax" Value="7" />
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
-      </EnumType>
-      <EnumType Name="bodyType">
-        <Member Name="text" Value="0" />
-        <Member Name="html" Value="1" />
       </EnumType>
       <EnumType Name="educationAddedStudentAction">
         <Member Name="none" Value="0" />
@@ -1720,6 +1720,18 @@
         <Member Name="success" Value="3" />
         <Member Name="error" Value="4" />
         <Member Name="notAssigned" Value="5" />
+      </EnumType>
+      <EnumType Name="chromeOSOnboardingStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="inprogress" Value="1" />
+        <Member Name="onboarded" Value="2" />
+        <Member Name="failed" Value="3" />
+      </EnumType>
+      <EnumType Name="onboardingStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="inprogress" Value="1" />
+        <Member Name="onboarded" Value="2" />
+        <Member Name="failed" Value="3" />
       </EnumType>
       <EnumType Name="administratorConfiguredDeviceComplianceState">
         <Member Name="basedOnDeviceCompliancePolicy" Value="0" />
@@ -6888,6 +6900,7 @@
         <Property Name="azureADDeviceId" Type="Edm.String" />
         <Property Name="azureADRegistered" Type="Edm.Boolean" />
         <Property Name="chassisType" Type="graph.chassisType" Nullable="false" />
+        <Property Name="chromeOSDeviceInfo" Type="Collection(graph.chromeOSDeviceProperty)" />
         <Property Name="complianceGracePeriodExpirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="complianceState" Type="graph.complianceState" Nullable="false" />
         <Property Name="configurationManagerClientEnabledFeatures" Type="graph.configurationManagerClientEnabledFeatures" />
@@ -7166,6 +7179,7 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="videoTeleconferenceId" Type="Edm.String" />
+        <NavigationProperty Name="meetingAttendanceReport" Type="graph.meetingAttendanceReport" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="presence" BaseType="graph.entity">
         <Property Name="activity" Type="Edm.String" />
@@ -7192,6 +7206,7 @@
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
+        <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
@@ -7210,7 +7225,6 @@
         <Property Name="specialization" Type="graph.teamSpecialization" />
         <Property Name="visibility" Type="graph.teamVisibilityType" />
         <Property Name="webUrl" Type="Edm.String" />
-        <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
         <NavigationProperty Name="group" Type="graph.group" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
@@ -7221,6 +7235,7 @@
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="tags" Type="Collection(graph.teamworkTag)" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
+        <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
@@ -7995,6 +8010,7 @@
         <NavigationProperty Name="androidManagedStoreAppConfigurationSchemas" Type="Collection(graph.androidManagedStoreAppConfigurationSchema)" ContainsTarget="true" />
         <NavigationProperty Name="auditEvents" Type="Collection(graph.auditEvent)" ContainsTarget="true" />
         <NavigationProperty Name="assignmentFilters" Type="Collection(graph.deviceAndAppManagementAssignmentFilter)" ContainsTarget="true" />
+        <NavigationProperty Name="chromeOSOnboardingSettings" Type="Collection(graph.chromeOSOnboardingSettings)" ContainsTarget="true" />
         <NavigationProperty Name="termsAndConditions" Type="Collection(graph.termsAndConditions)" ContainsTarget="true" />
         <NavigationProperty Name="advancedThreatProtectionOnboardingStateSummary" Type="graph.advancedThreatProtectionOnboardingStateSummary" ContainsTarget="true" />
         <NavigationProperty Name="cartToClassAssociations" Type="Collection(graph.cartToClassAssociation)" ContainsTarget="true" />
@@ -8198,6 +8214,12 @@
         <Property Name="platform" Type="graph.devicePlatformType" Nullable="false" />
         <Property Name="roleScopeTags" Type="Collection(Edm.String)" />
         <Property Name="rule" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="chromeOSOnboardingSettings" BaseType="graph.entity">
+        <Property Name="lastDirectorySyncDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="onboardingStatus" Type="graph.onboardingStatus" Nullable="false" />
+        <Property Name="ownerUserPrincipalName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="termsAndConditions" BaseType="graph.entity">
         <Property Name="acceptanceStatement" Type="Edm.String" />
@@ -9464,14 +9486,129 @@
         <Property Name="device" Type="graph.identity" />
         <Property Name="user" Type="graph.identity" />
       </ComplexType>
+      <ComplexType Name="itemBody">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="graph.bodyType" />
+      </ComplexType>
+      <ComplexType Name="publicError">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
+        <Property Name="innerError" Type="graph.publicInnerError" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="publicErrorDetail">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="publicInnerError" OpenType="true">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="target" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="compliance">
+        <NavigationProperty Name="ediscovery" Type="microsoft.graph.ediscovery.ediscoveryroot" ContainsTarget="true" />
+      </EntityType>
+      <ComplexType Name="teamDiscoverySettings">
+        <Property Name="showInTeamsSearchAndSuggestions" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="teamFunSettings">
+        <Property Name="allowCustomMemes" Type="Edm.Boolean" />
+        <Property Name="allowGiphy" Type="Edm.Boolean" />
+        <Property Name="allowStickersAndMemes" Type="Edm.Boolean" />
+        <Property Name="giphyContentRating" Type="graph.giphyRatingType" />
+      </ComplexType>
+      <ComplexType Name="teamGuestSettings">
+        <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean" />
+        <Property Name="allowDeleteChannels" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="teamMemberSettings">
+        <Property Name="allowAddRemoveApps" Type="Edm.Boolean" />
+        <Property Name="allowCreatePrivateChannels" Type="Edm.Boolean" />
+        <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean" />
+        <Property Name="allowCreateUpdateRemoveConnectors" Type="Edm.Boolean" />
+        <Property Name="allowCreateUpdateRemoveTabs" Type="Edm.Boolean" />
+        <Property Name="allowDeleteChannels" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="teamMessagingSettings">
+        <Property Name="allowChannelMentions" Type="Edm.Boolean" />
+        <Property Name="allowOwnerDeleteMessages" Type="Edm.Boolean" />
+        <Property Name="allowTeamMentions" Type="Edm.Boolean" />
+        <Property Name="allowUserDeleteMessages" Type="Edm.Boolean" />
+        <Property Name="allowUserEditMessages" Type="Edm.Boolean" />
+      </ComplexType>
+      <EntityType Name="channel" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
+        <Property Name="membershipType" Type="graph.channelMembershipType" />
+        <Property Name="moderationSettings" Type="graph.channelModerationSettings" />
+        <Property Name="webUrl" Type="Edm.String" />
+        <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
+        <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
+        <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
+        <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="teamsAppInstallation" BaseType="graph.entity">
+        <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
+        <NavigationProperty Name="teamsAppDefinition" Type="graph.teamsAppDefinition" />
+      </EntityType>
+      <EntityType Name="conversationMember" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="roles" Type="Collection(Edm.String)" />
+        <Property Name="visibleHistoryStartDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="teamsAsyncOperation" BaseType="graph.entity" OpenType="true">
+        <Property Name="attemptsCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="error" Type="graph.operationError" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="operationType" Type="graph.teamsAsyncOperationType" Nullable="false" />
+        <Property Name="status" Type="graph.teamsAsyncOperationStatus" Nullable="false" />
+        <Property Name="targetResourceId" Type="Edm.String" />
+        <Property Name="targetResourceLocation" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="teamworkTag" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="memberCount" Type="Edm.Int32" />
+        <Property Name="tagType" Type="graph.teamworkTagType" />
+        <Property Name="teamId" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.teamworkTagMember)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="teamsTemplate" BaseType="graph.entity" />
+      <EntityType Name="schedule" BaseType="graph.entity">
+        <Property Name="enabled" Type="Edm.Boolean" />
+        <Property Name="offerShiftRequestsEnabled" Type="Edm.Boolean" />
+        <Property Name="openShiftsEnabled" Type="Edm.Boolean" />
+        <Property Name="provisionStatus" Type="graph.operationStatus" />
+        <Property Name="provisionStatusCode" Type="Edm.String" />
+        <Property Name="swapShiftsRequestsEnabled" Type="Edm.Boolean" />
+        <Property Name="timeClockEnabled" Type="Edm.Boolean" />
+        <Property Name="timeClockSettings" Type="graph.timeClockSettings" />
+        <Property Name="timeOffRequestsEnabled" Type="Edm.Boolean" />
+        <Property Name="timeZone" Type="Edm.String" />
+        <Property Name="workforceIntegrationIds" Type="Collection(Edm.String)" />
+        <NavigationProperty Name="offerShiftRequests" Type="Collection(graph.offerShiftRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="openShiftChangeRequests" Type="Collection(graph.openShiftChangeRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="openShifts" Type="Collection(graph.openShift)" ContainsTarget="true" />
+        <NavigationProperty Name="schedulingGroups" Type="Collection(graph.schedulingGroup)" ContainsTarget="true" />
+        <NavigationProperty Name="shifts" Type="Collection(graph.shift)" ContainsTarget="true" />
+        <NavigationProperty Name="swapShiftsChangeRequests" Type="Collection(graph.swapShiftsChangeRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="timeCards" Type="Collection(graph.timeCard)" ContainsTarget="true" />
+        <NavigationProperty Name="timeOffReasons" Type="Collection(graph.timeOffReason)" ContainsTarget="true" />
+        <NavigationProperty Name="timeOffRequests" Type="Collection(graph.timeOffRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="timesOff" Type="Collection(graph.timeOff)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="resultInfo">
         <Property Name="code" Type="Edm.Int32" Nullable="false" />
         <Property Name="message" Type="Edm.String" />
         <Property Name="subcode" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
-      <EntityType Name="compliance">
-        <NavigationProperty Name="ediscovery" Type="microsoft.graph.ediscovery.ediscoveryroot" ContainsTarget="true" />
-      </EntityType>
       <ComplexType Name="assignedLabel">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="labelId" Type="Edm.String" />
@@ -11686,10 +11823,6 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="itemBody">
-        <Property Name="content" Type="Edm.String" />
-        <Property Name="contentType" Type="graph.bodyType" />
-      </ComplexType>
       <ComplexType Name="userPurpose">
         <Property Name="value" Type="graph.mailboxRecipientType" />
       </ComplexType>
@@ -12455,24 +12588,6 @@
         <Property Name="evaluationSucceeded" Type="Edm.Boolean" Nullable="false" />
         <Property Name="parsedExpression" Type="graph.attributeMappingSource" />
         <Property Name="parsingSucceeded" Type="Edm.Boolean" Nullable="false" />
-      </ComplexType>
-      <ComplexType Name="publicError">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
-        <Property Name="innerError" Type="graph.publicInnerError" />
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="target" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="publicErrorDetail">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="target" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="publicInnerError" OpenType="true">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="details" Type="Collection(graph.publicErrorDetail)" />
-        <Property Name="message" Type="Edm.String" />
-        <Property Name="target" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="publicErrorResponse">
         <Property Name="error" Type="graph.publicError" />
@@ -15023,6 +15138,12 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
         <NavigationProperty Name="settingStates" Type="Collection(graph.securityBaselineSettingState)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="chromeOSDeviceProperty">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="updatable" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="value" Type="Edm.String" />
+        <Property Name="valueType" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="configurationManagerClientEnabledFeatures">
         <Property Name="compliancePolicy" Type="Edm.Boolean" Nullable="false" />
         <Property Name="deviceConfiguration" Type="Edm.Boolean" Nullable="false" />
@@ -23234,6 +23355,18 @@
       <ComplexType Name="appHostedMediaConfig" BaseType="graph.mediaConfig">
         <Property Name="blob" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="attendanceInterval">
+        <Property Name="durationInSeconds" Type="Edm.Int32" />
+        <Property Name="joinDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="leaveDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="attendanceRecord">
+        <Property Name="attendanceIntervals" Type="Collection(graph.attendanceInterval)" />
+        <Property Name="emailAddress" Type="Edm.String" />
+        <Property Name="identity" Type="graph.identity" />
+        <Property Name="role" Type="Edm.String" />
+        <Property Name="totalAttendanceInSeconds" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="audioConferencing">
         <Property Name="conferenceId" Type="Edm.String" />
         <Property Name="dialinUrl" Type="Edm.String" />
@@ -23423,6 +23556,9 @@
       </EntityType>
       <EntityType Name="inviteParticipantsOperation" BaseType="graph.commsOperation" OpenType="true">
         <Property Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="meetingAttendanceReport" BaseType="graph.entity">
+        <Property Name="attendanceRecords" Type="Collection(graph.attendanceRecord)" />
       </EntityType>
       <EntityType Name="muteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="muteParticipantsOperation" BaseType="graph.commsOperation" OpenType="true">
@@ -23648,34 +23784,6 @@
       <ComplexType Name="teamClassSettings">
         <Property Name="notifyGuardiansAboutAssignments" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="teamDiscoverySettings">
-        <Property Name="showInTeamsSearchAndSuggestions" Type="Edm.Boolean" />
-      </ComplexType>
-      <ComplexType Name="teamFunSettings">
-        <Property Name="allowCustomMemes" Type="Edm.Boolean" />
-        <Property Name="allowGiphy" Type="Edm.Boolean" />
-        <Property Name="allowStickersAndMemes" Type="Edm.Boolean" />
-        <Property Name="giphyContentRating" Type="graph.giphyRatingType" />
-      </ComplexType>
-      <ComplexType Name="teamGuestSettings">
-        <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean" />
-        <Property Name="allowDeleteChannels" Type="Edm.Boolean" />
-      </ComplexType>
-      <ComplexType Name="teamMemberSettings">
-        <Property Name="allowAddRemoveApps" Type="Edm.Boolean" />
-        <Property Name="allowCreatePrivateChannels" Type="Edm.Boolean" />
-        <Property Name="allowCreateUpdateChannels" Type="Edm.Boolean" />
-        <Property Name="allowCreateUpdateRemoveConnectors" Type="Edm.Boolean" />
-        <Property Name="allowCreateUpdateRemoveTabs" Type="Edm.Boolean" />
-        <Property Name="allowDeleteChannels" Type="Edm.Boolean" />
-      </ComplexType>
-      <ComplexType Name="teamMessagingSettings">
-        <Property Name="allowChannelMentions" Type="Edm.Boolean" />
-        <Property Name="allowOwnerDeleteMessages" Type="Edm.Boolean" />
-        <Property Name="allowTeamMentions" Type="Edm.Boolean" />
-        <Property Name="allowUserDeleteMessages" Type="Edm.Boolean" />
-        <Property Name="allowUserEditMessages" Type="Edm.Boolean" />
-      </ComplexType>
       <ComplexType Name="teamsTabConfiguration" OpenType="true">
         <Property Name="contentUrl" Type="Edm.String" />
         <Property Name="entityId" Type="Edm.String" />
@@ -23687,11 +23795,6 @@
         <Property Name="value" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
-      <EntityType Name="conversationMember" BaseType="graph.entity" Abstract="true">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="roles" Type="Collection(Edm.String)" />
-        <Property Name="visibleHistoryStartDateTime" Type="Edm.DateTimeOffset" />
-      </EntityType>
       <EntityType Name="aadUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="email" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -23706,20 +23809,6 @@
         <Property Name="distributionMethod" Type="graph.teamsAppDistributionMethod" />
         <Property Name="externalId" Type="Edm.String" />
         <NavigationProperty Name="appDefinitions" Type="Collection(graph.teamsAppDefinition)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="channel" BaseType="graph.entity">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="email" Type="Edm.String" />
-        <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
-        <Property Name="membershipType" Type="graph.channelMembershipType" />
-        <Property Name="moderationSettings" Type="graph.channelModerationSettings" />
-        <Property Name="webUrl" Type="Edm.String" />
-        <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
-        <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
-        <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
-        <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chatMessage" BaseType="graph.entity">
         <Property Name="attachments" Type="Collection(graph.chatMessageAttachment)" />
@@ -23754,57 +23843,11 @@
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
       </EntityType>
-      <EntityType Name="teamsAppInstallation" BaseType="graph.entity">
-        <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
-        <NavigationProperty Name="teamsAppDefinition" Type="graph.teamsAppDefinition" />
-      </EntityType>
       <EntityType Name="teamworkHostedContent" BaseType="graph.entity" HasStream="true">
         <Property Name="contentBytes" Type="Edm.Binary" />
         <Property Name="contentType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
-      <EntityType Name="schedule" BaseType="graph.entity">
-        <Property Name="enabled" Type="Edm.Boolean" />
-        <Property Name="offerShiftRequestsEnabled" Type="Edm.Boolean" />
-        <Property Name="openShiftsEnabled" Type="Edm.Boolean" />
-        <Property Name="provisionStatus" Type="graph.operationStatus" />
-        <Property Name="provisionStatusCode" Type="Edm.String" />
-        <Property Name="swapShiftsRequestsEnabled" Type="Edm.Boolean" />
-        <Property Name="timeClockEnabled" Type="Edm.Boolean" />
-        <Property Name="timeClockSettings" Type="graph.timeClockSettings" />
-        <Property Name="timeOffRequestsEnabled" Type="Edm.Boolean" />
-        <Property Name="timeZone" Type="Edm.String" />
-        <Property Name="workforceIntegrationIds" Type="Collection(Edm.String)" />
-        <NavigationProperty Name="offerShiftRequests" Type="Collection(graph.offerShiftRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="openShiftChangeRequests" Type="Collection(graph.openShiftChangeRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="openShifts" Type="Collection(graph.openShift)" ContainsTarget="true" />
-        <NavigationProperty Name="schedulingGroups" Type="Collection(graph.schedulingGroup)" ContainsTarget="true" />
-        <NavigationProperty Name="shifts" Type="Collection(graph.shift)" ContainsTarget="true" />
-        <NavigationProperty Name="swapShiftsChangeRequests" Type="Collection(graph.swapShiftsChangeRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="timeCards" Type="Collection(graph.timeCard)" ContainsTarget="true" />
-        <NavigationProperty Name="timeOffReasons" Type="Collection(graph.timeOffReason)" ContainsTarget="true" />
-        <NavigationProperty Name="timeOffRequests" Type="Collection(graph.timeOffRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="timesOff" Type="Collection(graph.timeOff)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="teamsAsyncOperation" BaseType="graph.entity" OpenType="true">
-        <Property Name="attemptsCount" Type="Edm.Int32" Nullable="false" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="error" Type="graph.operationError" />
-        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="operationType" Type="graph.teamsAsyncOperationType" Nullable="false" />
-        <Property Name="status" Type="graph.teamsAsyncOperationStatus" Nullable="false" />
-        <Property Name="targetResourceId" Type="Edm.String" />
-        <Property Name="targetResourceLocation" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="teamworkTag" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="memberCount" Type="Edm.Int32" />
-        <Property Name="tagType" Type="graph.teamworkTagType" />
-        <Property Name="teamId" Type="Edm.String" />
-        <NavigationProperty Name="members" Type="Collection(graph.teamworkTagMember)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="teamsAppDefinition" BaseType="graph.entity">
         <Property Name="allowedInstallationScopes" Type="graph.teamsAppInstallationScopes" />
         <Property Name="azureADAppId" Type="Edm.String" />
@@ -28698,7 +28741,9 @@
       <Action Name="evaluateRemoval" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.informationProtectionLabel)" />
         <Parameter Name="contentInfo" Type="graph.contentInfo" Nullable="false" />
-        <Parameter Name="downgradeJustification" Type="graph.downgradeJustification" />
+        <Parameter Name="downgradeJustification" Type="graph.downgradeJustification">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(graph.informationProtectionAction)" />
       </Action>
       <Action Name="extractLabel" IsBound="true">
@@ -29458,6 +29503,12 @@
         <Parameter Name="deletedPolicySetItems" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="assignments" Type="Collection(graph.policySetAssignment)" />
       </Action>
+      <Action Name="connect" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.chromeOSOnboardingSettings)" />
+        <Parameter Name="ownerUserPrincipalName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="serviceAccountCredentials" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.chromeOSOnboardingStatus" Nullable="false" />
+      </Action>
       <Action Name="updatePriorities" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.officeClientConfiguration)" />
         <Parameter Name="officeConfigurationPolicyIds" Type="Collection(Edm.String)" Unicode="false" />
@@ -29890,19 +29941,25 @@
       <Action Name="createServerLogCollectionRequest" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.microsoftTunnelServer" />
         <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="graph.microsoftTunnelServerLogCollectionResponse" />
       </Action>
       <Action Name="getHealthMetrics" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.microsoftTunnelServer" />
-        <Parameter Name="metricNames" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="metricNames" Type="Collection(Edm.String)" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(graph.keyLongValuePair)" />
       </Action>
       <Action Name="getHealthMetricTimeSeries" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.microsoftTunnelServer" />
         <Parameter Name="metricName" Type="Edm.String" Unicode="false" />
         <Parameter Name="startTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Parameter Name="endTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(graph.keyValuePair)" />
       </Action>
       <Action Name="sendTestMessage" IsBound="true">
@@ -30029,18 +30086,34 @@
       </Function>
       <Function Name="roleScheduleInstances" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
-        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="principalId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(graph.unifiedRoleScheduleInstanceBase)" />
       </Function>
       <Function Name="roleSchedules" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
-        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="principalId" Type="Edm.String" Unicode="false" />
-        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(graph.unifiedRoleScheduleBase)" />
       </Function>
       <Action Name="completeSetup" IsBound="true">
@@ -31685,6 +31758,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device app management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device and app management functionality." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Singleton that acts as container for a collection of Resource Access entities." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
@@ -31757,6 +31831,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/assignmentFilters">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of assignment filters" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSOnboardingSettings">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Entity that represents a Chromebook tenant settings" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagement/chromeOSOnboardingSettings">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Collection of ChromeOSOnboardingSettings settings associated with account." />
       </Annotations>
       <Annotations Target="microsoft.graph.termsAndConditions">
         <Annotation Term="Org.OData.Core.V1.Description" String="A termsAndConditions entity represents the metadata and contents of a given Terms and Conditions (T&amp;C) policy. T&amp;C policies’ contents are presented to users upon their first attempt to enroll into Intune and subsequently upon edits where an administrator has required re-acceptance. They enable administrators to communicate the provisions to which a user must agree in order to have devices enrolled into Intune." />
@@ -37376,6 +37456,12 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSDeviceProperty">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a property of the ChromeOS device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/chromeOSDeviceInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="List of properties of the ChromeOS Device." />
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/complianceGracePeriodExpirationDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="The DateTime when device compliance grace period expires. This property is read-only." />
@@ -38009,6 +38095,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfilePolicySetItem">
         <Annotation Term="Org.OData.Core.V1.Description" String="A class containing the properties used for windows autopilot deployment profile PolicySetItem." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSOnboardingSettings/lastDirectorySyncDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The ChromebookTenant's LastDirectorySyncDateTime" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSOnboardingSettings/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The ChromebookTenant's LastModifiedDateTime" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSOnboardingSettings/onboardingStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The ChromebookTenant's OnboardingStatus" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSOnboardingSettings/ownerUserPrincipalName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The ChromebookTenant's OwnerUserPrincipalName" />
       </Annotations>
       <Annotations Target="microsoft.graph.termsAndConditions/acceptanceStatement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Administrator-supplied explanation of the terms and conditions, typically describing what it means to accept the terms and conditions set out in the T&amp;C policy. This is shown to the user on prompts to accept the T&amp;C policy." />
@@ -49623,6 +49721,18 @@
       <Annotations Target="microsoft.graph.bulkManagedDeviceActionResult/successfulDeviceIds">
         <Annotation Term="Org.OData.Core.V1.Description" String="Successful devices" />
       </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSDeviceProperty/name">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the property" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSDeviceProperty/updatable">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether this property is updatable" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSDeviceProperty/value">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Value of the property" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.chromeOSDeviceProperty/valueType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Type of the value" />
+      </Annotations>
       <Annotations Target="microsoft.graph.comanagedDevicesSummary">
         <Annotation Term="Org.OData.Core.V1.Description" String="Summary data for co managed devices" />
       </Annotations>
@@ -56405,11 +56515,6 @@
         <Member Name="mailbox" Value="1" />
         <Member Name="site" Value="2" />
       </EnumType>
-      <EnumType Name="tenantSources" IsFlags="true">
-        <Member Name="allMailboxes" Value="1" />
-        <Member Name="allSites" Value="2" />
-        <Member Name="unknownFutureValue" Value="4" />
-      </EnumType>
       <EntityType Name="ediscoveryroot" BaseType="graph.entity">
         <NavigationProperty Name="cases" Type="Collection(microsoft.graph.ediscovery.case)" ContainsTarget="true" />
       </EntityType>
@@ -56458,7 +56563,6 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="tenantSources" Type="microsoft.graph.ediscovery.tenantSources" />
         <NavigationProperty Name="additionalSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" ContainsTarget="true" />
         <NavigationProperty Name="addToReviewSetOperation" Type="microsoft.graph.ediscovery.addToReviewSetOperation" />
         <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" />
