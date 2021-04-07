@@ -9,7 +9,9 @@ param (
     [string]
     $outputPath = "preprocess_csdl_test_output.xml",
     [bool]
-    $dbg = $false
+    $dbg = $false,
+    [bool]
+    $removeCapaAnnotations = $true
 )
 function Get-PathWithPrefix([string]$requestedPath) {
     if([System.IO.Path]::IsPathRooted($requestedPath)) {
