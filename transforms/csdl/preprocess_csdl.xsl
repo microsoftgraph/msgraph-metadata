@@ -99,12 +99,14 @@
     <!-- Remove all capability annotations -->
 
     <xsl:template match="*[starts-with(@Term, 'Org.OData.Capabilities')]">
-      <xsl:if test="$remove-capability-annotations='False'">
-        <xsl:copy-of select="."/>
-      </xsl:if>
-      <xsl:if test="$remove-capability-annotations='True'">
-        <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
-      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="$remove-capability-annotations='False'">
+          <xsl:copy-of select="."/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:template>
 
     <!-- Remove singleton -->
