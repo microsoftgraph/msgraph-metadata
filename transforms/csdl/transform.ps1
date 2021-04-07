@@ -34,10 +34,18 @@ if (!(Test-Path $inputFullPath)) {
 
 $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
+$xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
+$xsltargs.AddParam("remove-capability-annotations", "", $removeCapaAnnotations.ToString())
+
+$xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
+$xmlWriterSettings.Indent = $true
+
+$xmlWriter = [System.Xml.XmlWriter]::Create($outputFullPath, $xmlWriterSettings)
+
 $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
 $xslt.Load($xslFullPath)
 try {
-    $xslt.Transform($inputFullPath, $outputFullPath)
+    $xslt.Transform($inputFullPath, $xsltargs, $xmlWriter)
 }
 catch {
     Write-Error $_.Exception

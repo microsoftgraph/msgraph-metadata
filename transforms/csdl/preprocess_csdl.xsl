@@ -4,7 +4,7 @@
                 >
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
-    <xsl:param name="keep-capability-annotations">false</xsl:param>
+    <xsl:param name="remove-capability-annotations">True</xsl:param>
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
@@ -99,10 +99,10 @@
     <!-- Remove all capability annotations -->
 
     <xsl:template match="*[starts-with(@Term, 'Org.OData.Capabilities')]">
-      <xsl:if test="$keep-capability-annotations='true'">
+      <xsl:if test="$remove-capability-annotations='False'">
         <xsl:copy-of select="."/>
       </xsl:if>
-      <xsl:if test="$keep-capability-annotations='false'">
+      <xsl:if test="$remove-capability-annotations='True'">
         <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
       </xsl:if>
     </xsl:template>
