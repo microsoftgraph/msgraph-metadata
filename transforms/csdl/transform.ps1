@@ -35,7 +35,7 @@ if (!(Test-Path $inputFullPath)) {
 $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
 $xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
-$xsltargs.AddParam("remove-capability-annotations", "", $Linka.ToString())
+$xsltargs.AddParam("remove-capability-annotations", "", $removeCapabilityAnnotations.ToString())
 
 $xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
 $xmlWriterSettings.Indent = $true
