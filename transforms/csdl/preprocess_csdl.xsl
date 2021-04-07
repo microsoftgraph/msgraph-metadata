@@ -4,6 +4,7 @@
                 >
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
+    <xsl:param name="remove-capability-annotations">True</xsl:param>
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
@@ -97,7 +98,16 @@
 
     <!-- Remove all capability annotations -->
 
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations//edm:Annotation[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+    <xsl:template match="*[starts-with(@Term, 'Org.OData.Capabilities')]">
+      <xsl:choose>
+        <xsl:when test="$remove-capability-annotations='False'">
+          <xsl:copy-of select="."/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:template>
 
     <!-- Remove singleton -->
 

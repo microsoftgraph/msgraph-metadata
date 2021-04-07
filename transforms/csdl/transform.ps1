@@ -9,7 +9,9 @@ param (
     [string]
     $outputPath = "preprocess_csdl_test_output.xml",
     [bool]
-    $dbg = $false
+    $dbg = $false,
+    [bool]
+    $removeCapabilityAnnotations = $true
 )
 function Get-PathWithPrefix([string]$requestedPath) {
     if([System.IO.Path]::IsPathRooted($requestedPath)) {
@@ -32,10 +34,18 @@ if (!(Test-Path $inputFullPath)) {
 
 $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
+$xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
+$xsltargs.AddParam("remove-capability-annotations", "", $removeCapabilityAnnotations.ToString())
+
+$xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
+$xmlWriterSettings.Indent = $true
+
+$xmlWriter = [System.Xml.XmlWriter]::Create($outputFullPath, $xmlWriterSettings)
+
 $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
 $xslt.Load($xslFullPath)
 try {
-    $xslt.Transform($inputFullPath, $outputFullPath)
+    $xslt.Transform($inputFullPath, $xsltargs, $xmlWriter)
 }
 catch {
     Write-Error $_.Exception
