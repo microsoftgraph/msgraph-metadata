@@ -26,7 +26,7 @@ Please use fully qualified and precise template match statements so as not to pe
 1. Start PowerShell
 2. `cd` into `transforms\csdl` folder
 3. Run `transform.ps1 <xsl_file> <input_file> <output_file>`. If files are not specified, the script will apply transformations from  *preprocess_csdl.xsl* on  *preprocess_csdl_test_input.xml* and override *preprocess_csdl_test_output.xml* file. 
-4. You can optionally run the transform without removing capability annotations by setting the `-removeCapaAnnotations` flag to `$false`. The default behavior is to remove capability annotations.
+4. You can optionally run the transform without removing capability annotations by setting the `-removeCapabilityAnnotations` flag to `$false`. The default behavior is to remove capability annotations.
 
 ## Instructions for running transform against Microsoft Graph metadata
 
