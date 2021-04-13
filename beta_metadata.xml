@@ -255,6 +255,12 @@
         <Member Name="Chat" Value="3" />
         <Member Name="Call" Value="4" />
       </EnumType>
+      <EnumType Name="advancedConfigState">
+        <Member Name="default" Value="0" />
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="authenticationMethodState">
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
@@ -1187,6 +1193,21 @@
         <Member Name="Succeeded" Value="0" />
         <Member Name="Failed" Value="1" />
         <Member Name="EntryLevelErrors" Value="2" />
+      </EnumType>
+      <EnumType Name="accessReviewHistoryDecisionFilter">
+        <Member Name="approve" Value="0" />
+        <Member Name="deny" Value="1" />
+        <Member Name="notReviewed" Value="2" />
+        <Member Name="dontKnow" Value="3" />
+        <Member Name="notNotified" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="accessReviewHistoryStatus">
+        <Member Name="done" Value="0" />
+        <Member Name="inprogress" Value="1" />
+        <Member Name="error" Value="2" />
+        <Member Name="requested" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="approvalFilterByCurrentUserOptions">
         <Member Name="target" Value="0" />
@@ -5826,6 +5847,10 @@
         <Member Name="openShiftRequest" Value="32" />
         <Member Name="offerShiftRequest" Value="64" />
         <Member Name="unknownFutureValue" Value="1024" />
+        <Member Name="timeCard" Value="2048" />
+        <Member Name="timeOffReason" Value="4096" />
+        <Member Name="timeOff" Value="8192" />
+        <Member Name="timeOffRequest" Value="16384" />
       </EnumType>
       <EnumType Name="mailDestinationRoutingReason">
         <Member Name="none" Value="0" />
@@ -7573,10 +7598,28 @@
         <Property Name="providerResourceId" Type="Edm.String" />
         <Property Name="uri" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <ComplexType Name="authenticationMethodsRegistrationCampaign">
+        <Property Name="excludeTargets" Type="Collection(graph.excludeTarget)" Nullable="false" />
+        <Property Name="includeTargets" Type="Collection(graph.authenticationMethodsRegistrationCampaignIncludeTarget)" Nullable="false" />
+        <Property Name="snoozeDurationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="state" Type="graph.advancedConfigState" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="excludeTarget">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="authenticationMethodsRegistrationCampaignIncludeTarget">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="targetedAuthenticationMethod" Type="Edm.String" />
+        <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="fido2KeyRestrictions">
         <Property Name="aaGuids" Type="Collection(Edm.String)" />
         <Property Name="enforcementType" Type="graph.fido2RestrictionEnforcementType" />
         <Property Name="isEnforced" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="registrationEnforcement">
+        <Property Name="authenticationMethodsRegistrationCampaign" Type="graph.authenticationMethodsRegistrationCampaign" />
       </ComplexType>
       <EntityType Name="authenticationMethodConfiguration" BaseType="graph.entity" Abstract="true">
         <Property Name="state" Type="graph.authenticationMethodState" />
@@ -7587,6 +7630,7 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="policyVersion" Type="Edm.String" />
         <Property Name="reconfirmationInDays" Type="Edm.Int32" />
+        <Property Name="registrationEnforcement" Type="graph.registrationEnforcement" />
         <NavigationProperty Name="authenticationMethodConfigurations" Type="Collection(graph.authenticationMethodConfiguration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authenticationMethodTarget" BaseType="graph.entity">
@@ -7619,7 +7663,6 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="privateLinkResourcePolicies" Type="Collection(graph.privateLinkResourcePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
@@ -7655,12 +7698,6 @@
       <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
         <NavigationProperty Name="includes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="privateLinkResourcePolicy" BaseType="graph.entity">
-        <Property Name="allowedTenantIds" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="externalPrivateLinkId" Type="Edm.String" Nullable="false" />
-        <NavigationProperty Name="privateEndpointConnections" Type="Collection(graph.privateEndpointConnection)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
@@ -10143,11 +10180,13 @@
         <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
         <NavigationProperty Name="exactMatchUploadAgents" Type="Collection(graph.exactMatchUploadAgent)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="exactMatchDataStore" BaseType="graph.entity">
+      <EntityType Name="exactMatchDataStoreBase" BaseType="graph.entity">
         <Property Name="columns" Type="Collection(graph.exactDataMatchStoreColumn)" />
         <Property Name="dataLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="exactMatchDataStore" BaseType="graph.exactMatchDataStoreBase">
         <NavigationProperty Name="sessions" Type="Collection(graph.exactMatchSession)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fileClassificationRequest" BaseType="graph.entity">
@@ -10496,10 +10535,6 @@
         <Property Name="permissions" Type="Collection(Edm.String)" />
         <Property Name="permissionType" Type="graph.permissionType" />
         <Property Name="resourceApplication" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="privateEndpointConnection" BaseType="graph.entity">
-        <Property Name="externalPrivateEndpointId" Type="Edm.String" Nullable="false" />
-        <Property Name="privateLinkIds" Type="Collection(Edm.Int64)" Nullable="false" />
       </EntityType>
       <EntityType Name="rbacApplication" BaseType="graph.entity">
         <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
@@ -11123,22 +11158,24 @@
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
-      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchJobBase">
-        <Property Name="checksum" Type="Edm.String" />
-        <Property Name="datastoreId" Type="Edm.String" />
-        <Property Name="dataUploadURI" Type="Edm.String" />
-        <Property Name="fields" Type="Collection(Edm.String)" />
-        <Property Name="fileName" Type="Edm.String" />
+      <EntityType Name="exactMatchSessionBase" BaseType="graph.exactMatchJobBase">
+        <Property Name="dataStoreId" Type="Edm.String" />
         <Property Name="processingCompletionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="remainingBlockCount" Type="Edm.Int32" />
         <Property Name="remainingJobCount" Type="Edm.Int32" />
-        <Property Name="rowsPerBlock" Type="Edm.Int32" />
-        <Property Name="salt" Type="Edm.String" />
         <Property Name="state" Type="Edm.String" />
         <Property Name="totalBlockCount" Type="Edm.Int32" />
         <Property Name="totalJobCount" Type="Edm.Int32" />
-        <Property Name="uploadAgentId" Type="Edm.String" />
         <Property Name="uploadCompletionDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchSessionBase">
+        <Property Name="checksum" Type="Edm.String" />
+        <Property Name="dataUploadURI" Type="Edm.String" />
+        <Property Name="fields" Type="Collection(Edm.String)" />
+        <Property Name="fileName" Type="Edm.String" />
+        <Property Name="rowsPerBlock" Type="Edm.Int32" />
+        <Property Name="salt" Type="Edm.String" />
+        <Property Name="uploadAgentId" Type="Edm.String" />
         <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchLookupJob" BaseType="graph.exactMatchJobBase">
@@ -12887,6 +12924,18 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="accessReviewHistoryDefinition" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.userIdentity" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="decisions" Type="Collection(graph.accessReviewHistoryDecisionFilter)" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="downloadUri" Type="Edm.String" />
+        <Property Name="fulfilledDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewHistoryPeriodEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reviewHistoryPeriodStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="scopes" Type="Collection(graph.accessReviewScope)" Nullable="false" />
+        <Property Name="status" Type="graph.accessReviewHistoryStatus" />
+      </EntityType>
       <EntityType Name="accessReviewInstanceDecisionItem" BaseType="graph.entity" OpenType="true">
         <Property Name="accessReviewId" Type="Edm.String" Nullable="false" />
         <Property Name="appliedBy" Type="graph.userIdentity" />
@@ -12920,6 +12969,7 @@
       </EntityType>
       <EntityType Name="accessReviewSet" BaseType="graph.entity">
         <NavigationProperty Name="definitions" Type="Collection(graph.accessReviewScheduleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="historyDefinitions" Type="Collection(graph.accessReviewHistoryDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="appConsentApprovalRoute" BaseType="graph.entity">
         <NavigationProperty Name="appConsentRequests" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
@@ -23860,8 +23910,14 @@
         <Property Name="teamsAppId" Type="Edm.String" />
         <Property Name="version" Type="Edm.String" />
         <NavigationProperty Name="bot" Type="graph.teamworkBot" ContainsTarget="true" />
+        <NavigationProperty Name="colorIcon" Type="graph.teamsAppIcon" ContainsTarget="true" />
+        <NavigationProperty Name="outlineIcon" Type="graph.teamsAppIcon" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
+      <EntityType Name="teamsAppIcon" BaseType="graph.entity">
+        <Property Name="webUrl" Type="Edm.String" />
+        <NavigationProperty Name="hostedContent" Type="graph.teamworkHostedContent" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
@@ -28635,6 +28691,10 @@
       </Action>
       <Action Name="sendReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReview" />
+      </Action>
+      <Action Name="generateDownloadUri" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewHistoryDefinition" />
+        <ReturnType Type="graph.accessReviewHistoryDefinition" />
       </Action>
       <Action Name="recordDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.businessFlow" />
