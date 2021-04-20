@@ -139,6 +139,37 @@
         <Member Name="push" Value="1" />
         <Member Name="any" Value="2" />
       </EnumType>
+      <EnumType Name="identityUserFlowAttributeDataType">
+        <Member Name="string" Value="1" />
+        <Member Name="boolean" Value="2" />
+        <Member Name="int64" Value="3" />
+        <Member Name="stringCollection" Value="4" />
+        <Member Name="dateTime" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="identityUserFlowAttributeInputType">
+        <Member Name="textBox" Value="1" />
+        <Member Name="dateTimeDropdown" Value="2" />
+        <Member Name="radioSingleSelect" Value="3" />
+        <Member Name="dropdownSingleSelect" Value="4" />
+        <Member Name="emailBox" Value="5" />
+        <Member Name="checkboxMultiSelect" Value="6" />
+      </EnumType>
+      <EnumType Name="identityUserFlowAttributeType">
+        <Member Name="builtIn" Value="1" />
+        <Member Name="custom" Value="2" />
+        <Member Name="required" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="userFlowType">
+        <Member Name="signUp" Value="1" />
+        <Member Name="signIn" Value="2" />
+        <Member Name="signUpOrSignIn" Value="3" />
+        <Member Name="passwordReset" Value="4" />
+        <Member Name="profileUpdate" Value="5" />
+        <Member Name="resourceOwner" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
       <EnumType Name="allowInvitesFrom">
         <Member Name="none" Value="0" />
         <Member Name="adminsAndGuestInviters" Value="1" />
@@ -475,6 +506,18 @@
         <Member Name="passwordHashSync" Value="2" />
         <Member Name="emailAsAlternateId" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="accessReviewInstanceDecisionItemFilterByCurrentUserOptions">
+        <Member Name="reviewer" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="accessReviewInstanceFilterByCurrentUserOptions">
+        <Member Name="reviewer" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="accessReviewScheduleDefinitionFilterByCurrentUserOptions">
+        <Member Name="reviewer" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="consentRequestFilterByCurrentUserOptions">
         <Member Name="reviewer" Value="0" />
@@ -2172,9 +2215,11 @@
         <Property Name="app" Type="graph.appIdentity" />
         <Property Name="user" Type="graph.userIdentity" />
       </ComplexType>
-      <ComplexType Name="userIdentity">
+      <ComplexType Name="identity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
@@ -2192,10 +2237,6 @@
         <Property Name="altitude" Type="Edm.Double" />
         <Property Name="latitude" Type="Edm.Double" />
         <Property Name="longitude" Type="Edm.Double" />
-      </ComplexType>
-      <ComplexType Name="identity" OpenType="true">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="id" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="initiator" BaseType="graph.identity" OpenType="true">
         <Property Name="initiatorType" Type="graph.initiatorType" />
@@ -3345,6 +3386,7 @@
       </EntityType>
       <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="authenticationMethodsPolicy" Type="graph.authenticationMethodsPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationFlowsPolicy" Type="graph.authenticationFlowsPolicy" ContainsTarget="true" />
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
@@ -3356,6 +3398,11 @@
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationFlowsPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="selfServiceSignUp" Type="graph.selfServiceSignUpAuthenticationFlowConfiguration" />
       </EntityType>
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
@@ -3399,12 +3446,53 @@
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
-      <EntityType Name="identityContainer" BaseType="graph.entity">
-        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
+      <ComplexType Name="apiAuthenticationConfigurationBase" Abstract="true" />
+      <ComplexType Name="assignmentOrder">
+        <Property Name="order" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="basicAuthentication" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="password" Type="Edm.String" />
+        <Property Name="username" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="clientCertificateAuthentication" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="certificateList" Type="Collection(graph.pkcs12CertificateInformation)" />
+      </ComplexType>
+      <ComplexType Name="pkcs12CertificateInformation">
+        <Property Name="isActive" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="notAfter" Type="Edm.Int64" Nullable="false" />
+        <Property Name="notBefore" Type="Edm.Int64" Nullable="false" />
+        <Property Name="thumbprint" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="pkcs12Certificate" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="password" Type="Edm.String" />
+        <Property Name="pkcs12Value" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="selfServiceSignUpAuthenticationFlowConfiguration">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userAttributeValuesItem">
+        <Property Name="isDefault" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userFlowApiConnectorConfiguration">
+        <NavigationProperty Name="postAttributeCollection" Type="graph.identityApiConnector" ContainsTarget="true" />
+        <NavigationProperty Name="postFederationSignup" Type="graph.identityApiConnector" ContainsTarget="true" />
+      </ComplexType>
+      <EntityType Name="identityApiConnector" BaseType="graph.entity">
+        <Property Name="authenticationConfiguration" Type="graph.apiAuthenticationConfigurationBase" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="targetUrl" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
-        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
-        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+      <EntityType Name="identityUserFlow" BaseType="graph.entity">
+        <Property Name="userFlowType" Type="graph.userFlowType" Nullable="false" />
+        <Property Name="userFlowTypeVersion" Type="Edm.Single" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2xIdentityUserFlow" BaseType="graph.identityUserFlow">
+        <Property Name="apiConnectorConfiguration" Type="graph.userFlowApiConnectorConfiguration" />
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
+        <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
+        <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="clientId" Type="Edm.String" />
@@ -3412,6 +3500,39 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="userFlowLanguageConfiguration" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="defaultPages" Type="Collection(graph.userFlowLanguagePage)" ContainsTarget="true" />
+        <NavigationProperty Name="overridesPages" Type="Collection(graph.userFlowLanguagePage)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="identityUserFlowAttributeAssignment" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isOptional" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="requiresVerification" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="userAttributeValues" Type="Collection(graph.userAttributeValuesItem)" />
+        <Property Name="userInputType" Type="graph.identityUserFlowAttributeInputType" Nullable="false" />
+        <NavigationProperty Name="userAttribute" Type="graph.identityUserFlowAttribute" />
+      </EntityType>
+      <EntityType Name="identityUserFlowAttribute" BaseType="graph.entity">
+        <Property Name="dataType" Type="graph.identityUserFlowAttributeDataType" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="userFlowAttributeType" Type="graph.identityUserFlowAttributeType" Nullable="false" />
+      </EntityType>
+      <EntityType Name="identityBuiltInUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
+      <EntityType Name="identityContainer" BaseType="graph.entity">
+        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
+        <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true" />
+        <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
+      <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -5371,14 +5492,90 @@
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="accessReviewApplyAction" Abstract="true" />
+      <ComplexType Name="accessReviewScope" />
+      <ComplexType Name="accessReviewQueryScope" BaseType="graph.accessReviewScope">
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="queryRoot" Type="Edm.String" />
+        <Property Name="queryType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accessReviewInactiveUsersQueryScope" BaseType="graph.accessReviewQueryScope">
+        <Property Name="inactiveDuration" Type="Edm.Duration" />
+      </ComplexType>
+      <ComplexType Name="accessReviewInstanceDecisionItemResource">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="accessReviewReviewerScope">
         <Property Name="query" Type="Edm.String" />
         <Property Name="queryRoot" Type="Edm.String" />
         <Property Name="queryType" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="accessReviewScheduleSettings">
+        <Property Name="applyActions" Type="Collection(graph.accessReviewApplyAction)" />
+        <Property Name="autoApplyDecisionsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="defaultDecision" Type="Edm.String" />
+        <Property Name="defaultDecisionEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="instanceDurationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="justificationRequiredOnApproval" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="mailNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="recurrence" Type="graph.patternedRecurrence" />
+        <Property Name="reminderNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="appConsentRequestScope">
         <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="disableAndDeleteUserApplyAction" BaseType="graph.accessReviewApplyAction" />
+      <ComplexType Name="principalResourceMembershipsScope" BaseType="graph.accessReviewScope">
+        <Property Name="principalScopes" Type="Collection(graph.accessReviewScope)" />
+        <Property Name="resourceScopes" Type="Collection(graph.accessReviewScope)" />
+      </ComplexType>
+      <ComplexType Name="removeAccessApplyAction" BaseType="graph.accessReviewApplyAction" />
+      <ComplexType Name="servicePrincipalIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="appId" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="accessReviewInstance" BaseType="graph.entity">
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="scope" Type="graph.accessReviewScope" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="Edm.String" />
+        <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewInstanceDecisionItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessReviewInstanceDecisionItem" BaseType="graph.entity">
+        <Property Name="accessReviewId" Type="Edm.String" Nullable="false" />
+        <Property Name="appliedBy" Type="graph.userIdentity" />
+        <Property Name="appliedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="applyResult" Type="Edm.String" />
+        <Property Name="decision" Type="Edm.String" />
+        <Property Name="justification" Type="Edm.String" />
+        <Property Name="principal" Type="graph.identity" />
+        <Property Name="principalLink" Type="Edm.String" />
+        <Property Name="recommendation" Type="Edm.String" />
+        <Property Name="resource" Type="graph.accessReviewInstanceDecisionItemResource" />
+        <Property Name="resourceLink" Type="Edm.String" />
+        <Property Name="reviewedBy" Type="graph.userIdentity" />
+        <Property Name="reviewedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="accessReviewScheduleDefinition" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.userIdentity" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="descriptionForAdmins" Type="Edm.String" />
+        <Property Name="descriptionForReviewers" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="instanceEnumerationScope" Type="graph.accessReviewScope" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="scope" Type="graph.accessReviewScope" />
+        <Property Name="settings" Type="graph.accessReviewScheduleSettings" />
+        <Property Name="status" Type="Edm.String" />
+        <NavigationProperty Name="instances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessReviewSet" BaseType="graph.entity">
+        <NavigationProperty Name="definitions" Type="Collection(graph.accessReviewScheduleDefinition)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="appConsentApprovalRoute" BaseType="graph.entity">
         <NavigationProperty Name="appConsentRequests" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
       </EntityType>
@@ -5413,6 +5610,7 @@
         <Property Name="status" Type="Edm.String" />
       </EntityType>
       <EntityType Name="identityGovernance">
+        <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
         <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
       </EntityType>
@@ -9282,6 +9480,24 @@
         <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
       </Action>
+      <Action Name="setOrder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityUserFlowAttributeAssignment)" />
+        <Parameter Name="newAssignmentOrder" Type="graph.assignmentOrder" />
+      </Action>
+      <Function Name="getOrder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityUserFlowAttributeAssignment)" />
+        <ReturnType Type="graph.assignmentOrder" />
+      </Function>
+      <Action Name="uploadClientCertificate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.identityApiConnector" />
+        <Parameter Name="pkcs12Value" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.identityApiConnector" />
+      </Action>
+      <Function Name="availableProviderTypes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityProvider)" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
         <Parameter Name="addLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
@@ -12594,6 +12810,46 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="acceptRecommendations" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="applyDecisions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="batchRecordDecisions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+        <Parameter Name="decision" Type="Edm.String" Unicode="false" />
+        <Parameter Name="justification" Type="Edm.String" Unicode="false" />
+        <Parameter Name="principalId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="resourceId" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="resetDecisions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="sendReminder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="stop" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="stop" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewScheduleDefinition" />
+      </Action>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewInstance)" />
+        <Parameter Name="on" Type="graph.accessReviewInstanceFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessReviewInstance)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewInstanceDecisionItem)" />
+        <Parameter Name="on" Type="graph.accessReviewInstanceDecisionItemFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessReviewInstanceDecisionItem)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewScheduleDefinition)" />
+        <Parameter Name="on" Type="graph.accessReviewScheduleDefinitionFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessReviewScheduleDefinition)" />
+      </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.appConsentRequest)" />
         <Parameter Name="on" Type="graph.consentRequestFilterByCurrentUserOptions" Nullable="false" />
@@ -14015,7 +14271,11 @@
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="search" Type="microsoft.graph.searchEntity" />
-        <Singleton Name="planner" Type="microsoft.graph.planner" />
+        <Singleton Name="planner" Type="microsoft.graph.planner">
+          <NavigationPropertyBinding Path="buckets/tasks" Target="planner/tasks" />
+          <NavigationPropertyBinding Path="plans/buckets" Target="planner/buckets" />
+          <NavigationPropertyBinding Path="plans/tasks" Target="planner/tasks" />
+        </Singleton>
         <Singleton Name="print" Type="microsoft.graph.print" />
         <Singleton Name="security" Type="microsoft.graph.security" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
