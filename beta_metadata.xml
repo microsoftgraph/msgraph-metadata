@@ -88,7 +88,7 @@
       </EnumType>
       <EnumType Name="initiatorType">
         <Member Name="user" Value="0" />
-        <Member Name="app" Value="1" />
+        <Member Name="application" Value="1" />
         <Member Name="system" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
@@ -111,12 +111,27 @@
         <Member Name="timeout" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="provisioningAction">
+        <Member Name="other" Value="0" />
+        <Member Name="create" Value="1" />
+        <Member Name="delete" Value="2" />
+        <Member Name="disable" Value="3" />
+        <Member Name="update" Value="4" />
+        <Member Name="stagedDelete" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="provisioningResult">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
         <Member Name="skipped" Value="2" />
         <Member Name="warning" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="provisioningStatusErrorCategory">
+        <Member Name="failure" Value="0" />
+        <Member Name="nonServiceFailure" Value="1" />
+        <Member Name="success" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="provisioningStepType">
         <Member Name="import" Value="0" />
@@ -385,6 +400,7 @@
         <Member Name="adJoinCheckIncorrectCredentials" Value="201" />
         <Member Name="adJoinCheckOrganizationalUnitNotFound" Value="202" />
         <Member Name="adJoinCheckOrganizationalUnitIncorrectFormat" Value="203" />
+        <Member Name="adJoinCheckComputerObjectAlreadyExists" Value="204" />
         <Member Name="adJoinCheckUnknownError" Value="299" />
         <Member Name="endpointConnectivityCheckUrlNotWhitelisted" Value="300" />
         <Member Name="endpointConnectivityCheckUnknownError" Value="399" />
@@ -1267,6 +1283,11 @@
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
         <Member Name="enabledForReportingButNotEnforced" Value="2" />
+      </EnumType>
+      <EnumType Name="countryLookupMethodType">
+        <Member Name="clientIpAddress" Value="0" />
+        <Member Name="authenticatorAppGps" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="filterMode">
         <Member Name="include" Value="0" />
@@ -5625,9 +5646,6 @@
         <Member Name="office365Connector" Value="3" />
         <Member Name="outgoingWebhook" Value="4" />
       </EnumType>
-      <EnumType Name="channelCreationMode">
-        <Member Name="migration" Value="0" />
-      </EnumType>
       <EnumType Name="channelMembershipType">
         <Member Name="standard" Value="0" />
         <Member Name="private" Value="1" />
@@ -5687,9 +5705,6 @@
         <Member Name="everyone" Value="0" />
         <Member Name="authorAndModerators" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
-      </EnumType>
-      <EnumType Name="teamCreationMode">
-        <Member Name="migration" Value="0" />
       </EnumType>
       <EnumType Name="teamsAppDistributionMethod">
         <Member Name="store" Value="0" />
@@ -5978,9 +5993,7 @@
         <Property Name="latitude" Type="Edm.Double" />
         <Property Name="longitude" Type="Edm.Double" />
       </ComplexType>
-      <ComplexType Name="initiator">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="id" Type="Edm.String" />
+      <ComplexType Name="initiator" BaseType="graph.identity" OpenType="true">
         <Property Name="initiatorType" Type="graph.initiatorType" />
       </ComplexType>
       <ComplexType Name="keyValue">
@@ -6010,13 +6023,22 @@
         <Property Name="networkNames" Type="Collection(Edm.String)" />
         <Property Name="networkType" Type="graph.networkType" />
       </ComplexType>
-      <ComplexType Name="provisionedIdentity">
+      <ComplexType Name="provisionedIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="details" Type="graph.detailsInfo" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="id" Type="Edm.String" />
         <Property Name="identityType" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="provisioningErrorInfo">
+        <Property Name="additionalDetails" Type="Edm.String" />
+        <Property Name="errorCategory" Type="graph.provisioningStatusErrorCategory" />
+        <Property Name="errorCode" Type="Edm.String" />
+        <Property Name="reason" Type="Edm.String" />
+        <Property Name="recommendedAction" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="provisioningServicePrincipal" BaseType="graph.identity" OpenType="true" />
+      <ComplexType Name="provisioningStatusInfo">
+        <Property Name="errorInformation" Type="graph.provisioningErrorInfo" />
+        <Property Name="status" Type="graph.provisioningResult" />
+      </ComplexType>
       <ComplexType Name="provisioningStep">
         <Property Name="description" Type="Edm.String" />
         <Property Name="details" Type="graph.detailsInfo" />
@@ -6024,10 +6046,8 @@
         <Property Name="provisioningStepType" Type="graph.provisioningStepType" />
         <Property Name="status" Type="graph.provisioningResult" />
       </ComplexType>
-      <ComplexType Name="provisioningSystemDetails">
+      <ComplexType Name="provisioningSystem" BaseType="graph.identity" OpenType="true">
         <Property Name="details" Type="graph.detailsInfo" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="id" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="signInActivity">
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
@@ -6049,7 +6069,7 @@
       </ComplexType>
       <ComplexType Name="statusDetails" BaseType="graph.statusBase">
         <Property Name="additionalDetails" Type="Edm.String" />
-        <Property Name="errorCategory" Type="Edm.String" />
+        <Property Name="errorCategory" Type="graph.provisioningStatusErrorCategory" />
         <Property Name="errorCode" Type="Edm.String" />
         <Property Name="reason" Type="Edm.String" />
         <Property Name="recommendedAction" Type="Edm.String" />
@@ -6128,13 +6148,15 @@
         <Property Name="initiatedBy" Type="graph.initiator" />
         <Property Name="jobId" Type="Edm.String" />
         <Property Name="modifiedProperties" Type="Collection(graph.modifiedProperty)" />
+        <Property Name="provisioningAction" Type="graph.provisioningAction" />
+        <Property Name="provisioningStatusInfo" Type="graph.provisioningStatusInfo" />
         <Property Name="provisioningSteps" Type="Collection(graph.provisioningStep)" />
         <Property Name="servicePrincipal" Type="graph.provisioningServicePrincipal" />
         <Property Name="sourceIdentity" Type="graph.provisionedIdentity" />
-        <Property Name="sourceSystem" Type="graph.provisioningSystemDetails" />
+        <Property Name="sourceSystem" Type="graph.provisioningSystem" />
         <Property Name="statusInfo" Type="graph.statusBase" />
         <Property Name="targetIdentity" Type="graph.provisionedIdentity" />
-        <Property Name="targetSystem" Type="graph.provisioningSystemDetails" />
+        <Property Name="targetSystem" Type="graph.provisioningSystem" />
         <Property Name="tenantId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="signIn" BaseType="graph.entity">
@@ -7971,6 +7993,15 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="unifiedRolePermission">
+        <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="condition" Type="Edm.String" />
+        <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <EntityType Name="appScope" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="cloudPC" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="imageDisplayName" Type="Edm.String" />
@@ -9502,6 +9533,69 @@
         <Property Name="thumbprint" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRbacResourceNamespace" BaseType="graph.entity">
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="resourceActions" Type="Collection(graph.unifiedRbacResourceAction)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRoleAssignmentMultiple" BaseType="graph.entity">
+        <Property Name="appScopeIds" Type="Collection(Edm.String)" />
+        <Property Name="condition" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="directoryScopeIds" Type="Collection(Edm.String)" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="principalIds" Type="Collection(Edm.String)" />
+        <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="appScopes" Type="Collection(graph.appScope)" ContainsTarget="true" />
+        <NavigationProperty Name="directoryScopes" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="principals" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
+      </EntityType>
+      <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isBuiltIn" Type="Edm.Boolean" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
+        <Property Name="templateId" Type="Edm.String" />
+        <Property Name="version" Type="Edm.String" />
+        <NavigationProperty Name="inheritsPermissionsFrom" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="roleManagement">
+        <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
+        <NavigationProperty Name="cloudPC" Type="graph.rbacApplicationMultiple" ContainsTarget="true" />
+        <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true" />
+        <NavigationProperty Name="deviceManagement" Type="graph.rbacApplicationMultiple" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="rbacApplication" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignmentRequests" Type="Collection(graph.unifiedRoleAssignmentRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignmentScheduleInstances" Type="Collection(graph.unifiedRoleAssignmentScheduleInstance)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignmentSchedules" Type="Collection(graph.unifiedRoleAssignmentSchedule)" ContainsTarget="true" />
+        <NavigationProperty Name="roleEligibilityRequests" Type="Collection(graph.unifiedRoleEligibilityRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="roleEligibilityScheduleInstances" Type="Collection(graph.unifiedRoleEligibilityScheduleInstance)" ContainsTarget="true" />
+        <NavigationProperty Name="roleEligibilitySchedules" Type="Collection(graph.unifiedRoleEligibilitySchedule)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRbacResourceAction" BaseType="graph.entity">
+        <Property Name="actionVerb" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="resourceScopeId" Type="Edm.String" />
+        <NavigationProperty Name="resourceScope" Type="graph.unifiedRbacResourceScope" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="unifiedRbacResourceScope" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="scope" Type="Edm.String" Nullable="false" />
+        <Property Name="type" Type="Edm.String" />
+      </EntityType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -9819,6 +9913,19 @@
         <Property Name="surname" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="clientCertificateAuthentication" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="certificateList" Type="Collection(graph.pkcs12CertificateInformation)" />
+      </ComplexType>
+      <ComplexType Name="pkcs12CertificateInformation">
+        <Property Name="isActive" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="notAfter" Type="Edm.Int64" Nullable="false" />
+        <Property Name="notBefore" Type="Edm.Int64" Nullable="false" />
+        <Property Name="thumbprint" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="pkcs12Certificate" BaseType="graph.apiAuthenticationConfigurationBase">
+        <Property Name="password" Type="Edm.String" />
+        <Property Name="pkcs12Value" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="selfServiceSignUpAuthenticationFlowConfiguration">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
@@ -9865,6 +9972,7 @@
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
         <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="userFlowIdentityProviders" Type="Collection(graph.identityProviderBase)" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="clientId" Type="Edm.String" />
@@ -9886,11 +9994,18 @@
         <Property Name="userInputType" Type="graph.identityUserFlowAttributeInputType" Nullable="false" />
         <NavigationProperty Name="userAttribute" Type="graph.identityUserFlowAttribute" />
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="b2xIdentityUserFlow" BaseType="graph.identityUserFlow">
         <Property Name="apiConnectorConfiguration" Type="graph.userFlowApiConnectorConfiguration" />
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
         <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="userFlowIdentityProviders" Type="Collection(graph.identityProviderBase)" />
+      </EntityType>
+      <EntityType Name="builtInIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="identityProviderType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="identityUserFlowAttribute" BaseType="graph.entity">
         <Property Name="dataType" Type="graph.identityUserFlowAttributeDataType" Nullable="false" />
@@ -9904,6 +10019,7 @@
         <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true" />
         <NavigationProperty Name="b2cUserFlows" Type="Collection(graph.b2cIdentityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
         <NavigationProperty Name="userFlows" Type="Collection(graph.identityUserFlow)" ContainsTarget="true" />
         <NavigationProperty Name="continuousAccessEvaluationPolicy" Type="graph.continuousAccessEvaluationPolicy" ContainsTarget="true" />
@@ -9921,6 +10037,16 @@
         <Property Name="users" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
+      <EntityType Name="openIdConnectIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="claimsMapping" Type="graph.claimsMapping" />
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="clientSecret" Type="Edm.String" />
+        <Property Name="domainHint" Type="Edm.String" />
+        <Property Name="metadataUrl" Type="Edm.String" />
+        <Property Name="responseMode" Type="graph.openIdConnectResponseMode" Nullable="false" />
+        <Property Name="responseType" Type="graph.openIdConnectResponseTypes" Nullable="false" />
+        <Property Name="scope" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="openIdConnectProvider" BaseType="graph.identityProvider">
         <Property Name="claimsMapping" Type="graph.claimsMapping" />
         <Property Name="domainHint" Type="Edm.String" />
@@ -9928,6 +10054,11 @@
         <Property Name="responseMode" Type="graph.openIdConnectResponseMode" Nullable="false" />
         <Property Name="responseType" Type="graph.openIdConnectResponseTypes" Nullable="false" />
         <Property Name="scope" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="socialIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="clientSecret" Type="Edm.String" />
+        <Property Name="identityProviderType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="trustFramework">
         <NavigationProperty Name="keySets" Type="Collection(graph.trustFrameworkKeySet)" ContainsTarget="true" />
@@ -10336,11 +10467,6 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="unifiedRolePermission">
-        <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="condition" Type="Edm.String" />
-        <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
-      </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
@@ -10536,22 +10662,6 @@
         <Property Name="permissionType" Type="graph.permissionType" />
         <Property Name="resourceApplication" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="rbacApplication" BaseType="graph.entity">
-        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
-        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignmentRequests" Type="Collection(graph.unifiedRoleAssignmentRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignmentScheduleInstances" Type="Collection(graph.unifiedRoleAssignmentScheduleInstance)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignmentSchedules" Type="Collection(graph.unifiedRoleAssignmentSchedule)" ContainsTarget="true" />
-        <NavigationProperty Name="roleEligibilityRequests" Type="Collection(graph.unifiedRoleEligibilityRequest)" ContainsTarget="true" />
-        <NavigationProperty Name="roleEligibilityScheduleInstances" Type="Collection(graph.unifiedRoleEligibilityScheduleInstance)" ContainsTarget="true" />
-        <NavigationProperty Name="roleEligibilitySchedules" Type="Collection(graph.unifiedRoleEligibilitySchedule)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="unifiedRbacResourceNamespace" BaseType="graph.entity">
-        <Property Name="name" Type="Edm.String" Nullable="false" />
-        <NavigationProperty Name="resourceActions" Type="Collection(graph.unifiedRbacResourceAction)" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="unifiedRoleAssignment" BaseType="graph.entity">
         <Property Name="appScopeId" Type="Edm.String" />
         <Property Name="condition" Type="Edm.String" />
@@ -10563,17 +10673,6 @@
         <NavigationProperty Name="directoryScope" Type="graph.directoryObject" />
         <NavigationProperty Name="principal" Type="graph.directoryObject" />
         <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
-      </EntityType>
-      <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="isBuiltIn" Type="Edm.Boolean" />
-        <Property Name="isEnabled" Type="Edm.Boolean" />
-        <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
-        <Property Name="templateId" Type="Edm.String" />
-        <Property Name="version" Type="Edm.String" />
-        <NavigationProperty Name="inheritsPermissionsFrom" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="request" BaseType="graph.entity">
         <Property Name="approvalId" Type="Edm.String" />
@@ -10667,16 +10766,6 @@
         <Property Name="memberType" Type="Edm.String" />
         <Property Name="scheduleInfo" Type="graph.requestSchedule" />
       </EntityType>
-      <EntityType Name="roleManagement">
-        <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
-        <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true" />
-        <NavigationProperty Name="deviceManagement" Type="graph.rbacApplicationMultiple" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
-        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
-        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
-        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
         <Property Name="appliesTo" Type="Edm.String" />
         <Property Name="capabilityStatus" Type="Edm.String" />
@@ -10685,17 +10774,6 @@
         <Property Name="servicePlans" Type="Collection(graph.servicePlanInfo)" Nullable="false" />
         <Property Name="skuId" Type="Edm.Guid" />
         <Property Name="skuPartNumber" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="unifiedRbacResourceAction" BaseType="graph.entity">
-        <Property Name="actionVerb" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="name" Type="Edm.String" Nullable="false" />
-        <Property Name="resourceScopeId" Type="Edm.String" />
-        <NavigationProperty Name="resourceScope" Type="graph.unifiedRbacResourceScope" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="appScope" BaseType="graph.entity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="type" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="educationAssignmentRecipient" Abstract="true" />
       <ComplexType Name="educationAssignmentClassRecipient" BaseType="graph.educationAssignmentRecipient" />
@@ -11097,24 +11175,6 @@
         <Property Name="lastActivityDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSynchronizationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="graph.educationSynchronizationStatus" />
-      </EntityType>
-      <EntityType Name="unifiedRoleAssignmentMultiple" BaseType="graph.entity">
-        <Property Name="appScopeIds" Type="Collection(Edm.String)" />
-        <Property Name="condition" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="directoryScopeIds" Type="Collection(Edm.String)" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="principalIds" Type="Collection(Edm.String)" />
-        <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
-        <NavigationProperty Name="appScopes" Type="Collection(graph.appScope)" ContainsTarget="true" />
-        <NavigationProperty Name="directoryScopes" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="principals" Type="Collection(graph.directoryObject)" />
-        <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
-      </EntityType>
-      <EntityType Name="unifiedRbacResourceScope" BaseType="graph.entity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="scope" Type="Edm.String" Nullable="false" />
-        <Property Name="type" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="contentClassification">
         <Property Name="confidence" Type="Edm.Int32" />
@@ -13338,6 +13398,7 @@
       </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="countryLookupMethod" Type="graph.countryLookupMethodType" />
         <Property Name="includeUnknownCountriesAndRegions" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="identityProtectionRoot">
@@ -25014,8 +25075,18 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.identityUserFlowAttributeAssignment)" />
         <ReturnType Type="graph.assignmentOrder" />
       </Function>
+      <Action Name="uploadClientCertificate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.identityApiConnector" />
+        <Parameter Name="pkcs12Value" Type="Edm.String" Unicode="false" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.identityApiConnector" />
+      </Action>
       <Function Name="availableProviderTypes" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.identityProvider)" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
+      <Function Name="availableProviderTypes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityProviderBase)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
       <Action Name="decryptBuffer" IsBound="true">
@@ -30743,6 +30814,7 @@
         <Singleton Name="authenticationMethodsPolicy" Type="microsoft.graph.authenticationMethodsPolicy" />
         <Singleton Name="bitlocker" Type="microsoft.graph.bitlocker" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
+        <Singleton Name="roleManagement" Type="microsoft.graph.roleManagement" />
         <Singleton Name="compliance" Type="microsoft.graph.compliance" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="trustFramework" Type="microsoft.graph.trustFramework" />
@@ -30762,7 +30834,6 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </Singleton>
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
-        <Singleton Name="roleManagement" Type="microsoft.graph.roleManagement" />
         <Singleton Name="education" Type="microsoft.graph.educationRoot">
           <NavigationPropertyBinding Path="classes/group" Target="directoryObjects" />
           <NavigationPropertyBinding Path="classes/members" Target="education/users" />
@@ -30802,7 +30873,38 @@
         <Singleton Name="external" Type="microsoft.graph.externalConnectors.external" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
+        <Singleton Name="admin" Type="microsoft.graph.windowsUpdates.admin" />
       </EntityContainer>
+      <Annotations Target="microsoft.graph.statusBase">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-04-11" />
+              <PropertyValue Property="Description" String="The statusBase complex type is deprecated. The provisioningStatusInfo holds the same information as this. This only exists in the beta api." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2021-12-31" />
+              <PropertyValue Property="Version" String="2021-04/Reporting" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.statusDetails">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-04-11" />
+              <PropertyValue Property="Description" String="The statusDetails complex type is deprecated. The provisioningStatusInfo and provisioningStatusInfo's provisioningErrorInfo holds the same information as this. This only exists in the beta api." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2021-12-31" />
+              <PropertyValue Property="Version" String="2021-04/Reporting" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.applicationSignInDetailedSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -30938,6 +31040,21 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.provisioningObjectSummary/action">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-04-11" />
+              <PropertyValue Property="Description" String="The action property is deprecated. The provisioningAction holds the same information as this. This only exists in the beta api." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2021-12-31" />
+              <PropertyValue Property="Version" String="2021-04/Reporting" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.relyingPartyDetailedSummary">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
@@ -31813,6 +31930,12 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="The default reminders set in an appointment of this service." />
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The value of this property is only available when reading an individual booking service by id." />
       </Annotations>
+      <Annotations Target="microsoft.graph.appScope/displayName">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.appScope/type">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for Android for Work settings functionality under device management." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
@@ -32625,6 +32748,18 @@
       <Annotations Target="microsoft.graph.deviceManagement/userPfxCertificates">
         <Annotation Term="Org.OData.Core.V1.Description" String="Collection of PFX certificates associated with a user." />
       </Annotations>
+      <Annotations Target="microsoft.graph.roleManagement/entitlementManagement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The RbacApplication for Entitlement Management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.roleManagement/deviceManagement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The RbacApplication for Device Management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/displayName">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/type">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.resourceSpecificPermissionGrant">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -32981,12 +33116,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.roleManagement/entitlementManagement">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The RbacApplication for Entitlement Management" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.roleManagement/deviceManagement">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The RbacApplication for Device Management" />
-      </Annotations>
       <Annotations Target="microsoft.graph.subscribedSku">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -33099,18 +33228,6 @@
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
       </Annotations>
-      <Annotations Target="microsoft.graph.appScope/displayName">
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.appScope/type">
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/displayName">
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.unifiedRbacResourceScope/type">
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-      </Annotations>
       <Annotations Target="microsoft.graph.subscription">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -33158,6 +33275,21 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userPurpose">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-04-15" />
+              <PropertyValue Property="Description" String="The UserPurpose API is deprecated and will stop returning data on April 27, 2021. Please use the UserPurposeV2 API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2021-04-27" />
+              <PropertyValue Property="Version" String="2021-04/Users" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.calendar/calendarPermissions">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -56627,7 +56759,7 @@
         <NavigationProperty Name="addToReviewSetOperation" Type="microsoft.graph.ediscovery.addToReviewSetOperation" />
         <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" />
         <NavigationProperty Name="lastEstimateStatisticsOperation" Type="microsoft.graph.ediscovery.estimateStatisticsOperation" />
-        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" />
+        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.ediscovery.noncustodialDataSource)" />
       </EntityType>
       <EntityType Name="case" BaseType="graph.entity">
         <Property Name="closedBy" Type="graph.identitySet" />
@@ -57218,6 +57350,9 @@
         <Member Name="fileName" Value="7" />
         <Member Name="fileExtension" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="iconUrl" Value="10" />
+        <Member Name="containerName" Value="11" />
+        <Member Name="containerUrl" Value="12" />
       </EnumType>
       <EnumType Name="propertyType">
         <Member Name="string" Value="0" />
@@ -57290,6 +57425,216 @@
         <Property Name="identitySource" Type="microsoft.graph.externalConnectors.identitySourceType" />
         <Property Name="type" Type="microsoft.graph.externalConnectors.externalGroupMemberType" Nullable="false" />
       </EntityType>
+    </Schema>
+    <Schema Namespace="microsoft.graph.windowsUpdates" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="azureADDeviceRegistrationErrorReason">
+        <Member Name="invalidGlobalDeviceId" Value="0" />
+        <Member Name="invalidAzureADDeviceId" Value="1" />
+        <Member Name="missingTrustType" Value="2" />
+        <Member Name="invalidAzureADJoin" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="deploymentStateReasonValue">
+        <Member Name="scheduledByOfferWindow" Value="0" />
+        <Member Name="offeringByRequest" Value="2" />
+        <Member Name="pausedByRequest" Value="3" />
+        <Member Name="pausedByMonitoring" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="deploymentStateValue">
+        <Member Name="scheduled" Value="0" />
+        <Member Name="offering" Value="1" />
+        <Member Name="paused" Value="2" />
+        <Member Name="faulted" Value="3" />
+        <Member Name="archived" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="equivalentContentOption">
+        <Member Name="none" Value="0" />
+        <Member Name="latestSecurity" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="monitoringAction">
+        <Member Name="alertError" Value="0" />
+        <Member Name="pauseDeployment" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="monitoringSignal">
+        <Member Name="rollback" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
+      <EnumType Name="qualityUpdateClassification">
+        <Member Name="all" Value="0" />
+        <Member Name="security" Value="1" />
+        <Member Name="nonSecurity" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="requestedDeploymentStateValue">
+        <Member Name="none" Value="0" />
+        <Member Name="paused" Value="1" />
+        <Member Name="archived" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="updateCategory">
+        <Member Name="feature" Value="0" />
+        <Member Name="quality" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <ComplexType Name="updatableAssetError" Abstract="true" />
+      <ComplexType Name="azureADDeviceRegistrationError" BaseType="microsoft.graph.windowsUpdates.updatableAssetError">
+        <Property Name="reason" Type="microsoft.graph.windowsUpdates.azureADDeviceRegistrationErrorReason" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="deployableContent" Abstract="true" />
+      <ComplexType Name="deploymentSettings">
+        <Property Name="monitoring" Type="microsoft.graph.windowsUpdates.monitoringSettings" />
+        <Property Name="rollout" Type="microsoft.graph.windowsUpdates.rolloutSettings" />
+      </ComplexType>
+      <ComplexType Name="monitoringSettings">
+        <Property Name="monitoringRules" Type="Collection(microsoft.graph.windowsUpdates.monitoringRule)" />
+      </ComplexType>
+      <ComplexType Name="rolloutSettings">
+        <Property Name="devicesPerOffer" Type="Edm.Int32" Nullable="false" />
+        <Property Name="durationBetweenOffers" Type="Edm.String" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="deploymentState">
+        <Property Name="reasons" Type="Collection(microsoft.graph.windowsUpdates.deploymentStateReason)" />
+        <Property Name="requestedValue" Type="microsoft.graph.windowsUpdates.requestedDeploymentStateValue" Nullable="false" />
+        <Property Name="value" Type="microsoft.graph.windowsUpdates.deploymentStateValue" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="deploymentStateReason">
+        <Property Name="value" Type="microsoft.graph.windowsUpdates.deploymentStateReasonValue" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="softwareUpdateReference" BaseType="microsoft.graph.windowsUpdates.deployableContent" Abstract="true" />
+      <ComplexType Name="windowsUpdateReference" BaseType="microsoft.graph.windowsUpdates.softwareUpdateReference" Abstract="true" />
+      <ComplexType Name="qualityUpdateReference" BaseType="microsoft.graph.windowsUpdates.windowsUpdateReference">
+        <Property Name="classification" Type="microsoft.graph.windowsUpdates.qualityUpdateClassification" />
+        <Property Name="releaseDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="expeditedQualityUpdateReference" BaseType="microsoft.graph.windowsUpdates.qualityUpdateReference">
+        <Property Name="equivalentContent" Type="microsoft.graph.windowsUpdates.equivalentContentOption" />
+      </ComplexType>
+      <ComplexType Name="featureUpdateReference" BaseType="microsoft.graph.windowsUpdates.windowsUpdateReference">
+        <Property Name="version" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="monitoringRule">
+        <Property Name="action" Type="microsoft.graph.windowsUpdates.monitoringAction" />
+        <Property Name="signal" Type="microsoft.graph.windowsUpdates.monitoringSignal" />
+        <Property Name="threshold" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="updatableAssetEnrollment" Abstract="true" />
+      <ComplexType Name="updateManagementEnrollment" BaseType="microsoft.graph.windowsUpdates.updatableAssetEnrollment">
+        <Property Name="updateCategory" Type="microsoft.graph.windowsUpdates.updateCategory" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userExperienceSettings">
+        <Property Name="daysUntilForcedReboot" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="windowsDeploymentSettings" BaseType="microsoft.graph.windowsUpdates.deploymentSettings">
+        <Property Name="userExperience" Type="microsoft.graph.windowsUpdates.userExperienceSettings" />
+      </ComplexType>
+      <EntityType Name="admin">
+        <NavigationProperty Name="windows" Type="microsoft.graph.windowsUpdates.windows" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="windows" BaseType="graph.entity">
+        <NavigationProperty Name="updates" Type="microsoft.graph.windowsUpdates.updates" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="updatableAsset" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="azureADDevice" BaseType="microsoft.graph.windowsUpdates.updatableAsset">
+        <Property Name="enrollments" Type="Collection(microsoft.graph.windowsUpdates.updatableAssetEnrollment)" />
+        <Property Name="errors" Type="Collection(microsoft.graph.windowsUpdates.updatableAssetError)" />
+      </EntityType>
+      <EntityType Name="catalog" BaseType="graph.entity">
+        <NavigationProperty Name="entries" Type="Collection(microsoft.graph.windowsUpdates.catalogEntry)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="catalogEntry" BaseType="graph.entity" Abstract="true">
+        <Property Name="deployableUntilDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="releaseDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="deployment" BaseType="graph.entity">
+        <Property Name="content" Type="microsoft.graph.windowsUpdates.deployableContent" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="settings" Type="microsoft.graph.windowsUpdates.deploymentSettings" />
+        <Property Name="state" Type="microsoft.graph.windowsUpdates.deploymentState" />
+        <NavigationProperty Name="audience" Type="microsoft.graph.windowsUpdates.deploymentAudience" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="deploymentAudience" BaseType="graph.entity">
+        <NavigationProperty Name="exclusions" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" ContainsTarget="true" />
+        <NavigationProperty Name="members" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="softwareUpdateCatalogEntry" BaseType="microsoft.graph.windowsUpdates.catalogEntry" Abstract="true" />
+      <EntityType Name="featureUpdateCatalogEntry" BaseType="microsoft.graph.windowsUpdates.softwareUpdateCatalogEntry">
+        <Property Name="version" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="qualityUpdateCatalogEntry" BaseType="microsoft.graph.windowsUpdates.softwareUpdateCatalogEntry">
+        <Property Name="isExpeditable" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="qualityUpdateClassification" Type="microsoft.graph.windowsUpdates.qualityUpdateClassification" Nullable="false" />
+      </EntityType>
+      <EntityType Name="updatableAssetGroup" BaseType="microsoft.graph.windowsUpdates.updatableAsset">
+        <NavigationProperty Name="members" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="updates" BaseType="graph.entity">
+        <NavigationProperty Name="catalog" Type="microsoft.graph.windowsUpdates.catalog" ContainsTarget="true" />
+        <NavigationProperty Name="deployments" Type="Collection(microsoft.graph.windowsUpdates.deployment)" ContainsTarget="true" />
+        <NavigationProperty Name="updatableAssets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" ContainsTarget="true" />
+      </EntityType>
+      <Action Name="addMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.updatableAsset" />
+        <Parameter Name="assets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+      </Action>
+      <Action Name="addMembersById" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.updatableAsset" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="memberEntityType" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="removeMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.updatableAsset" />
+        <Parameter Name="assets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+      </Action>
+      <Action Name="removeMembersById" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.updatableAsset" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="memberEntityType" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="enrollAssets" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="updateCategory" Type="microsoft.graph.windowsUpdates.updateCategory" Nullable="false" />
+        <Parameter Name="assets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+      </Action>
+      <Action Name="enrollAssetsById" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="updateCategory" Type="microsoft.graph.windowsUpdates.updateCategory" Nullable="false" />
+        <Parameter Name="memberEntityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="unenrollAssets" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="updateCategory" Type="microsoft.graph.windowsUpdates.updateCategory" Nullable="false" />
+        <Parameter Name="assets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+      </Action>
+      <Action Name="unenrollAssetsById" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="updateCategory" Type="microsoft.graph.windowsUpdates.updateCategory" Nullable="false" />
+        <Parameter Name="memberEntityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="updateAudience" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.deploymentAudience" />
+        <Parameter Name="addMembers" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="removeMembers" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="addExclusions" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+        <Parameter Name="removeExclusions" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" />
+      </Action>
+      <Action Name="updateAudienceById" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.windowsUpdates.deploymentAudience" />
+        <Parameter Name="memberEntityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="addMembers" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="removeMembers" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="addExclusions" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="removeExclusions" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>
