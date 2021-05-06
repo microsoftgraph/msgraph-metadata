@@ -112,6 +112,7 @@
     <!-- Remove singleton -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='bitlocker']"/>
   
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
