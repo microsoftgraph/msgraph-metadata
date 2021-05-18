@@ -2434,7 +2434,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Sets the age group of the user. Allowed values: null, minor, notAdult and adult. Refer to the legal age group property definitions for further information. Returned only on $select." />
         </Property>
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The licenses that are assigned to the user. Not nullable. Supports $filter." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The licenses that are assigned to the user, including inherited (group-based) licenses. Not nullable. Supports $filter." />
         </Property>
         <Property Name="assignedPlans" Type="Collection(graph.assignedPlan)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The plans that are assigned to the user. Returned only on $select. Read-only. Not nullable." />
@@ -2455,7 +2455,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The country/region in which the user is located; for example, 'US' or 'UK'. Maximum length is 128 characters. Returned only on $select. Supports $filter." />
         </Property>
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time the user was created. The value cannot be modified and is automatically populated when the entity is created. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. Property is nullable. A null value indicates that an accurate creation time couldn't be determined for the user. Returned only on $select. Read-only. Supports $filter with the eq, lt, and ge operators." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time the user was created. The value cannot be modified and is automatically populated when the entity is created. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. Property is nullable. A null value indicates that an accurate creation time couldn't be determined for the user. Returned only on $select. Read-only. Supports $filter with the eq, ne, le, and ge operators." />
         </Property>
         <Property Name="creationType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user account was created as a regular school or work account (null), an external account (Invitation), a local account for an Azure Active Directory B2C tenant (LocalAccount) or self-service sign-up using email verification (EmailVerified). Returned only on $select. Read-only." />
@@ -2851,7 +2851,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The id of the client service principal for the application which is authorized to act on behalf of a signed-in user when accessing an API. Required. Supports $filter (eq only)." />
         </Property>
         <Property Name="consentType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if authorization is granted for the client application to impersonate all users or only a specific user. AllPrincipals indicates authorization to impersonate all users. Principal indicates authorization to impersonate a specific user. Consent on behalf of all users can be granted by an administrator. Non-admin users may be authorized to consent on behalf of themselves in some cases, for some delegated permissions. Required. Supports $filter (eq only)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether authorization is granted for the client application to impersonate all users or only a specific user. AllPrincipals indicates authorization to impersonate all users. Principal indicates authorization to impersonate a specific user. Consent on behalf of all users can be granted by an administrator. Non-admin users may be authorized to consent on behalf of themselves in some cases, for some delegated permissions. Required. Supports $filter (eq only)." />
         </Property>
         <Property Name="principalId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The id of the user on behalf of whom the client is authorized to access the resource, when consentType is Principal. If consentType is AllPrincipals this value is null. Required when consentType is Principal." />
@@ -3230,6 +3230,9 @@
         </Property>
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The mailFolder's display name." />
+        </Property>
+        <Property Name="isHidden" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the mailFolder is hidden. This property can be set only when creating the folder. Find more information in Hidden mail folders." />
         </Property>
         <Property Name="parentFolderId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the mailFolder's parent mailFolder." />
@@ -4605,6 +4608,7 @@
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user attribute assignments included in the user flow." />
         </NavigationProperty>
+        <NavigationProperty Name="userFlowIdentityProviders" Type="Collection(graph.identityProviderBase)" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="clientId" Type="Edm.String">
@@ -4654,6 +4658,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The user attribute that you want to add to your user flow." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the identity provider." />
+        </Property>
+      </EntityType>
+      <EntityType Name="builtInIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="identityProviderType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identity provider type. For a B2B scenario, possible values: AADSignup, MicrosoftAccount, EmailOTP. Required." />
+        </Property>
+      </EntityType>
       <EntityType Name="identityUserFlowAttribute" BaseType="graph.entity">
         <Property Name="dataType" Type="graph.identityUserFlowAttributeDataType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The data type of the user flow attribute. This cannot be modified after the custom user flow attribute is created. The supported values for dataType are: string , boolean , int64 , stringCollection , dateTime." />
@@ -4673,6 +4687,7 @@
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
         <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true" />
         <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
@@ -4680,6 +4695,17 @@
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
+      <EntityType Name="socialIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="clientId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The client identifier for the application obtained when registering the application with the identity provider. Required." />
+        </Property>
+        <Property Name="clientSecret" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The client secret for the application that is obtained when the application is registered with the identity provider. This is write-only. A read operation returns '****'. Required." />
+        </Property>
+        <Property Name="identityProviderType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For a B2B scenario, possible values: Google, Facebook. For a B2C scenario, possible values: Microsoft, Google, Amazon, LinkedIn, Facebook, GitHub, Twitter, Weibo, QQ, WeChat. Required." />
+        </Property>
+      </EntityType>
       <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
       <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String">
@@ -13750,10 +13776,10 @@
       </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the name of the field that a value is associated with. When a sign in or domain hint is included in the sign-in request, corresponding fields are included as key-value pairs. Possible keys: Login hint present, Domain hint present." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Key." />
         </Property>
         <Property Name="value" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the corresponding value for the specified key. The value is true if a sign in hint was included in the sign-in request; otherwise false. The value is true if a domain hint was included in the sign-in request; otherwise false." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Value." />
         </Property>
       </ComplexType>
       <ComplexType Name="modifiedProperty">
@@ -17416,10 +17442,10 @@
       </ComplexType>
       <ComplexType Name="keyValuePair">
         <Property Name="name" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Name for this key-value pair" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name for this key-value pair. Possible names are: AdditionalWSFedEndpointCheckResult,  AllowedAuthenticationClassReferencesCheckResult, AlwaysRequireAuthenticationCheckResult,   AutoUpdateEnabledCheckResult, ClaimsProviderNameCheckResult, EncryptClaimsCheckResult,  EncryptedNameIdRequiredCheckResult, MonitoringEnabledCheckResult,NotBeforeSkewCheckResult,  RequestMFAFromClaimsProvidersCheckResult, SignedSamlRequestsRequiredCheckResult, AdditionalAuthenticationRulesCheckResult, TokenLifetimeCheckResult,  DelegationAuthorizationRulesCheckResult, IssuanceAuthorizationRulesCheckResult, IssuanceTransformRulesCheckResult." />
         </Property>
         <Property Name="value" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Value for this key-value pair" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Value for this key-value pair. Possible result values are 0 (when the validation check passed), 1 (when the validation check failed), or 2 (when the validation check is a warning)." />
         </Property>
       </ComplexType>
       <ComplexType Name="managedAppDiagnosticStatus">
@@ -19797,6 +19823,10 @@
       </Function>
       <Function Name="availableProviderTypes" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.identityProvider)" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
+      <Function Name="availableProviderTypes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityProviderBase)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
       <Function Name="reminderView" IsBound="true">
@@ -24129,12 +24159,6 @@
       <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItemUploadableProperties" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItemUploadableProperties" />
-      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
-      </Term>
-      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
-      </Term>
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
       </Term>
@@ -24158,6 +24182,12 @@
       </Term>
       <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the team is in migration state and is currently being used for migration purposes. It accepts one value: migration. Note: In the future, Microsoft may require you or your customers to pay additional fees based on the amount of data imported." />
+      </Term>
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
+      </Term>
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
       </Term>
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
@@ -31374,6 +31404,22 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the role of the service used by this endpoint. Possible values are: unknown, customBot, skypeForBusinessMicrosoftTeamsGateway, skypeForBusinessAudioVideoMcu, skypeForBusinessApplicationSharingMcu, skypeForBusinessCallQueues, skypeForBusinessAutoAttendant, mediationServer, mediationServerCloudConnectorEdition, exchangeUnifiedMessagingService, mediaController, conferencingAnnouncementService, conferencingAttendant, audioTeleconferencerController, skypeForBusinessUnifiedCommunicationApplicationPlatform, responseGroupServiceAnnouncementService, gateway, skypeTranslator, skypeForBusinessAttendant, responseGroupService, voicemail, unknownFutureValue." />
         </Property>
       </ComplexType>
+    </Schema>
+    <Schema Namespace="microsoft.graph.externalConnectors" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="externalItemContentType">
+        <Member Name="text" Value="1" />
+        <Member Name="html" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EntityType Name="externalItem" BaseType="graph.entity">
+        <Property Name="content" Type="microsoft.graph.externalConnectors.externalItemContent" />
+        <Property Name="properties" Type="microsoft.graph.externalConnectors.properties" />
+      </EntityType>
+      <ComplexType Name="externalItemContent">
+        <Property Name="type" Type="microsoft.graph.externalConnectors.externalItemContentType" Nullable="false" />
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="properties" OpenType="true" />
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

@@ -2812,6 +2812,7 @@
       <EntityType Name="mailFolder" BaseType="graph.entity">
         <Property Name="childFolderCount" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isHidden" Type="Edm.Boolean" />
         <Property Name="parentFolderId" Type="Edm.String" />
         <Property Name="totalItemCount" Type="Edm.Int32" />
         <Property Name="unreadItemCount" Type="Edm.Int32" />
@@ -3531,6 +3532,7 @@
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProvider)" />
         <NavigationProperty Name="languages" Type="Collection(graph.userFlowLanguageConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="userFlowIdentityProviders" Type="Collection(graph.identityProviderBase)" />
       </EntityType>
       <EntityType Name="identityProvider" BaseType="graph.entity">
         <Property Name="clientId" Type="Edm.String" />
@@ -3552,6 +3554,12 @@
         <Property Name="userInputType" Type="graph.identityUserFlowAttributeInputType" Nullable="false" />
         <NavigationProperty Name="userAttribute" Type="graph.identityUserFlowAttribute" />
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="builtInIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="identityProviderType" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="identityUserFlowAttribute" BaseType="graph.entity">
         <Property Name="dataType" Type="graph.identityUserFlowAttributeDataType" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -3563,6 +3571,7 @@
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
         <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true" />
         <NavigationProperty Name="b2xUserFlows" Type="Collection(graph.b2xIdentityUserFlow)" ContainsTarget="true" />
+        <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
@@ -3570,6 +3579,11 @@
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
+      <EntityType Name="socialIdentityProvider" BaseType="graph.identityProviderBase">
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="clientSecret" Type="Edm.String" />
+        <Property Name="identityProviderType" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
@@ -9570,6 +9584,10 @@
       </Action>
       <Function Name="availableProviderTypes" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.identityProvider)" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Function>
+      <Function Name="availableProviderTypes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.identityProviderBase)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
       <Action Name="assignLicense" IsBound="true">
@@ -21365,6 +21383,22 @@
         <Property Name="failureInfo" Type="microsoft.graph.callRecords.failureInfo" />
         <Property Name="media" Type="Collection(microsoft.graph.callRecords.media)" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+    </Schema>
+    <Schema Namespace="microsoft.graph.externalConnectors" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="externalItemContentType">
+        <Member Name="text" Value="1" />
+        <Member Name="html" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <ComplexType Name="externalItemContent">
+        <Property Name="type" Type="microsoft.graph.externalConnectors.externalItemContentType" Nullable="false" />
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="properties" OpenType="true" />
+      <EntityType Name="externalItem" BaseType="graph.entity">
+        <Property Name="content" Type="microsoft.graph.externalConnectors.externalItemContent" />
+        <Property Name="properties" Type="microsoft.graph.externalConnectors.properties" />
       </EntityType>
     </Schema>
   </edmx:DataServices>
