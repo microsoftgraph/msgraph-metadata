@@ -1330,6 +1330,9 @@
         <Member Name="windowsAutoEnrollment" Value="7" />
         <Member Name="windowsBulkAzureDomainJoin" Value="8" />
         <Member Name="windowsCoManagement" Value="9" />
+        <Member Name="windowsAzureADJoinUsingDeviceAuth" Value="10" />
+        <Member Name="appleUserEnrollment" Value="11" />
+        <Member Name="appleUserEnrollmentWithServiceAccount" Value="12" />
       </EnumType>
       <EnumType Name="deviceManagementExchangeAccessState">
         <Member Name="none" Value="0" />
@@ -1423,12 +1426,6 @@
         <Member Name="noUpload" Value="0" />
         <Member Name="pending" Value="1" />
         <Member Name="complete" Value="2" />
-        <Member Name="error" Value="3" />
-      </EnumType>
-      <EnumType Name="windowsAutopilotDeviceDeletionState">
-        <Member Name="unknown" Value="0" />
-        <Member Name="failed" Value="1" />
-        <Member Name="accepted" Value="2" />
         <Member Name="error" Value="3" />
       </EnumType>
       <EnumType Name="managedAppClipboardSharingLevel">
@@ -2901,10 +2898,12 @@
         <Property Name="easDeviceId" Type="Edm.String" />
         <Property Name="emailAddress" Type="Edm.String" />
         <Property Name="enrolledDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="ethernetMacAddress" Type="Edm.String" />
         <Property Name="exchangeAccessState" Type="graph.deviceManagementExchangeAccessState" Nullable="false" />
         <Property Name="exchangeAccessStateReason" Type="graph.deviceManagementExchangeAccessStateReason" Nullable="false" />
         <Property Name="exchangeLastSuccessfulSyncDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="freeStorageSpaceInBytes" Type="Edm.Int64" Nullable="false" />
+        <Property Name="iccid" Type="Edm.String" />
         <Property Name="imei" Type="Edm.String" />
         <Property Name="isEncrypted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isSupervised" Type="Edm.Boolean" Nullable="false" />
@@ -2916,15 +2915,18 @@
         <Property Name="manufacturer" Type="Edm.String" />
         <Property Name="meid" Type="Edm.String" />
         <Property Name="model" Type="Edm.String" />
+        <Property Name="notes" Type="Edm.String" />
         <Property Name="operatingSystem" Type="Edm.String" />
         <Property Name="osVersion" Type="Edm.String" />
         <Property Name="partnerReportedThreatState" Type="graph.managedDevicePartnerReportedHealthState" Nullable="false" />
         <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="physicalMemoryInBytes" Type="Edm.Int64" Nullable="false" />
         <Property Name="remoteAssistanceSessionErrorDetails" Type="Edm.String" />
         <Property Name="remoteAssistanceSessionUrl" Type="Edm.String" />
         <Property Name="serialNumber" Type="Edm.String" />
         <Property Name="subscriberCarrier" Type="Edm.String" />
         <Property Name="totalStorageSpaceInBytes" Type="Edm.Int64" Nullable="false" />
+        <Property Name="udid" Type="Edm.String" />
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
@@ -6292,6 +6294,7 @@
       <EntityType Name="applePushNotificationCertificate" BaseType="graph.entity">
         <Property Name="appleIdentifier" Type="Edm.String" />
         <Property Name="certificate" Type="Edm.String" />
+        <Property Name="certificateSerialNumber" Type="Edm.String" />
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="topicIdentifier" Type="Edm.String" />
@@ -7670,12 +7673,6 @@
       </ComplexType>
       <ComplexType Name="windowsDeviceAzureADAccount" BaseType="graph.windowsDeviceAccount">
         <Property Name="userPrincipalName" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="deletedWindowsAutopilotDeviceState">
-        <Property Name="deletionState" Type="graph.windowsAutopilotDeviceDeletionState" Nullable="false" />
-        <Property Name="deviceRegistrationId" Type="Edm.String" />
-        <Property Name="errorMessage" Type="Edm.String" />
-        <Property Name="serialNumber" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="importedWindowsAutopilotDeviceIdentityState">
         <Property Name="deviceErrorCode" Type="Edm.Int32" Nullable="false" />
@@ -13268,6 +13265,7 @@
         <Parameter Name="keepEnrollmentData" Type="Edm.Boolean" />
         <Parameter Name="keepUserData" Type="Edm.Boolean" />
         <Parameter Name="macOsUnlockCode" Type="Edm.String" Unicode="false" />
+        <Parameter Name="persistEsimDataPlan" Type="Edm.Boolean" />
       </Action>
       <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applePushNotificationCertificate" />
@@ -13287,11 +13285,6 @@
         <Parameter Name="addressableUserName" Type="Edm.String" Unicode="false" />
         <Parameter Name="groupTag" Type="Edm.String" Unicode="false" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="deleteDevices" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.windowsAutopilotDeviceIdentity)" />
-        <Parameter Name="serialNumbers" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Collection(graph.deletedWindowsAutopilotDeviceState)" />
       </Action>
       <Action Name="import" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.importedWindowsAutopilotDeviceIdentity)" />
@@ -18777,6 +18770,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/ethernetMacAddress">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Ethernet MAC. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/exchangeAccessState">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="The Access State of the device in Exchange. This property is read-only." />
@@ -18801,6 +18801,13 @@
       <Annotations Target="microsoft.graph.managedDevice/freeStorageSpaceInBytes">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Free Storage in Bytes. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/iccid">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Integrated Circuit Card Identifier, it is A SIM card's unique identification number. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -18874,6 +18881,9 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/notes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Notes on the device created by IT Admin" />
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/operatingSystem">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Operating system of the device. Windows, iOS, etc. This property is read-only." />
@@ -18898,6 +18908,13 @@
       <Annotations Target="microsoft.graph.managedDevice/phoneNumber">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of the device. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/physicalMemoryInBytes">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Total Memory in Bytes. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -18933,6 +18950,13 @@
       <Annotations Target="microsoft.graph.managedDevice/totalStorageSpaceInBytes">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Total Storage in Bytes. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/udid">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unique Device Identifier for iOS and macOS devices. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -20876,6 +20900,13 @@
       <Annotations Target="microsoft.graph.applePushNotificationCertificate/appleIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="Apple Id of the account used to create the MDM push certificate." />
       </Annotations>
+      <Annotations Target="microsoft.graph.applePushNotificationCertificate/certificateSerialNumber">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate serial number. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.applePushNotificationCertificate/expirationDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="The expiration date and time for Apple push notification certificate." />
       </Annotations>
@@ -20914,18 +20945,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managedDeviceOverview/mdmEnrolledCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="The number of devices enrolled in MDM" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/deletionState">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion state" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/deviceRegistrationId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="ZTD Device Registration ID ." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/errorMessage">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion error message." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/serialNumber">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Autopilot Device Serial Number" />
       </Annotations>
       <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
@@ -22070,7 +22089,7 @@
       <Annotations Target="microsoft.graph.shutDown(microsoft.graph.managedDevice)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Shut down device" />
       </Annotations>
-      <Annotations Target="microsoft.graph.wipe(microsoft.graph.managedDevice, Edm.Boolean, Edm.Boolean, Edm.String)">
+      <Annotations Target="microsoft.graph.wipe(microsoft.graph.managedDevice, Edm.Boolean, Edm.Boolean, Edm.String, Edm.Boolean)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Wipe a device" />
       </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
