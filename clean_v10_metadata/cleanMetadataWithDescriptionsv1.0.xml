@@ -1330,6 +1330,9 @@
         <Member Name="windowsAutoEnrollment" Value="7" />
         <Member Name="windowsBulkAzureDomainJoin" Value="8" />
         <Member Name="windowsCoManagement" Value="9" />
+        <Member Name="windowsAzureADJoinUsingDeviceAuth" Value="10" />
+        <Member Name="appleUserEnrollment" Value="11" />
+        <Member Name="appleUserEnrollmentWithServiceAccount" Value="12" />
       </EnumType>
       <EnumType Name="deviceManagementExchangeAccessState">
         <Member Name="none" Value="0" />
@@ -1423,12 +1426,6 @@
         <Member Name="noUpload" Value="0" />
         <Member Name="pending" Value="1" />
         <Member Name="complete" Value="2" />
-        <Member Name="error" Value="3" />
-      </EnumType>
-      <EnumType Name="windowsAutopilotDeviceDeletionState">
-        <Member Name="unknown" Value="0" />
-        <Member Name="failed" Value="1" />
-        <Member Name="accepted" Value="2" />
         <Member Name="error" Value="3" />
       </EnumType>
       <EnumType Name="managedAppClipboardSharingLevel">
@@ -2512,7 +2509,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="State of license assignments for this user. Returned only on $select. Read-only." />
         </Property>
         <Property Name="mail" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the user, for example, 'jeff@contoso.onmicrosoft.com'.NOTE: While this property can contain accent characters, using them can cause access issues with other Microsoft applications for the user.Returned by default. Supports $filter and endsWith." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The SMTP address for the user, for example, 'jeff@contoso.onmicrosoft.com'. Changes to this property will also update the user's proxyAddresses collection to include the value as an SMTP address. While this property can contain accent characters, using them can cause access issues with other Microsoft applications for the user. Supports $filter and endsWith." />
         </Property>
         <Property Name="mailNickname" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The mail alias for the user. This property must be specified when a user is created. Maximum length is 64 characters. Returned only on $select. Supports $filter." />
@@ -3630,6 +3627,9 @@
         <Property Name="enrolledDateTime" Type="Edm.DateTimeOffset" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Enrollment time of the device. This property is read-only." />
         </Property>
+        <Property Name="ethernetMacAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Ethernet MAC. This property is read-only." />
+        </Property>
         <Property Name="exchangeAccessState" Type="graph.deviceManagementExchangeAccessState" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Access State of the device in Exchange. This property is read-only. Possible values are: none, unknown, allowed, blocked, quarantined." />
         </Property>
@@ -3641,6 +3641,9 @@
         </Property>
         <Property Name="freeStorageSpaceInBytes" Type="Edm.Int64" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Free Storage in Bytes. This property is read-only." />
+        </Property>
+        <Property Name="iccid" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Integrated Circuit Card Identifier, it is A SIM card's unique identification number. This property is read-only." />
         </Property>
         <Property Name="imei" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="IMEI. This property is read-only." />
@@ -3675,6 +3678,9 @@
         <Property Name="model" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Model of the device. This property is read-only." />
         </Property>
+        <Property Name="notes" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Notes on the device created by IT Admin" />
+        </Property>
         <Property Name="operatingSystem" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Operating system of the device. Windows, iOS, etc. This property is read-only." />
         </Property>
@@ -3686,6 +3692,9 @@
         </Property>
         <Property Name="phoneNumber" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of the device. This property is read-only." />
+        </Property>
+        <Property Name="physicalMemoryInBytes" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Total Memory in Bytes. This property is read-only." />
         </Property>
         <Property Name="remoteAssistanceSessionErrorDetails" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="An error string that identifies issues when creating Remote Assistance session objects. This property is read-only." />
@@ -3701,6 +3710,9 @@
         </Property>
         <Property Name="totalStorageSpaceInBytes" Type="Edm.Int64" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Total Storage in Bytes. This property is read-only." />
+        </Property>
+        <Property Name="udid" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique Device Identifier for iOS and macOS devices. This property is read-only." />
         </Property>
         <Property Name="userDisplayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="User display name. This property is read-only." />
@@ -7361,38 +7373,40 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="User who created this review." />
         </Property>
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp when review series was created." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp when the access review series was created. Supports $select." />
         </Property>
         <Property Name="descriptionForAdmins" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Description provided by review creators to provide more context of the review to admins." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description provided by review creators to provide more context of the review to admins. Supports $select." />
         </Property>
         <Property Name="descriptionForReviewers" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Description provided  by review creators to provide more context of the review to reviewers. Reviewers will see this description in the email sent to them requesting their review." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description provided  by review creators to provide more context of the review to reviewers. Reviewers will see this description in the email sent to them requesting their review. Supports $select." />
         </Property>
         <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Name of access review series. Required on create." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the access review series. Required on create. Supports $select." />
         </Property>
-        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="This collection of reviewer scopes is used to define the list of fallback reviewers. These fallback reviewers will be notified to take action if no users are found from the list of reviewers specified. This could occur when either the group owner is specified as the reviewer but the group owner does not exist, or manager is specified as reviewer but a user's manager does not exist. Supports $select." />
+        </Property>
         <Property Name="instanceEnumerationScope" Type="graph.accessReviewScope">
-          <Annotation Term="Org.OData.Core.V1.Description" String="In the case of a review of guest users across all Microsoft 365 groups, this determines the scope of which groups will be reviewed. Each group will become a unique accessReviewInstance of the access review series.  For supported scopes, see accessReviewScope." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="This property is required when scoping a review to guest users' access across all Microsoft 365 groups and determines which Microsoft 365 groups are reviewed. Each group will become a unique accessReviewInstance of the access review series.  For supported scopes, see accessReviewScope. Supports $select. For examples of options for configuring instanceEnumerationScope, see Configure the scope of your access review definition using the Microsoft Graph API." />
         </Property>
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp when review series was last modified." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp when the access review series was last modified. Supports $select." />
         </Property>
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="This collection of access review scopes is used to define who are the reviewers. See accessReviewReviewerScope. Required on create." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="This collection of access review scopes is used to define who are the reviewers. Required on create. Supports $select. For examples of options for assigning reviewers, see Assign reviewers to your access review definition using the Microsoft Graph API." />
         </Property>
         <Property Name="scope" Type="graph.accessReviewScope">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Defines scope of users reviewed. For supported scopes, see accessReviewScope. Required on create." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines scope of resources to review. For supported scopes, see accessReviewScope. Required on create. Supports $select and $filter (contains only). For examples of options for configuring scope, see Configure the scope of your access review definition using the Microsoft Graph API." />
         </Property>
         <Property Name="settings" Type="graph.accessReviewScheduleSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The settings for an access review series, see type definition below." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The settings for an access review series, see type definition below. Supports $select." />
         </Property>
         <Property Name="status" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="This read-only field specifies the status of an accessReview. The typical states include Initializing, NotStarted, Starting, InProgress, Completing, Completed, AutoReviewing, and AutoReviewed." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="This read-only field specifies the status of an access review. The typical states include Initializing, NotStarted, Starting, InProgress, Completing, Completed, AutoReviewing, and AutoReviewed. Supports $select, $orderby, and $filter (eq only)." />
         </Property>
         <NavigationProperty Name="instances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Set of access reviews instances for this access review series. Access reviews that do not recur will only have one instance; otherwise, there will be an instance for each recurrence." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Set of access reviews instances for this access review series. Access reviews that do not recur will only have one instance; otherwise, there is an instance for each recurrence." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="accessReviewSet" BaseType="graph.entity">
@@ -9182,6 +9196,9 @@
         </Property>
         <Property Name="certificate" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Not yet documented" />
+        </Property>
+        <Property Name="certificateSerialNumber" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Certificate serial number. This property is read-only." />
         </Property>
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The expiration date and time for Apple push notification certificate." />
@@ -15622,7 +15639,7 @@
       </ComplexType>
       <ComplexType Name="patternedRecurrence">
         <Property Name="pattern" Type="graph.recurrencePattern">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The frequency of an event." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The frequency of an event. Do not specify for a one-time access review." />
         </Property>
         <Property Name="range" Type="graph.recurrenceRange">
           <Annotation Term="Org.OData.Core.V1.Description" String="The duration of an event." />
@@ -16094,7 +16111,7 @@
       <ComplexType Name="accessReviewScope" />
       <ComplexType Name="accessReviewQueryScope" BaseType="graph.accessReviewScope">
         <Property Name="query" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The query representing what will be reviewed in an access review. Examples of this include /groups/{id}/members?$filter=…" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The query representing what will be reviewed in an access review." />
         </Property>
         <Property Name="queryRoot" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="In the scenario where reviewers need to be specified dynamically, this property is used to indicate the relative source of the query. This property is only required if a relative query is specified. For example, ./manager." />
@@ -16105,7 +16122,7 @@
       </ComplexType>
       <ComplexType Name="accessReviewInactiveUsersQueryScope" BaseType="graph.accessReviewQueryScope">
         <Property Name="inactiveDuration" Type="Edm.Duration">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Defines the length of the duration period of inactivity. Inactivity is based on the last sign in date of the user." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines the duration of inactivity. Inactivity is based on the last sign in date of the user compared to the access review instance's start date. If this property is not specified, it's assigned the default value PT0S." />
         </Property>
       </ComplexType>
       <ComplexType Name="accessReviewInstanceDecisionItemResource">
@@ -16124,7 +16141,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The query specifying who will be the reviewer. See table for examples." />
         </Property>
         <Property Name="queryRoot" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="In the scenario where reviewers need to be specified dynamically, this property is used to indicate the relative source of the query. This property is only required if a relative query (i.e., ./manager) is specified." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="In the scenario where reviewers need to be specified dynamically, this property is used to indicate the relative source of the query. This property is only required if a relative query, for example, ./manager, is specified. Possible value: decisions." />
         </Property>
         <Property Name="queryType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of query. Examples include MicrosoftGraph and ARM." />
@@ -16135,31 +16152,31 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Optional field. Describes the  actions to take once a review is complete. There are two types that are currently supported: removeAccessApplyAction (default) and disableAndDeleteUserApplyAction. Field only needs to be specified in the case of disableAndDeleteUserApplyAction. See accessReviewApplyAction." />
         </Property>
         <Property Name="autoApplyDecisionsEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether auto-apply feature is enabled." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether decisions are automatically applied. When set to false, a user must apply the decisions manually once the reviewer completes the access review. When set to true, decisions are applied automatically after the access review instance duration ends, whether or not the reviewers have responded. Default value is false." />
         </Property>
         <Property Name="defaultDecision" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Decision chosen if defaultDecisionEnabled is enabled. Can be one of 'Approve', 'Deny', or 'Recommendation'." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Decision chosen if defaultDecisionEnabled is enabled. Can be one of Approve, Deny, or Recommendation." />
         </Property>
         <Property Name="defaultDecisionEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether default decision is enabled/disabled when reviewers do not respond." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the default decision is enabled or disabled when reviewers do not respond. Default value is false." />
         </Property>
         <Property Name="instanceDurationInDays" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Duration of each recurrence of review (accessReviewInstance) in number of days." />
         </Property>
         <Property Name="justificationRequiredOnApproval" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether reviewers are required to provide justification with their decision." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether reviewers are required to provide justification with their decision. Default value is false." />
         </Property>
         <Property Name="mailNotificationsEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether emails are enabled/disabled." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether emails are enabled or disabled. Default value is false." />
         </Property>
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether decision recommendations are enabled/disabled." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether decision recommendations are enabled/disabled." />
         </Property>
         <Property Name="recurrence" Type="graph.patternedRecurrence">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Detailed settings for recurrence. Using standard Outlook recurrence object. Note that dayOfMonth is not supported - use property startDate on recurrenceRange to determine the day the review will start on." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Detailed settings for recurrence using the standard Outlook recurrence object. Only weekly and absoluteMonthly on recurrencePattern are supported. Use the property startDate on recurrenceRange to determine the day the review starts." />
         </Property>
         <Property Name="reminderNotificationsEnabled" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Flag to indicate whether reminders are enabled/disabled." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether reminders are enabled or disabled. Default value is false." />
         </Property>
       </ComplexType>
       <ComplexType Name="appConsentRequestScope">
@@ -17383,20 +17400,6 @@
       <ComplexType Name="windowsDeviceAzureADAccount" BaseType="graph.windowsDeviceAccount">
         <Property Name="userPrincipalName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Not yet documented" />
-        </Property>
-      </ComplexType>
-      <ComplexType Name="deletedWindowsAutopilotDeviceState">
-        <Property Name="deletionState" Type="graph.windowsAutopilotDeviceDeletionState" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion state. Possible values are: unknown, failed, accepted, error." />
-        </Property>
-        <Property Name="deviceRegistrationId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="ZTD Device Registration ID ." />
-        </Property>
-        <Property Name="errorMessage" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion error message." />
-        </Property>
-        <Property Name="serialNumber" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Autopilot Device Serial Number" />
         </Property>
       </ComplexType>
       <ComplexType Name="importedWindowsAutopilotDeviceIdentityState">
@@ -23869,6 +23872,7 @@
         <Parameter Name="keepEnrollmentData" Type="Edm.Boolean" />
         <Parameter Name="keepUserData" Type="Edm.Boolean" />
         <Parameter Name="macOsUnlockCode" Type="Edm.String" Unicode="false" />
+        <Parameter Name="persistEsimDataPlan" Type="Edm.Boolean" />
       </Action>
       <Action Name="assignUserToDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.windowsAutopilotDeviceIdentity" />
@@ -23884,11 +23888,6 @@
         <Parameter Name="addressableUserName" Type="Edm.String" Unicode="false" />
         <Parameter Name="groupTag" Type="Edm.String" Unicode="false" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="deleteDevices" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.windowsAutopilotDeviceIdentity)" />
-        <Parameter Name="serialNumbers" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="Collection(graph.deletedWindowsAutopilotDeviceState)" />
       </Action>
       <Action Name="import" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.importedWindowsAutopilotDeviceIdentity)" />
@@ -27779,6 +27778,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/ethernetMacAddress">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Ethernet MAC. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/exchangeAccessState">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="The Access State of the device in Exchange. This property is read-only." />
@@ -27803,6 +27809,13 @@
       <Annotations Target="microsoft.graph.managedDevice/freeStorageSpaceInBytes">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Free Storage in Bytes. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/iccid">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Integrated Circuit Card Identifier, it is A SIM card's unique identification number. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -27876,6 +27889,9 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/notes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Notes on the device created by IT Admin" />
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/operatingSystem">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Operating system of the device. Windows, iOS, etc. This property is read-only." />
@@ -27900,6 +27916,13 @@
       <Annotations Target="microsoft.graph.managedDevice/phoneNumber">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Phone number of the device. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/physicalMemoryInBytes">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Total Memory in Bytes. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -27935,6 +27958,13 @@
       <Annotations Target="microsoft.graph.managedDevice/totalStorageSpaceInBytes">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Total Storage in Bytes. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/udid">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unique Device Identifier for iOS and macOS devices. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -29878,6 +29908,13 @@
       <Annotations Target="microsoft.graph.applePushNotificationCertificate/appleIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="Apple Id of the account used to create the MDM push certificate." />
       </Annotations>
+      <Annotations Target="microsoft.graph.applePushNotificationCertificate/certificateSerialNumber">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Certificate serial number. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.applePushNotificationCertificate/expirationDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="The expiration date and time for Apple push notification certificate." />
       </Annotations>
@@ -29916,18 +29953,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managedDeviceOverview/mdmEnrolledCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="The number of devices enrolled in MDM" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/deletionState">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion state" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/deviceRegistrationId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="ZTD Device Registration ID ." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/errorMessage">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Device deletion error message." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedWindowsAutopilotDeviceState/serialNumber">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Autopilot Device Serial Number" />
       </Annotations>
       <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
@@ -30910,7 +30935,7 @@
       <Annotations Target="microsoft.graph.shutDown(microsoft.graph.managedDevice)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Shut down device" />
       </Annotations>
-      <Annotations Target="microsoft.graph.wipe(microsoft.graph.managedDevice, Edm.Boolean, Edm.Boolean, Edm.String)">
+      <Annotations Target="microsoft.graph.wipe(microsoft.graph.managedDevice, Edm.Boolean, Edm.Boolean, Edm.String, Edm.Boolean)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Wipe a device" />
       </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
