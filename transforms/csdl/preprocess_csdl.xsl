@@ -316,7 +316,7 @@
             <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
             <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
-            <xsl:apply-templates select="edm:Parameter[@Name='ProposeNewTime']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='ProposedNewTime']" />
         </xsl:copy>
     </xsl:template>
 
