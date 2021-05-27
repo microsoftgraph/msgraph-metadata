@@ -300,14 +300,23 @@
 
     <!-- These actions have the same parameters that need reordering. Will need to create a new template
          for each reordering. -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='accept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='decline'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]|
                          edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='tentativelyAccept'][.//edm:Parameter[@Name='bindingParameter'][@Type='graph.event']]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:apply-templates select="edm:Parameter[@Name='bindingParameter'][@Type='graph.event']" />
             <xsl:apply-templates select="edm:Parameter[@Name='Comment']" />
             <xsl:apply-templates select="edm:Parameter[@Name='SendResponse']" />
+            <xsl:apply-templates select="edm:Parameter[@Name='ProposeNewTime']" />
         </xsl:copy>
     </xsl:template>
 
