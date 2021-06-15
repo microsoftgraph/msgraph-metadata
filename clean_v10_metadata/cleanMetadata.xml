@@ -200,6 +200,28 @@
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
       </EnumType>
+      <EnumType Name="bodyType">
+        <Member Name="text" Value="0" />
+        <Member Name="html" Value="1" />
+      </EnumType>
+      <EnumType Name="educationAddedStudentAction">
+        <Member Name="none" Value="0" />
+        <Member Name="assignIfOpen" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="educationAssignmentStatus">
+        <Member Name="draft" Value="0" />
+        <Member Name="published" Value="1" />
+        <Member Name="assigned" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="educationSubmissionStatus">
+        <Member Name="working" Value="0" />
+        <Member Name="submitted" Value="1" />
+        <Member Name="released" Value="2" />
+        <Member Name="returned" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="educationExternalSource">
         <Member Name="sis" Value="0" />
         <Member Name="manual" Value="1" />
@@ -281,10 +303,6 @@
         <Member Name="disabled" Value="0" />
         <Member Name="alwaysEnabled" Value="1" />
         <Member Name="scheduled" Value="2" />
-      </EnumType>
-      <EnumType Name="bodyType">
-        <Member Name="text" Value="0" />
-        <Member Name="html" Value="1" />
       </EnumType>
       <EnumType Name="calendarColor">
         <Member Name="auto" Value="-1" />
@@ -4156,46 +4174,153 @@
         <Property Name="skuId" Type="Edm.Guid" />
         <Property Name="skuPartNumber" Type="Edm.String" />
       </EntityType>
-      <ComplexType Name="educationCourse">
-        <Property Name="courseNumber" Type="Edm.String" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="externalId" Type="Edm.String" />
-        <Property Name="subject" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="educationOnPremisesInfo">
-        <Property Name="immutableId" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="educationStudent">
-        <Property Name="birthDate" Type="Edm.Date" />
-        <Property Name="externalId" Type="Edm.String" />
-        <Property Name="gender" Type="graph.educationGender" />
-        <Property Name="grade" Type="Edm.String" />
-        <Property Name="graduationYear" Type="Edm.String" />
-        <Property Name="studentNumber" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="educationTeacher">
-        <Property Name="externalId" Type="Edm.String" />
-        <Property Name="teacherNumber" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="educationTerm">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="endDate" Type="Edm.Date" />
-        <Property Name="externalId" Type="Edm.String" />
-        <Property Name="startDate" Type="Edm.Date" />
+      <ComplexType Name="educationAssignmentRecipient" Abstract="true" />
+      <ComplexType Name="educationAssignmentClassRecipient" BaseType="graph.educationAssignmentRecipient" />
+      <ComplexType Name="educationAssignmentGrade" Abstract="true">
+        <Property Name="gradedBy" Type="graph.identitySet" />
+        <Property Name="gradedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="identitySet" OpenType="true">
         <Property Name="application" Type="graph.identity" />
         <Property Name="device" Type="graph.identity" />
         <Property Name="user" Type="graph.identity" />
       </ComplexType>
-      <ComplexType Name="physicalAddress">
-        <Property Name="city" Type="Edm.String" />
-        <Property Name="countryOrRegion" Type="Edm.String" />
-        <Property Name="postalCode" Type="Edm.String" />
-        <Property Name="state" Type="Edm.String" />
-        <Property Name="street" Type="Edm.String" />
+      <ComplexType Name="educationAssignmentGradeType" Abstract="true" />
+      <ComplexType Name="educationAssignmentGroupRecipient" BaseType="graph.educationAssignmentRecipient" />
+      <ComplexType Name="educationAssignmentIndividualRecipient" BaseType="graph.educationAssignmentRecipient">
+        <Property Name="recipients" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="educationAssignmentPointsGrade" BaseType="graph.educationAssignmentGrade">
+        <Property Name="points" Type="Edm.Single" />
+      </ComplexType>
+      <ComplexType Name="educationAssignmentPointsGradeType" BaseType="graph.educationAssignmentGradeType">
+        <Property Name="maxPoints" Type="Edm.Single" />
+      </ComplexType>
+      <ComplexType Name="educationResource" Abstract="true">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="educationExcelResource" BaseType="graph.educationResource">
+        <Property Name="fileUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationFeedback">
+        <Property Name="feedbackBy" Type="graph.identitySet" />
+        <Property Name="feedbackDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="text" Type="graph.educationItemBody" />
+      </ComplexType>
+      <ComplexType Name="educationItemBody">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="graph.bodyType" />
+      </ComplexType>
+      <ComplexType Name="educationFileResource" BaseType="graph.educationResource">
+        <Property Name="fileUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationLinkResource" BaseType="graph.educationResource">
+        <Property Name="link" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationPowerPointResource" BaseType="graph.educationResource">
+        <Property Name="fileUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationSubmissionRecipient" Abstract="true" />
+      <ComplexType Name="educationSubmissionIndividualRecipient" BaseType="graph.educationSubmissionRecipient">
+        <Property Name="userId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationWordResource" BaseType="graph.educationResource">
+        <Property Name="fileUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="rubricCriterion">
+        <Property Name="description" Type="graph.educationItemBody" />
+      </ComplexType>
+      <ComplexType Name="rubricLevel">
+        <Property Name="description" Type="graph.educationItemBody" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="grading" Type="graph.educationAssignmentGradeType" />
+        <Property Name="levelId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="rubricQuality">
+        <Property Name="criteria" Type="Collection(graph.rubricCriterion)" />
+        <Property Name="description" Type="graph.educationItemBody" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="qualityId" Type="Edm.String" />
+        <Property Name="weight" Type="Edm.Single" />
+      </ComplexType>
+      <ComplexType Name="rubricQualityFeedbackModel">
+        <Property Name="feedback" Type="graph.educationItemBody" />
+        <Property Name="qualityId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="rubricQualitySelectedColumnModel">
+        <Property Name="columnId" Type="Edm.String" />
+        <Property Name="qualityId" Type="Edm.String" />
+      </ComplexType>
+      <EntityType Name="educationAssignment" BaseType="graph.entity">
+        <Property Name="addedStudentAction" Type="graph.educationAddedStudentAction" />
+        <Property Name="allowLateSubmissions" Type="Edm.Boolean" />
+        <Property Name="allowStudentsToAddResourcesToSubmission" Type="Edm.Boolean" />
+        <Property Name="assignDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="assignedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="assignTo" Type="graph.educationAssignmentRecipient" />
+        <Property Name="classId" Type="Edm.String" />
+        <Property Name="closeDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="dueDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="grading" Type="graph.educationAssignmentGradeType" />
+        <Property Name="instructions" Type="graph.educationItemBody" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="notificationChannelUrl" Type="Edm.String" />
+        <Property Name="resourcesFolderUrl" Type="Edm.String" />
+        <Property Name="status" Type="graph.educationAssignmentStatus" />
+        <Property Name="webUrl" Type="Edm.String" />
+        <NavigationProperty Name="categories" Type="Collection(graph.educationCategory)" ContainsTarget="true" />
+        <NavigationProperty Name="resources" Type="Collection(graph.educationAssignmentResource)" ContainsTarget="true" />
+        <NavigationProperty Name="rubric" Type="graph.educationRubric" ContainsTarget="true" />
+        <NavigationProperty Name="submissions" Type="Collection(graph.educationSubmission)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="educationCategory" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="educationAssignmentResource" BaseType="graph.entity">
+        <Property Name="distributeForStudentWork" Type="Edm.Boolean" />
+        <Property Name="resource" Type="graph.educationResource" />
+      </EntityType>
+      <EntityType Name="educationRubric" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="graph.educationItemBody" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="grading" Type="graph.educationAssignmentGradeType" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="levels" Type="Collection(graph.rubricLevel)" />
+        <Property Name="qualities" Type="Collection(graph.rubricQuality)" />
+      </EntityType>
+      <EntityType Name="educationSubmission" BaseType="graph.entity">
+        <Property Name="recipient" Type="graph.educationSubmissionRecipient" />
+        <Property Name="resourcesFolderUrl" Type="Edm.String" />
+        <Property Name="returnedBy" Type="graph.identitySet" />
+        <Property Name="returnedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.educationSubmissionStatus" />
+        <Property Name="submittedBy" Type="graph.identitySet" />
+        <Property Name="submittedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="unsubmittedBy" Type="graph.identitySet" />
+        <Property Name="unsubmittedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="outcomes" Type="Collection(graph.educationOutcome)" ContainsTarget="true" />
+        <NavigationProperty Name="resources" Type="Collection(graph.educationSubmissionResource)" ContainsTarget="true" />
+        <NavigationProperty Name="submittedResources" Type="Collection(graph.educationSubmissionResource)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="educationAssignmentDefaults" BaseType="graph.entity">
+        <Property Name="addedStudentAction" Type="graph.educationAddedStudentAction" />
+        <Property Name="dueTime" Type="Edm.TimeOfDay" />
+        <Property Name="notificationChannelUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="educationAssignmentSettings" BaseType="graph.entity">
+        <Property Name="submissionAnimationDisabled" Type="Edm.Boolean" />
+      </EntityType>
       <EntityType Name="educationClass" BaseType="graph.entity">
         <Property Name="classCode" Type="Edm.String" />
         <Property Name="course" Type="graph.educationCourse" />
@@ -4209,11 +4334,28 @@
         <Property Name="grade" Type="Edm.String" />
         <Property Name="mailNickname" Type="Edm.String" Nullable="false" />
         <Property Name="term" Type="graph.educationTerm" />
+        <NavigationProperty Name="assignmentCategories" Type="Collection(graph.educationCategory)" ContainsTarget="true" />
+        <NavigationProperty Name="assignmentDefaults" Type="graph.educationAssignmentDefaults" ContainsTarget="true" />
+        <NavigationProperty Name="assignments" Type="Collection(graph.educationAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="assignmentSettings" Type="graph.educationAssignmentSettings" ContainsTarget="true" />
         <NavigationProperty Name="group" Type="graph.group" />
         <NavigationProperty Name="members" Type="Collection(graph.educationUser)" />
         <NavigationProperty Name="schools" Type="Collection(graph.educationSchool)" />
         <NavigationProperty Name="teachers" Type="Collection(graph.educationUser)" />
       </EntityType>
+      <ComplexType Name="educationCourse">
+        <Property Name="courseNumber" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="subject" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationTerm">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="endDate" Type="Edm.Date" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="startDate" Type="Edm.Date" />
+      </ComplexType>
       <EntityType Name="educationUser" BaseType="graph.entity">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
@@ -4246,6 +4388,7 @@
         <Property Name="usageLocation" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userType" Type="Edm.String" />
+        <NavigationProperty Name="rubrics" Type="Collection(graph.educationRubric)" ContainsTarget="true" />
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" />
         <NavigationProperty Name="schools" Type="Collection(graph.educationSchool)" />
         <NavigationProperty Name="taughtClasses" Type="Collection(graph.educationClass)" />
@@ -4273,12 +4416,56 @@
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" />
         <NavigationProperty Name="users" Type="Collection(graph.educationUser)" />
       </EntityType>
+      <EntityType Name="educationOutcome" BaseType="graph.entity" Abstract="true">
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="educationFeedbackOutcome" BaseType="graph.educationOutcome">
+        <Property Name="feedback" Type="graph.educationFeedback" />
+        <Property Name="publishedFeedback" Type="graph.educationFeedback" />
+      </EntityType>
+      <EntityType Name="educationPointsOutcome" BaseType="graph.educationOutcome">
+        <Property Name="points" Type="graph.educationAssignmentPointsGrade" />
+        <Property Name="publishedPoints" Type="graph.educationAssignmentPointsGrade" />
+      </EntityType>
       <EntityType Name="educationRoot">
         <NavigationProperty Name="classes" Type="Collection(graph.educationClass)" ContainsTarget="true" />
         <NavigationProperty Name="me" Type="graph.educationUser" ContainsTarget="true" />
         <NavigationProperty Name="schools" Type="Collection(graph.educationSchool)" ContainsTarget="true" />
         <NavigationProperty Name="users" Type="Collection(graph.educationUser)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="educationRubricOutcome" BaseType="graph.educationOutcome">
+        <Property Name="publishedRubricQualityFeedback" Type="Collection(graph.rubricQualityFeedbackModel)" />
+        <Property Name="publishedRubricQualitySelectedLevels" Type="Collection(graph.rubricQualitySelectedColumnModel)" />
+        <Property Name="rubricQualityFeedback" Type="Collection(graph.rubricQualityFeedbackModel)" />
+        <Property Name="rubricQualitySelectedLevels" Type="Collection(graph.rubricQualitySelectedColumnModel)" />
+      </EntityType>
+      <EntityType Name="educationSubmissionResource" BaseType="graph.entity">
+        <Property Name="assignmentResourceUrl" Type="Edm.String" />
+        <Property Name="resource" Type="graph.educationResource" />
+      </EntityType>
+      <ComplexType Name="physicalAddress">
+        <Property Name="city" Type="Edm.String" />
+        <Property Name="countryOrRegion" Type="Edm.String" />
+        <Property Name="postalCode" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+        <Property Name="street" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationOnPremisesInfo">
+        <Property Name="immutableId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationStudent">
+        <Property Name="birthDate" Type="Edm.Date" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="gender" Type="graph.educationGender" />
+        <Property Name="grade" Type="Edm.String" />
+        <Property Name="graduationYear" Type="Edm.String" />
+        <Property Name="studentNumber" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="educationTeacher">
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="teacherNumber" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="unifiedRolePermission">
         <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="condition" Type="Edm.String" />
@@ -9844,6 +10031,30 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.todoTaskList)" />
         <ReturnType Type="Collection(graph.todoTaskList)" />
       </Function>
+      <Action Name="publish" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationAssignment" />
+        <ReturnType Type="graph.educationAssignment" />
+      </Action>
+      <Function Name="setUpResourcesFolder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationAssignment" />
+        <ReturnType Type="graph.educationAssignment" />
+      </Function>
+      <Function Name="setUpResourcesFolder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
+        <ReturnType Type="graph.educationSubmission" />
+      </Function>
+      <Action Name="return" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
+        <ReturnType Type="graph.educationSubmission" />
+      </Action>
+      <Action Name="submit" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
+        <ReturnType Type="graph.educationSubmission" />
+      </Action>
+      <Action Name="unsubmit" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
+        <ReturnType Type="graph.educationSubmission" />
+      </Action>
       <Action Name="abs" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="number" Type="graph.Json" />
@@ -12618,6 +12829,7 @@
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
+        <Parameter Name="ProposedNewTime" Type="graph.timeSlot" />
       </Action>
       <Action Name="decline" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.scheduleChangeRequest" />
@@ -12650,6 +12862,7 @@
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
+        <Parameter Name="ProposedNewTime" Type="graph.timeSlot" />
       </Action>
       <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
@@ -14394,31 +14607,461 @@
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
       </EntityContainer>
-      <Annotations Target="microsoft.graph.directoryAudit" />
-      <Annotations Target="microsoft.graph.provisioningObjectSummary" />
-      <Annotations Target="microsoft.graph.signIn" />
+      <Annotations Target="microsoft.graph.directoryAudit">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.provisioningObjectSummary">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.signIn">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.directoryObject">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an Azure Active Directory object. The directoryObject type is the base type for many other directory entity types." />
       </Annotations>
       <Annotations Target="microsoft.graph.user">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an Azure Active Directory user object." />
       </Annotations>
-      <Annotations Target="microsoft.graph.oAuth2PermissionGrant" />
-      <Annotations Target="microsoft.graph.user/calendar" />
-      <Annotations Target="microsoft.graph.user/calendarGroups" />
-      <Annotations Target="microsoft.graph.user/calendars" />
-      <Annotations Target="microsoft.graph.user/calendarView" />
-      <Annotations Target="microsoft.graph.user/contactFolders" />
-      <Annotations Target="microsoft.graph.user/contacts" />
-      <Annotations Target="microsoft.graph.user/events" />
-      <Annotations Target="microsoft.graph.user/inferenceClassification" />
-      <Annotations Target="microsoft.graph.user/mailFolders" />
-      <Annotations Target="microsoft.graph.user/messages" />
-      <Annotations Target="microsoft.graph.user/outlook" />
-      <Annotations Target="microsoft.graph.user/people" />
-      <Annotations Target="microsoft.graph.user/photo" />
-      <Annotations Target="microsoft.graph.user/photos" />
-      <Annotations Target="microsoft.graph.agreementAcceptance" />
+      <Annotations Target="microsoft.graph.oAuth2PermissionGrant">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/calendar">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/calendarGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/calendars">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/calendarView">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/contactFolders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/events">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/inferenceClassification">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/mailFolders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/messages">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/outlook">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/people">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/photo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/photos">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agreementAcceptance">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
       <Annotations Target="microsoft.graph.user/deviceEnrollmentLimit">
         <Annotation Term="Org.OData.Core.V1.Description" String="The limit on the maximum number of devices that the user is permitted to enroll. Allowed values are 5 or 1000." />
       </Annotations>
@@ -14442,33 +15085,412 @@
       <Annotations Target="microsoft.graph.user/deviceManagementTroubleshootingEvents">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of troubleshooting events for this user." />
       </Annotations>
-      <Annotations Target="microsoft.graph.userActivity" />
-      <Annotations Target="microsoft.graph.application" />
-      <Annotations Target="microsoft.graph.servicePrincipal" />
-      <Annotations Target="microsoft.graph.conditionalAccessPolicy" />
-      <Annotations Target="microsoft.graph.administrativeUnit" />
-      <Annotations Target="microsoft.graph.directory/administrativeUnits" />
-      <Annotations Target="microsoft.graph.directoryRole" />
-      <Annotations Target="microsoft.graph.directoryRoleTemplate" />
-      <Annotations Target="microsoft.graph.group" />
-      <Annotations Target="microsoft.graph.resourceSpecificPermissionGrant" />
-      <Annotations Target="microsoft.graph.group/acceptedSenders" />
-      <Annotations Target="microsoft.graph.group/calendar" />
-      <Annotations Target="microsoft.graph.group/calendarView" />
-      <Annotations Target="microsoft.graph.group/conversations" />
-      <Annotations Target="microsoft.graph.group/events" />
-      <Annotations Target="microsoft.graph.group/photo" />
-      <Annotations Target="microsoft.graph.group/photos" />
-      <Annotations Target="microsoft.graph.group/rejectedSenders" />
-      <Annotations Target="microsoft.graph.group/threads" />
+      <Annotations Target="microsoft.graph.userActivity">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.application">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.servicePrincipal">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/administrativeUnits">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directoryRole">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.directoryRoleTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.group">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.resourceSpecificPermissionGrant">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/acceptedSenders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/calendar">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/calendarView">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/conversations">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/events">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/photo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/photos">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/rejectedSenders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/threads">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.organization">
         <Annotation Term="Org.OData.Core.V1.Description" String="The organization resource represents an instance of global settings and resources which operate and are provisioned at the tenant-level." />
       </Annotations>
       <Annotations Target="microsoft.graph.organization/mobileDeviceManagementAuthority">
         <Annotation Term="Org.OData.Core.V1.Description" String="Mobile device management authority." />
       </Annotations>
-      <Annotations Target="microsoft.graph.orgContact" />
-      <Annotations Target="microsoft.graph.subscribedSku" />
+      <Annotations Target="microsoft.graph.orgContact">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.subscribedSku">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationResource/createdBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationResource/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationResource/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationResource/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/assignDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/assignedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/createdBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/resourcesFolderUrl">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/status">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationAssignment/webUrl">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.educationClass/course">
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.courseNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseNumber" />
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.description" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseDescription" />
@@ -14488,21 +15510,62 @@
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TermId" />
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.startDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermStartDate" />
       </Annotations>
-      <Annotations Target="microsoft.graph.educationRoot/classes" />
-      <Annotations Target="microsoft.graph.educationRoot/schools" />
-      <Annotations Target="microsoft.graph.educationRoot/users" />
-      <Annotations Target="microsoft.graph.educationSchool/address">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.city" String="extension_fe2174665583431c953114ff7268b7b3_Education_City" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_Country" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_Zip" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.state" String="extension_fe2174665583431c953114ff7268b7b3_Education_State" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.street" String="extension_fe2174665583431c953114ff7268b7b3_Education_Address" />
+      <Annotations Target="microsoft.graph.educationRoot/classes">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.educationSchool/createdBy">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
+      <Annotations Target="microsoft.graph.educationRoot/schools">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationRoot/users">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationRubric/createdBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationRubric/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationRubric/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationRubric/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/resourcesFolderUrl">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/returnedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/returnedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/status">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/submittedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/submittedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/unsubmittedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/unsubmittedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/createdBy">
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
@@ -14539,45 +15602,756 @@
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="teacher.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TeacherId" />
         <Annotation Term="graph.TransparentContainerProperty" Qualifier="teacher.teacherNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_TeacherNumber" />
       </Annotations>
+      <Annotations Target="microsoft.graph.educationSchool/address">
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.city" String="extension_fe2174665583431c953114ff7268b7b3_Education_City" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_Country" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_Zip" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.state" String="extension_fe2174665583431c953114ff7268b7b3_Education_State" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.street" String="extension_fe2174665583431c953114ff7268b7b3_Education_Address" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSchool/createdBy">
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
+      </Annotations>
       <Annotations Target="microsoft.graph.appScope/displayName">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.appScope/type">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
-      <Annotations Target="microsoft.graph.subscription" />
-      <Annotations Target="microsoft.graph.workbook/operations" />
-      <Annotations Target="microsoft.graph.calendar/calendarPermissions" />
-      <Annotations Target="microsoft.graph.calendar/calendarView" />
-      <Annotations Target="microsoft.graph.calendar/events" />
-      <Annotations Target="microsoft.graph.calendarGroup/calendars" />
-      <Annotations Target="microsoft.graph.contact/extensions" />
-      <Annotations Target="microsoft.graph.contact/photo" />
-      <Annotations Target="microsoft.graph.contactFolder/childFolders" />
-      <Annotations Target="microsoft.graph.contactFolder/contacts" />
-      <Annotations Target="microsoft.graph.conversation/threads" />
-      <Annotations Target="microsoft.graph.conversationThread/posts" />
-      <Annotations Target="microsoft.graph.event/attachments" />
-      <Annotations Target="microsoft.graph.event/calendar" />
-      <Annotations Target="microsoft.graph.event/extensions" />
-      <Annotations Target="microsoft.graph.event/instances" />
-      <Annotations Target="microsoft.graph.eventMessage/event" />
-      <Annotations Target="microsoft.graph.inferenceClassification/overrides" />
-      <Annotations Target="microsoft.graph.itemAttachment/item" />
-      <Annotations Target="microsoft.graph.mailFolder/childFolders" />
-      <Annotations Target="microsoft.graph.mailFolder/messageRules" />
-      <Annotations Target="microsoft.graph.mailFolder/messages" />
-      <Annotations Target="microsoft.graph.message/attachments" />
-      <Annotations Target="microsoft.graph.message/extensions" />
-      <Annotations Target="microsoft.graph.outlookUser/masterCategories" />
-      <Annotations Target="microsoft.graph.post/attachments" />
-      <Annotations Target="microsoft.graph.post/extensions" />
-      <Annotations Target="microsoft.graph.post/inReplyTo" />
-      <Annotations Target="microsoft.graph.agreement" />
-      <Annotations Target="microsoft.graph.agreementFile" />
-      <Annotations Target="microsoft.graph.agreementFileLocalization" />
-      <Annotations Target="microsoft.graph.agreementFileVersion" />
-      <Annotations Target="microsoft.graph.namedLocation" />
+      <Annotations Target="microsoft.graph.subscription">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.workbook/operations">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.calendar/calendarPermissions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.calendar/calendarView">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.calendar/events">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.calendarGroup/calendars">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.contact/extensions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.contact/photo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.contactFolder/childFolders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.contactFolder/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.conversation/threads">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.conversationThread/posts">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.event/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.event/calendar">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.event/extensions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.event/instances">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.eventMessage/event">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.inferenceClassification/overrides">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.itemAttachment/item">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mailFolder/childFolders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mailFolder/messageRules">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mailFolder/messages">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.message/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.message/extensions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.outlookUser/masterCategories">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.post/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.post/extensions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.post/inReplyTo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agreement">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agreementFile">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agreementFileLocalization">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agreementFileVersion">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.namedLocation">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceAndAppManagementAssignmentTarget">
         <Annotation Term="Org.OData.Core.V1.Description" String="Base type for assignment targets." />
       </Annotations>
@@ -21014,12 +22788,132 @@
       <Annotations Target="microsoft.graph.usedInsight/resourceVisualization">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
-      <Annotations Target="microsoft.graph.activityHistoryItem" />
-      <Annotations Target="microsoft.graph.alert" />
-      <Annotations Target="microsoft.graph.secureScore" />
-      <Annotations Target="microsoft.graph.secureScoreControlProfile" />
-      <Annotations Target="microsoft.graph.security" />
-      <Annotations Target="microsoft.graph.channel/messages" />
+      <Annotations Target="microsoft.graph.activityHistoryItem">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.alert">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.secureScore">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.secureScoreControlProfile">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.channel/messages">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.changeTrackedEntity/createdDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
@@ -21038,11 +22932,41 @@
       <Annotations Target="microsoft.graph.schedule/provisionStatusCode">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
-      <Annotations Target="microsoft.graph.schedule/schedulingGroups" />
-      <Annotations Target="microsoft.graph.schedule/shifts" />
-      <Annotations Target="microsoft.graph.schedule/timeOffReasons" />
-      <Annotations Target="microsoft.graph.schedule/timeOffRequests" />
-      <Annotations Target="microsoft.graph.schedule/timesOff" />
+      <Annotations Target="microsoft.graph.schedule/schedulingGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/shifts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/timeOffReasons">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/timeOffRequests">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.schedule/timesOff">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.scheduleChangeRequest/managerActionDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
@@ -21058,8 +22982,20 @@
       <Annotations Target="microsoft.graph.schedulingGroup/isActive">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
-      <Annotations Target="microsoft.graph.todo/lists" />
-      <Annotations Target="microsoft.graph.todoTaskList/tasks" />
+      <Annotations Target="microsoft.graph.todo/lists">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.todoTaskList/tasks">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.removeAllDevicesFromManagement(microsoft.graph.user)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Retire all devices from management for this user" />
       </Annotations>
