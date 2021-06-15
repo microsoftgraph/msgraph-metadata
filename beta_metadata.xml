@@ -5619,6 +5619,12 @@
         <Member Name="questionAndAnswer" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
       </EnumType>
+      <EnumType Name="meetingChatMode">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+        <Member Name="limited" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="modality">
         <Member Name="unknown" Value="0" />
         <Member Name="audio" Value="1" />
@@ -7383,7 +7389,11 @@
       </EntityType>
       <EntityType Name="onlineMeeting" BaseType="graph.entity" OpenType="true">
         <Property Name="accessLevel" Type="graph.accessLevel" />
+        <Property Name="allowAttendeeToEnableCamera" Type="Edm.Boolean" />
+        <Property Name="allowAttendeeToEnableMic" Type="Edm.Boolean" />
         <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
+        <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
+        <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
         <Property Name="alternativeRecording" Type="Edm.Stream" />
         <Property Name="attendeeReport" Type="Edm.Stream" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
@@ -13338,7 +13348,7 @@
       <ComplexType Name="accessReviewInactiveUsersQueryScope" BaseType="graph.accessReviewQueryScope">
         <Property Name="inactiveDuration" Type="Edm.Duration" />
       </ComplexType>
-      <ComplexType Name="accessReviewInstanceDecisionItemResource">
+      <ComplexType Name="accessReviewInstanceDecisionItemResource" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
@@ -13373,6 +13383,7 @@
         <Property Name="instanceDurationInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="justificationRequiredOnApproval" Type="Edm.Boolean" Nullable="false" />
         <Property Name="mailNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="recommendationLookBackDuration" Type="Edm.Duration" />
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="reminderNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -20794,6 +20805,7 @@
         <Property Name="contentSource" Type="Edm.String" />
         <Property Name="hitId" Type="Edm.String" />
         <Property Name="rank" Type="Edm.Int32" />
+        <Property Name="resultTemplateId" Type="Edm.String" />
         <Property Name="summary" Type="Edm.String" />
         <Property Name="_id" Type="Edm.String" />
         <Property Name="_score" Type="Edm.Int32" />
@@ -24479,8 +24491,8 @@
         <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
       <ComplexType Name="conversationMemberRoleUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
-        <Property Name="conversationMemberId" Type="Edm.String" />
         <Property Name="conversationMemberRoles" Type="Collection(Edm.String)" />
+        <Property Name="conversationMemberUser" Type="graph.identity" />
         <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
       <ComplexType Name="meetingPolicyUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
@@ -26184,6 +26196,38 @@
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
       </Action>
+      <Function Name="roleScheduleInstances" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
+        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.unifiedRoleScheduleInstanceBase)" />
+      </Function>
+      <Function Name="roleSchedules" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
+        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.unifiedRoleScheduleBase)" />
+      </Function>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
@@ -31072,38 +31116,6 @@
       <Function Name="export" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.governanceRoleAssignment)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
-      </Function>
-      <Function Name="roleScheduleInstances" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
-        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <ReturnType Type="Collection(graph.unifiedRoleScheduleInstanceBase)" />
-      </Function>
-      <Function Name="roleSchedules" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.rbacApplication" />
-        <Parameter Name="directoryScopeId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="appScopeId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="principalId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <Parameter Name="roleDefinitionId" Type="Edm.String" Unicode="false">
-          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
-        </Parameter>
-        <ReturnType Type="Collection(graph.unifiedRoleScheduleBase)" />
       </Function>
       <Action Name="completeSetup" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.privilegedSignupStatus)" />
@@ -59051,6 +59063,459 @@
         <ReturnType Type="Collection(microsoft.graph.callRecords.pstnCallLogRow)" />
       </Function>
     </Schema>
+    <Schema Namespace="microsoft.graph.managedTenants" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="delegatedPrivilegeStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="delegatedAdminPrivileges" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="managementActionStatus">
+        <Member Name="toAddress" Value="0" />
+        <Member Name="completed" Value="5" />
+        <Member Name="error" Value="10" />
+        <Member Name="timeOut" Value="15" />
+        <Member Name="inProgress" Value="20" />
+        <Member Name="planned" Value="25" />
+        <Member Name="resolvedBy3rdParty" Value="30" />
+        <Member Name="resolvedThroughAlternateMitigation" Value="35" />
+        <Member Name="riskAccepted" Value="40" />
+        <Member Name="unknownFutureValue" Value="45" />
+      </EnumType>
+      <EnumType Name="managementCategory">
+        <Member Name="custom" Value="0" />
+        <Member Name="devices" Value="1" />
+        <Member Name="identity" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="managementParameterValueType">
+        <Member Name="string" Value="0" />
+        <Member Name="integer" Value="1" />
+        <Member Name="boolean" Value="2" />
+        <Member Name="guid" Value="3" />
+        <Member Name="stringCollection" Value="4" />
+        <Member Name="integerCollection" Value="5" />
+        <Member Name="booleanCollection" Value="6" />
+        <Member Name="guidCollection" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
+      <EnumType Name="tenantOnboardingStatus">
+        <Member Name="ineligible" Value="0" />
+        <Member Name="inProcess" Value="1" />
+        <Member Name="active" Value="2" />
+        <Member Name="inactive" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="workloadActionCategory">
+        <Member Name="automated" Value="0" />
+        <Member Name="manual" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="workloadActionStatus">
+        <Member Name="toAddress" Value="0" />
+        <Member Name="completed" Value="5" />
+        <Member Name="error" Value="10" />
+        <Member Name="timeOut" Value="15" />
+        <Member Name="inProgress" Value="20" />
+        <Member Name="unknownFutureValue" Value="25" />
+      </EnumType>
+      <EnumType Name="workloadOnboardingStatus">
+        <Member Name="notOnboarded" Value="0" />
+        <Member Name="onboarded" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EntityType Name="managedTenant" BaseType="graph.entity" OpenType="true">
+        <NavigationProperty Name="aggregatedPolicyCompliances" Type="Collection(microsoft.graph.managedTenants.aggregatedPolicyCompliance)" ContainsTarget="true" />
+        <NavigationProperty Name="cloudPcConnections" Type="Collection(microsoft.graph.managedTenants.cloudPcConnection)" ContainsTarget="true" />
+        <NavigationProperty Name="cloudPcDevices" Type="Collection(microsoft.graph.managedTenants.cloudPcDevice)" ContainsTarget="true" />
+        <NavigationProperty Name="cloudPcsOverview" Type="Collection(microsoft.graph.managedTenants.cloudPcOverview)" ContainsTarget="true" />
+        <NavigationProperty Name="conditionalAccessPolicyCoverages" Type="Collection(microsoft.graph.managedTenants.conditionalAccessPolicyCoverage)" ContainsTarget="true" />
+        <NavigationProperty Name="credentialUserRegistrationsSummaries" Type="Collection(microsoft.graph.managedTenants.credentialUserRegistrationsSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="deviceCompliancePolicySettingStateSummaries" Type="Collection(microsoft.graph.managedTenants.deviceCompliancePolicySettingStateSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="managedDeviceCompliances" Type="Collection(microsoft.graph.managedTenants.managedDeviceCompliance)" ContainsTarget="true" />
+        <NavigationProperty Name="managedDeviceComplianceTrends" Type="Collection(microsoft.graph.managedTenants.managedDeviceComplianceTrend)" ContainsTarget="true" />
+        <NavigationProperty Name="managementActions" Type="Collection(microsoft.graph.managedTenants.managementAction)" ContainsTarget="true" />
+        <NavigationProperty Name="managementActionTenantDeploymentStatuses" Type="Collection(microsoft.graph.managedTenants.managementActionTenantDeploymentStatus)" ContainsTarget="true" />
+        <NavigationProperty Name="managementIntents" Type="Collection(microsoft.graph.managedTenants.managementIntent)" ContainsTarget="true" />
+        <NavigationProperty Name="managementTemplates" Type="Collection(microsoft.graph.managedTenants.managementTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="riskyUsers" Type="Collection(microsoft.graph.managedTenants.riskyUser)" ContainsTarget="true" />
+        <NavigationProperty Name="tenantGroups" Type="Collection(microsoft.graph.managedTenants.tenantGroup)" ContainsTarget="true" />
+        <NavigationProperty Name="tenants" Type="Collection(microsoft.graph.managedTenants.tenant)" ContainsTarget="true" />
+        <NavigationProperty Name="tenantsCustomizedInformation" Type="Collection(microsoft.graph.managedTenants.tenantCustomizedInformation)" ContainsTarget="true" />
+        <NavigationProperty Name="tenantsDetailedInformation" Type="Collection(microsoft.graph.managedTenants.tenantDetailedInformation)" ContainsTarget="true" />
+        <NavigationProperty Name="tenantTags" Type="Collection(microsoft.graph.managedTenants.tenantTag)" ContainsTarget="true" />
+        <NavigationProperty Name="windowsDeviceMalwareStates" Type="Collection(microsoft.graph.managedTenants.windowsDeviceMalwareState)" ContainsTarget="true" />
+        <NavigationProperty Name="windowsProtectionStates" Type="Collection(microsoft.graph.managedTenants.windowsProtectionState)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="aggregatedPolicyCompliance" BaseType="graph.entity" OpenType="true">
+        <Property Name="compliancePolicyId" Type="Edm.String" />
+        <Property Name="compliancePolicyName" Type="Edm.String" />
+        <Property Name="compliancePolicyPlatform" Type="Edm.String" />
+        <Property Name="compliancePolicyType" Type="Edm.String" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="numberOfCompliantDevices" Type="Edm.Int64" />
+        <Property Name="numberOfErrorDevices" Type="Edm.Int64" />
+        <Property Name="numberOfNonCompliantDevices" Type="Edm.Int64" />
+        <Property Name="policyModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="cloudPcConnection" BaseType="graph.entity" OpenType="true">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="healthCheckStatus" Type="Edm.String" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="cloudPcDevice" BaseType="graph.entity" OpenType="true">
+        <Property Name="cloudPcStatus" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="managedDeviceId" Type="Edm.String" />
+        <Property Name="managedDeviceName" Type="Edm.String" />
+        <Property Name="provisioningPolicyId" Type="Edm.String" />
+        <Property Name="servicePlanName" Type="Edm.String" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="cloudPcOverview" OpenType="true">
+        <Key>
+          <PropertyRef Name="tenantId" />
+        </Key>
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="numberOfCloudPcConnectionStatusFailed" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcConnectionStatusPassed" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcConnectionStatusPending" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcConnectionStatusRunning" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcConnectionStatusUnkownFutureValue" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusDeprovisioning" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusFailed" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusInGracePeriod" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusNotProvisioned" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusProvisioned" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusProvisioning" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusUnknown" Type="Edm.Int32" />
+        <Property Name="numberOfCloudPcStatusUpgrading" Type="Edm.Int32" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="totalCloudPcConnectionStatus" Type="Edm.Int32" />
+        <Property Name="totalCloudPcStatus" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="conditionalAccessPolicyCoverage" BaseType="graph.entity" OpenType="true">
+        <Property Name="conditionalAccessPolicyState" Type="Edm.String" />
+        <Property Name="latestPolicyModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="requiresDeviceCompliance" Type="Edm.Boolean" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="credentialUserRegistrationsSummary" BaseType="graph.entity" OpenType="true">
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="mfaAndSsprCapableUserCount" Type="Edm.Int32" />
+        <Property Name="mfaConditionalAccessPolicyState" Type="Edm.String" />
+        <Property Name="mfaRegisteredUserCount" Type="Edm.Int32" />
+        <Property Name="securityDefaultsEnabled" Type="Edm.Boolean" />
+        <Property Name="ssprEnabledUserCount" Type="Edm.Int32" />
+        <Property Name="ssprRegisteredUserCount" Type="Edm.Int32" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="totalUserCount" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="deviceCompliancePolicySettingStateSummary" BaseType="graph.entity">
+        <Property Name="conflictDeviceCount" Type="Edm.Int32" />
+        <Property Name="errorDeviceCount" Type="Edm.Int32" />
+        <Property Name="failedDeviceCount" Type="Edm.Int32" />
+        <Property Name="intuneAccountId" Type="Edm.String" />
+        <Property Name="intuneSettingId" Type="Edm.String" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="notApplicableDeviceCount" Type="Edm.Int32" />
+        <Property Name="pendingDeviceCount" Type="Edm.Int32" />
+        <Property Name="policyType" Type="Edm.String" />
+        <Property Name="settingName" Type="Edm.String" />
+        <Property Name="succeededDeviceCount" Type="Edm.Int32" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="managedDeviceCompliance" BaseType="graph.entity" OpenType="true">
+        <Property Name="complianceStatus" Type="Edm.String" />
+        <Property Name="deviceType" Type="Edm.String" />
+        <Property Name="inGracePeriodUntilDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastSyncDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="managedDeviceId" Type="Edm.String" />
+        <Property Name="managedDeviceName" Type="Edm.String" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="osDescription" Type="Edm.String" />
+        <Property Name="osVersion" Type="Edm.String" />
+        <Property Name="ownerType" Type="Edm.String" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="managedDeviceComplianceTrend" BaseType="graph.entity" OpenType="true">
+        <Property Name="compliantDeviceCount" Type="Edm.Int32" />
+        <Property Name="configManagerDeviceCount" Type="Edm.Int32" />
+        <Property Name="countDateTime" Type="Edm.String" />
+        <Property Name="errorDeviceCount" Type="Edm.Int32" />
+        <Property Name="inGracePeriodDeviceCount" Type="Edm.Int32" />
+        <Property Name="noncompliantDeviceCount" Type="Edm.Int32" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="unknownDeviceCount" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="managementAction" BaseType="graph.entity">
+        <Property Name="category" Type="microsoft.graph.managedTenants.managementCategory" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="referenceTemplateId" Type="Edm.String" />
+        <Property Name="workloadActions" Type="Collection(microsoft.graph.managedTenants.workloadAction)" />
+      </EntityType>
+      <EntityType Name="managementActionTenantDeploymentStatus" BaseType="graph.entity">
+        <Property Name="statuses" Type="Collection(microsoft.graph.managedTenants.managementActionDeploymentStatus)" />
+        <Property Name="tenantGroupId" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="managementIntent" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isGlobal" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="managementTemplates" Type="Collection(microsoft.graph.managedTenants.managementTemplateDetailedInfo)" />
+      </EntityType>
+      <EntityType Name="managementTemplate" BaseType="graph.entity">
+        <Property Name="category" Type="microsoft.graph.managedTenants.managementCategory" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="parameters" Type="Collection(microsoft.graph.managedTenants.templateParameter)" />
+        <Property Name="workloadActions" Type="Collection(microsoft.graph.managedTenants.workloadAction)" />
+      </EntityType>
+      <EntityType Name="riskyUser" BaseType="graph.entity" OpenType="true">
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskDetail" Type="Edm.String" />
+        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskLevel" Type="Edm.String" />
+        <Property Name="riskState" Type="Edm.String" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="tenantGroup" BaseType="graph.entity">
+        <Property Name="allTenantsIncluded" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="managementActions" Type="Collection(microsoft.graph.managedTenants.managementActionInfo)" />
+        <Property Name="managementIntents" Type="Collection(microsoft.graph.managedTenants.managementIntentInfo)" />
+        <Property Name="tenantIds" Type="Collection(Edm.String)" />
+      </EntityType>
+      <EntityType Name="tenant" BaseType="graph.entity">
+        <Property Name="contract" Type="microsoft.graph.managedTenants.tenantContract" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="tenantStatusInformation" Type="microsoft.graph.managedTenants.tenantStatusInformation" />
+      </EntityType>
+      <EntityType Name="tenantCustomizedInformation" BaseType="graph.entity">
+        <Property Name="contacts" Type="Collection(microsoft.graph.managedTenants.tenantContactInformation)" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="website" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="tenantDetailedInformation" BaseType="graph.entity">
+        <Property Name="city" Type="Edm.String" />
+        <Property Name="countryCode" Type="Edm.String" />
+        <Property Name="countryName" Type="Edm.String" />
+        <Property Name="defaultDomainName" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="industryName" Type="Edm.String" />
+        <Property Name="region" Type="Edm.String" />
+        <Property Name="segmentName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="verticalName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="tenantTag" BaseType="graph.entity" OpenType="true">
+        <Property Name="createdByUserId" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastActionByUserId" Type="Edm.String" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="tenants" Type="Collection(microsoft.graph.managedTenants.tenantInfo)" />
+      </EntityType>
+      <EntityType Name="windowsDeviceMalwareState" BaseType="graph.entity" OpenType="true">
+        <Property Name="additionalInformationUrl" Type="Edm.String" />
+        <Property Name="detectionCount" Type="Edm.Int32" />
+        <Property Name="deviceDeleted" Type="Edm.Boolean" />
+        <Property Name="initialDetectionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastStateChangeDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="malwareCategory" Type="Edm.String" />
+        <Property Name="malwareDisplayName" Type="Edm.String" />
+        <Property Name="malwareExecutionState" Type="Edm.String" />
+        <Property Name="malwareId" Type="Edm.String" />
+        <Property Name="malwareSeverity" Type="Edm.String" />
+        <Property Name="malwareThreatState" Type="Edm.String" />
+        <Property Name="managedDeviceId" Type="Edm.String" />
+        <Property Name="managedDeviceName" Type="Edm.String" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="windowsProtectionState" BaseType="graph.entity" OpenType="true">
+        <Property Name="antiMalwareVersion" Type="Edm.String" />
+        <Property Name="attentionRequired" Type="Edm.Boolean" />
+        <Property Name="deviceDeleted" Type="Edm.Boolean" />
+        <Property Name="devicePropertyRefreshDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="engineVersion" Type="Edm.String" />
+        <Property Name="fullScanOverdue" Type="Edm.Boolean" />
+        <Property Name="fullScanRequired" Type="Edm.Boolean" />
+        <Property Name="lastFullScanDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastFullScanSignatureVersion" Type="Edm.String" />
+        <Property Name="lastQuickScanDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastQuickScanSignatureVersion" Type="Edm.String" />
+        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastReportedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="malwareProtectionEnabled" Type="Edm.Boolean" />
+        <Property Name="managedDeviceHealthState" Type="Edm.String" />
+        <Property Name="managedDeviceId" Type="Edm.String" />
+        <Property Name="managedDeviceName" Type="Edm.String" />
+        <Property Name="networkInspectionSystemEnabled" Type="Edm.Boolean" />
+        <Property Name="quickScanOverdue" Type="Edm.Boolean" />
+        <Property Name="realTimeProtectionEnabled" Type="Edm.Boolean" />
+        <Property Name="rebootRequired" Type="Edm.Boolean" />
+        <Property Name="signatureUpdateOverdue" Type="Edm.Boolean" />
+        <Property Name="signatureVersion" Type="Edm.String" />
+        <Property Name="tenantDisplayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <ComplexType Name="managedTenantOperationError" Abstract="true">
+        <Property Name="error" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="managedTenantExecutionError" BaseType="microsoft.graph.managedTenants.managedTenantOperationError">
+        <Property Name="errorDetails" Type="Edm.String" />
+        <Property Name="nodeId" Type="Edm.Int32" Nullable="false" />
+        <Property Name="rawToken" Type="Edm.String" />
+        <Property Name="statementIndex" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="managedTenantGenericError" BaseType="microsoft.graph.managedTenants.managedTenantOperationError" />
+      <ComplexType Name="managementActionDeploymentStatus">
+        <Property Name="managementActionId" Type="Edm.String" />
+        <Property Name="managementTemplateId" Type="Edm.String" />
+        <Property Name="status" Type="microsoft.graph.managedTenants.managementActionStatus" />
+        <Property Name="workloadActionDeploymentStatuses" Type="Collection(microsoft.graph.managedTenants.workloadActionDeploymentStatus)" />
+      </ComplexType>
+      <ComplexType Name="workloadActionDeploymentStatus">
+        <Property Name="actionId" Type="Edm.String" />
+        <Property Name="deployedPolicyId" Type="Edm.String" />
+        <Property Name="error" Type="graph.genericError" />
+        <Property Name="lastDeploymentDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="status" Type="microsoft.graph.managedTenants.workloadActionStatus" />
+      </ComplexType>
+      <ComplexType Name="managementActionInfo">
+        <Property Name="managementActionId" Type="Edm.String" Nullable="false" />
+        <Property Name="managementTemplateId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="managementIntentInfo">
+        <Property Name="managementIntentDisplayName" Type="Edm.String" />
+        <Property Name="managementIntentId" Type="Edm.String" />
+        <Property Name="managementTemplates" Type="Collection(microsoft.graph.managedTenants.managementTemplateDetailedInfo)" />
+      </ComplexType>
+      <ComplexType Name="managementTemplateDetailedInfo">
+        <Property Name="category" Type="microsoft.graph.managedTenants.managementCategory" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="managementTemplateId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="setting">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="jsonValue" Type="Edm.String" />
+        <Property Name="overwriteAllowed" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="valueType" Type="microsoft.graph.managedTenants.managementParameterValueType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="templateParameter">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="jsonAllowedValues" Type="Edm.String" />
+        <Property Name="jsonDefaultValue" Type="Edm.String" />
+        <Property Name="valueType" Type="microsoft.graph.managedTenants.managementParameterValueType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="tenantContactInformation">
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="notes" Type="Edm.String" />
+        <Property Name="phone" Type="Edm.String" />
+        <Property Name="title" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="tenantContract">
+        <Property Name="contractType" Type="Edm.Int32" />
+        <Property Name="defaultDomainName" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="tenantInfo">
+        <Property Name="tenantId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="tenantStatusInformation">
+        <Property Name="delegatedPrivilegeStatus" Type="microsoft.graph.managedTenants.delegatedPrivilegeStatus" />
+        <Property Name="lastDelegatedPrivilegeRefreshDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="offboardedByUserId" Type="Edm.String" />
+        <Property Name="offboardedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onboardedByUserId" Type="Edm.String" />
+        <Property Name="onboardedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onboardingStatus" Type="microsoft.graph.managedTenants.tenantOnboardingStatus" />
+        <Property Name="workloadStatuses" Type="Collection(microsoft.graph.managedTenants.workloadStatus)" />
+      </ComplexType>
+      <ComplexType Name="workloadStatus">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="offboardedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onboardedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onboardingStatus" Type="microsoft.graph.managedTenants.workloadOnboardingStatus" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workloadAction">
+        <Property Name="actionId" Type="Edm.String" />
+        <Property Name="category" Type="microsoft.graph.managedTenants.workloadActionCategory" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="service" Type="Edm.String" />
+        <Property Name="settings" Type="Collection(microsoft.graph.managedTenants.setting)" />
+      </ComplexType>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedTenants.managementAction" />
+        <Parameter Name="tenantId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="tenantGroupId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="managementTemplateId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.managedTenants.managementActionDeploymentStatus" />
+      </Action>
+      <Action Name="assignTag" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedTenants.tenantTag" />
+        <Parameter Name="tenantIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="microsoft.graph.managedTenants.tenantTag" />
+      </Action>
+      <Action Name="unassignTag" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedTenants.tenantTag" />
+        <Parameter Name="tenantIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="microsoft.graph.managedTenants.tenantTag" />
+      </Action>
+      <Action Name="changeDeploymentStatus" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.managedTenants.managementActionTenantDeploymentStatus)" />
+        <Parameter Name="tenantGroupId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="tenantId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="managementActionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="managementTemplateId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="status" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.managedTenants.managementActionDeploymentStatus" />
+      </Action>
+      <Action Name="offboardTenant" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedTenants.tenant" />
+        <ReturnType Type="microsoft.graph.managedTenants.tenant" />
+      </Action>
+      <Action Name="resetTenantOnboardingStatus" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.managedTenants.tenant" />
+        <ReturnType Type="microsoft.graph.managedTenants.tenant" />
+      </Action>
+      <Action Name="tenantSearch" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.managedTenants.tenantGroup)" />
+        <Parameter Name="tenantId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(microsoft.graph.managedTenants.tenantGroup)" />
+      </Action>
+    </Schema>
     <Schema Namespace="microsoft.graph.externalConnectors" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="accessType">
         <Member Name="grant" Value="1" />
@@ -59386,195 +59851,6 @@
         <Parameter Name="addExclusions" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="removeExclusions" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
-    </Schema>
-    <Schema Namespace="microsoft.graph.managedTenants" xmlns="http://docs.oasis-open.org/odata/ns/edm">
-      <EntityType Name="managedTenant" BaseType="graph.entity" OpenType="true">
-        <NavigationProperty Name="aggregatedPolicyCompliances" Type="Collection(microsoft.graph.managedTenants.aggregatedPolicyCompliance)" ContainsTarget="true" />
-        <NavigationProperty Name="cloudPcConnections" Type="Collection(microsoft.graph.managedTenants.cloudPcConnection)" ContainsTarget="true" />
-        <NavigationProperty Name="cloudPcDevices" Type="Collection(microsoft.graph.managedTenants.cloudPcDevice)" ContainsTarget="true" />
-        <NavigationProperty Name="cloudPcsOverview" Type="Collection(microsoft.graph.managedTenants.cloudPcOverview)" ContainsTarget="true" />
-        <NavigationProperty Name="conditionalAccessPolicyCoverages" Type="Collection(microsoft.graph.managedTenants.conditionalAccessPolicyCoverage)" ContainsTarget="true" />
-        <NavigationProperty Name="credentialUserRegistrationsSummaries" Type="Collection(microsoft.graph.managedTenants.credentialUserRegistrationsSummary)" ContainsTarget="true" />
-        <NavigationProperty Name="deviceCompliancePolicySettingStateSummaries" Type="Collection(microsoft.graph.managedTenants.deviceCompliancePolicySettingStateSummary)" ContainsTarget="true" />
-        <NavigationProperty Name="managedDeviceCompliances" Type="Collection(microsoft.graph.managedTenants.managedDeviceCompliance)" ContainsTarget="true" />
-        <NavigationProperty Name="managedDeviceComplianceTrends" Type="Collection(microsoft.graph.managedTenants.managedDeviceComplianceTrend)" ContainsTarget="true" />
-        <NavigationProperty Name="riskyUsers" Type="Collection(microsoft.graph.managedTenants.riskyUser)" ContainsTarget="true" />
-        <NavigationProperty Name="windowsDeviceMalwareStates" Type="Collection(microsoft.graph.managedTenants.windowsDeviceMalwareState)" ContainsTarget="true" />
-        <NavigationProperty Name="windowsProtectionStates" Type="Collection(microsoft.graph.managedTenants.windowsProtectionState)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="aggregatedPolicyCompliance" BaseType="graph.entity" OpenType="true">
-        <Property Name="compliancePolicyId" Type="Edm.String" />
-        <Property Name="compliancePolicyName" Type="Edm.String" />
-        <Property Name="compliancePolicyPlatform" Type="Edm.String" />
-        <Property Name="compliancePolicyType" Type="Edm.String" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="numberOfCompliantDevices" Type="Edm.Int64" />
-        <Property Name="numberOfErrorDevices" Type="Edm.Int64" />
-        <Property Name="numberOfNonCompliantDevices" Type="Edm.Int64" />
-        <Property Name="policyModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="cloudPcConnection" BaseType="graph.entity" OpenType="true">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="healthCheckStatus" Type="Edm.String" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="cloudPcDevice" BaseType="graph.entity" OpenType="true">
-        <Property Name="cloudPcStatus" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="managedDeviceId" Type="Edm.String" />
-        <Property Name="managedDeviceName" Type="Edm.String" />
-        <Property Name="provisioningPolicyId" Type="Edm.String" />
-        <Property Name="servicePlanName" Type="Edm.String" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="cloudPcOverview" OpenType="true">
-        <Key>
-          <PropertyRef Name="tenantId" />
-        </Key>
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="numberOfCloudPcConnectionStatusFailed" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcConnectionStatusPassed" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcConnectionStatusPending" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcConnectionStatusRunning" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcConnectionStatusUnkownFutureValue" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusDeprovisioning" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusFailed" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusInGracePeriod" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusNotProvisioned" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusProvisioned" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusProvisioning" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusUnknown" Type="Edm.Int32" />
-        <Property Name="numberOfCloudPcStatusUpgrading" Type="Edm.Int32" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
-        <Property Name="totalCloudPcConnectionStatus" Type="Edm.Int32" />
-        <Property Name="totalCloudPcStatus" Type="Edm.Int32" />
-      </EntityType>
-      <EntityType Name="conditionalAccessPolicyCoverage" BaseType="graph.entity" OpenType="true">
-        <Property Name="conditionalAccessPolicyState" Type="Edm.String" />
-        <Property Name="latestPolicyModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="requiresDeviceCompliance" Type="Edm.Boolean" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="credentialUserRegistrationsSummary" BaseType="graph.entity" OpenType="true">
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="mfaAndSsprCapableUserCount" Type="Edm.Int32" />
-        <Property Name="mfaConditionalAccessPolicyState" Type="Edm.String" />
-        <Property Name="mfaRegisteredUserCount" Type="Edm.Int32" />
-        <Property Name="securityDefaultsEnabled" Type="Edm.Boolean" />
-        <Property Name="ssprEnabledUserCount" Type="Edm.Int32" />
-        <Property Name="ssprRegisteredUserCount" Type="Edm.Int32" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="totalUserCount" Type="Edm.Int32" />
-      </EntityType>
-      <EntityType Name="deviceCompliancePolicySettingStateSummary" BaseType="graph.entity">
-        <Property Name="conflictDeviceCount" Type="Edm.Int32" />
-        <Property Name="errorDeviceCount" Type="Edm.Int32" />
-        <Property Name="failedDeviceCount" Type="Edm.Int32" />
-        <Property Name="intuneAccountId" Type="Edm.String" />
-        <Property Name="intuneSettingId" Type="Edm.String" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="notApplicableDeviceCount" Type="Edm.Int32" />
-        <Property Name="pendingDeviceCount" Type="Edm.Int32" />
-        <Property Name="policyType" Type="Edm.String" />
-        <Property Name="settingName" Type="Edm.String" />
-        <Property Name="succeededDeviceCount" Type="Edm.Int32" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="managedDeviceCompliance" BaseType="graph.entity" OpenType="true">
-        <Property Name="complianceStatus" Type="Edm.String" />
-        <Property Name="deviceType" Type="Edm.String" />
-        <Property Name="inGracePeriodUntilDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastSyncDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="managedDeviceId" Type="Edm.String" />
-        <Property Name="managedDeviceName" Type="Edm.String" />
-        <Property Name="manufacturer" Type="Edm.String" />
-        <Property Name="model" Type="Edm.String" />
-        <Property Name="osDescription" Type="Edm.String" />
-        <Property Name="osVersion" Type="Edm.String" />
-        <Property Name="ownerType" Type="Edm.String" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="managedDeviceComplianceTrend" BaseType="graph.entity" OpenType="true">
-        <Property Name="compliantDeviceCount" Type="Edm.Int32" />
-        <Property Name="configManagerDeviceCount" Type="Edm.Int32" />
-        <Property Name="countDateTime" Type="Edm.String" />
-        <Property Name="errorDeviceCount" Type="Edm.Int32" />
-        <Property Name="inGracePeriodDeviceCount" Type="Edm.Int32" />
-        <Property Name="noncompliantDeviceCount" Type="Edm.Int32" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="unknownDeviceCount" Type="Edm.Int32" />
-      </EntityType>
-      <EntityType Name="riskyUser" BaseType="graph.entity" OpenType="true">
-        <Property Name="isDeleted" Type="Edm.Boolean" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="riskDetail" Type="Edm.String" />
-        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="riskLevel" Type="Edm.String" />
-        <Property Name="riskState" Type="Edm.String" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="userDisplayName" Type="Edm.String" />
-        <Property Name="userId" Type="Edm.String" />
-        <Property Name="userPrincipalName" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="windowsDeviceMalwareState" BaseType="graph.entity" OpenType="true">
-        <Property Name="additionalInformationUrl" Type="Edm.String" />
-        <Property Name="detectionCount" Type="Edm.Int32" />
-        <Property Name="deviceDeleted" Type="Edm.Boolean" />
-        <Property Name="initialDetectionDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastStateChangeDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="malwareCategory" Type="Edm.String" />
-        <Property Name="malwareDisplayName" Type="Edm.String" />
-        <Property Name="malwareExecutionState" Type="Edm.String" />
-        <Property Name="malwareId" Type="Edm.String" />
-        <Property Name="malwareSeverity" Type="Edm.String" />
-        <Property Name="malwareThreatState" Type="Edm.String" />
-        <Property Name="managedDeviceId" Type="Edm.String" />
-        <Property Name="managedDeviceName" Type="Edm.String" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="windowsProtectionState" BaseType="graph.entity" OpenType="true">
-        <Property Name="antiMalwareVersion" Type="Edm.String" />
-        <Property Name="attentionRequired" Type="Edm.Boolean" />
-        <Property Name="deviceDeleted" Type="Edm.Boolean" />
-        <Property Name="devicePropertyRefreshDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="engineVersion" Type="Edm.String" />
-        <Property Name="fullScanOverdue" Type="Edm.Boolean" />
-        <Property Name="fullScanRequired" Type="Edm.Boolean" />
-        <Property Name="lastFullScanDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastFullScanSignatureVersion" Type="Edm.String" />
-        <Property Name="lastQuickScanDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastQuickScanSignatureVersion" Type="Edm.String" />
-        <Property Name="lastRefreshedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="lastReportedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="malwareProtectionEnabled" Type="Edm.Boolean" />
-        <Property Name="managedDeviceHealthState" Type="Edm.String" />
-        <Property Name="managedDeviceId" Type="Edm.String" />
-        <Property Name="managedDeviceName" Type="Edm.String" />
-        <Property Name="networkInspectionSystemEnabled" Type="Edm.Boolean" />
-        <Property Name="quickScanOverdue" Type="Edm.Boolean" />
-        <Property Name="realTimeProtectionEnabled" Type="Edm.Boolean" />
-        <Property Name="rebootRequired" Type="Edm.Boolean" />
-        <Property Name="signatureUpdateOverdue" Type="Edm.Boolean" />
-        <Property Name="signatureVersion" Type="Edm.String" />
-        <Property Name="tenantDisplayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-      </EntityType>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>
