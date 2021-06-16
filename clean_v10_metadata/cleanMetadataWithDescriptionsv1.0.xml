@@ -2107,6 +2107,30 @@
         <Member Name="entityUrl" Value="0" />
         <Member Name="text" Value="1" />
       </EnumType>
+      <EnumType Name="teamworkApplicationIdentityType">
+        <Member Name="aadApplication" Value="0" />
+        <Member Name="bot" Value="1" />
+        <Member Name="tenantBot" Value="2" />
+        <Member Name="office365Connector" Value="3" />
+        <Member Name="outgoingWebhook" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="teamworkConversationIdentityType">
+        <Member Name="team" Value="0" />
+        <Member Name="channel" Value="1" />
+        <Member Name="chat" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="teamworkUserIdentityType">
+        <Member Name="aadUser" Value="0" />
+        <Member Name="onPremiseAadUser" Value="1" />
+        <Member Name="anonymousGuest" Value="2" />
+        <Member Name="federatedUser" Value="3" />
+        <Member Name="personalMicrosoftAccountUser" Value="4" />
+        <Member Name="skypeUser" Value="5" />
+        <Member Name="phoneUser" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
       <EnumType Name="scheduleChangeRequestActor">
         <Member Name="sender" Value="0" />
         <Member Name="recipient" Value="1" />
@@ -5107,6 +5131,9 @@
         </Property>
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are members in this group that have license errors from its group-based license assignment. This property is never returned on a GET operation. You can use it as a $filter argument to get groups that have members with license errors (that is, filter for this property being true)." />
+        </Property>
+        <Property Name="isAssignableToRole" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this group can be assigned to an Azure Active Directory role.This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true and the group cannot be a dynamic group (that is, groupTypes cannot contain DynamicMembership).Only callers in Global Administrator and Privileged Role Administrator roles can set this property. For more, see Using a group to manage Azure AD role assignmentsReturned by default." />
         </Property>
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates status of the group license assignment to all members of the group. Possible values: QueuedForProcessing, ProcessingInProgress, and ProcessingComplete. Returned only on $select. Read-only." />
@@ -13490,7 +13517,7 @@
         <Property Name="etag" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Version number of the chat message." />
         </Property>
-        <Property Name="from" Type="graph.identitySet">
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read only. Details of the sender of the chat message." />
         </Property>
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false">
@@ -19453,16 +19480,23 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="URL to a thumbnail image that the channel can use if it supports using an alternative, smaller form of content or contentUrl. For example, if you set contentType to application/word and set contentUrl to the location of the Word document, you might include a thumbnail image that represents the document. The channel could display the thumbnail image instead of the document. When the user clicks the image, the channel would open the document." />
         </Property>
       </ComplexType>
+      <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatMessageMention">
         <Property Name="id" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Index of an entity being mentioned in the specified chatMessage. Matches the {index} value in the corresponding &lt;at id='{index}'&gt; tag in the message body." />
         </Property>
-        <Property Name="mentioned" Type="graph.identitySet">
+        <Property Name="mentioned" Type="graph.chatMessageMentionedIdentitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="The entity (user, application, team, or channel) that was mentioned.  If it was a channel or team that was @mentioned, the identitySet contains a conversation property giving the ID of the team/channel, and a conversationIdentityType property that represents either the team or channel." />
         </Property>
         <Property Name="mentionText" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="String used to represent the mention. For example, a user's display name, a team name." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="chatMessageMentionedIdentitySet" BaseType="graph.identitySet" OpenType="true">
+        <Property Name="conversation" Type="graph.teamworkConversationIdentity" />
+      </ComplexType>
+      <ComplexType Name="teamworkConversationIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="conversationIdentityType" Type="graph.teamworkConversationIdentityType" />
       </ComplexType>
       <ComplexType Name="chatMessagePolicyViolation">
         <Property Name="dlpAction" Type="graph.chatMessagePolicyViolationDlpActionTypes">
@@ -19499,10 +19533,11 @@
         <Property Name="reactionType" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Supported values are like, angry, sad, laugh, heart, surprised." />
         </Property>
-        <Property Name="user" Type="graph.identitySet" Nullable="false">
+        <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who reacted to the message." />
         </Property>
       </ComplexType>
+      <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="operationError">
         <Property Name="code" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Operation error code." />
@@ -19599,6 +19634,13 @@
         <Property Name="webUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The link the user clicks when they select the notification. Optional when source is entityUrl; required when source is text." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="teamworkApplicationIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="applicationIdentityType" Type="graph.teamworkApplicationIdentityType" />
+      </ComplexType>
+      <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
+      <ComplexType Name="teamworkUserIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="userIdentityType" Type="graph.teamworkUserIdentityType" />
       </ComplexType>
       <ComplexType Name="scheduleEntity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
@@ -20316,8 +20358,8 @@
         <Parameter Name="token" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
-      <Function Name="delta" IsBound="true">
-        <Parameter Name="messages" Type="Collection(graph.chatMessage)" />
+      <Function EntitySetPath="bindingParameter" Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.chatMessage)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Function Name="delta" IsBound="true">
@@ -21203,12 +21245,16 @@
         <Parameter Name="includePersonalNotebooks" Type="Edm.Boolean" Nullable="false" />
         <ReturnType Type="Collection(graph.recentNotebook)" />
       </Function>
-      <Function Name="getAllMessages" IsBound="true">
-        <Parameter Name="chats" Type="Collection(graph.chat)" />
+      <Function EntitySetPath="bindingParameter/messages" Name="getAllMessages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
-      <Function Name="getAllMessages" IsBound="true">
-        <Parameter Name="teams" Type="Collection(graph.team)" />
+      <Function EntitySetPath="bindingParameter/messages" Name="getAllMessages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
+      <Function EntitySetPath="bindingParameter/channels/messages" Name="getAllMessages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Action Name="instantiate" IsBound="true">
