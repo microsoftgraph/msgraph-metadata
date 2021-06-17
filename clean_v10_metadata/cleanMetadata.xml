@@ -2106,30 +2106,6 @@
         <Member Name="entityUrl" Value="0" />
         <Member Name="text" Value="1" />
       </EnumType>
-      <EnumType Name="teamworkApplicationIdentityType">
-        <Member Name="aadApplication" Value="0" />
-        <Member Name="bot" Value="1" />
-        <Member Name="tenantBot" Value="2" />
-        <Member Name="office365Connector" Value="3" />
-        <Member Name="outgoingWebhook" Value="4" />
-        <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
-      <EnumType Name="teamworkConversationIdentityType">
-        <Member Name="team" Value="0" />
-        <Member Name="channel" Value="1" />
-        <Member Name="chat" Value="2" />
-        <Member Name="unknownFutureValue" Value="3" />
-      </EnumType>
-      <EnumType Name="teamworkUserIdentityType">
-        <Member Name="aadUser" Value="0" />
-        <Member Name="onPremiseAadUser" Value="1" />
-        <Member Name="anonymousGuest" Value="2" />
-        <Member Name="federatedUser" Value="3" />
-        <Member Name="personalMicrosoftAccountUser" Value="4" />
-        <Member Name="skypeUser" Value="5" />
-        <Member Name="phoneUser" Value="6" />
-        <Member Name="unknownFutureValue" Value="7" />
-      </EnumType>
       <EnumType Name="scheduleChangeRequestActor">
         <Member Name="sender" Value="0" />
         <Member Name="recipient" Value="1" />
@@ -3925,7 +3901,6 @@
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean" />
-        <Property Name="isAssignableToRole" Type="Edm.Boolean" />
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState" />
         <Property Name="mail" Type="Edm.String" />
         <Property Name="mailEnabled" Type="Edm.Boolean" />
@@ -9374,17 +9349,10 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="thumbnailUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatMessageMention">
         <Property Name="id" Type="Edm.Int32" />
-        <Property Name="mentioned" Type="graph.chatMessageMentionedIdentitySet" />
+        <Property Name="mentioned" Type="graph.identitySet" />
         <Property Name="mentionText" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="chatMessageMentionedIdentitySet" BaseType="graph.identitySet" OpenType="true">
-        <Property Name="conversation" Type="graph.teamworkConversationIdentity" />
-      </ComplexType>
-      <ComplexType Name="teamworkConversationIdentity" BaseType="graph.identity" OpenType="true">
-        <Property Name="conversationIdentityType" Type="graph.teamworkConversationIdentityType" />
       </ComplexType>
       <ComplexType Name="chatMessagePolicyViolation">
         <Property Name="dlpAction" Type="graph.chatMessagePolicyViolationDlpActionTypes" />
@@ -9401,9 +9369,8 @@
       <ComplexType Name="chatMessageReaction">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="reactionType" Type="Edm.String" Nullable="false" />
-        <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
+        <Property Name="user" Type="graph.identitySet" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="operationError">
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
@@ -9447,13 +9414,6 @@
         <Property Name="value" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="teamworkApplicationIdentity" BaseType="graph.identity" OpenType="true">
-        <Property Name="applicationIdentityType" Type="graph.teamworkApplicationIdentityType" />
-      </ComplexType>
-      <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
-      <ComplexType Name="teamworkUserIdentity" BaseType="graph.identity" OpenType="true">
-        <Property Name="userIdentityType" Type="graph.teamworkUserIdentityType" />
-      </ComplexType>
       <EntityType Name="conversationMember" BaseType="graph.entity" Abstract="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="roles" Type="Collection(Edm.String)" />
@@ -9495,7 +9455,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="etag" Type="Edm.String" />
-        <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
+        <Property Name="from" Type="graph.identitySet" />
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false" />
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -10059,8 +10019,8 @@
         <Parameter Name="token" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
       </Function>
-      <Function Name="delta" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="Collection(graph.chatMessage)" />
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="messages" Type="Collection(graph.chatMessage)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Function Name="delta" IsBound="true">
@@ -14083,16 +14043,12 @@
       <Action Name="upgrade" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
       </Action>
-      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
-        <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
+      <Function Name="getAllMessages" IsBound="true">
+        <Parameter Name="chats" Type="Collection(graph.chat)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
-      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
-        <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
-        <ReturnType Type="Collection(graph.chatMessage)" />
-      </Function>
-      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/channels/messages">
-        <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
+      <Function Name="getAllMessages" IsBound="true">
+        <Parameter Name="teams" Type="Collection(graph.team)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Action Name="approve" IsBound="true">
