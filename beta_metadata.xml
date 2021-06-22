@@ -481,6 +481,9 @@
         <Member Name="resourceAvailabilityCheckNoSubnetIP" Value="500" />
         <Member Name="resourceAvailabilityCheckSubscriptionDisabled" Value="501" />
         <Member Name="resourceAvailabilityCheckAzurePolicyViolation" Value="502" />
+        <Member Name="resourceAvailabilityCheckSubscriptionNotFound" Value="503" />
+        <Member Name="resourceAvailabilityCheckSubscriptionTransferred" Value="504" />
+        <Member Name="resourceAvailabilityCheckGeneralSubscriptionError" Value="505" />
         <Member Name="resourceAvailabilityCheckUnsupportedVNetRegion" Value="506" />
         <Member Name="resourceAvailabilityCheckUnknownError" Value="599" />
         <Member Name="permissionCheckNoSubscriptionReaderRole" Value="600" />
@@ -490,6 +493,7 @@
         <Member Name="internalServerErrorDeploymentCanceled" Value="900" />
         <Member Name="internalServerErrorAllocateResourceFailed" Value="901" />
         <Member Name="internalServerErrorVMDeploymentTimeout" Value="902" />
+        <Member Name="internalServerErrorUnableToRunDscScript" Value="903" />
         <Member Name="internalServerUnknownError" Value="999" />
       </EnumType>
       <EnumType Name="cloudPcOnPremisesConnectionStatus">
@@ -4954,7 +4958,7 @@
         <Member Name="list" Value="6" />
         <Member Name="listItem" Value="7" />
         <Member Name="drive" Value="8" />
-        <Member Name="unknownfuturevalue" Value="9" />
+        <Member Name="unknownFutureValue" Value="9" />
       </EnumType>
       <EnumType Name="searchAlterationType">
         <Member Name="suggestion" Value="0" />
@@ -5755,6 +5759,8 @@
         <Member Name="group" Value="2" />
         <Member Name="everyone" Value="3" />
         <Member Name="everyoneExceptGuests" Value="4" />
+        <Member Name="externalGroup" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="connectionOperationStatus">
         <Member Name="unspecified" Value="0" />
@@ -5803,13 +5809,6 @@
         <Member Name="int64Collection" Value="6" />
         <Member Name="doubleCollection" Value="7" />
         <Member Name="dateTimeCollection" Value="8" />
-      </EnumType>
-      <EnumType Name="applicationIdentityType">
-        <Member Name="aadApplication" Value="0" />
-        <Member Name="bot" Value="1" />
-        <Member Name="tenantBot" Value="2" />
-        <Member Name="office365Connector" Value="3" />
-        <Member Name="outgoingWebhook" Value="4" />
       </EnumType>
       <EnumType Name="callRecordingStatus">
         <Member Name="success" Value="0" />
@@ -5865,10 +5864,6 @@
         <Member Name="settings" Value="4" />
         <Member Name="channels" Value="8" />
         <Member Name="members" Value="16" />
-      </EnumType>
-      <EnumType Name="conversationIdentityType">
-        <Member Name="team" Value="0" />
-        <Member Name="channel" Value="1" />
       </EnumType>
       <EnumType Name="giphyRatingType">
         <Member Name="strict" Value="0" />
@@ -5937,16 +5932,32 @@
         <Member Name="entityUrl" Value="0" />
         <Member Name="text" Value="1" />
       </EnumType>
+      <EnumType Name="teamworkApplicationIdentityType">
+        <Member Name="aadApplication" Value="0" />
+        <Member Name="bot" Value="1" />
+        <Member Name="tenantBot" Value="2" />
+        <Member Name="office365Connector" Value="3" />
+        <Member Name="outgoingWebhook" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="teamworkConversationIdentityType">
+        <Member Name="team" Value="0" />
+        <Member Name="channel" Value="1" />
+        <Member Name="chat" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="teamworkTagType">
         <Member Name="standard" Value="0" />
       </EnumType>
-      <EnumType Name="userIdentityType">
+      <EnumType Name="teamworkUserIdentityType">
         <Member Name="aadUser" Value="0" />
         <Member Name="onPremiseAadUser" Value="1" />
         <Member Name="anonymousGuest" Value="2" />
         <Member Name="federatedUser" Value="3" />
         <Member Name="personalMicrosoftAccountUser" Value="4" />
         <Member Name="skypeUser" Value="5" />
+        <Member Name="phoneUser" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
       <EnumType Name="userNewMessageRestriction">
         <Member Name="everyone" Value="0" />
@@ -7441,7 +7452,10 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="topic" Type="Edm.String" />
+        <Property Name="viewpoint" Type="graph.chatViewpoint" />
+        <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
+        <NavigationProperty Name="lastMessagePreview" Type="graph.chatMessageInfo" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
@@ -13364,6 +13378,16 @@
         <Property Name="userId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="accessReviewNotificationRecipientItem">
+        <Property Name="notificationRecipientScope" Type="graph.accessReviewNotificationRecipientScope" />
+        <Property Name="notificationTemplateType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accessReviewNotificationRecipientScope" Abstract="true" />
+      <ComplexType Name="accessReviewNotificationRecipientQueryScope" BaseType="graph.accessReviewNotificationRecipientScope">
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="queryRoot" Type="Edm.String" />
+        <Property Name="queryType" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="accessReviewRecurrenceSettings">
         <Property Name="durationInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="recurrenceCount" Type="Edm.Int32" Nullable="false" />
@@ -13506,6 +13530,7 @@
         <Property Name="target" Type="graph.accessReviewInstanceDecisionItemTarget" />
       </EntityType>
       <EntityType Name="accessReviewScheduleDefinition" BaseType="graph.entity">
+        <Property Name="additionalNotificationRecipients" Type="Collection(graph.accessReviewNotificationRecipientItem)" />
         <Property Name="backupReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="createdBy" Type="graph.userIdentity" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -13969,6 +13994,22 @@
       <ComplexType Name="accessPackageAnswerString" BaseType="graph.accessPackageAnswer">
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="accessPackageAssignmentRequestRequirements">
+        <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean" />
+        <Property Name="existingAnswers" Type="Collection(graph.accessPackageAnswer)" />
+        <Property Name="isApprovalRequiredForAdd" Type="Edm.Boolean" />
+        <Property Name="isApprovalRequiredForUpdate" Type="Edm.Boolean" />
+        <Property Name="policyDescription" Type="Edm.String" />
+        <Property Name="policyDisplayName" Type="Edm.String" />
+        <Property Name="policyId" Type="Edm.String" />
+        <Property Name="questions" Type="Collection(graph.accessPackageQuestion)" />
+        <Property Name="schedule" Type="graph.requestSchedule" />
+      </ComplexType>
+      <ComplexType Name="requestSchedule">
+        <Property Name="expiration" Type="graph.expirationPattern" />
+        <Property Name="recurrence" Type="graph.patternedRecurrence" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="accessPackageLocalizedText">
         <Property Name="languageCode" Type="Edm.String" />
         <Property Name="text" Type="Edm.String" />
@@ -14043,11 +14084,6 @@
         <Property Name="acceptRequests" Type="Edm.Boolean" />
         <Property Name="allowedRequestors" Type="Collection(graph.userSet)" />
         <Property Name="scopeType" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="requestSchedule">
-        <Property Name="expiration" Type="graph.expirationPattern" />
-        <Property Name="recurrence" Type="graph.patternedRecurrence" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="singleUser" BaseType="graph.userSet">
         <Property Name="description" Type="Edm.String" />
@@ -24314,7 +24350,7 @@
       </ComplexType>
       <ComplexType Name="acl">
         <Property Name="accessType" Type="graph.accessType" Nullable="false" />
-        <Property Name="identitySource" Type="graph.identitySourceType" Nullable="false" />
+        <Property Name="identitySource" Type="graph.identitySourceType" />
         <Property Name="type" Type="graph.aclType" Nullable="false" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -24463,11 +24499,20 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="thumbnailUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatMessageMention">
         <Property Name="id" Type="Edm.Int32" />
-        <Property Name="mentioned" Type="graph.identitySet" />
+        <Property Name="mentioned" Type="graph.chatMessageMentionedIdentitySet" />
         <Property Name="mentionText" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="chatMessageMentionedIdentitySet" BaseType="graph.identitySet" OpenType="true">
+        <Property Name="conversation" Type="graph.teamworkConversationIdentity" />
+        <Property Name="tag" Type="graph.teamworkTagIdentity" />
+      </ComplexType>
+      <ComplexType Name="teamworkConversationIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="conversationIdentityType" Type="graph.teamworkConversationIdentityType" />
+      </ComplexType>
+      <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="chatMessagePolicyViolation">
         <Property Name="dlpAction" Type="graph.chatMessagePolicyViolationDlpActionTypes" />
         <Property Name="justificationText" Type="Edm.String" />
@@ -24483,12 +24528,16 @@
       <ComplexType Name="chatMessageReaction">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="reactionType" Type="Edm.String" Nullable="false" />
-        <Property Name="user" Type="graph.identitySet" Nullable="false" />
+        <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatRenamedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="chatDisplayName" Type="Edm.String" />
         <Property Name="chatId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
+      </ComplexType>
+      <ComplexType Name="chatViewpoint">
+        <Property Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="conversationMemberRoleUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="conversationMemberRoles" Type="Collection(Edm.String)" />
@@ -24591,6 +24640,12 @@
         <Property Name="value" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="teamworkApplicationIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="applicationIdentityType" Type="graph.teamworkApplicationIdentityType" />
+      </ComplexType>
+      <ComplexType Name="teamworkUserIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="userIdentityType" Type="graph.teamworkUserIdentityType" />
+      </ComplexType>
       <EntityType Name="aadUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="email" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -24615,7 +24670,7 @@
         <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="etag" Type="Edm.String" />
         <Property Name="eventDetail" Type="graph.eventMessageDetail" />
-        <Property Name="from" Type="graph.identitySet" />
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false" />
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -24639,6 +24694,12 @@
         <Property Name="teamsAppId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
+      </EntityType>
+      <EntityType Name="chatMessageInfo" BaseType="graph.entity">
+        <Property Name="body" Type="graph.itemBody" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
+        <Property Name="isDeleted" Type="Edm.Boolean" />
       </EntityType>
       <EntityType Name="teamworkHostedContent" BaseType="graph.entity" HasStream="true">
         <Property Name="contentBytes" Type="Edm.Binary" />
@@ -29751,6 +29812,10 @@
       <Action Name="dismiss" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
         <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="getApplicablePolicyRequirements" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessPackage" />
+        <ReturnType Type="Collection(graph.accessPackageAssignmentRequestRequirements)" />
       </Action>
       <Function Name="Search" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
@@ -59527,7 +59592,8 @@
         <Member Name="group" Value="2" />
         <Member Name="everyone" Value="3" />
         <Member Name="everyoneExceptGuests" Value="4" />
-        <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="externalGroup" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="connectionOperationStatus">
         <Member Name="unspecified" Value="0" />
@@ -59587,7 +59653,7 @@
       </EnumType>
       <ComplexType Name="acl">
         <Property Name="accessType" Type="microsoft.graph.externalConnectors.accessType" Nullable="false" />
-        <Property Name="identitySource" Type="microsoft.graph.externalConnectors.identitySourceType" Nullable="false" />
+        <Property Name="identitySource" Type="microsoft.graph.externalConnectors.identitySourceType" />
         <Property Name="type" Type="microsoft.graph.externalConnectors.aclType" Nullable="false" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
       </ComplexType>
