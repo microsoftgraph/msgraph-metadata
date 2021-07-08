@@ -65,7 +65,7 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printer']/edm:NavigationProperty[@Name='allowedUsers']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='publishedResource']/edm:NavigationProperty[@Name='agentGroups']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='teamsApp']/edm:NavigationProperty[@Name='appDefinitions']|
-                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='securityConfigurationTask']/edm:NavigationProperty[@Name='managedDevices']|                         
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='securityConfigurationTask']/edm:NavigationProperty[@Name='managedDevices']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows10CertificateProfileBase']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows10ImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows10PkcsCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
@@ -87,13 +87,13 @@
         <xsl:apply-templates select="node()"/>
       </xsl:copy>
     </xsl:template>
-    
+
     <!-- Remove Property -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='changeNotification']/edm:Property[@Name='sequenceNumber']"/>
 
     <!-- Remove NavigationProperty -->
-      
+
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='approval']/edm:NavigationProperty[@Name='request']"/>
 
     <!-- Remove all capability annotations -->
@@ -113,7 +113,7 @@
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='bitlocker']"/>
-  
+
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
       <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
@@ -498,6 +498,65 @@
       <xsl:element name="Annotation">
         <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
         <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+      </xsl:element>
+    </xsl:copy>
+  </xsl:template>
+
+  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+     <xsl:copy>
+      <xsl:apply-templates select="@* | node()"/>
+      <!-- Remove navigability for workbook navigation property -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
+          <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+              <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                  <xsl:attribute name="Property">Navigability</xsl:attribute>
+                  <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                </xsl:element>
+              </xsl:element>
+          </xsl:element>
+      </xsl:element>
+      <!-- Remove indexability for joinedGroups navigation property -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <!-- Remove indexability for users navigation property -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
       </xsl:element>
     </xsl:copy>
   </xsl:template>
