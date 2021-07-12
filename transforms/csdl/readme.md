@@ -10,7 +10,7 @@ Please use fully qualified and precise template match statements so as not to pe
 
 ## Instructions for updating and validating transform
 
-1. Clone this repo.
+1. Clone this repo or branch off from *master* if possible.
 2. Open Visual Studio without a project.
 3. From the top menu in Visual Studio, select File > Open > Folder (then navigate to your repo folder) > double-click on *transforms* folder to open it > Click on the *csdl* folder to highlight it, then choose Select Folder.
 4. Open the *preprocess_csdl.xsl* from the list of files. Make the transform change in this file.
@@ -21,6 +21,7 @@ Please use fully qualified and precise template match statements so as not to pe
 9. Perform a simple text diff of the output *preprocess_csdl_test_input.xml* with the *preprocess_csdl_test_output.xml* file and check for unexpected changes.
 10. Add the expected output to *preprocess_csdl_test_output.xml*.
 11. Check in changes and open your pull request.
+    > NB: The build job in the pipeline currently errors out on PRs coming in from personal forked repos.  
 
 ## Command line instructions for running the transform
 1. Start PowerShell
