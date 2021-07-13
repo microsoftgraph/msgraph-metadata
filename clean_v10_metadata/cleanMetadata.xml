@@ -537,6 +537,12 @@
         <Member Name="reviewer" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="approvalFilterByCurrentUserOptions">
+        <Member Name="target" Value="0" />
+        <Member Name="createdBy" Value="1" />
+        <Member Name="approver" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="consentRequestFilterByCurrentUserOptions">
         <Member Name="reviewer" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
@@ -584,6 +590,11 @@
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
         <Member Name="enabledForReportingButNotEnforced" Value="2" />
+      </EnumType>
+      <EnumType Name="countryLookupMethodType">
+        <Member Name="clientIpAddress" Value="0" />
+        <Member Name="authenticatorAppGps" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="persistentBrowserSessionMode">
         <Member Name="always" Value="0" />
@@ -1930,6 +1941,12 @@
         <Member Name="inactive" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="meetingChatMode">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+        <Member Name="limited" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="modality">
         <Member Name="audio" Value="1" />
         <Member Name="video" Value="2" />
@@ -3095,7 +3112,11 @@
         <NavigationProperty Name="historyItems" Type="Collection(graph.activityHistoryItem)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="onlineMeeting" BaseType="graph.entity" OpenType="true">
+        <Property Name="allowAttendeeToEnableCamera" Type="Edm.Boolean" />
+        <Property Name="allowAttendeeToEnableMic" Type="Edm.Boolean" />
         <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
+        <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
+        <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
@@ -5806,6 +5827,8 @@
       </ComplexType>
       <EntityType Name="accessReviewInstance" BaseType="graph.entity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="scope" Type="graph.accessReviewScope" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="Edm.String" />
@@ -5877,9 +5900,13 @@
         <Property Name="reviewResult" Type="Edm.String" />
         <Property Name="status" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="entitlementManagement" BaseType="graph.entity">
+        <NavigationProperty Name="accessPackageAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="identityGovernance">
         <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
+        <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
         <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="termsOfUseContainer" BaseType="graph.entity">
@@ -5989,6 +6016,7 @@
       </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="countryLookupMethod" Type="graph.countryLookupMethodType" />
         <Property Name="includeUnknownCountriesAndRegions" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
@@ -9140,6 +9168,8 @@
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="participantJoiningResponse" Abstract="true" />
+      <ComplexType Name="acceptJoinResponse" BaseType="graph.participantJoiningResponse" />
       <ComplexType Name="mediaConfig" Abstract="true" />
       <ComplexType Name="appHostedMediaConfig" BaseType="graph.mediaConfig">
         <Property Name="blob" Type="Edm.String" />
@@ -9185,6 +9215,9 @@
         <Property Name="identity" Type="graph.identitySet" Nullable="false" />
         <Property Name="replacesCallId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="inviteNewBotResponse" BaseType="graph.participantJoiningResponse">
+        <Property Name="inviteUri" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="lobbyBypassSettings">
         <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
         <Property Name="scope" Type="graph.lobbyBypassScope" />
@@ -9228,6 +9261,9 @@
       <ComplexType Name="recordingInfo">
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="recordingStatus" Type="graph.recordingStatus" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="rejectJoinResponse" BaseType="graph.participantJoiningResponse">
+        <Property Name="reason" Type="graph.rejectReason" Nullable="false" />
       </ComplexType>
       <ComplexType Name="resultInfo">
         <Property Name="code" Type="Edm.Int32" Nullable="false" />
@@ -9304,6 +9340,13 @@
         <Property Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
       </EntityType>
       <EntityType Name="muteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="participantJoiningNotification" BaseType="graph.entity">
+        <NavigationProperty Name="call" Type="graph.call" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="participantLeftNotification" BaseType="graph.entity">
+        <Property Name="participantId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="call" Type="graph.call" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="playPromptOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="recordOperation" BaseType="graph.commsOperation" OpenType="true">
         <Property Name="recordingAccessToken" Type="Edm.String" />
@@ -9642,7 +9685,7 @@
         <Property Name="schedulingGroupId" Type="Edm.String" />
         <Property Name="sharedOpenShift" Type="graph.openShiftItem" />
       </EntityType>
-      <EntityType Name="openShiftChangeRequest" BaseType="graph.scheduleChangeRequest" Abstract="true">
+      <EntityType Name="openShiftChangeRequest" BaseType="graph.scheduleChangeRequest">
         <Property Name="openShiftId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="schedulingGroup" BaseType="graph.changeTrackedEntity">
@@ -9739,11 +9782,11 @@
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="linkedResources" Type="Collection(graph.linkedResource)" ContainsTarget="true" />
       </EntityType>
-      <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
-      <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
-      <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel" />
       <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team" />
       <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent" />
@@ -13200,6 +13243,11 @@
         <ReturnType Type="Collection(graph.appConsentRequest)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.approval)" />
+        <Parameter Name="on" Type="graph.approvalFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.approval)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.userConsentRequest)" />
         <Parameter Name="on" Type="graph.consentRequestFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.userConsentRequest)" />
@@ -13947,6 +13995,7 @@
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="mediaConfig" Type="graph.mediaConfig" Nullable="false" />
         <Parameter Name="acceptedModalities" Type="Collection(graph.modality)" />
+        <Parameter Name="participantCapacity" Type="Edm.Int32" />
       </Action>
       <Action Name="cancelMediaProcessing" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -14494,6 +14543,7 @@
         <EntitySet Name="agreements" EntityType="microsoft.graph.agreement" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
+        <EntitySet Name="connections" EntityType="microsoft.graph.externalConnectors.externalConnection" />
         <EntitySet Name="chats" EntityType="microsoft.graph.chat" />
         <EntitySet Name="teams" EntityType="microsoft.graph.team">
           <NavigationPropertyBinding Path="group" Target="groups" />
@@ -14647,6 +14697,7 @@
         </Singleton>
         <Singleton Name="print" Type="microsoft.graph.print" />
         <Singleton Name="security" Type="microsoft.graph.security" />
+        <Singleton Name="external" Type="microsoft.graph.externalConnectors.external" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
@@ -15536,23 +15587,23 @@
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationClass/course">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.courseNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseNumber" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.description" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseDescription" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_CourseId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="course.subject" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseSubject" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="courseNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseNumber" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="description" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseDescription" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_CourseId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="subject" String="extension_fe2174665583431c953114ff7268b7b3_Education_CourseSubject" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationClass/createdBy">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationClass/term">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.endDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermEndDate" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TermId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="term.startDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermStartDate" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="endDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermEndDate" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TermId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="startDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_TermStartDate" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationRoot/classes">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -15612,52 +15663,52 @@
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/createdBy">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/mailingAddress">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="mailingAddress.city" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingCity" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="mailingAddress.countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingCountry" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="mailingAddress.postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingZip" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="mailingAddress.state" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingState" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="mailingAddress.street" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingAddress" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="city" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingCity" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingCountry" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingZip" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="state" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingState" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="street" String="extension_fe2174665583431c953114ff7268b7b3_Education_MailingAddress" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/onPremisesInfo">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="onPremisesInfo.immutableId" String="onPremisesImmutableId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="immutableId" String="onPremisesImmutableId" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/residenceAddress">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="residenceAddress.city" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceCity" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="residenceAddress.countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceCountry" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="residenceAddress.postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceZip" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="residenceAddress.state" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceState" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="residenceAddress.street" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceAddress" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="city" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceCity" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceCountry" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceZip" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="state" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceState" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="street" String="extension_fe2174665583431c953114ff7268b7b3_Education_ResidenceAddress" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/student">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.birthDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_DateOfBirth" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_StudentId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.gender" String="extension_fe2174665583431c953114ff7268b7b3_Education_Gender" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.grade" String="extension_fe2174665583431c953114ff7268b7b3_Education_Grade" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.graduationYear" String="extension_fe2174665583431c953114ff7268b7b3_Education_GraduationYear" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="student.studentNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_StudentNumber" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="birthDate" String="extension_fe2174665583431c953114ff7268b7b3_Education_DateOfBirth" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_StudentId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="gender" String="extension_fe2174665583431c953114ff7268b7b3_Education_Gender" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="grade" String="extension_fe2174665583431c953114ff7268b7b3_Education_Grade" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="graduationYear" String="extension_fe2174665583431c953114ff7268b7b3_Education_GraduationYear" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="studentNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_StudentNumber" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationUser/teacher">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="teacher.externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TeacherId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="teacher.teacherNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_TeacherNumber" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="externalId" String="extension_fe2174665583431c953114ff7268b7b3_Education_SyncSource_TeacherId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="teacherNumber" String="extension_fe2174665583431c953114ff7268b7b3_Education_TeacherNumber" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationSchool/address">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.city" String="extension_fe2174665583431c953114ff7268b7b3_Education_City" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_Country" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_Zip" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.state" String="extension_fe2174665583431c953114ff7268b7b3_Education_State" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="address.street" String="extension_fe2174665583431c953114ff7268b7b3_Education_Address" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="city" String="extension_fe2174665583431c953114ff7268b7b3_Education_City" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="countryOrRegion" String="extension_fe2174665583431c953114ff7268b7b3_Education_Country" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="postalCode" String="extension_fe2174665583431c953114ff7268b7b3_Education_Zip" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="state" String="extension_fe2174665583431c953114ff7268b7b3_Education_State" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="street" String="extension_fe2174665583431c953114ff7268b7b3_Education_Address" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationSchool/createdBy">
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
-        <Annotation Term="graph.TransparentContainerProperty" Qualifier="createdBy.user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="application.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByAppId" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.displayName" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserDisplayName" />
+        <Annotation Term="graph.TransparentContainerProperty" Qualifier="user.id" String="extension_fe2174665583431c953114ff7268b7b3_Education_CreatedByUserId" />
       </Annotations>
       <Annotations Target="microsoft.graph.appScope/displayName">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
@@ -23139,6 +23190,41 @@
       <Annotations Target="microsoft.graph.disconnect(microsoft.graph.remoteAssistancePartner)">
         <Annotation Term="Org.OData.Core.V1.Description" String="A request to remove the active TeamViewer connector" />
       </Annotations>
+      <Annotations Target="microsoft.graph.driveItem/workbook">
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Navigability">
+              <EnumMember>Org.OData.Capabilities.V1.NavigationType/None</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/joinedGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="IndexableByKey" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/users">
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="IndexableByKey" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="callType">
@@ -23387,19 +23473,109 @@
       </EntityType>
     </Schema>
     <Schema Namespace="microsoft.graph.externalConnectors" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="accessType">
+        <Member Name="grant" Value="1" />
+        <Member Name="deny" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="aclType">
+        <Member Name="user" Value="1" />
+        <Member Name="group" Value="2" />
+        <Member Name="everyone" Value="3" />
+        <Member Name="everyoneExceptGuests" Value="4" />
+        <Member Name="externalGroup" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="connectionOperationStatus">
+        <Member Name="unspecified" Value="0" />
+        <Member Name="inprogress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="connectionState">
+        <Member Name="draft" Value="1" />
+        <Member Name="ready" Value="2" />
+        <Member Name="obsolete" Value="3" />
+        <Member Name="limitExceeded" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="externalItemContentType">
         <Member Name="text" Value="1" />
         <Member Name="html" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="label">
+        <Member Name="title" Value="0" />
+        <Member Name="url" Value="1" />
+        <Member Name="createdBy" Value="2" />
+        <Member Name="lastModifiedBy" Value="3" />
+        <Member Name="authors" Value="4" />
+        <Member Name="createdDateTime" Value="5" />
+        <Member Name="lastModifiedDateTime" Value="6" />
+        <Member Name="fileName" Value="7" />
+        <Member Name="fileExtension" Value="8" />
+        <Member Name="unknownFutureValue" Value="9" />
+      </EnumType>
+      <EnumType Name="propertyType">
+        <Member Name="string" Value="0" />
+        <Member Name="int64" Value="1" />
+        <Member Name="double" Value="2" />
+        <Member Name="dateTime" Value="3" />
+        <Member Name="boolean" Value="4" />
+        <Member Name="stringCollection" Value="5" />
+        <Member Name="int64Collection" Value="6" />
+        <Member Name="doubleCollection" Value="7" />
+        <Member Name="dateTimeCollection" Value="8" />
+        <Member Name="unknownFutureValue" Value="9" />
+      </EnumType>
+      <ComplexType Name="acl">
+        <Property Name="accessType" Type="microsoft.graph.externalConnectors.accessType" Nullable="false" />
+        <Property Name="type" Type="microsoft.graph.externalConnectors.aclType" Nullable="false" />
+        <Property Name="value" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="configuration" OpenType="true">
+        <Property Name="authorizedAppIds" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="externalItemContent">
         <Property Name="type" Type="microsoft.graph.externalConnectors.externalItemContentType" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="properties" OpenType="true" />
+      <ComplexType Name="property">
+        <Property Name="aliases" Type="Collection(Edm.String)" />
+        <Property Name="isQueryable" Type="Edm.Boolean" />
+        <Property Name="isRefinable" Type="Edm.Boolean" />
+        <Property Name="isRetrievable" Type="Edm.Boolean" />
+        <Property Name="isSearchable" Type="Edm.Boolean" />
+        <Property Name="labels" Type="Collection(microsoft.graph.externalConnectors.label)" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="type" Type="microsoft.graph.externalConnectors.propertyType" Nullable="false" />
+      </ComplexType>
+      <EntityType Name="connectionOperation" BaseType="graph.entity">
+        <Property Name="error" Type="graph.publicError" />
+        <Property Name="status" Type="microsoft.graph.externalConnectors.connectionOperationStatus" />
+      </EntityType>
+      <EntityType Name="external">
+        <NavigationProperty Name="connections" Type="Collection(microsoft.graph.externalConnectors.externalConnection)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="externalConnection" BaseType="graph.entity">
+        <Property Name="configuration" Type="microsoft.graph.externalConnectors.configuration" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="state" Type="microsoft.graph.externalConnectors.connectionState" />
+        <NavigationProperty Name="items" Type="Collection(microsoft.graph.externalConnectors.externalItem)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.externalConnectors.connectionOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="schema" Type="microsoft.graph.externalConnectors.schema" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="externalItem" BaseType="graph.entity">
+        <Property Name="acl" Type="Collection(microsoft.graph.externalConnectors.acl)" />
         <Property Name="content" Type="microsoft.graph.externalConnectors.externalItemContent" />
         <Property Name="properties" Type="microsoft.graph.externalConnectors.properties" />
+      </EntityType>
+      <EntityType Name="schema" BaseType="graph.entity">
+        <Property Name="baseType" Type="Edm.String" Nullable="false" />
+        <Property Name="properties" Type="Collection(microsoft.graph.externalConnectors.property)" />
       </EntityType>
     </Schema>
   </edmx:DataServices>
