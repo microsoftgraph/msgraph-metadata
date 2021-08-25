@@ -501,6 +501,8 @@
       </xsl:element>
     </xsl:copy>
   </xsl:template>
+
+  <!-- Add Navigation Restrictions Annotations -->
   <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
     <xsl:copy>
       <xsl:apply-templates select="@* | node()"/>
@@ -559,6 +561,7 @@
       </xsl:element>
     </xsl:copy>
   </xsl:template>
+
   <!-- Add workbooks entity set if missing -->
   <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']">
     <xsl:copy>
