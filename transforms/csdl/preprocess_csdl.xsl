@@ -559,4 +559,8 @@
       </xsl:element>
     </xsl:copy>
   </xsl:template>
+
+  <!-- Remove directoryObject Capability Annotations -->
+  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+
 </xsl:stylesheet>
