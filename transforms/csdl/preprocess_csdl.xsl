@@ -559,4 +559,17 @@
       </xsl:element>
     </xsl:copy>
   </xsl:template>
+  <!-- Add workbooks entity set if missing -->
+  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']">
+    <xsl:copy>
+      <xsl:apply-templates select="@*"/>
+      <xsl:if test="not(edm:EntitySet[@Name='workbooks'])">
+        <xsl:element name="EntitySet">
+          <xsl:attribute name="Name">workbooks</xsl:attribute>
+          <xsl:attribute name="EntityType">microsoft.graph.driveItem</xsl:attribute>
+        </xsl:element>
+      </xsl:if>
+      <xsl:apply-templates select="node()"/>
+    </xsl:copy>
+  </xsl:template>
 </xsl:stylesheet>
