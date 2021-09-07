@@ -2792,6 +2792,12 @@
         <Member Name="administrator" Value="3" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="broadcastMeetingAudience">
+        <Member Name="roleIsAttendee" Value="0" />
+        <Member Name="organization" Value="1" />
+        <Member Name="everyone" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="callDirection">
         <Member Name="incoming" Value="0" />
         <Member Name="outgoing" Value="1" />
@@ -2868,6 +2874,7 @@
         <Member Name="attendee" Value="0" />
         <Member Name="presenter" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="producer" Value="3" />
       </EnumType>
       <EnumType Name="recordingStatus">
         <Member Name="unknown" Value="0" />
@@ -4025,10 +4032,12 @@
         <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
         <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
+        <Property Name="broadcastSettings" Type="graph.broadcastMeetingSettings" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="externalId" Type="Edm.String" />
+        <Property Name="isBroadcast" Type="Edm.Boolean" />
         <Property Name="isEntryExitAnnounced" Type="Edm.Boolean" />
         <Property Name="joinInformation" Type="graph.itemBody" />
         <Property Name="joinWebUrl" Type="Edm.String" />
@@ -5673,6 +5682,7 @@
         <Property Name="folder" Type="graph.folder" />
         <Property Name="image" Type="graph.image" />
         <Property Name="location" Type="graph.geoCoordinates" />
+        <Property Name="malware" Type="graph.malware" />
         <Property Name="package" Type="graph.package" />
         <Property Name="pendingOperations" Type="graph.pendingOperations" />
         <Property Name="photo" Type="graph.photo" />
@@ -5746,6 +5756,9 @@
       <ComplexType Name="image">
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="malware">
+        <Property Name="description" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="package">
         <Property Name="type" Type="Edm.String" />
@@ -10302,6 +10315,13 @@
         <Property Name="tollFreeNumber" Type="Edm.String" />
         <Property Name="tollNumber" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="broadcastMeetingSettings">
+        <Property Name="allowedAudience" Type="graph.broadcastMeetingAudience" />
+        <Property Name="isAttendeeReportEnabled" Type="Edm.Boolean" />
+        <Property Name="isQuestionAndAnswerEnabled" Type="Edm.Boolean" />
+        <Property Name="isRecordingEnabled" Type="Edm.Boolean" />
+        <Property Name="isVideoOnDemandEnabled" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="callMediaState">
         <Property Name="audio" Type="graph.mediaState" />
       </ComplexType>
@@ -10568,6 +10588,9 @@
       <ComplexType Name="operationError">
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="provisionChannelEmailResult">
+        <Property Name="email" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="teamClassSettings">
         <Property Name="notifyGuardiansAboutAssignments" Type="Edm.Boolean" />
@@ -11233,14 +11256,14 @@
       <Action Name="publish" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
       </Action>
-      <Function Name="setUpResourcesFolder" IsBound="true">
+      <Action Name="setUpResourcesFolder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.educationAssignment" />
         <ReturnType Type="graph.educationAssignment" />
-      </Function>
-      <Function Name="setUpResourcesFolder" IsBound="true">
+      </Action>
+      <Action Name="setUpResourcesFolder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
         <ReturnType Type="graph.educationSubmission" />
-      </Function>
+      </Action>
       <Action Name="return" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
         <ReturnType Type="graph.educationSubmission" />
@@ -15524,6 +15547,13 @@
         <Parameter Name="previewText" Type="graph.itemBody" />
         <Parameter Name="templateParameters" Type="Collection(graph.keyValuePair)" />
       </Action>
+      <Action Name="provisionEmail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+        <ReturnType Type="graph.provisionChannelEmailResult" />
+      </Action>
+      <Action Name="removeEmail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+      </Action>
       <Action Name="upgrade" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
       </Action>
@@ -19218,6 +19248,36 @@
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityProvider">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-08-24" />
+              <PropertyValue Property="Description" String="The identityProvider API is deprecated and will stop returning data on March 2023. Please use the new identityProviderBase API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-03-15" />
+              <PropertyValue Property="Version" String="2021-05/identityProvider" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.b2xIdentityUserFlow/identityProviders">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-08-24" />
+              <PropertyValue Property="Description" String="The identityProvider API is deprecated and will stop returning data on March 2023. Please use the new identityProviderBase API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-03-15" />
+              <PropertyValue Property="Version" String="2021-05/identityProvider" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.administrativeUnit">
@@ -26817,6 +26877,21 @@
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.availableProviderTypes(Collection(microsoft.graph.identityProvider))">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-08-24" />
+              <PropertyValue Property="Description" String="The identityProvider API is deprecated and will stop returning data on March 2023. Please use the new identityProviderBase API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-03-15" />
+              <PropertyValue Property="Version" String="2021-05/identityProvider" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.removeAllDevicesFromManagement(microsoft.graph.user)">
