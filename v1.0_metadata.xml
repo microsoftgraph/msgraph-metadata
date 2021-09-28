@@ -121,9 +121,6 @@
         <Member Name="group" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
-      <EnumType Name="authenticatorAppFeatureSettings" IsFlags="true">
-        <Member Name="requireNumberMatching" Value="1" />
-      </EnumType>
       <EnumType Name="externalEmailOtpState">
         <Member Name="default" Value="0" />
         <Member Name="enabled" Value="1" />
@@ -1657,6 +1654,10 @@
         <Member Name="listItem" Value="7" />
         <Member Name="drive" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
+      </EnumType>
+      <EnumType Name="searchAlterationType">
+        <Member Name="suggestion" Value="0" />
+        <Member Name="modification" Value="1" />
       </EnumType>
       <EnumType Name="plannerPreviewType">
         <Member Name="automatic" Value="0" />
@@ -4299,7 +4300,6 @@
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
         <Property Name="authenticationMode" Type="graph.microsoftAuthenticatorAuthenticationMode" Nullable="false" />
-        <Property Name="featureSettings" Type="graph.authenticatorAppFeatureSettings" />
       </EntityType>
       <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="authenticationMethodsPolicy" Type="graph.authenticationMethodsPolicy" ContainsTarget="true" />
@@ -4607,6 +4607,8 @@
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="grantedTo" Type="graph.identitySet" />
         <Property Name="grantedToIdentities" Type="Collection(graph.identitySet)" />
+        <Property Name="grantedToIdentitiesV2" Type="Collection(graph.sharePointIdentitySet)" />
+        <Property Name="grantedToV2" Type="graph.sharePointIdentitySet" />
         <Property Name="hasPassword" Type="Edm.Boolean" />
         <Property Name="inheritedFrom" Type="graph.itemReference" />
         <Property Name="invitation" Type="graph.sharingInvitation" />
@@ -6419,6 +6421,14 @@
       </ComplexType>
       <ComplexType Name="storagePlanInformation">
         <Property Name="upgradeAvailable" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="sharePointIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="loginName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="sharePointIdentitySet" BaseType="graph.identitySet" OpenType="true">
+        <Property Name="group" Type="graph.identity" />
+        <Property Name="siteGroup" Type="graph.sharePointIdentity" />
+        <Property Name="siteUser" Type="graph.sharePointIdentity" />
       </ComplexType>
       <ComplexType Name="sharingInvitation">
         <Property Name="email" Type="Edm.String" />
@@ -9172,9 +9182,33 @@
         <Property Name="ranges" Type="Collection(graph.bucketAggregationRange)" />
         <Property Name="sortBy" Type="graph.bucketAggregationSortProperty" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="alterationResponse">
+        <Property Name="originalQueryString" Type="Edm.String" />
+        <Property Name="queryAlteration" Type="graph.searchAlteration" />
+        <Property Name="queryAlterationType" Type="graph.searchAlterationType" />
+      </ComplexType>
+      <ComplexType Name="searchAlteration">
+        <Property Name="alteredHighlightedQueryString" Type="Edm.String" />
+        <Property Name="alteredQueryString" Type="Edm.String" />
+        <Property Name="alteredQueryTokens" Type="Collection(graph.alteredQueryToken)" />
+      </ComplexType>
+      <ComplexType Name="alteredQueryToken">
+        <Property Name="length" Type="Edm.Int32" />
+        <Property Name="offset" Type="Edm.Int32" />
+        <Property Name="suggestion" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="bucketAggregationRange">
         <Property Name="from" Type="Edm.String" Nullable="false" />
         <Property Name="to" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="resultTemplate">
+        <Property Name="body" Type="graph.Json" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="Dictionary" OpenType="true" />
+      <ComplexType Name="resultTemplateDictionary" BaseType="graph.Dictionary" OpenType="true" />
+      <ComplexType Name="resultTemplateOption">
+        <Property Name="enableResultTemplate" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="searchAggregation">
         <Property Name="buckets" Type="Collection(graph.searchBucket)" />
@@ -9185,10 +9219,15 @@
         <Property Name="count" Type="Edm.Int32" />
         <Property Name="key" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="searchAlterationOptions">
+        <Property Name="enableModification" Type="Edm.Boolean" />
+        <Property Name="enableSuggestion" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="searchHit">
         <Property Name="contentSource" Type="Edm.String" />
         <Property Name="hitId" Type="Edm.String" />
         <Property Name="rank" Type="Edm.Int32" />
+        <Property Name="resultTemplateId" Type="Edm.String" />
         <Property Name="summary" Type="Edm.String" />
         <NavigationProperty Name="resource" Type="graph.entity" ContainsTarget="true" />
       </ComplexType>
@@ -9210,6 +9249,7 @@
         <Property Name="fields" Type="Collection(Edm.String)" />
         <Property Name="from" Type="Edm.Int32" Nullable="false" />
         <Property Name="query" Type="graph.searchQuery" Nullable="false" />
+        <Property Name="resultTemplateOptions" Type="graph.resultTemplateOption" />
         <Property Name="size" Type="Edm.Int32" Nullable="false" />
         <Property Name="sortProperties" Type="Collection(graph.sortProperty)" />
       </ComplexType>
@@ -9218,7 +9258,12 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="searchResponse">
+        <Property Name="queryAlterationResponse" Type="graph.alterationResponse" />
+        <Property Name="value" Type="Collection(graph.searchResultSet)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="searchResultSet">
         <Property Name="hitsContainers" Type="Collection(graph.searchHitsContainer)" />
+        <Property Name="resultTemplates" Type="graph.resultTemplateDictionary" />
         <Property Name="searchTerms" Type="Collection(Edm.String)" />
       </ComplexType>
       <EntityType Name="searchEntity" BaseType="graph.entity" />
@@ -10263,6 +10308,12 @@
       <ComplexType Name="changeNotificationCollection">
         <Property Name="validationTokens" Type="Collection(Edm.String)" />
         <Property Name="value" Type="Collection(graph.changeNotification)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="actionResultPart" Abstract="true">
+        <Property Name="error" Type="graph.publicError" />
+      </ComplexType>
+      <ComplexType Name="aadUserConversationMemberResult" BaseType="graph.actionResultPart">
+        <Property Name="userId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="teamworkNotificationRecipient" Abstract="true" />
       <ComplexType Name="aadUserNotificationRecipient" BaseType="graph.teamworkNotificationRecipient">
@@ -13345,6 +13396,11 @@
         <Parameter Name="value" Type="Collection(graph.site)" />
         <ReturnType Type="Collection(graph.site)" />
       </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.conversationMember)" />
+        <Parameter Name="values" Type="Collection(graph.conversationMember)" />
+        <ReturnType Type="Collection(graph.actionResultPart)" />
+      </Action>
       <Function Name="item" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
@@ -15046,7 +15102,8 @@
       <Action Name="query" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.searchEntity" />
         <Parameter Name="requests" Type="Collection(graph.searchRequest)" Nullable="false" />
-        <ReturnType Type="Collection(graph.searchResponse)" Nullable="false" />
+        <Parameter Name="queryAlterationOptions" Type="graph.searchAlterationOptions" />
+        <ReturnType Type="graph.searchResponse" Nullable="false" />
       </Action>
       <Action Name="copyNotebook" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.notebook" />
@@ -19397,6 +19454,36 @@
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.permission/grantedTo">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-09-03" />
+              <PropertyValue Property="Description" String="The grantedTo property is deprecated. Please refer to grantedToV2" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-10-01" />
+              <PropertyValue Property="Version" String="2021-09/Removal" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.permission/grantedToIdentities">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2021-09-03" />
+              <PropertyValue Property="Description" String="The grantedToIdentities property is deprecated. Please refer to grantedToIdentitiesV2" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-10-01" />
+              <PropertyValue Property="Version" String="2021-09/Removal" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.agreement">
