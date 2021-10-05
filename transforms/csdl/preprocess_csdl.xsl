@@ -285,7 +285,10 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
-    <!-- Remove ContainsTarget -->
+    <!-- Remove ContainsTarget
+         For microsoft.graph.sharedDriveItem/site this is a temp. fix
+         so as to help further reduce the size of the converted OpenAPI
+         Files module for AutoREST cmdlet generation for PowerShell -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='channel']/edm:NavigationProperty[@Name='filesFolder']/@ContainsTarget|
@@ -301,7 +304,8 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityOLD']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivity']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleGroups']/@ContainsTarget">
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleGroups']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='site']/@ContainsTarget">
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
@@ -554,6 +558,50 @@
       <!-- Remove indexability for users navigation property -->
       <xsl:element name="Annotations">
         <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <!-- Remove indexability for drives navigation property for user entity type.
+           This is a temp. fix so as to reduce the size of the converted OpenAPI
+           Files module (~10MB to ~5MB for beta) for AutoREST cmdlet generation for PowerShell -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.user/drives</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <!-- Remove indexability for drives navigation property for group entity type.
+           This is a temp. fix so as to reduce the size of the converted OpenAPI
+           Files module (~10MB to ~5MB for beta) for AutoREST cmdlet generation for PowerShell -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.group/drives</xsl:attribute>
         <xsl:element name="Annotation">
           <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
           <xsl:element name="Record" namespace="{namespace-uri()}">
