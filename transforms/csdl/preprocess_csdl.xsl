@@ -571,6 +571,68 @@
           </xsl:element>
         </xsl:element>
       </xsl:element>
+      <!-- Set false indexabilities for:
+           microsoft.graph.user/drive | microsoft.graph.group/drive | microsoft.graph.sharedDriveItem/site
+           These will restrict expanding these containment navigation properties.
+           This is a temp. fix so as to reduce the size of the converted OpenAPI
+           Files module (~10MB to ~5.5MB for beta) for PowerShell AutoREST cmdlet generation -->
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.user/drive</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.group/drive</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="Annotations">
+        <xsl:attribute name="Target">microsoft.graph.sharedDriveItem/site</xsl:attribute>
+        <xsl:element name="Annotation">
+          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+          <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+              <xsl:element name="Collection">
+                <xsl:element name="Record">
+                  <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                  </xsl:element>
+                </xsl:element>
+              </xsl:element>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+      </xsl:element>
     </xsl:copy>
   </xsl:template>
 
