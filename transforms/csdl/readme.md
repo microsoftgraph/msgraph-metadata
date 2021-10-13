@@ -34,6 +34,6 @@ Please use fully qualified and precise template match statements so as not to pe
 1. Clone this repo.
 2. Open Visual Studio without a project.
 3. Open a metadata file from your local repo: `beta_metadata.xml` or `v1.0_metadata.xml`.
-4. Add `<?xml-stylesheet type='text/xsl' href='..\transforms\csdl\preprocess_csdl.xsl'?>` under the first XML declaration in the metadata file. If the XML declaration is missing, add it to the top of the file first: `<?xml version="1.0" encoding="utf-8"?>`
+4. Add `<?xml-stylesheet type='text/xsl' href='.\transforms\csdl\preprocess_csdl.xsl'?>` under the first XML declaration in the metadata file. If the XML declaration is missing, add it to the top of the file first: `<?xml version="1.0" encoding="utf-8"?>`
 5. From the top menu in Visual Studio, select XML > Start XSLT Without Debugging or Alt + F5. This will result in a transformed metadata file which will be created in your %AppData%. It will be opened in Visual Studio.
 6. Inspect the transformed file output file for the expected changes.
