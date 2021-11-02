@@ -26540,6 +26540,11 @@
       </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.ediscovery" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="additionalDataOptions" IsFlags="true">
+        <Member Name="allVersions" Value="1" />
+        <Member Name="linkedFiles" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="caseAction">
         <Member Name="contentExport" Value="0" />
         <Member Name="applyTags" Value="1" />
@@ -26582,6 +26587,20 @@
         <Member Name="allCaseNoncustodialDataSources" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
       </EnumType>
+      <EnumType Name="exportFileStructure">
+        <Member Name="none" Value="0" />
+        <Member Name="directory" Value="1" />
+        <Member Name="pst" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="exportOptions" IsFlags="true">
+        <Member Name="originalFiles" Value="1" />
+        <Member Name="text" Value="2" />
+        <Member Name="pdfReplacement" Value="4" />
+        <Member Name="fileInfo" Value="8" />
+        <Member Name="tags" Value="16" />
+        <Member Name="unknownFutureValue" Value="32" />
+      </EnumType>
       <EnumType Name="legalHoldStatus">
         <Member Name="Pending" Value="0" />
         <Member Name="Error" Value="1" />
@@ -26612,6 +26631,40 @@
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="topicCount" Type="Edm.Int32" />
       </ComplexType>
+      <EntityType Name="caseOperation" BaseType="graph.entity">
+        <Property Name="action" Type="microsoft.graph.ediscovery.caseAction" />
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="percentProgress" Type="Edm.Int32" />
+        <Property Name="resultInfo" Type="graph.resultInfo" />
+        <Property Name="status" Type="microsoft.graph.ediscovery.caseOperationStatus" />
+      </EntityType>
+      <EntityType Name="addToReviewSetOperation" BaseType="microsoft.graph.ediscovery.caseOperation">
+        <NavigationProperty Name="reviewSet" Type="microsoft.graph.ediscovery.reviewSet" />
+        <NavigationProperty Name="sourceCollection" Type="microsoft.graph.ediscovery.sourceCollection" />
+      </EntityType>
+      <EntityType Name="reviewSet" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <NavigationProperty Name="queries" Type="Collection(microsoft.graph.ediscovery.reviewSetQuery)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="sourceCollection" BaseType="graph.entity">
+        <Property Name="contentQuery" Type="Edm.String" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="dataSourceScopes" Type="microsoft.graph.ediscovery.dataSourceScopes" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="additionalSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" ContainsTarget="true" />
+        <NavigationProperty Name="addToReviewSetOperation" Type="microsoft.graph.ediscovery.addToReviewSetOperation" />
+        <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" />
+        <NavigationProperty Name="lastEstimateStatisticsOperation" Type="microsoft.graph.ediscovery.estimateStatisticsOperation" />
+        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.ediscovery.noncustodialDataSource)" />
+      </EntityType>
       <EntityType Name="case" BaseType="graph.entity">
         <Property Name="closedBy" Type="graph.identitySet" />
         <Property Name="closedDateTime" Type="Edm.DateTimeOffset" />
@@ -26665,39 +26718,10 @@
         <Property Name="applyHoldToSource" Type="Edm.Boolean" />
         <NavigationProperty Name="dataSource" Type="microsoft.graph.ediscovery.dataSource" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="caseOperation" BaseType="graph.entity">
-        <Property Name="action" Type="microsoft.graph.ediscovery.caseAction" />
-        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="createdBy" Type="graph.identitySet" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="percentProgress" Type="Edm.Int32" />
-        <Property Name="resultInfo" Type="graph.resultInfo" />
-        <Property Name="status" Type="microsoft.graph.ediscovery.caseOperationStatus" />
-      </EntityType>
-      <EntityType Name="reviewSet" BaseType="graph.entity">
-        <Property Name="createdBy" Type="graph.identitySet" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="displayName" Type="Edm.String" />
-        <NavigationProperty Name="queries" Type="Collection(microsoft.graph.ediscovery.reviewSetQuery)" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="caseSettings" BaseType="graph.entity">
         <Property Name="ocr" Type="microsoft.graph.ediscovery.ocrSettings" />
         <Property Name="redundancyDetection" Type="microsoft.graph.ediscovery.redundancyDetectionSettings" />
         <Property Name="topicModeling" Type="microsoft.graph.ediscovery.topicModelingSettings" />
-      </EntityType>
-      <EntityType Name="sourceCollection" BaseType="graph.entity">
-        <Property Name="contentQuery" Type="Edm.String" />
-        <Property Name="createdBy" Type="graph.identitySet" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="dataSourceScopes" Type="microsoft.graph.ediscovery.dataSourceScopes" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="lastModifiedBy" Type="graph.identitySet" />
-        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="additionalSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" ContainsTarget="true" />
-        <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.ediscovery.dataSource)" />
-        <NavigationProperty Name="lastEstimateStatisticsOperation" Type="microsoft.graph.ediscovery.estimateStatisticsOperation" />
-        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.ediscovery.noncustodialDataSource)" />
       </EntityType>
       <EntityType Name="tag" BaseType="graph.entity">
         <Property Name="childSelectability" Type="microsoft.graph.ediscovery.childSelectability" />
@@ -26707,6 +26731,16 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <NavigationProperty Name="childTags" Type="Collection(microsoft.graph.ediscovery.tag)" />
         <NavigationProperty Name="parent" Type="microsoft.graph.ediscovery.tag" />
+      </EntityType>
+      <EntityType Name="caseExportOperation" BaseType="microsoft.graph.ediscovery.caseOperation">
+        <Property Name="azureBlobContainer" Type="Edm.String" />
+        <Property Name="azureBlobToken" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="exportOptions" Type="microsoft.graph.ediscovery.exportOptions" />
+        <Property Name="exportStructure" Type="microsoft.graph.ediscovery.exportFileStructure" />
+        <Property Name="outputFolderId" Type="Edm.String" />
+        <Property Name="outputName" Type="Edm.String" />
+        <NavigationProperty Name="reviewSet" Type="microsoft.graph.ediscovery.reviewSet" />
       </EntityType>
       <EntityType Name="caseIndexOperation" BaseType="microsoft.graph.ediscovery.caseOperation" />
       <EntityType Name="dataSource" BaseType="graph.entity" Abstract="true">
@@ -26758,6 +26792,20 @@
       <Action Name="updateIndex" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.ediscovery.noncustodialDataSource" />
       </Action>
+      <Action Name="addToReviewSet" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.ediscovery.reviewSet" />
+        <Parameter Name="sourceCollection" Type="microsoft.graph.ediscovery.sourceCollection" />
+        <Parameter Name="additionalData" Type="microsoft.graph.ediscovery.additionalDataOptions" />
+      </Action>
+      <Action Name="export" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.ediscovery.reviewSet" />
+        <Parameter Name="outputName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="description" Type="Edm.String" Unicode="false" />
+        <Parameter Name="azureBlobContainer" Type="Edm.String" Unicode="false" />
+        <Parameter Name="azureBlobToken" Type="Edm.String" Unicode="false" />
+        <Parameter Name="exportOptions" Type="microsoft.graph.ediscovery.exportOptions" />
+        <Parameter Name="exportStructure" Type="microsoft.graph.ediscovery.exportFileStructure" Nullable="false" />
+      </Action>
       <Action Name="applyTags" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.ediscovery.reviewSetQuery" />
         <Parameter Name="tagsToAdd" Type="Collection(microsoft.graph.ediscovery.tag)" />
@@ -26778,6 +26826,10 @@
       <Function Name="asHierarchy" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.ediscovery.tag)" />
         <ReturnType Type="Collection(microsoft.graph.ediscovery.tag)" />
+      </Function>
+      <Function Name="getDownloadUrl" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.ediscovery.caseExportOperation" />
+        <ReturnType Type="Edm.String" Unicode="false" />
       </Function>
     </Schema>
     <Schema Namespace="microsoft.graph.termStore" xmlns="http://docs.oasis-open.org/odata/ns/edm">
