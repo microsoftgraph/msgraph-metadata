@@ -10,7 +10,7 @@ Please use fully qualified and precise template match statements so as not to pe
 
 ## Instructions for updating and validating transform
 
-1. Clone this repo or branch off from *master* if possible.
+1. Clone this repo or branch off from *master*. 
 2. Open Visual Studio without a project.
 3. From the top menu in Visual Studio, select File > Open > Folder (then navigate to your repo folder) > double-click on *transforms* folder to open it > Click on the *csdl* folder to highlight it, then choose Select Folder.
 4. Open the *preprocess_csdl.xsl* from the list of files. Make the transform change in this file.
