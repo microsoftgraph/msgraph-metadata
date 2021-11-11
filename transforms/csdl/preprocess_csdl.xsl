@@ -32,11 +32,13 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='androidWorkProfileScepCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='appVulnerabilityTask']/edm:NavigationProperty[@Name='managedDevices']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='appVulnerabilityTask']/edm:NavigationProperty[@Name='mobileApps']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='cloudPcProvisioningPolicy']/edm:NavigationProperty[@Name='assignments']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='memberOf']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectorGroup']/edm:NavigationProperty[@Name='members']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceManagementAbstractComplexSettingInstance']/edm:NavigationProperty[@Name='value']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceManagementCollectionSettingInstance']/edm:NavigationProperty[@Name='value']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceManagementComplexSettingInstance']/edm:NavigationProperty[@Name='value']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceManagementComplianceScheduledActionForRule']/edm:NavigationProperty[@Name='scheduledActionConfigurations']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='groupPolicyUploadedDefinitionFile']/edm:NavigationProperty[@Name='groupPolicyOperations']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='iosEnterpriseWiFiConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='iosImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
@@ -73,8 +75,7 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsPhone81ImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsPhone81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsUniversalAppX']/edm:NavigationProperty[@Name='committedContainedApps']|
-                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
-                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='cloudPcProvisioningPolicy']/edm:NavigationProperty[@Name='assignments']
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']
                          ">
       <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
