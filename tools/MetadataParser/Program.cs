@@ -7,11 +7,16 @@ using System;
 using Microsoft.OData.Edm;
 using Microsoft.OpenApi.OData;
 using Microsoft.OpenApi.Models;
+using System.Collections.Generic;
+using Microsoft.OData.Edm.Validation;
 
 IEdmModel edmModel;
 try
 {
-    edmModel = CsdlReader.Parse(XmlReader.Create(args[0]));
+    if (!CsdlReader.TryParse(XmlReader.Create(args[0]), true, out edmModel, out IEnumerable<EdmError> parseErrors))
+    {
+        throw new EdmParseException(parseErrors);
+    }
     Console.WriteLine("Parsing the metadata as an edm model was successful!");
 
     var settings = new OpenApiConvertSettings()
