@@ -641,6 +641,7 @@
         <Member Name="passwordHashSync" Value="2" />
         <Member Name="emailAsAlternateId" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="certificateBasedAuthentication" Value="5" />
       </EnumType>
       <EnumType Name="accessReviewInstanceDecisionItemFilterByCurrentUserOptions">
         <Member Name="reviewer" Value="1" />
@@ -8183,7 +8184,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the application used to create the subscription. Read-only." />
         </Property>
         <Property Name="changeType" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Indicates the type of change in the subscribed resource that will raise a change notification. The supported values are: created, updated, deleted. Multiple values can be combined using a comma-separated list.Note: Drive root item and list change notifications support only the updated changeType. User and group change notifications support updated and deleted changeType." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Indicates the type of change in the subscribed resource that will raise a change notification. The supported values are: created, updated, deleted. Multiple values can be combined using a comma-separated list. Note:  Drive root item and list change notifications support only the updated changeType. User and group change notifications support updated and deleted changeType." />
         </Property>
         <Property Name="clientState" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Specifies the value of the clientState property sent by the service in each change notification. The maximum length is 128 characters. The client can check that the change notification came from the service by comparing the value of the clientState property sent with the subscription with the value of the clientState property received with each change notification." />
@@ -8192,25 +8193,25 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the user or service principal that created the subscription. If the app used delegated permissions to create the subscription, this field contains the id of the signed-in user the app called on behalf of. If the app used application permissions, this field contains the id of the service principal corresponding to the app. Read-only." />
         </Property>
         <Property Name="encryptionCertificate" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A base64-encoded representation of a certificate with a public key used to encrypt resource data in change notifications. Optional. Required when includeResourceData is true." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A base64-encoded representation of a certificate with a public key used to encrypt resource data in change notifications. Optional but required when includeResourceData is true." />
         </Property>
         <Property Name="encryptionCertificateId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A custom app-provided identifier to help identify the certificate needed to decrypt resource data. Optional." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. A custom app-provided identifier to help identify the certificate needed to decrypt resource data." />
         </Property>
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the date and time when the webhook subscription expires. The time is in UTC, and can be an amount of time from subscription creation that varies for the resource subscribed to.  See the table below for maximum supported subscription length of time." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. Specifies the date and time when the webhook subscription expires. The time is in UTC, and can be an amount of time from subscription creation that varies for the resource subscribed to. For the maximum supported subscription length of time, see the table below." />
         </Property>
         <Property Name="includeResourceData" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="When set to true, change notifications include resource data (such as content of a chat message). Optional." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. When set to true, change notifications include resource data (such as content of a chat message)." />
         </Property>
         <Property Name="latestSupportedTlsVersion" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the latest version of Transport Layer Security (TLS) that the notification endpoint, specified by notificationUrl, supports. The possible values are: v1_0, v1_1, v1_2, v1_3. For subscribers whose notification endpoint supports a version lower than the currently recommended version (TLS 1.2), specifying this property by a set timeline allows them to temporarily use their deprecated version of TLS before completing their upgrade to TLS 1.2. For these subscribers, not setting this property per the timeline would result in subscription operations failing. For subscribers whose notification endpoint already supports TLS 1.2, setting this property is optional. In such cases, Microsoft Graph defaults the property to v1_2." />
         </Property>
         <Property Name="lifecycleNotificationUrl" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the endpoint that receives lifecycle notifications, including subscriptionRemoved and missed notifications. This URL must make use of the HTTPS protocol. Optional. Read more about how Outlook resources use lifecycle notifications." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. The URL of the endpoint that receives lifecycle notifications, including subscriptionRemoved and missed notifications. This URL must make use of the HTTPS protocol." />
         </Property>
         <Property Name="notificationQueryOptions" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="OData Query Options for specifying value for the targeting resource. Clients receive notifications when resource reaches the state matching the query options provided here. With this new property in the subscription creation payload along with all existing properties, Webhooks will deliver notifications whenever a resource reaches the desired state mentioned in the notificationQueryOptions property eg  when the print job is completed, when a print job resource isFetchable property value becomes true etc." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="OData query options for specifying value for the targeting resource. Clients receive notifications when resource reaches the state matching the query options provided here. With this new property in the subscription creation payload along with all existing properties, Webhooks will deliver notifications whenever a resource reaches the desired state mentioned in the notificationQueryOptions property. For example, when the print job is completed or when a print job resource isFetchable property value becomes true etc." />
         </Property>
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Required. The URL of the endpoint that will receive the change notifications. This URL must make use of the HTTPS protocol." />
@@ -9322,9 +9323,23 @@
         <Property Name="status" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the status of an accessReview. Possible values: Initializing, NotStarted, Starting, InProgress, Completing, Completed, AutoReviewing, and AutoReviewed. Supports $select, $orderby, and $filter (eq only). Read-only." />
         </Property>
+        <NavigationProperty Name="contactedReviewers" Type="Collection(graph.accessReviewReviewer)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns the collection of reviewers who were contacted to complete this review. While the reviewers and fallbackReviewers properties of the accessReviewScheduleDefinition might specify group owners or managers as reviewers, contactedReviewers returns their individual identities. Supports $select. Read-only." />
+        </NavigationProperty>
         <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewInstanceDecisionItem)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Each principal reviewed in an accessReviewInstance has a decision item representing if they were approved, denied, or not yet reviewed." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="accessReviewReviewer" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date when the reviewer was added for the access review." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of reviewer." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the user." />
+        </Property>
       </EntityType>
       <EntityType Name="accessReviewInstanceDecisionItem" BaseType="graph.entity" OpenType="true">
         <Property Name="accessReviewId" Type="Edm.String" Nullable="false">
@@ -18935,6 +18950,16 @@
         <Property Name="type" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Type of resource. Types include: Group, ServicePrincipal, DirectoryRole, AzureRole, AccessPackageAssignmentPolicy." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="accessReviewInstanceDecisionItemAccessPackageAssignmentPolicyResource" BaseType="graph.accessReviewInstanceDecisionItemResource" OpenType="true">
+        <Property Name="accessPackageDisplayName" Type="Edm.String" />
+        <Property Name="accessPackageId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accessReviewInstanceDecisionItemAzureRoleResource" BaseType="graph.accessReviewInstanceDecisionItemResource" OpenType="true">
+        <Property Name="scope" Type="graph.accessReviewInstanceDecisionItemResource" />
+      </ComplexType>
+      <ComplexType Name="accessReviewInstanceDecisionItemServicePrincipalResource" BaseType="graph.accessReviewInstanceDecisionItemResource" OpenType="true">
+        <Property Name="appId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="accessReviewNotificationRecipientItem" OpenType="true">
         <Property Name="notificationRecipientScope" Type="graph.accessReviewNotificationRecipientScope">
