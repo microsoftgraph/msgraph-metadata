@@ -670,6 +670,11 @@
         <Member Name="declined" Value="3" />
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
+      <EnumType Name="activityType">
+        <Member Name="signin" Value="0" />
+        <Member Name="user" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="cloudAppSecuritySessionControlType">
         <Member Name="mcasConfigured" Value="0" />
         <Member Name="monitorOnly" Value="1" />
@@ -722,9 +727,24 @@
         <Member Name="always" Value="0" />
         <Member Name="never" Value="1" />
       </EnumType>
+      <EnumType Name="riskDetectionTimingType">
+        <Member Name="notDefined" Value="0" />
+        <Member Name="realtime" Value="1" />
+        <Member Name="nearRealtime" Value="2" />
+        <Member Name="offline" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="signinFrequencyType">
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
+      </EnumType>
+      <EnumType Name="tokenIssuerType">
+        <Member Name="AzureAD" Value="0" />
+        <Member Name="ADFederationServices" Value="1" />
+        <Member Name="UnknownFutureValue" Value="2" />
+        <Member Name="AzureADBackupAuth" Value="3" />
+        <Member Name="ADFederationServicesMFAAdapter" Value="4" />
+        <Member Name="NPSExtension" Value="5" />
       </EnumType>
       <EnumType Name="accessPackageAssignmentFilterByCurrentUserOptions">
         <Member Name="target" Value="1" />
@@ -3738,7 +3758,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The plans that are provisioned for the user. Read-only. Not nullable. Returned only on $select. Supports $filter (eq, not, ge, le)." />
         </Property>
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. For Azure AD B2C accounts, this property has a limit of ten unique addresses. Read-only, Not nullable. Returned only on $select. Supports $filter (eq, not, ge, le, startsWith)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. The proxy address prefixed with SMTP (capitalized) is the primary proxy address while those prefixed with smtp are the secondary proxy addresses. For Azure AD B2C accounts, this property has a limit of ten unique addresses. Read-only in Microsoft Graph; you can update this property only through the Microsoft 365 admin center. Not nullable. Returned only on $select. Supports $filter (eq, not, ge, le, startsWith)." />
         </Property>
         <Property Name="showInAddressList" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the Outlook global address list should contain this user, otherwise false. If not set, this will be treated as true. For users invited through the invitation manager, this property will be set to false. Returned only on $select. Supports $filter (eq, ne, not, in)." />
@@ -3765,7 +3785,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="A string value that can be used to classify user types in your directory, such as Member and Guest. Returned only on $select. Supports $filter (eq, ne, not, in, and eq on null values). NOTE: For more information about the permissions for member and guest users, see What are the default user permissions in Azure Active Directory?" />
         </Property>
         <Property Name="mailboxSettings" Type="graph.mailboxSettings">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Settings for the primary mailbox of the signed-in user. You can get or update settings for sending automatic replies to incoming messages, locale and time zone.Returned only on $select." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Settings for the primary mailbox of the signed-in user. You can get or update settings for sending automatic replies to incoming messages, locale and time zone. Returned only on $select." />
         </Property>
         <Property Name="deviceEnrollmentLimit" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The limit on the maximum number of devices that the user is permitted to enroll. Allowed values are 5 or 1000." />
@@ -5205,7 +5225,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the keyId of a public key from the keyCredentials collection. When configured, Azure AD encrypts all the tokens it emits by using the key this property points to. The application code that receives the encrypted token must use the matching private key to decrypt the token before it can be used for the signed-in user." />
         </Property>
         <Property Name="verifiedPublisher" Type="graph.verifiedPublisher">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the verified publisher of the application." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the verified publisher of the application. For more information about how publisher verification helps support application security, trustworthiness, and compliance, see Publisher verification." />
         </Property>
         <Property Name="web" Type="graph.webApplication">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies settings for a web application." />
@@ -8048,7 +8068,7 @@
       </EntityType>
       <EntityType Name="driveItem" BaseType="graph.baseItem" OpenType="true">
         <Property Name="audio" Type="graph.audio">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Audio metadata, if the item is an audio file. Read-only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Audio metadata, if the item is an audio file. Read-only. Only on OneDrive Personal." />
         </Property>
         <Property Name="bundle" Type="graph.bundle" />
         <Property Name="content" Type="Edm.Stream">
@@ -9750,12 +9770,115 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="true if IP addresses that don't map to a country or region should be included in the named location. Optional. Default value is false." />
         </Property>
       </EntityType>
+      <EntityType Name="identityProtectionRoot">
+        <NavigationProperty Name="riskDetections" Type="Collection(graph.riskDetection)" ContainsTarget="true" />
+        <NavigationProperty Name="riskyUsers" Type="Collection(graph.riskyUser)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="riskDetection" BaseType="graph.entity">
+        <Property Name="activity" Type="graph.activityType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the activity type the detected risk is linked to. . Possible values are: signin, user, unknownFutureValue." />
+        </Property>
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time that the risky activity occurred. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is look like this: 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="additionalInfo" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Additional information associated with the risk detection in JSON format." />
+        </Property>
+        <Property Name="correlationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Correlation ID of the sign-in associated with the risk detection. This property is null if the risk detection is not associated with a sign-in." />
+        </Property>
+        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time that the risk was detected. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is look like this: 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timing of the detected risk (real-time/offline). Possible values are: notDefined, realtime, nearRealtime, offline, unknownFutureValue." />
+        </Property>
+        <Property Name="ipAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides the IP address of the client from where the risk occurred." />
+        </Property>
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time that the risk detection was last updated. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is look like this: 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="location" Type="graph.signInLocation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Location of the sign-in." />
+        </Property>
+        <Property Name="requestId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Request ID of the sign-in associated with the risk detection. This property is null if the risk detection is not associated with a sign-in." />
+        </Property>
+        <Property Name="riskDetail" Type="graph.riskDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Details of the detected risk. Possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, hidden, adminConfirmedUserCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="riskEventType" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected. The possible values are unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence, generic,adminConfirmedUserCompromised, mcasImpossibleTravel, mcasSuspiciousInboxManipulationRules, investigationsThreatIntelligenceSigninLinked, maliciousIPAddressValidCredentialsBlockedIP, and unknownFutureValue. If the risk detection is a premium detection, will show generic" />
+        </Property>
+        <Property Name="riskLevel" Type="graph.riskLevel">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Level of the detected risk. Possible values are: low, medium, high, hidden, none, unknownFutureValue." />
+        </Property>
+        <Property Name="riskState" Type="graph.riskState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The state of a detected risky user or sign-in. Possible values are: none, confirmedSafe, remediated, dismissed, atRisk, confirmedCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="source" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Source of the risk detection. For example, activeDirectory." />
+        </Property>
+        <Property Name="tokenIssuerType" Type="graph.tokenIssuerType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of token issuer for the detected sign-in risk. Possible values are: AzureAD, ADFederationServices, UnknownFutureValue." />
+        </Property>
+        <Property Name="userDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user principal name (UPN) of the user." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique ID of the user." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user principal name (UPN) of the user." />
+        </Property>
+      </EntityType>
+      <EntityType Name="riskyUser" BaseType="graph.entity">
+        <Property Name="isDeleted" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user is deleted. Possible values are: true, false." />
+        </Property>
+        <Property Name="isProcessing" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a user's risky state is being processed by the backend." />
+        </Property>
+        <Property Name="riskDetail" Type="graph.riskDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Details of the detected risk. Possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, hidden, adminConfirmedUserCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time that the risky user was last updated.  The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z." />
+        </Property>
+        <Property Name="riskLevel" Type="graph.riskLevel">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Level of the detected risky user. Possible values are: low, medium, high, hidden, none, unknownFutureValue." />
+        </Property>
+        <Property Name="riskState" Type="graph.riskState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="State of the user's risk. Possible values are: none, confirmedSafe, remediated, dismissed, atRisk, confirmedCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="userDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Risky user display name." />
+        </Property>
+        <Property Name="userPrincipalName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Risky user principal name." />
+        </Property>
+        <NavigationProperty Name="history" Type="Collection(graph.riskyUserHistoryItem)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The activity related to user risk level change" />
+        </NavigationProperty>
+      </EntityType>
       <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
         <Property Name="ipRanges" Type="Collection(graph.ipRange)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of IP address ranges in IPv4 CIDR format (e.g. 1.2.3.4/32) or any allowable IPv6 format from IETF RFC596. Required." />
         </Property>
         <Property Name="isTrusted" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if this location is explicitly trusted. Optional. Default value is false." />
+        </Property>
+      </EntityType>
+      <EntityType Name="riskyUserHistoryItem" BaseType="graph.riskyUser">
+        <Property Name="activity" Type="graph.riskUserActivity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The activity related to user risk level change." />
+        </Property>
+        <Property Name="initiatedBy" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The id of actor that does the operation." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The id of the user." />
         </Property>
       </EntityType>
       <EntityType Name="accessPackageSubject" BaseType="graph.entity">
@@ -18038,6 +18161,7 @@
         <Property Name="attachmentType" Type="graph.attachmentType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of attachment. Possible values are: file, item, reference. Required." />
         </Property>
+        <Property Name="contentId" Type="Edm.String" />
         <Property Name="contentType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The nature of the data in the attachment. Optional." />
         </Property>
@@ -19231,6 +19355,14 @@
       <ComplexType Name="iPv6CidrRange" BaseType="graph.ipRange">
         <Property Name="cidrAddress" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="IPv6 address in CIDR notation. Not nullable." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="riskUserActivity">
+        <Property Name="detail" Type="graph.riskDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Details of the detected risk. Possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, hidden, adminConfirmedUserCompromised, unknownFutureValue." />
+        </Property>
+        <Property Name="riskEventTypes" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected." />
         </Property>
       </ComplexType>
       <ComplexType Name="accessPackageAssignmentRequestRequirements">
@@ -23254,6 +23386,7 @@
         <Singleton Name="drive" Type="microsoft.graph.drive" />
         <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="identityGovernance" Type="microsoft.graph.identityGovernance" />
+        <Singleton Name="identityProtection" Type="microsoft.graph.identityProtectionRoot" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
@@ -27325,6 +27458,14 @@
       </Action>
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewScheduleDefinition" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
+        <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="getApplicablePolicyRequirements" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessPackage" />
@@ -32314,6 +32455,54 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskDetection">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyUser">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyUserHistoryItem">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.deviceAndAppManagementAssignmentTarget">
         <Annotation Term="Org.OData.Core.V1.Description" String="Base type for assignment targets." />
