@@ -11,7 +11,7 @@
 
 param([parameter(Mandatory = $true)][String]$endpointVersion)
 
-$url = "https://graphexplorerapi.azurewebsites.net/openapi?operationIds=*&openApiVersion=3&graphVersion=$endpointVersion&format=yaml"
+$url = "https://graphexplorerapi.azurewebsites.net/openapi?operationIds=*&openApiVersion=3&graphVersion=$endpointVersion&format=yaml&forceRefresh=true"
 
 $outputFile = "openapi\{0}\openapi.yaml" -f $endpointVersion
 
