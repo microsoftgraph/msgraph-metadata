@@ -42,11 +42,14 @@ $xmlWriterSettings.Indent = $true
 
 $xmlWriter = [System.Xml.XmlWriter]::Create($outputFullPath, $xmlWriterSettings)
 
-$xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
-$xslt.Load($xslFullPath)
 try {
+    $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
+    $xslt.Load($xslFullPath)
     $xslt.Transform($inputFullPath, $xsltargs, $xmlWriter)
 }
 catch {
     Write-Error $_.Exception
+}
+finally {
+    $xmlWriter.Close()
 }

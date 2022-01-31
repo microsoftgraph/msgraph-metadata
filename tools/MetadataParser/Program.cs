@@ -11,7 +11,8 @@ using Microsoft.OpenApi.Models;
 IEdmModel edmModel;
 try
 {
-    edmModel = CsdlReader.Parse(XmlReader.Create(args[0]));
+    using var reader = XmlReader.Create(args[0]);
+    edmModel = CsdlReader.Parse(reader);
     Console.WriteLine("Parsing the metadata as an edm model was successful!");
 
     var settings = new OpenApiConvertSettings()
