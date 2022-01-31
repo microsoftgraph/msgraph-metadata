@@ -634,4 +634,22 @@
       <xsl:apply-templates select="node()"/>
     </xsl:copy>
   </xsl:template>
+
+  <!-- Add inner error description -->
+  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+    <xsl:copy>
+      <xsl:apply-templates select="node()"/>
+      <ComplexType Name="InnerError">
+        <Property Name="request-id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Request Id as tracked internally by the service" />
+        </Property>
+        <Property Name="client-request-id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Client request Id as sent by the client application." />
+        </Property>
+        <Property Name="Date" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date when the error occured." />
+        </Property>
+      </ComplexType>
+    </xsl:copy>
+  </xsl:template>
 </xsl:stylesheet>
