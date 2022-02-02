@@ -5,7 +5,7 @@
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
     <xsl:param name="remove-capability-annotations">True</xsl:param>
-    <xsl:param name="remove-innererror-description">True</xsl:param>
+    <xsl:param name="add-innererror-description">False</xsl:param>
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
@@ -639,7 +639,7 @@
   <!-- Add inner error description -->
   <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
     <xsl:choose>
-      <xsl:when test="$remove-innererror-description='False'">
+      <xsl:when test="$add-innererror-description='True'">
         <xsl:copy>
           <xsl:apply-templates select="@* | node()"/>
           <xsl:element name="ComplexType">
