@@ -38,7 +38,7 @@ $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
 $xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
 $xsltargs.AddParam("remove-capability-annotations", "", $removeCapabilityAnnotations.ToString())
-$xsltargs.AddParam("add-innererror-description", "", $removeInnererrorDescription.ToString())
+$xsltargs.AddParam("add-innererror-description", "", $addInnerErrorDescription.ToString())
 
 $xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
 $xmlWriterSettings.Indent = $true
