@@ -5,6 +5,7 @@
     <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
     <xsl:param name="remove-capability-annotations">True</xsl:param>
+    <xsl:param name="remove-innererror-description">True</xsl:param>
 
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
@@ -637,35 +638,39 @@
 
   <!-- Add inner error description -->
   <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
-    <xsl:copy>
-      <xsl:apply-templates select="@* | node()"/>
-      <xsl:element name="ComplexType">
-        <xsl:attribute name="Name">InnerError</xsl:attribute>
-        <xsl:element name="Property">
-          <xsl:attribute name="Name">request-id</xsl:attribute>
-          <xsl:attribute name="Type">Edm.String</xsl:attribute>
-          <xsl:element name="Annotation">
-            <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-            <xsl:attribute name="String">Request Id as tracked internally by the service</xsl:attribute>
+    <xsl:choose>
+      <xsl:when test="$remove-innererror-description='False'">
+        <xsl:copy>
+          <xsl:apply-templates select="@* | node()"/>
+          <xsl:element name="ComplexType">
+            <xsl:attribute name="Name">InnerError</xsl:attribute>
+            <xsl:element name="Property">
+              <xsl:attribute name="Name">request-id</xsl:attribute>
+              <xsl:attribute name="Type">Edm.String</xsl:attribute>
+              <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                <xsl:attribute name="String">Request Id as tracked internally by the service</xsl:attribute>
+              </xsl:element>
+            </xsl:element>
+            <xsl:element name="Property">
+              <xsl:attribute name="Name">client-request-id</xsl:attribute>
+              <xsl:attribute name="Type">Edm.String</xsl:attribute>
+              <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                <xsl:attribute name="String">Client request Id as sent by the client application.</xsl:attribute>
+              </xsl:element>
+            </xsl:element>
+            <xsl:element name="Property">
+              <xsl:attribute name="Name">Date</xsl:attribute>
+              <xsl:attribute name="Type">Edm.DateTimeOffset</xsl:attribute>
+              <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                <xsl:attribute name="String">Date when the error occured.</xsl:attribute>
+              </xsl:element>
+            </xsl:element>
           </xsl:element>
-        </xsl:element>
-        <xsl:element name="Property">
-          <xsl:attribute name="Name">client-request-id</xsl:attribute>
-          <xsl:attribute name="Type">Edm.String</xsl:attribute>
-          <xsl:element name="Annotation">
-            <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-            <xsl:attribute name="String">Client request Id as sent by the client application.</xsl:attribute>
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="Property">
-          <xsl:attribute name="Name">Date</xsl:attribute>
-          <xsl:attribute name="Type">Edm.DateTimeOffset</xsl:attribute>
-          <xsl:element name="Annotation">
-            <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-            <xsl:attribute name="String">Date when the error occured.</xsl:attribute>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-    </xsl:copy>
+        </xsl:copy>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
 </xsl:stylesheet>

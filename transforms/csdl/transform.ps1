@@ -11,7 +11,9 @@ param (
     [bool]
     $dbg = $false,
     [bool]
-    $removeCapabilityAnnotations = $true
+    $removeCapabilityAnnotations = $true,
+    [bool]
+    $removeInnererrorDescription = $true
 )
 function Get-PathWithPrefix([string]$requestedPath) {
     if([System.IO.Path]::IsPathRooted($requestedPath)) {
@@ -36,6 +38,7 @@ $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 
 $xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
 $xsltargs.AddParam("remove-capability-annotations", "", $removeCapabilityAnnotations.ToString())
+$xsltargs.AddParam("remove-innererror-description", "", $removeInnererrorDescription.ToString())
 
 $xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
 $xmlWriterSettings.Indent = $true
