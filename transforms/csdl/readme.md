@@ -24,10 +24,12 @@ Please use fully qualified and precise template match statements so as not to pe
     > NB: The build job in the pipeline currently errors out on PRs coming in from personal forked repos.  
 
 ## Command line instructions for running the transform
+
 1. Start PowerShell
 2. `cd` into `transforms\csdl` folder
-3. Run `transform.ps1 <xsl_file> <input_file> <output_file>`. If files are not specified, the script will apply transformations from  *preprocess_csdl.xsl* on  *preprocess_csdl_test_input.xml* and override *preprocess_csdl_test_output.xml* file. 
+3. Run `transform.ps1 <xsl_file> <input_file> <output_file>`. If files are not specified, the script will apply transformations from  *preprocess_csdl.xsl* on  *preprocess_csdl_test_input.xml* and override *preprocess_csdl_test_output.xml* file.
 4. You can optionally run the transform without removing capability annotations by setting the `-removeCapabilityAnnotations` flag to `$false`. The default behavior is to remove capability annotations.
+5. You can optionally run the transform to inject the OData inner error description by setting the `addInnerErrorDescription` flag to `$true`. The default value is `$false`.
 
 ## Instructions for running transform against Microsoft Graph metadata
 
