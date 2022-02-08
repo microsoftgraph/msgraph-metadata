@@ -644,6 +644,21 @@
         <Member Name="certificateBasedAuthentication" Value="5" />
         <Member Name="multiFactorAuthentication" Value="6" />
       </EnumType>
+      <EnumType Name="accessReviewHistoryDecisionFilter">
+        <Member Name="approve" Value="0" />
+        <Member Name="deny" Value="1" />
+        <Member Name="notReviewed" Value="2" />
+        <Member Name="dontKnow" Value="3" />
+        <Member Name="notNotified" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="accessReviewHistoryStatus">
+        <Member Name="done" Value="0" />
+        <Member Name="inprogress" Value="1" />
+        <Member Name="error" Value="2" />
+        <Member Name="requested" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="accessReviewInstanceDecisionItemFilterByCurrentUserOptions">
         <Member Name="reviewer" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
@@ -1853,6 +1868,11 @@
         <Member Name="listItem" Value="7" />
         <Member Name="drive" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
+      </EnumType>
+      <EnumType Name="searchAlterationType">
+        <Member Name="suggestion" Value="0" />
+        <Member Name="modification" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="plannerPreviewType">
         <Member Name="automatic" Value="0" />
@@ -4228,6 +4248,8 @@
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="onlineMeetingInfo" Type="graph.teamworkOnlineMeetingInfo" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="topic" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
@@ -5359,6 +5381,17 @@
       <ComplexType Name="resourceAccess">
         <Property Name="id" Type="Edm.Guid" Nullable="false" />
         <Property Name="type" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="selfSignedCertificate">
+        <Property Name="customKeyIdentifier" Type="Edm.Binary" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="key" Type="Edm.Binary" />
+        <Property Name="keyId" Type="Edm.Guid" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="thumbprint" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+        <Property Name="usage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="servicePlanInfo">
         <Property Name="appliesTo" Type="Edm.String" />
@@ -7085,6 +7118,10 @@
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
       </EntityType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
+      <ComplexType Name="accessReviewHistoryScheduleSettings">
+        <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
+        <Property Name="reportRange" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="accessReviewScope" />
       <ComplexType Name="accessReviewQueryScope" BaseType="graph.accessReviewScope">
         <Property Name="query" Type="Edm.String" />
@@ -7148,6 +7185,27 @@
       <ComplexType Name="servicePrincipalIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="appId" Type="Edm.String" />
       </ComplexType>
+      <EntityType Name="accessReviewHistoryDefinition" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.userIdentity" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="decisions" Type="Collection(graph.accessReviewHistoryDecisionFilter)" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="reviewHistoryPeriodEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reviewHistoryPeriodStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="scheduleSettings" Type="graph.accessReviewHistoryScheduleSettings" />
+        <Property Name="scopes" Type="Collection(graph.accessReviewScope)" Nullable="false" />
+        <Property Name="status" Type="graph.accessReviewHistoryStatus" />
+        <NavigationProperty Name="instances" Type="Collection(graph.accessReviewHistoryInstance)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessReviewHistoryInstance" BaseType="graph.entity">
+        <Property Name="downloadUri" Type="Edm.String" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="fulfilledDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewHistoryPeriodEndDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="reviewHistoryPeriodStartDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="runDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="status" Type="graph.accessReviewHistoryStatus" />
+      </EntityType>
       <EntityType Name="accessReviewInstance" BaseType="graph.entity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
@@ -7196,6 +7254,7 @@
       </EntityType>
       <EntityType Name="accessReviewSet" BaseType="graph.entity">
         <NavigationProperty Name="definitions" Type="Collection(graph.accessReviewScheduleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="historyDefinitions" Type="Collection(graph.accessReviewHistoryDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="appConsentApprovalRoute" BaseType="graph.entity">
         <NavigationProperty Name="appConsentRequests" Type="Collection(graph.appConsentRequest)" ContainsTarget="true" />
@@ -9928,9 +9987,33 @@
         <Property Name="ranges" Type="Collection(graph.bucketAggregationRange)" />
         <Property Name="sortBy" Type="graph.bucketAggregationSortProperty" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="alterationResponse">
+        <Property Name="originalQueryString" Type="Edm.String" />
+        <Property Name="queryAlteration" Type="graph.searchAlteration" />
+        <Property Name="queryAlterationType" Type="graph.searchAlterationType" />
+      </ComplexType>
+      <ComplexType Name="searchAlteration">
+        <Property Name="alteredHighlightedQueryString" Type="Edm.String" />
+        <Property Name="alteredQueryString" Type="Edm.String" />
+        <Property Name="alteredQueryTokens" Type="Collection(graph.alteredQueryToken)" />
+      </ComplexType>
+      <ComplexType Name="alteredQueryToken">
+        <Property Name="length" Type="Edm.Int32" />
+        <Property Name="offset" Type="Edm.Int32" />
+        <Property Name="suggestion" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="bucketAggregationRange">
         <Property Name="from" Type="Edm.String" Nullable="false" />
         <Property Name="to" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="resultTemplate">
+        <Property Name="body" Type="graph.Json" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="Dictionary" OpenType="true" />
+      <ComplexType Name="resultTemplateDictionary" BaseType="graph.Dictionary" OpenType="true" />
+      <ComplexType Name="resultTemplateOption">
+        <Property Name="enableResultTemplate" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="searchAggregation">
         <Property Name="buckets" Type="Collection(graph.searchBucket)" />
@@ -9941,10 +10024,15 @@
         <Property Name="count" Type="Edm.Int32" />
         <Property Name="key" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="searchAlterationOptions">
+        <Property Name="enableModification" Type="Edm.Boolean" />
+        <Property Name="enableSuggestion" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="searchHit">
         <Property Name="contentSource" Type="Edm.String" />
         <Property Name="hitId" Type="Edm.String" />
         <Property Name="rank" Type="Edm.Int32" />
+        <Property Name="resultTemplateId" Type="Edm.String" />
         <Property Name="summary" Type="Edm.String" />
         <NavigationProperty Name="resource" Type="graph.entity" ContainsTarget="true" />
       </ComplexType>
@@ -9966,6 +10054,8 @@
         <Property Name="fields" Type="Collection(Edm.String)" />
         <Property Name="from" Type="Edm.Int32" Nullable="false" />
         <Property Name="query" Type="graph.searchQuery" Nullable="false" />
+        <Property Name="queryAlterationOptions" Type="graph.searchAlterationOptions" />
+        <Property Name="resultTemplateOptions" Type="graph.resultTemplateOption" />
         <Property Name="size" Type="Edm.Int32" Nullable="false" />
         <Property Name="sortProperties" Type="Collection(graph.sortProperty)" />
       </ComplexType>
@@ -9975,6 +10065,8 @@
       </ComplexType>
       <ComplexType Name="searchResponse">
         <Property Name="hitsContainers" Type="Collection(graph.searchHitsContainer)" />
+        <Property Name="queryAlterationResponse" Type="graph.alterationResponse" />
+        <Property Name="resultTemplates" Type="graph.resultTemplateDictionary" />
         <Property Name="searchTerms" Type="Collection(Edm.String)" />
       </ComplexType>
       <EntityType Name="searchEntity" BaseType="graph.entity" />
@@ -10837,6 +10929,7 @@
       <ComplexType Name="commsNotifications">
         <Property Name="value" Type="Collection(graph.commsNotification)" />
       </ComplexType>
+      <ComplexType Name="incomingCallOptions" BaseType="graph.callOptions" />
       <ComplexType Name="incomingContext">
         <Property Name="observedParticipantId" Type="Edm.String" />
         <Property Name="onBehalfOf" Type="graph.identitySet" />
@@ -11273,6 +11366,11 @@
       <ComplexType Name="teamworkApplicationIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="applicationIdentityType" Type="graph.teamworkApplicationIdentityType" />
       </ComplexType>
+      <ComplexType Name="teamworkOnlineMeetingInfo">
+        <Property Name="calendarEventId" Type="Edm.String" />
+        <Property Name="joinWebUrl" Type="Edm.String" />
+        <Property Name="organizer" Type="graph.teamworkUserIdentity" />
+      </ComplexType>
       <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
       <EntityType Name="aadUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="email" Type="Edm.String" />
@@ -11615,6 +11713,12 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.identityProviderBase)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
+      <Action Name="addTokenSigningCertificate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
+        <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <ReturnType Type="graph.selfSignedCertificate" Nullable="false" />
+      </Action>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
         <Parameter Name="addLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
@@ -15008,6 +15112,10 @@
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewScheduleDefinition" />
       </Action>
+      <Action Name="generateDownloadUri" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewHistoryInstance" />
+        <ReturnType Type="graph.accessReviewHistoryInstance" />
+      </Action>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewInstance)" />
         <Parameter Name="on" Type="graph.accessReviewInstanceFilterByCurrentUserOptions" Nullable="false" />
@@ -16066,6 +16174,9 @@
         <Parameter Name="mediaConfig" Type="graph.mediaConfig" Nullable="false" />
         <Parameter Name="acceptedModalities" Type="Collection(graph.modality)" />
         <Parameter Name="participantCapacity" Type="Edm.Int32" />
+        <Parameter Name="callOptions" Type="graph.incomingCallOptions">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
       </Action>
       <Action Name="cancelMediaProcessing" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
