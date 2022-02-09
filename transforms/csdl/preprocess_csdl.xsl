@@ -286,6 +286,48 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
+    <!-- Remove ContainsTarget for problematic navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='channel']/edm:NavigationProperty[@Name='filesFolder']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='listItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='root']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='items']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='list']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='site']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityOLD']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivity']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleGroups']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityOLD']/edm:NavigationProperty[@Name='listItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignmentRequest']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceResource']/edm:NavigationProperty[@Name='parent']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='calendar']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='children']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='activities']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='parentSectionGroup']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='sectionGroups']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='sites']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='items']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentResourceRole']/edm:NavigationProperty[@Name='accessPackageAssignments']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentRequest']/edm:NavigationProperty[@Name='accessPackageAssignment']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentPolicy']/edm:NavigationProperty[@Name='accessPackageCatalog']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteSection']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteSection']/edm:NavigationProperty[@Name='parentSectionGroup']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentSection']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='roleSetting']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignment']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleSetting']/edm:NavigationProperty[@Name='resource']/@ContainsTarget">
+       <xsl:if test="$remove-capability-annotations='true'">
+          <xsl:attribute name="ContainsTarget">true</xsl:attribute>
+       </xsl:if>
+    </xsl:template>
+
     <!--Remove functions that are blocking beta generation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
@@ -569,68 +611,6 @@
       <!-- Remove indexability for users navigation property -->
       <xsl:element name="Annotations">
         <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <!-- Set false indexabilities for:
-           microsoft.graph.user/drive | microsoft.graph.group/drive | microsoft.graph.sharedDriveItem/site
-           These will restrict expanding these containment navigation properties.
-           This is a temp. fix so as to reduce the size of the converted OpenAPI
-           Files module (~10MB to ~5.5MB for beta) for PowerShell AutoREST cmdlet generation -->
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.user/drive</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.group/drive</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.sharedDriveItem/site</xsl:attribute>
         <xsl:element name="Annotation">
           <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
           <xsl:element name="Record" namespace="{namespace-uri()}">
