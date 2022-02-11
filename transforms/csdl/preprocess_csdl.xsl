@@ -323,7 +323,7 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='roleSetting']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignment']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleSetting']/edm:NavigationProperty[@Name='resource']/@ContainsTarget">
-       <xsl:if test="$remove-capability-annotations='true'">
+       <xsl:if test="$remove-capability-annotations='True'">
           <xsl:attribute name="ContainsTarget">true</xsl:attribute>
        </xsl:if>
     </xsl:template>
