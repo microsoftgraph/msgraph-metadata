@@ -286,7 +286,8 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
-    <!-- Remove ContainsTarget for problematic navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file -->
+    <!-- Remove ContainsTarget for problematic containment navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file
+         These end up generating numerous OpenAPI paths during OData to OpenAPI conversions -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='channel']/edm:NavigationProperty[@Name='filesFolder']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='listItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
