@@ -12,9 +12,9 @@
 
     <!-- Copies the entire document. -->
     <xsl:template match="@* | node()">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Adds ContainsTarget attribute to navigation properties. These typically represent scenarios where we need to provide an improvement
@@ -71,16 +71,16 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
                   edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']
                          ">
-      <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
+        <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
            Didn't apply the rule for labelPolicy as it appears the API changed since this was set. -->
 
-      <xsl:copy>
-        <!-- Select all attributes, add an ContainsTarget attribute, apply to the current node. -->
-        <xsl:apply-templates select="@*"/>
-        <xsl:attribute name="ContainsTarget">true</xsl:attribute>
-        <xsl:apply-templates select="node()"/>
-      </xsl:copy>
+        <xsl:copy>
+            <!-- Select all attributes, add an ContainsTarget attribute, apply to the current node. -->
+            <xsl:apply-templates select="@*"/>
+            <xsl:attribute name="ContainsTarget">true</xsl:attribute>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Remove Property -->
@@ -94,14 +94,14 @@
     <!-- Remove all capability annotations -->
 
     <xsl:template match="*[starts-with(@Term, 'Org.OData.Capabilities')]">
-      <xsl:choose>
-        <xsl:when test="$remove-capability-annotations='False'">
-          <xsl:copy-of select="."/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
-        </xsl:otherwise>
-      </xsl:choose>
+        <xsl:choose>
+            <xsl:when test="$remove-capability-annotations='False'">
+                <xsl:copy-of select="."/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:apply-templates select="*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- Remove singleton -->
@@ -111,23 +111,23 @@
 
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
-      <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
-      <xsl:attribute name="String">navigable</xsl:attribute>
+        <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
+        <xsl:attribute name="String">navigable</xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='thumbnail']">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-        <xsl:element name="Annotation" use-attribute-sets="LongDescriptionNavigable"/>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation" use-attribute-sets="LongDescriptionNavigable"/>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Add  attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='message']">
-      <xsl:copy>
-        <xsl:attribute name="HasStream" value="true">true</xsl:attribute>
-        <xsl:apply-templates select="@* | node()"/>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:attribute name="HasStream" value="true">true</xsl:attribute>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Add odata cast annotation -->
@@ -147,131 +147,131 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveMemberOf']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.user</String>
-            <String>microsoft.graph.group</String>
-            <String>microsoft.graph.application</String>
-            <String>microsoft.graph.servicePrincipal</String>
-            <String>microsoft.graph.device</String>
-            <String>microsoft.graph.orgContact</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.user</String>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.application</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                    <String>microsoft.graph.device</String>
+                    <String>microsoft.graph.orgContact</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='directReports']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='directReports']">
-    <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.user</String>
-            <String>microsoft.graph.orgContact</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.user</String>
+                    <String>microsoft.graph.orgContact</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='ownedObjects']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.appRoleAssignment</String>
-            <String>microsoft.graph.application</String>
-            <String>microsoft.graph.endpoint</String>
-            <String>microsoft.graph.group</String>
-            <String>microsoft.graph.servicePrincipal</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.appRoleAssignment</String>
+                    <String>microsoft.graph.application</String>
+                    <String>microsoft.graph.endpoint</String>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='ownedObjects']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.application</String>
-            <String>microsoft.graph.group</String>
-            <String>microsoft.graph.servicePrincipal</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.application</String>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='owners']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredOwners']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredUsers']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='owners']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.appRoleAssignment</String>
-            <String>microsoft.graph.endpoint</String>
-            <String>microsoft.graph.servicePrincipal</String>
-            <String>microsoft.graph.user</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.appRoleAssignment</String>
+                    <String>microsoft.graph.endpoint</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                    <String>microsoft.graph.user</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='createdObjects']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='createdObjects']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.servicePrincipal</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.servicePrincipal</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directory']/edm:NavigationProperty[@Name='deletedItems']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.user</String>
-            <String>microsoft.graph.group</String>
-            <String>microsoft.graph.application</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.user</String>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.application</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='ownedDevices']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='registeredDevices']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.device</String>
-            <String>microsoft.graph.appRoleAssignment</String>
-            <String>microsoft.graph.endpoint</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.device</String>
+                    <String>microsoft.graph.appRoleAssignment</String>
+                    <String>microsoft.graph.endpoint</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceAppManagement']/edm:NavigationProperty[@Name='mobileApps']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.mobileLobApp</String>
-            <String>microsoft.graph.managedMobileLobApp</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.mobileLobApp</String>
+                    <String>microsoft.graph.managedMobileLobApp</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntitySet[@Name='places']">
-      <xsl:copy>
-        <xsl:copy-of select="@* | node()" />
-        <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
-          <Collection>
-            <String>microsoft.graph.room</String>
-            <String>microsoft.graph.roomlist</String>
-          </Collection>
-        </Annotation>
-      </xsl:copy>
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.room</String>
+                    <String>microsoft.graph.roomlist</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Remove attribute -->
@@ -284,6 +284,49 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget">
         <xsl:apply-templates select="@* | node()"/>
+    </xsl:template>
+
+    <!-- Remove ContainsTarget for problematic containment navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file.
+         These end up generating numerous OpenAPI paths during OData to OpenAPI conversions -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='channel']/edm:NavigationProperty[@Name='filesFolder']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='listItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='root']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='items']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='list']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='site']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityOLD']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivity']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleGroups']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='itemActivityOLD']/edm:NavigationProperty[@Name='listItem']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignmentRequest']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceResource']/edm:NavigationProperty[@Name='parent']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='calendar']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='children']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='activities']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='parentSectionGroup']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='sectionGroups']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='sites']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='items']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentResourceRole']/edm:NavigationProperty[@Name='accessPackageAssignments']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentRequest']/edm:NavigationProperty[@Name='accessPackageAssignment']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentPolicy']/edm:NavigationProperty[@Name='accessPackageCatalog']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sectionGroup']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteSection']/edm:NavigationProperty[@Name='parentNotebook']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenoteSection']/edm:NavigationProperty[@Name='parentSectionGroup']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/edm:NavigationProperty[@Name='parentSection']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='roleSetting']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignment']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleSetting']/edm:NavigationProperty[@Name='resource']/@ContainsTarget">
+        <xsl:if test="$remove-capability-annotations='True'">
+            <xsl:attribute name="ContainsTarget">true</xsl:attribute>
+        </xsl:if>
     </xsl:template>
 
     <!--Remove functions that are blocking beta generation-->
@@ -323,103 +366,103 @@
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
-      <xsl:param name = "propertyPath" />
-      <xsl:param name = "startDateTimeName" />
-      <xsl:param name = "endDateTimeName" />
-      <xsl:element name="Record">
-        <xsl:element name="PropertyValue">
-          <xsl:attribute name="Property">NavigationProperty</xsl:attribute>
-          <xsl:element name="PropertyPath">
-            <xsl:value-of select = "$propertyPath" />
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="PropertyValue">
-          <xsl:attribute name="Property">ReadRestrictions</xsl:attribute>
-          <xsl:element name="Record">
+        <xsl:param name = "propertyPath" />
+        <xsl:param name = "startDateTimeName" />
+        <xsl:param name = "endDateTimeName" />
+        <xsl:element name="Record">
             <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">CustomQueryOptions</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Name</xsl:attribute>
-                    <xsl:attribute name="String">
-                      <xsl:value-of select = "$startDateTimeName" />
-                    </xsl:attribute>
-                  </xsl:element>
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Description</xsl:attribute>
-                    <xsl:attribute name="String">The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00</xsl:attribute>
-                  </xsl:element>
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Required</xsl:attribute>
-                    <xsl:attribute name="Bool">true</xsl:attribute>
-                  </xsl:element>
+                <xsl:attribute name="Property">NavigationProperty</xsl:attribute>
+                <xsl:element name="PropertyPath">
+                    <xsl:value-of select = "$propertyPath" />
                 </xsl:element>
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Name</xsl:attribute>
-                    <xsl:attribute name="String">
-                      <xsl:value-of select = "$endDateTimeName" />
-                    </xsl:attribute>
-                  </xsl:element>
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Description</xsl:attribute>
-                    <xsl:attribute name="String">The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00</xsl:attribute>
-                  </xsl:element>
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Required</xsl:attribute>
-                    <xsl:attribute name="Bool">true</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
             </xsl:element>
-          </xsl:element>
+            <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">ReadRestrictions</xsl:attribute>
+                <xsl:element name="Record">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">CustomQueryOptions</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:element name="Record">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Name</xsl:attribute>
+                                    <xsl:attribute name="String">
+                                        <xsl:value-of select = "$startDateTimeName" />
+                                    </xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Description</xsl:attribute>
+                                    <xsl:attribute name="String">The start date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T19:00:00-08:00</xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Required</xsl:attribute>
+                                    <xsl:attribute name="Bool">true</xsl:attribute>
+                                </xsl:element>
+                            </xsl:element>
+                            <xsl:element name="Record">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Name</xsl:attribute>
+                                    <xsl:attribute name="String">
+                                        <xsl:value-of select = "$endDateTimeName" />
+                                    </xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Description</xsl:attribute>
+                                    <xsl:attribute name="String">The end date and time of the time range, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00</xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Required</xsl:attribute>
+                                    <xsl:attribute name="Bool">true</xsl:attribute>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
         </xsl:element>
-      </xsl:element>
     </xsl:template>
 
     <!-- Add custom headers (ConsistencyLevel) to AAD objects -->
     <xsl:template name="ConsistencyLevelHeaderTemplate">
-      <xsl:element name="Record" namespace="{namespace-uri()}">
-        <xsl:element name="PropertyValue">
-          <xsl:attribute name="Property">CustomHeaders</xsl:attribute>
-          <xsl:element name="Collection">
-            <xsl:element name="Record">
-              <xsl:element name="PropertyValue">
-                <xsl:attribute name="Property">Name</xsl:attribute>
-                <xsl:attribute name="String">ConsistencyLevel</xsl:attribute>
-              </xsl:element>
-              <xsl:element name="PropertyValue">
-                <xsl:attribute name="Property">Description</xsl:attribute>
-                <xsl:attribute name="String">Indicates the requested consistency level.</xsl:attribute>
-              </xsl:element>
-              <xsl:element name="PropertyValue">
-                <xsl:attribute name="Property">DocumentationURL</xsl:attribute>
-                <xsl:attribute name="String">https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-advanced-queries-for-directory-objects-are-now-generally-available/</xsl:attribute>
-              </xsl:element>
-              <xsl:element name="PropertyValue">
-                <xsl:attribute name="Property">Required</xsl:attribute>
-                <xsl:attribute name="Bool">false</xsl:attribute>
-              </xsl:element>
-              <xsl:element name="PropertyValue">
-                <xsl:attribute name="Property">ExampleValues</xsl:attribute>
+        <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">CustomHeaders</xsl:attribute>
                 <xsl:element name="Collection">
-                  <xsl:element name="Record">
-                    <xsl:element name="PropertyValue">
-                      <xsl:attribute name="Property">Value</xsl:attribute>
-                      <xsl:attribute name="String">eventual</xsl:attribute>
+                    <xsl:element name="Record">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Name</xsl:attribute>
+                            <xsl:attribute name="String">ConsistencyLevel</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Description</xsl:attribute>
+                            <xsl:attribute name="String">Indicates the requested consistency level.</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">DocumentationURL</xsl:attribute>
+                            <xsl:attribute name="String">https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-advanced-queries-for-directory-objects-are-now-generally-available/</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Required</xsl:attribute>
+                            <xsl:attribute name="Bool">false</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">ExampleValues</xsl:attribute>
+                            <xsl:element name="Collection">
+                                <xsl:element name="Record">
+                                    <xsl:element name="PropertyValue">
+                                        <xsl:attribute name="Property">Value</xsl:attribute>
+                                        <xsl:attribute name="String">eventual</xsl:attribute>
+                                    </xsl:element>
+                                    <xsl:element name="PropertyValue">
+                                        <xsl:attribute name="Property">Description</xsl:attribute>
+                                        <xsl:attribute name="String">$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'.</xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
                     </xsl:element>
-                    <xsl:element name="PropertyValue">
-                      <xsl:attribute name="Property">Description</xsl:attribute>
-                      <xsl:attribute name="String">$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'.</xsl:attribute>
-                    </xsl:element>
-                  </xsl:element>
                 </xsl:element>
-              </xsl:element>
             </xsl:element>
-          </xsl:element>
         </xsl:element>
-      </xsl:element>
     </xsl:template>
 
     <xsl:template match="
@@ -427,245 +470,183 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='groups']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='me']
                       ">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
-                  <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
-                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
-                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
-                </xsl:call-template>
-                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
-                  <xsl:with-param name="propertyPath">calendar/calendarView</xsl:with-param>
-                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
-                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
-                </xsl:call-template>
-                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
-                  <xsl:with-param name="propertyPath">calendars/calendarView</xsl:with-param>
-                  <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
-                  <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
-                </xsl:call-template>
-              </xsl:element>
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">calendar/calendarView</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">calendars/calendarView</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
             </xsl:element>
-          </xsl:element>
-        </xsl:element>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
-          <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
-        </xsl:element>
-      </xsl:copy>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
     </xsl:template>
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='bookingBusinesses']">
-      <xsl:copy>
-        <xsl:apply-templates select="@* | node()"/>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
-                  <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
-                  <xsl:with-param name="startDateTimeName">start</xsl:with-param>
-                  <xsl:with-param name="endDateTimeName">end</xsl:with-param>
-                </xsl:call-template>
-              </xsl:element>
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">calendarView</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">start</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">end</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
             </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:copy>
+        </xsl:copy>
     </xsl:template>
 
-  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='applications']|
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='applications']|
                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='servicePrincipals']|
                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='administrativeUnits']|
                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='contacts']|
                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='directoryObjects']|
                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='devices']">
-    <xsl:copy>
-      <xsl:apply-templates select="@* | node()"/>
-      <xsl:element name="Annotation">
-        <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
-        <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
-      </xsl:element>
-    </xsl:copy>
-  </xsl:template>
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
 
-  <!-- Add Navigation Restrictions Annotations -->
-  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
-    <xsl:copy>
-      <xsl:apply-templates select="@* | node()"/>
-      <xsl:choose>
-        <!-- Add inner error description -->
-        <xsl:when test="$add-innererror-description='True'">
-          <xsl:element name="ComplexType">
-            <xsl:attribute name="Name">InnerError</xsl:attribute>
-            <xsl:element name="Property">
-              <xsl:attribute name="Name">request-id</xsl:attribute>
-              <xsl:attribute name="Type">Edm.String</xsl:attribute>
-              <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-                <xsl:attribute name="String">Request Id as tracked internally by the service</xsl:attribute>
-              </xsl:element>
-            </xsl:element>
-            <xsl:element name="Property">
-              <xsl:attribute name="Name">client-request-id</xsl:attribute>
-              <xsl:attribute name="Type">Edm.String</xsl:attribute>
-              <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-                <xsl:attribute name="String">Client request Id as sent by the client application.</xsl:attribute>
-              </xsl:element>
-            </xsl:element>
-            <xsl:element name="Property">
-              <xsl:attribute name="Name">Date</xsl:attribute>
-              <xsl:attribute name="Type">Edm.DateTimeOffset</xsl:attribute>
-              <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
-                <xsl:attribute name="String">Date when the error occured.</xsl:attribute>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:when>
-      </xsl:choose>
-      <!-- Remove navigability for workbook navigation property -->
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">Navigability</xsl:attribute>
-              <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <!-- Remove indexability for joinedGroups navigation property -->
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
+    <!-- Add Navigation Restrictions Annotations -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:choose>
+                <!-- Add inner error description -->
+                <xsl:when test="$add-innererror-description='True'">
+                    <xsl:element name="ComplexType">
+                        <xsl:attribute name="Name">InnerError</xsl:attribute>
+                        <xsl:element name="Property">
+                            <xsl:attribute name="Name">request-id</xsl:attribute>
+                            <xsl:attribute name="Type">Edm.String</xsl:attribute>
+                            <xsl:element name="Annotation">
+                                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                                <xsl:attribute name="String">Request Id as tracked internally by the service</xsl:attribute>
+                            </xsl:element>
+                        </xsl:element>
+                        <xsl:element name="Property">
+                            <xsl:attribute name="Name">client-request-id</xsl:attribute>
+                            <xsl:attribute name="Type">Edm.String</xsl:attribute>
+                            <xsl:element name="Annotation">
+                                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                                <xsl:attribute name="String">Client request Id as sent by the client application.</xsl:attribute>
+                            </xsl:element>
+                        </xsl:element>
+                        <xsl:element name="Property">
+                            <xsl:attribute name="Name">Date</xsl:attribute>
+                            <xsl:attribute name="Type">Edm.DateTimeOffset</xsl:attribute>
+                            <xsl:element name="Annotation">
+                                <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
+                                <xsl:attribute name="String">Date when the error occured.</xsl:attribute>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <!-- Remove navigability for workbook navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
+                <xsl:element name="Annotation">
+                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Navigability</xsl:attribute>
+                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                        </xsl:element>
+                    </xsl:element>
                 </xsl:element>
-              </xsl:element>
             </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <!-- Remove indexability for users navigation property -->
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
+            <!-- Remove indexability for joinedGroups navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
+                <xsl:element name="Annotation">
+                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                            <xsl:element name="Collection">
+                                <xsl:element name="Record">
+                                    <xsl:element name="PropertyValue">
+                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                        <xsl:attribute name="Bool">false</xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
                 </xsl:element>
-              </xsl:element>
             </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <!-- Set false indexabilities for:
-           microsoft.graph.user/drive | microsoft.graph.group/drive | microsoft.graph.sharedDriveItem/site
-           These will restrict expanding these containment navigation properties.
-           This is a temp. fix so as to reduce the size of the converted OpenAPI
-           Files module (~10MB to ~5.5MB for beta) for PowerShell AutoREST cmdlet generation -->
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.user/drive</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
+            <!-- Remove indexability for users navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
+                <xsl:element name="Annotation">
+                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                            <xsl:element name="Collection">
+                                <xsl:element name="Record">
+                                    <xsl:element name="PropertyValue">
+                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                        <xsl:attribute name="Bool">false</xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
                 </xsl:element>
-              </xsl:element>
             </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.group/drive</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-      <xsl:element name="Annotations">
-        <xsl:attribute name="Target">microsoft.graph.sharedDriveItem/site</xsl:attribute>
-        <xsl:element name="Annotation">
-          <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-          <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-              <xsl:element name="Collection">
-                <xsl:element name="Record">
-                  <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                    <xsl:attribute name="Bool">false</xsl:attribute>
-                  </xsl:element>
-                </xsl:element>
-              </xsl:element>
-            </xsl:element>
-          </xsl:element>
-        </xsl:element>
-      </xsl:element>
-    </xsl:copy>
-  </xsl:template>
+        </xsl:copy>
+    </xsl:template>
 
-  <!-- Remove directoryObject Capability Annotations -->
-  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+    <!-- Remove directoryObject Capability Annotations -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
-  <!-- Add workbooks entity set if missing -->
-  <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']">
-    <xsl:copy>
-      <xsl:apply-templates select="@*"/>
-      <xsl:if test="not(edm:EntitySet[@Name='workbooks'])">
-        <xsl:element name="EntitySet">
-          <xsl:attribute name="Name">workbooks</xsl:attribute>
-          <xsl:attribute name="EntityType">microsoft.graph.driveItem</xsl:attribute>
-        </xsl:element>
-      </xsl:if>
-      <xsl:apply-templates select="node()"/>
-    </xsl:copy>
-  </xsl:template>
+    <!-- Add workbooks entity set if missing -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:if test="not(edm:EntitySet[@Name='workbooks'])">
+                <xsl:element name="EntitySet">
+                    <xsl:attribute name="Name">workbooks</xsl:attribute>
+                    <xsl:attribute name="EntityType">microsoft.graph.driveItem</xsl:attribute>
+                </xsl:element>
+            </xsl:if>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
+    </xsl:template>
 
 </xsl:stylesheet>
