@@ -11,8 +11,36 @@
 
 param([parameter(Mandatory = $true)][String]$endpointVersion)
 
-$url = "https://graphexplorerapi.azurewebsites.net/openapi?operationIds=*&openApiVersion=3&graphVersion=$endpointVersion&format=yaml&forceRefresh=true"
+$outputFile = Join-Path $PSScriptRoot ".." "openapi" $endpointVersion "openapi.yaml"
+$oldOutputFile = "$outputFile.old"
+$cleanVersion = $endpointVersion.Replace(".", "")
+$inputFile = Join-Path $PSScriptRoot ".." "clean_$($cleanVersion)_metadata" "cleanMetadataWithDescriptionsAndAnnotations$endpointVersion.xml"
 
-$outputFile = "openapi\{0}\openapi.yaml" -f $endpointVersion
+Write-Verbose "Generating OpenAPI description from $inputFile"
+Write-Verbose "Output file: $outputFile"
 
-Invoke-WebRequest -Uri $url -OutFile $outputFile
+if(Test-Path $outputFile)
+{
+    Write-Verbose "Removing existing output file"
+    if(Test-Path $oldOutputFile)
+    {
+        Write-Verbose "Removing existing old output file"
+        Remove-Item $oldOutputFile -Force
+    }
+    $oldFileName = Split-Path $outputFile -leaf
+    $oldFileName += ".old"
+    Rename-Item $outputFile $oldFileName
+}
+
+try {
+    Invoke-Expression "hidi transform --csdl ""$inputFile"" --output ""$outputFile"" --version OpenApi3_0 --loglevel Information --format yaml"
+} catch {
+    if(Test-Path $oldOutputFile)
+    {
+        Write-Warning "Restoring old output file"
+        $originalFileName = Split-Path $outputFile -leaf
+        Rename-Item $oldOutputFile $originalFileName
+    }
+    Write-Error "Error generating OpenAPI description: $_"
+    throw $_
+}
