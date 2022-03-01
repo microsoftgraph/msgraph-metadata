@@ -14,7 +14,7 @@ param([parameter(Mandatory = $true)][String]$endpointVersion)
 $outputFile = Join-Path $PSScriptRoot ".." "openapi" $endpointVersion "openapi.yaml"
 $oldOutputFile = "$outputFile.old"
 $cleanVersion = $endpointVersion.Replace(".", "")
-$inputFile = Join-Path $PSScriptRoot ".." "clean_$($cleanVersion)_metadata" "cleanMetadataWithDescriptionsAndAnnotations$endpointVersion.xml"
+$inputFile = Join-Path $PSScriptRoot ".." "clean_$($cleanVersion)_metadata" "cleanMetadataWithDescriptionsAndAnnotationsAndErrors$endpointVersion.xml"
 
 Write-Verbose "Generating OpenAPI description from $inputFile"
 Write-Verbose "Output file: $outputFile"
