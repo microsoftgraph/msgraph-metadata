@@ -34,6 +34,11 @@ if(Test-Path $outputFile)
 
 try {
     Invoke-Expression "hidi transform --csdl ""$inputFile"" --output ""$outputFile"" --version OpenApi3_0 --loglevel Information --format yaml"
+    if(Test-Path $oldOutputFile)
+    {
+        Write-Verbose "Removing existing old output file"
+        Remove-Item $oldOutputFile -Force
+    }
 } catch {
     if(Test-Path $oldOutputFile)
     {
