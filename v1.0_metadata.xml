@@ -843,6 +843,24 @@
         <Member Name="servicePrincipal" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="accessReviewExpirationBehavior">
+        <Member Name="keepAccess" Value="0" />
+        <Member Name="removeAccess" Value="1" />
+        <Member Name="acceptAccessRecommendation" Value="2" />
+        <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
+      <EnumType Name="allowedTargetScope">
+        <Member Name="notSpecified" Value="0" />
+        <Member Name="specificDirectoryUsers" Value="1" />
+        <Member Name="specificConnectedOrganizationUsers" Value="2" />
+        <Member Name="specificDirectoryServicePrincipals" Value="3" />
+        <Member Name="allMemberUsers" Value="4" />
+        <Member Name="allDirectoryUsers" Value="5" />
+        <Member Name="allDirectoryServicePrincipals" Value="6" />
+        <Member Name="allConfiguredConnectedOrganizationUsers" Value="7" />
+        <Member Name="allExternalUsers" Value="8" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
       <EnumType Name="expirationPatternType">
         <Member Name="notSpecified" Value="0" />
         <Member Name="noExpiration" Value="1" />
@@ -7310,6 +7328,7 @@
       <EntityType Name="entitlementManagement" BaseType="graph.entity">
         <NavigationProperty Name="accessPackageAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
         <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true" />
+        <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="assignmentRequests" Type="Collection(graph.accessPackageAssignmentRequest)" ContainsTarget="true" />
         <NavigationProperty Name="assignments" Type="Collection(graph.accessPackageAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="catalogs" Type="Collection(graph.accessPackageCatalog)" ContainsTarget="true" />
@@ -7322,6 +7341,21 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isHidden" Type="Edm.Boolean" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
+      </EntityType>
+      <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
+        <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="expiration" Type="graph.expirationPattern" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="requestApprovalSettings" Type="graph.accessPackageAssignmentApprovalSettings" />
+        <Property Name="requestorSettings" Type="graph.accessPackageAssignmentRequestorSettings" />
+        <Property Name="reviewSettings" Type="graph.accessPackageAssignmentReviewSettings" />
+        <Property Name="specificAllowedTargets" Type="Collection(graph.subjectSet)" />
+        <NavigationProperty Name="accessPackage" Type="graph.accessPackage" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
       </EntityType>
       <EntityType Name="accessPackageAssignmentRequest" BaseType="graph.entity">
@@ -7341,6 +7375,7 @@
         <Property Name="state" Type="graph.accessPackageAssignmentState" />
         <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="accessPackage" Type="graph.accessPackage" />
+        <NavigationProperty Name="assignmentPolicy" Type="graph.accessPackageAssignmentPolicy" />
         <NavigationProperty Name="target" Type="graph.accessPackageSubject" />
       </EntityType>
       <EntityType Name="accessPackageCatalog" BaseType="graph.entity">
@@ -7542,6 +7577,32 @@
         <Property Name="initiatedBy" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
+      <ComplexType Name="accessPackageApprovalStage">
+        <Property Name="durationBeforeAutomaticDenial" Type="Edm.Duration" />
+        <Property Name="durationBeforeEscalation" Type="Edm.Duration" />
+        <Property Name="escalationApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="fallbackEscalationApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="fallbackPrimaryApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="isApproverJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="isEscalationEnabled" Type="Edm.Boolean" />
+        <Property Name="primaryApprovers" Type="Collection(graph.subjectSet)" />
+      </ComplexType>
+      <ComplexType Name="subjectSet" Abstract="true" />
+      <ComplexType Name="accessPackageAssignmentApprovalSettings">
+        <Property Name="isApprovalRequiredForAdd" Type="Edm.Boolean" />
+        <Property Name="isApprovalRequiredForUpdate" Type="Edm.Boolean" />
+        <Property Name="stages" Type="Collection(graph.accessPackageApprovalStage)" />
+      </ComplexType>
+      <ComplexType Name="accessPackageAssignmentRequestorSettings">
+        <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToAddAccess" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToRemoveAccess" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToUpdateAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfAddAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfRemoveAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfUpdateAccess" Type="Edm.Boolean" />
+        <Property Name="onBehalfRequestors" Type="Collection(graph.subjectSet)" />
+      </ComplexType>
       <ComplexType Name="accessPackageAssignmentRequestRequirements">
         <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean" />
         <Property Name="isApprovalRequiredForAdd" Type="Edm.Boolean" />
@@ -7556,7 +7617,16 @@
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
-      <ComplexType Name="subjectSet" Abstract="true" />
+      <ComplexType Name="accessPackageAssignmentReviewSettings">
+        <Property Name="expirationBehavior" Type="graph.accessReviewExpirationBehavior" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.subjectSet)" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isRecommendationEnabled" Type="Edm.Boolean" />
+        <Property Name="isReviewerJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="isSelfReview" Type="Edm.Boolean" />
+        <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
+        <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
+      </ComplexType>
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.subjectSet">
         <Property Name="connectedOrganizationId" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
@@ -7585,6 +7655,10 @@
       <ComplexType Name="singleUser" BaseType="graph.subjectSet">
         <Property Name="description" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="targetApplicationOwners" BaseType="graph.subjectSet" />
+      <ComplexType Name="targetManager" BaseType="graph.subjectSet">
+        <Property Name="managerLevel" Type="Edm.Int32" />
       </ComplexType>
       <EntityType Name="accessPackageSubject" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
