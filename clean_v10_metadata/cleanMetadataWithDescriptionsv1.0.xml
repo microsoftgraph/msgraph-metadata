@@ -843,6 +843,24 @@
         <Member Name="servicePrincipal" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="accessReviewExpirationBehavior">
+        <Member Name="keepAccess" Value="0" />
+        <Member Name="removeAccess" Value="1" />
+        <Member Name="acceptAccessRecommendation" Value="2" />
+        <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
+      <EnumType Name="allowedTargetScope">
+        <Member Name="notSpecified" Value="0" />
+        <Member Name="specificDirectoryUsers" Value="1" />
+        <Member Name="specificConnectedOrganizationUsers" Value="2" />
+        <Member Name="specificDirectoryServicePrincipals" Value="3" />
+        <Member Name="allMemberUsers" Value="4" />
+        <Member Name="allDirectoryUsers" Value="5" />
+        <Member Name="allDirectoryServicePrincipals" Value="6" />
+        <Member Name="allConfiguredConnectedOrganizationUsers" Value="7" />
+        <Member Name="allExternalUsers" Value="8" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
       <EnumType Name="expirationPatternType">
         <Member Name="notSpecified" Value="0" />
         <Member Name="noExpiration" Value="1" />
@@ -4656,7 +4674,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z." />
         </Property>
         <Property Name="state" Type="graph.agreementAcceptanceState">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The state of the agreement acceptance. Possible values are: accepted, declined." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The state of the agreement acceptance. Possible values are: accepted, declined. Supports $filter (eq)." />
         </Property>
         <Property Name="userDisplayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the user when the acceptance was recorded." />
@@ -7627,7 +7645,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Container for all entitlement management resources in Azure AD identity governance." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Container for roles and assignments for entitlement management resources." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
@@ -9630,10 +9648,13 @@
         </Property>
       </EntityType>
       <EntityType Name="entitlementManagement" BaseType="graph.entity">
-        <NavigationProperty Name="accessPackageAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
+        <NavigationProperty Name="accessPackageAssignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Approval stages for assignment requests." />
+        </NavigationProperty>
         <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents access package objects." />
         </NavigationProperty>
+        <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="assignmentRequests" Type="Collection(graph.accessPackageAssignmentRequest)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents access package assignment requests created by or on behalf of a user." />
         </NavigationProperty>
@@ -9666,9 +9687,38 @@
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
+        <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
+        <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The description of the policy." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the policy. Supports $filter (eq)." />
+        </Property>
+        <Property Name="expiration" Type="graph.expirationPattern" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="requestApprovalSettings" Type="graph.accessPackageAssignmentApprovalSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Who must approve requests for access package in this policy." />
+        </Property>
+        <Property Name="requestorSettings" Type="graph.accessPackageAssignmentRequestorSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Who can request this access package from this policy." />
+        </Property>
+        <Property Name="reviewSettings" Type="graph.accessPackageAssignmentReviewSettings" />
+        <Property Name="specificAllowedTargets" Type="Collection(graph.subjectSet)" />
+        <NavigationProperty Name="accessPackage" Type="graph.accessPackage">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The access package with this policy. Read-only. Nullable. Supports $expand." />
+        </NavigationProperty>
+        <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
       </EntityType>
       <EntityType Name="accessPackageAssignmentRequest" BaseType="graph.entity">
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset">
@@ -9715,6 +9765,7 @@
         <NavigationProperty Name="accessPackage" Type="graph.accessPackage">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Supports $filter (eq) on the id property and $expand query parameters." />
         </NavigationProperty>
+        <NavigationProperty Name="assignmentPolicy" Type="graph.accessPackageAssignmentPolicy" />
         <NavigationProperty Name="target" Type="graph.accessPackageSubject">
           <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the access package assignment. Read-only. Nullable. Supports $expand. Supports $filter (eq) on objectId." />
         </NavigationProperty>
@@ -9795,19 +9846,19 @@
       </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the agreement. The display name is used for internal tracking of the agreement but is not shown to end users who view the agreement." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the agreement. The display name is used for internal tracking of the agreement but is not shown to end users who view the agreement. Supports $filter (eq)." />
         </Property>
         <Property Name="isPerDeviceAcceptanceRequired" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether end users are required to accept this agreement on every device that they access it from. The end user is required to register their device in Azure AD, if they haven't already done so." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether end users are required to accept this agreement on every device that they access it from. The end user is required to register their device in Azure AD, if they haven't already done so. Supports $filter (eq)." />
         </Property>
         <Property Name="isViewingBeforeAcceptanceRequired" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user has to expand the agreement before accepting." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user has to expand the agreement before accepting. Supports $filter (eq)." />
         </Property>
         <Property Name="termsExpiration" Type="graph.termsExpiration">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Expiration schedule and frequency of agreement for all users." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Expiration schedule and frequency of agreement for all users. Supports $filter (eq)." />
         </Property>
         <Property Name="userReacceptRequiredFrequency" Type="Edm.Duration">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The duration after which the user must re-accept the terms of use. The value is represented in ISO 8601 format for durations." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The duration after which the user must re-accept the terms of use. The value is represented in ISO 8601 format for durations. Supports $filter (eq)." />
         </Property>
         <NavigationProperty Name="acceptances" Type="Collection(graph.agreementAcceptance)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Information about acceptances of this agreement." />
@@ -9816,7 +9867,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Default PDF linked to this agreement." />
         </NavigationProperty>
         <NavigationProperty Name="files" Type="Collection(graph.agreementFileLocalization)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="PDFs linked to this agreement. This property is in the process of being deprecated. Use the  file property instead." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="PDFs linked to this agreement. This property is in the process of being deprecated. Use the  file property instead. Supports $expand." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="agreementFileProperties" BaseType="graph.entity">
@@ -19373,7 +19424,9 @@
         </Property>
       </ComplexType>
       <ComplexType Name="agreementFileData">
-        <Property Name="data" Type="Edm.Binary" />
+        <Property Name="data" Type="Edm.Binary">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Data that represents the terms of use PDF document. Read-only." />
+        </Property>
       </ComplexType>
       <ComplexType Name="termsExpiration">
         <Property Name="frequency" Type="Edm.Duration">
@@ -19546,6 +19599,32 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected." />
         </Property>
       </ComplexType>
+      <ComplexType Name="accessPackageApprovalStage">
+        <Property Name="durationBeforeAutomaticDenial" Type="Edm.Duration" />
+        <Property Name="durationBeforeEscalation" Type="Edm.Duration" />
+        <Property Name="escalationApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="fallbackEscalationApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="fallbackPrimaryApprovers" Type="Collection(graph.subjectSet)" />
+        <Property Name="isApproverJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="isEscalationEnabled" Type="Edm.Boolean" />
+        <Property Name="primaryApprovers" Type="Collection(graph.subjectSet)" />
+      </ComplexType>
+      <ComplexType Name="subjectSet" Abstract="true" />
+      <ComplexType Name="accessPackageAssignmentApprovalSettings">
+        <Property Name="isApprovalRequiredForAdd" Type="Edm.Boolean" />
+        <Property Name="isApprovalRequiredForUpdate" Type="Edm.Boolean" />
+        <Property Name="stages" Type="Collection(graph.accessPackageApprovalStage)" />
+      </ComplexType>
+      <ComplexType Name="accessPackageAssignmentRequestorSettings">
+        <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToAddAccess" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToRemoveAccess" Type="Edm.Boolean" />
+        <Property Name="enableOnBehalfRequestorsToUpdateAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfAddAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfRemoveAccess" Type="Edm.Boolean" />
+        <Property Name="enableTargetsToSelfUpdateAccess" Type="Edm.Boolean" />
+        <Property Name="onBehalfRequestors" Type="Collection(graph.subjectSet)" />
+      </ComplexType>
       <ComplexType Name="accessPackageAssignmentRequestRequirements">
         <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the requestor is allowed to set a custom schedule." />
@@ -19580,7 +19659,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z." />
         </Property>
       </ComplexType>
-      <ComplexType Name="subjectSet" Abstract="true" />
+      <ComplexType Name="accessPackageAssignmentReviewSettings">
+        <Property Name="expirationBehavior" Type="graph.accessReviewExpirationBehavior" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.subjectSet)" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isRecommendationEnabled" Type="Edm.Boolean" />
+        <Property Name="isReviewerJustificationRequired" Type="Edm.Boolean" />
+        <Property Name="isSelfReview" Type="Edm.Boolean" />
+        <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
+        <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
+      </ComplexType>
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.subjectSet">
         <Property Name="connectedOrganizationId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the connected organization in entitlement management." />
@@ -19635,6 +19723,10 @@
         <Property Name="userId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the user in Azure AD." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="targetApplicationOwners" BaseType="graph.subjectSet" />
+      <ComplexType Name="targetManager" BaseType="graph.subjectSet">
+        <Property Name="managerLevel" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="identitySource" Abstract="true" />
       <ComplexType Name="azureActiveDirectoryTenant" BaseType="graph.identitySource">
@@ -28457,29 +28549,14 @@
       <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the team is in migration state and is currently being used for migration purposes. It accepts one value: migration. Note: In the future, Microsoft may require you or your customers to pay additional fees based on the amount of data imported." />
       </Term>
-      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
-      </Term>
-      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
-      </Term>
-      <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
-      </Term>
-      <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
-      </Term>
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItemVersion">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="A URL that can be used to download this version of the file's content. Authentication is not required with this URL. Read-only." />
       </Term>
-      <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
+      <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
       </Term>
-      <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="A URL that can be used to download this file's content. Authentication is not required with this URL. Read-only." />
-      </Term>
-      <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="When issuing a PUT request, this instance annotation can be used to instruct the service to download the contents of the URL, and store it as the file. Write-only." />
+      <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
       </Term>
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
@@ -28489,6 +28566,21 @@
       </Term>
       <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="When issuing a PUT request, this instance annotation can be used to instruct the service to download the contents of the URL, and store it as the file. Write-only." />
+      </Term>
+      <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
+      </Term>
+      <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="A URL that can be used to download this file's content. Authentication is not required with this URL. Read-only." />
+      </Term>
+      <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="When issuing a PUT request, this instance annotation can be used to instruct the service to download the contents of the URL, and store it as the file. Write-only." />
+      </Term>
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
+      </Term>
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
       </Term>
       <Annotations Target="microsoft.graph.bookingPriceType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents the type of pricing of a booking service." />
