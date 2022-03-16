@@ -324,7 +324,10 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleDefinition']/edm:NavigationProperty[@Name='roleSetting']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleAssignment']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleSetting']/edm:NavigationProperty[@Name='resource']/@ContainsTarget">
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='governanceRoleSetting']/edm:NavigationProperty[@Name='resource']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='drive']/edm:NavigationProperty[@Name='bundles']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='drive']/edm:NavigationProperty[@Name='following']/@ContainsTarget|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='drive']/edm:NavigationProperty[@Name='special']/@ContainsTarget">
         <xsl:if test="$remove-capability-annotations='True'">
             <xsl:attribute name="ContainsTarget">true</xsl:attribute>
         </xsl:if>
@@ -613,6 +616,26 @@
             <!-- Remove indexability for users navigation property -->
             <xsl:element name="Annotations">
                 <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
+                <xsl:element name="Annotation">
+                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                            <xsl:element name="Collection">
+                                <xsl:element name="Record">
+                                    <xsl:element name="PropertyValue">
+                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                        <xsl:attribute name="Bool">false</xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+            <!-- Remove indexability for activities navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.list/activities</xsl:attribute>
                 <xsl:element name="Annotation">
                     <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
                     <xsl:element name="Record" namespace="{namespace-uri()}">
