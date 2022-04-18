@@ -653,6 +653,19 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
+            <!-- Remove deletable for alerts navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.security/alerts</xsl:attribute>
+                <xsl:element name="Annotation">
+                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.DeleteRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Deletable</xsl:attribute>
+                            <xsl:attribute name="Bool">false</xsl:attribute>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
 

@@ -16,10 +16,11 @@ param (
     $addInnerErrorDescription = $false
 )
 function Get-PathWithPrefix([string]$requestedPath) {
-    if([System.IO.Path]::IsPathRooted($requestedPath)) {
+    if ([System.IO.Path]::IsPathRooted($requestedPath)) {
         return $requestedPath
-    } else {
-        return Join-Path $PWD $requestedPath
+    }
+    else {
+        return Join-Path $PSScriptRoot $requestedPath
     }
 }
 $xslFullPath = Get-PathWithPrefix -requestedPath $xslPath
@@ -46,7 +47,7 @@ $xmlWriterSettings.Indent = $true
 $xmlWriter = [System.Xml.XmlWriter]::Create($outputFullPath, $xmlWriterSettings)
 
 try {
-    $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg) 
+    $xslt = [System.Xml.Xsl.XslCompiledTransform]::new($dbg)
     $xslt.Load($xslFullPath)
     $xslt.Transform($inputFullPath, $xsltargs, $xmlWriter)
 }
