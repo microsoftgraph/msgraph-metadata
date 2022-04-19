@@ -544,6 +544,19 @@
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template name="DeleteRestrictionsTemplate">
+        <xsl:param name = "deletable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.DeleteRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Deletable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select = "$deletable" /></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
         <xsl:copy>
@@ -652,6 +665,19 @@
                         </xsl:element>
                     </xsl:element>
                 </xsl:element>
+            </xsl:element>
+            <!-- Remove deletability from navigation properties -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.security/alerts</xsl:attribute>
+                <xsl:call-template name="DeleteRestrictionsTemplate">
+                    <xsl:with-param name="deletable">false</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.authentication/methods</xsl:attribute>
+                <xsl:call-template name="DeleteRestrictionsTemplate">
+                    <xsl:with-param name="deletable">false</xsl:with-param>
+                </xsl:call-template>
             </xsl:element>
         </xsl:copy>
     </xsl:template>
