@@ -666,7 +666,7 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
-            <!-- Remove deletable from navigation properties -->
+            <!-- Remove deletability from navigation properties -->
             <xsl:element name="Annotations">
                 <xsl:attribute name="Target">microsoft.graph.security/alerts</xsl:attribute>
                 <xsl:call-template name="DeleteRestrictionsTemplate">
