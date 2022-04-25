@@ -544,6 +544,7 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- Capability Annotations Templates -->
     <xsl:template name="DeleteRestrictionsTemplate">
         <xsl:param name = "deletable" />
         <xsl:element name="Annotation">
@@ -552,6 +553,18 @@
                 <xsl:element name="PropertyValue">
                     <xsl:attribute name="Property">Deletable</xsl:attribute>
                     <xsl:attribute name="Bool"><xsl:value-of select = "$deletable" /></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="InsertRestrictionsTemplate">
+        <xsl:param name = "insertable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.InsertRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Insertable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select = "$insertable" /></xsl:attribute>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -666,7 +679,7 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
-            <!-- Remove deletability from navigation properties -->
+            <!-- Remove deletability -->
             <xsl:element name="Annotations">
                 <xsl:attribute name="Target">microsoft.graph.security/alerts</xsl:attribute>
                 <xsl:call-template name="DeleteRestrictionsTemplate">
@@ -677,6 +690,19 @@
                 <xsl:attribute name="Target">microsoft.graph.authentication/methods</xsl:attribute>
                 <xsl:call-template name="DeleteRestrictionsTemplate">
                     <xsl:with-param name="deletable">false</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
+                <xsl:call-template name="DeleteRestrictionsTemplate">
+                    <xsl:with-param name="deletable">false</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+            <!-- Remove insertability -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
+                <xsl:call-template name="InsertRestrictionsTemplate">
+                    <xsl:with-param name="insertable">false</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
         </xsl:copy>
