@@ -644,6 +644,13 @@
         <Member Name="approvalStatus" Value="17" />
         <Member Name="unknownFutureValue" Value="18" />
       </EnumType>
+      <EnumType Name="longRunningOperationStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="stagedFeatureName">
         <Member Name="passthroughAuthentication" Value="0" />
         <Member Name="seamlessSso" Value="1" />
@@ -4696,6 +4703,9 @@
         <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of lists under this site." />
         </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(graph.richLongRunningOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of long running operations for the site." />
+        </NavigationProperty>
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The permissions associated with the site. Nullable." />
         </NavigationProperty>
@@ -6956,9 +6966,33 @@
         <NavigationProperty Name="items" Type="Collection(graph.listItem)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="All items contained in the list." />
         </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(graph.richLongRunningOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of long running operations for the list." />
+        </NavigationProperty>
         <NavigationProperty Name="subscriptions" Type="Collection(graph.subscription)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The set of subscriptions on the list." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="longRunningOperation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="resourceLocation" Type="Edm.String" />
+        <Property Name="status" Type="graph.longRunningOperationStatus" />
+        <Property Name="statusDetail" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="richLongRunningOperation" BaseType="graph.longRunningOperation">
+        <Property Name="error" Type="graph.publicError">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Error due to which the operation failed." />
+        </Property>
+        <Property Name="percentageComplete" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A value between 0 and 100 that indicates the progress of the operation." />
+        </Property>
+        <Property Name="resourceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for the result." />
+        </Property>
+        <Property Name="type" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Type of the operation." />
+        </Property>
       </EntityType>
       <EntityType Name="permission" BaseType="graph.entity">
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset">
@@ -24842,6 +24876,10 @@
         <Parameter Name="TimeZoneStandard" Type="graph.timeZoneStandard" Nullable="false" />
         <ReturnType Type="Collection(graph.timeZoneInformation)" Nullable="false" />
       </Function>
+      <Function EntitySetPath="bindingParameter" Name="getCompatibleHubContentTypes" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
+        <ReturnType Type="Collection(graph.contentType)" />
+      </Function>
       <Function Name="isPublished" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
@@ -28415,6 +28453,11 @@
       <Action Name="addCopy" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
         <Parameter Name="contentType" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.contentType" />
+      </Action>
+      <Action Name="addCopyFromContentTypeHub" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
+        <Parameter Name="contentTypeId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="graph.contentType" />
       </Action>
       <Action Name="associateWithHubSites" IsBound="true" EntitySetPath="bindingParameter">
