@@ -692,19 +692,21 @@
                     <xsl:with-param name="deletable">false</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
-                <xsl:call-template name="DeleteRestrictionsTemplate">
-                    <xsl:with-param name="deletable">false</xsl:with-param>
-                </xsl:call-template>
-            </xsl:element>
-            <!-- Remove insertability -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
-                <xsl:call-template name="InsertRestrictionsTemplate">
-                    <xsl:with-param name="insertable">false</xsl:with-param>
-                </xsl:call-template>
-            </xsl:element>
+            <xsl:if test="$remove-capability-annotations='False'">
+                <xsl:element name="Annotations">
+                    <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
+                    <xsl:call-template name="DeleteRestrictionsTemplate">
+                        <xsl:with-param name="deletable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:element>
+                <!-- Remove insertability -->
+                <xsl:element name="Annotations">
+                    <xsl:attribute name="Target">microsoft.graph.site</xsl:attribute>
+                    <xsl:call-template name="InsertRestrictionsTemplate">
+                        <xsl:with-param name="insertable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:element>
+            </xsl:if>
         </xsl:copy>
     </xsl:template>
 
