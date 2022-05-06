@@ -305,6 +305,17 @@
         <Member Name="everyone" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="authenticationProtocol">
+        <Member Name="wsFed" Value="0" />
+        <Member Name="saml" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="federatedIdpMfaBehavior">
+        <Member Name="acceptIfMfaDoneByFederatedIdp" Value="0" />
+        <Member Name="enforceMfaByFederatedIdp" Value="1" />
+        <Member Name="rejectMfaByFederatedIdp" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="permissionClassificationType">
         <Member Name="low" Value="1" />
         <Member Name="medium" Value="2" />
@@ -315,6 +326,12 @@
         <Member Name="application" Value="3" />
         <Member Name="delegated" Value="2" />
         <Member Name="delegatedUserConsentable" Value="1" />
+      </EnumType>
+      <EnumType Name="promptLoginBehavior">
+        <Member Name="translateToFreshPasswordAuthentication" Value="0" />
+        <Member Name="nativeSupport" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="educationAddedStudentAction">
         <Member Name="none" Value="0" />
@@ -7362,6 +7379,9 @@
           </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
         </NavigationProperty>
+        <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Configure domain federation with organizations whose identity provider (IdP) supports either the SAML or WS-Fed protocol." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="directoryObjectPartnerReference" BaseType="graph.directoryObject">
         <Property Name="description" Type="Edm.String">
@@ -7446,17 +7466,60 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Status of asynchronous operations scheduled for the domain." />
         </Property>
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The capabilities assigned to the domain. Can include 0, 1 or more of following values: Email, Sharepoint, EmailInternalRelayOnly, OfficeCommunicationsOnline,SharePointDefaultDomain, FullRedelegation, SharePointPublic, OrgIdAuthentication, Yammer, Intune. The values which you can add/remove using Graph API include: Email, OfficeCommunicationsOnline, Yammer. Not nullable" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The capabilities assigned to the domain. Can include 0, 1 or more of following values: Email, Sharepoint, EmailInternalRelayOnly, OfficeCommunicationsOnline,SharePointDefaultDomain, FullRedelegation, SharePointPublic, OrgIdAuthentication, Yammer, Intune. The values which you can add/remove using Graph API include: Email, OfficeCommunicationsOnline, Yammer. Not nullable." />
         </Property>
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only, Nullable" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The objects such as users and groups that reference the domain ID. Read-only, Nullable. Supports $expand and $filter by the OData type of objects returned. For example /domains/{domainId}/domainNameReferences/microsoft.graph.user and /domains/{domainId}/domainNameReferences/microsoft.graph.group." />
+        </NavigationProperty>
+        <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Domain settings configured by customer when federated with Azure AD. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="DNS records the customer adds to the DNS zone file of the domain before the domain can be used by Microsoft Online services. Read-only, Nullable" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="DNS records the customer adds to the DNS zone file of the domain before the domain can be used by Microsoft Online services. Read-only, Nullable. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="DNS records that the customer adds to the DNS zone file of the domain before the customer can complete domain ownership verification with Azure AD. Read-only, Nullable" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="DNS records that the customer adds to the DNS zone file of the domain before the customer can complete domain ownership verification with Azure AD. Read-only, Nullable. Supports $expand." />
         </NavigationProperty>
+      </EntityType>
+      <EntityType Name="samlOrWsFedProvider" BaseType="graph.identityProviderBase" Abstract="true">
+        <Property Name="issuerUri" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Issuer URI of the federation server." />
+        </Property>
+        <Property Name="metadataExchangeUri" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URI of the metadata exchange endpoint used for authentication from rich client applications." />
+        </Property>
+        <Property Name="passiveSignInUri" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URI that web-based clients are directed to when signing in to Azure Active Directory (Azure AD) services." />
+        </Property>
+        <Property Name="preferredAuthenticationProtocol" Type="graph.authenticationProtocol">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Preferred authentication protocol. Supported values include saml or wsfed." />
+        </Property>
+        <Property Name="signingCertificate" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Current certificate used to sign tokens passed to the Microsoft identity platform. The certificate is formatted as a Base64 encoded string of the public portion of the federated IdP's token signing certificate and must be compatible with the X509Certificate2 class.   This property is used in the following scenarios:  if a rollover is required outside of the autorollover update a new federation service is being set up  if the new token signing certificate isn't present in the federation properties after the federation service certificate has been updated.   Azure AD updates certificates via an autorollover process in which it attempts to retrieve a new certificate from the federation service metadata, 30 days before expiry of the current certificate. If a new certificate isn't available, Azure AD monitors the metadata daily and will update the federation settings for the domain when a new certificate is available." />
+        </Property>
+      </EntityType>
+      <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <Property Name="activeSignInUri" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL of the endpoint used by active clients when authenticating with federated domains set up for single sign-on in Azure Active Directory (Azure AD). Corresponds to the ActiveLogOnUri property of the Set-MsolDomainFederationSettings MSOnline v1 PowerShell cmdlet." />
+        </Property>
+        <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines whether Azure AD accepts the MFA performed by the federated IdP when a federated user accesses an application that is governed by a conditional access policy that requires MFA. The possible values are: acceptIfMfaDoneByFederatedIdp, enforceMfaByFederatedIdp, rejectMfaByFederatedIdp, unknownFutureValue. For more information, see federatedIdpMfaBehavior values." />
+        </Property>
+        <Property Name="isSignedAuthenticationRequestRequired" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If true, when SAML authentication requests are sent to the federated SAML IdP, Azure AD will sign those requests using the OrgID signing key. If false (default), the SAML authentication requests sent to the federated IdP are not signed." />
+        </Property>
+        <Property Name="nextSigningCertificate" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Fallback token signing certificate that is used to sign tokens when the primary signing certificate expires. Formatted as Base64 encoded strings of the public portion of the federated IdP's token signing certificate. Needs to be compatible with the X509Certificate2 class. Much like the signingCertificate, the nextSigningCertificate property is used if a rollover is required outside of the auto-rollover update, a new federation service is being set up, or if the new token signing certificate is not present in the federation properties after the federation service certificate has been updated." />
+        </Property>
+        <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Sets the preferred behavior for the sign-in prompt. The possible values are: translateToFreshPasswordAuthentication, nativeSupport, disabled, unknownFutureValue." />
+        </Property>
+        <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides status and timestamp of the last update of the signing certificate." />
+        </Property>
+        <Property Name="signOutUri" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URI that clients are redirected to when they sign out of Azure AD services. Corresponds to the LogOffUri property of the Set-MsolDomainFederationSettings MSOnline v1 PowerShell cmdlet." />
+        </Property>
       </EntityType>
       <EntityType Name="domainDnsRecord" BaseType="graph.entity">
         <Property Name="isOptional" Type="Edm.Boolean" Nullable="false">
@@ -7466,13 +7529,13 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Value used when configuring the name of the DNS record at the DNS host." />
         </Property>
         <Property Name="recordType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates what type of DNS record this entity represents.The value can be one of the following: CName, Mx, Srv, TxtKey" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates what type of DNS record this entity represents.The value can be one of the following: CName, Mx, Srv, Txt." />
         </Property>
         <Property Name="supportedService" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Microsoft Online Service or feature that has a dependency on this DNS record.Can be one of the following values: null, Email, Sharepoint, EmailInternalRelayOnly, OfficeCommunicationsOnline, SharePointDefaultDomain, FullRedelegation, SharePointPublic, OrgIdAuthentication, Yammer, Intune" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Microsoft Online Service or feature that has a dependency on this DNS record.Can be one of the following values: null, Email, Sharepoint, EmailInternalRelayOnly, OfficeCommunicationsOnline, SharePointDefaultDomain, FullRedelegation, SharePointPublic, OrgIdAuthentication, Yammer, Intune." />
         </Property>
         <Property Name="ttl" Type="Edm.Int32" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Value to use when configuring the time-to-live (ttl) property of the DNS record at the DNS host. Not nullable" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Value to use when configuring the time-to-live (ttl) property of the DNS record at the DNS host. Not nullable." />
         </Property>
       </EntityType>
       <EntityType Name="domainDnsCnameRecord" BaseType="graph.domainDnsRecord">
@@ -7518,6 +7581,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides the reason why the DomainDnsUnavailableRecord entity is returned." />
         </Property>
       </EntityType>
+      <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="groupSettingTemplate" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Description of the template." />
@@ -8071,6 +8135,11 @@
         </NavigationProperty>
         <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Container for roles and assignments for entitlement management resources." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Collection of domain names of the external organizations that the tenant is federating with. Supports $filter (eq)." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="subscribedSku" BaseType="graph.entity">
@@ -18150,6 +18219,14 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Value of the setting." />
         </Property>
       </ComplexType>
+      <ComplexType Name="signingCertificateUpdateStatus">
+        <Property Name="certificateUpdateResult" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Status of the last certificate update. Read-only. For a list of statuses, see certificateUpdateResult status." />
+        </Property>
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time in ISO 8601 format and in UTC time when the certificate was last updated. Read-only." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="unifiedRolePermission">
         <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Set of tasks that can be performed on a resource." />
@@ -18163,19 +18240,19 @@
       </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For example, 'Email', 'OfficeCommunicationsOnline'." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="For example, Email, OfficeCommunicationsOnline." />
         </Property>
         <Property Name="isDefault" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if this is the default domain associated with the tenant; otherwise, false." />
         </Property>
         <Property Name="isInitial" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="true if this is the initial domain associated with the tenant; otherwise, false" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="true if this is the initial domain associated with the tenant; otherwise, false." />
         </Property>
         <Property Name="name" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The domain name; for example, 'contoso.onmicrosoft.com'" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The domain name; for example, contoso.onmicrosoft.com." />
         </Property>
         <Property Name="type" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="For example, 'Managed'." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="For example, Managed." />
         </Property>
       </ComplexType>
       <ComplexType Name="educationAssignmentRecipient" Abstract="true" />
@@ -23079,10 +23156,12 @@
         <Property Name="identity" Type="graph.identitySet" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The identitySet associated with this invitation." />
         </Property>
-        <Property Name="participantId" Type="Edm.String" />
+        <Property Name="participantId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. The ID of the target participant." />
+        </Property>
         <Property Name="removeFromDefaultAudioRoutingGroup" Type="Edm.Boolean" />
         <Property Name="replacesCallId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. The call which the target idenity is currently a part of. This call will be dropped once the participant is added." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Optional. The call which the target identity is currently a part of. For peer-to-peer case, the call will be dropped once the participant is added successfully." />
         </Property>
       </ComplexType>
       <ComplexType Name="inviteNewBotResponse" BaseType="graph.participantJoiningResponse">
@@ -24558,6 +24637,14 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.user)" />
         <ReturnType Type="Collection(graph.user)" />
+      </Function>
+      <Function EntitySetPath="bindingParameter" Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.educationAssignment)" />
+        <ReturnType Type="Collection(graph.educationAssignment)" />
+      </Function>
+      <Function EntitySetPath="bindingParameter" Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.educationCategory)" />
+        <ReturnType Type="Collection(graph.educationCategory)" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.educationClass)" />
@@ -32789,6 +32876,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.educationAssignment/webUrl">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationClass/assignmentCategories">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationClass/assignments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.educationRoot/classes">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
