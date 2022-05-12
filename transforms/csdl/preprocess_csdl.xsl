@@ -725,4 +725,62 @@
         </xsl:copy>
     </xsl:template>
 
+<!-- Add Referenceable Annotations (for /$ref paths) -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='administrativeUnit']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectorGroup']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directoryRole']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationClass']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleAccessPackages']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackage']/edm:NavigationProperty[@Name='incompatibleGroups']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='owners']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='tokenIssuancePolicies']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='tokenLifetimePolicies']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='appManagementPolicies']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='b2cIdentityUserFlow']/edm:NavigationProperty[@Name='identityProviders']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='b2xIdentityUserFlow']/edm:NavigationProperty[@Name='userFlowIdentityProviders']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='externalSponsors']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='memberOf']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='connectorGroup']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectorGroup']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredOwners']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='registeredUsers']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sourceCollection']/edm:NavigationProperty[@Name='custodianSources']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sourceCollection']/edm:NavigationProperty[@Name='noncustodialSources']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationAssignment']/edm:NavigationProperty[@Name='categories']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationAssignment']/edm:NavigationProperty[@Name='rubric']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationClass']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationClass']/edm:NavigationProperty[@Name='teachers']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationSchool']/edm:NavigationProperty[@Name='classes']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationSchool']/edm:NavigationProperty[@Name='users']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='featureRolloutPolicy']/edm:NavigationProperty[@Name='appliesTo']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='owners']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mobilityManagementPolicy']/edm:NavigationProperty[@Name='includedGroups']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onPremisesAgent']/edm:NavigationProperty[@Name='agentGroups']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printerShare']/edm:NavigationProperty[@Name='allowedGroups']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printerShare']/edm:NavigationProperty[@Name='allowedUsers']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='publishedResource']/edm:NavigationProperty[@Name='agentGroups']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='claimsMappingPolicies']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='homeRealmDiscoveryPolicies']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='owners']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='memberOf']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postAttributeCollection']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postFederationSignup']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">Referenceable</xsl:attribute>
+                        <xsl:attribute name="Bool">true</xsl:attribute>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
 </xsl:stylesheet>
