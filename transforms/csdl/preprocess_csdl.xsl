@@ -705,6 +705,20 @@
                     </xsl:call-template>
                 </xsl:element>
             </xsl:if>
+            <!-- Add Referenceable annotation for graph/members separately so as not to overwrite the prior
+                 transform added to this navigation property -->
+            <xsl:element name="Annotations">
+            <xsl:attribute name="Target">microsoft.graph.group/members</xsl:attribute>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">Referenceable</xsl:attribute>
+                        <xsl:attribute name="Bool">true</xsl:attribute>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
         </xsl:copy>
     </xsl:template>
 
@@ -754,7 +768,6 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='educationSchool']/edm:NavigationProperty[@Name='users']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='featureRolloutPolicy']/edm:NavigationProperty[@Name='appliesTo']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='owners']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mobilityManagementPolicy']/edm:NavigationProperty[@Name='includedGroups']|
