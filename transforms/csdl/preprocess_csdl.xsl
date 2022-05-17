@@ -7,6 +7,14 @@
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
 
+    <!-- Flag to signal if we are generating a document for open api generation. -->
+    <xsl:variable name="open-api-generation">
+        <xsl:choose>
+            <!-- Open API document generation is done with capability annotations and error descriptions -->
+            <xsl:when test="$remove-capability-annotations='False' and $add-innererror-description='True'">True</xsl:when>
+            <xsl:otherwise>False</xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
 
@@ -333,9 +341,18 @@
         </xsl:if>
     </xsl:template>
 
+    <!--Remove functions that are blocking beta generation only for CSDL based generation -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls'] |
+                         edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']">
+        <xsl:choose>
+            <xsl:when test="$open-api-generation='True'">
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()" />
+                </xsl:copy>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
     <!--Remove functions that are blocking beta generation-->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='additionalAccess'][edm:Parameter[@Name='accessPackageId']][edm:Parameter[@Type='Collection(graph.accessPackageAssignment)']][1]"/>
 
