@@ -7,6 +7,14 @@
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
 
+    <!-- Flag to signal if we are generating a document for open api generation. -->
+    <xsl:variable name="open-api-generation">
+        <xsl:choose>
+            <!-- Open API document generation is done with capability annotations and error descriptions -->
+            <xsl:when test="$remove-capability-annotations='False' and $add-innererror-description='True'">True</xsl:when>
+            <xsl:otherwise>False</xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
 
@@ -333,9 +341,18 @@
         </xsl:if>
     </xsl:template>
 
+    <!--Remove functions that are blocking beta generation only for CSDL based generation -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls'] |
+                         edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']">
+        <xsl:choose>
+            <xsl:when test="$open-api-generation='True'">
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()" />
+                </xsl:copy>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
     <!--Remove functions that are blocking beta generation-->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls']"/>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='additionalAccess'][edm:Parameter[@Name='accessPackageId']][edm:Parameter[@Type='Collection(graph.accessPackageAssignment)']][1]"/>
 
@@ -570,6 +587,25 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="NavigationRestrictionsTemplate">
+        <xsl:param name = "navigable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                    <xsl:element name="Collection">
+                        <xsl:element name="Record">
+                            <xsl:element name="PropertyValue">
+                                <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                <xsl:attribute name="Bool"><xsl:value-of select = "$navigable" /></xsl:attribute>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
 
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
@@ -620,66 +656,43 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
+            
             <!-- Remove indexability for joinedGroups navigation property -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
-                <xsl:element name="Annotation">
-                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                    <xsl:element name="Record" namespace="{namespace-uri()}">
-                        <xsl:element name="PropertyValue">
-                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-                            <xsl:element name="Collection">
-                                <xsl:element name="Record">
-                                    <xsl:element name="PropertyValue">
-                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                                        <xsl:attribute name="Bool">false</xsl:attribute>
-                                    </xsl:element>
-                                </xsl:element>
-                            </xsl:element>
-                        </xsl:element>
+            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.user/joinedGroups'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
+                        <xsl:call-template name="NavigationRestrictionsTemplate">
+                            <xsl:with-param name="navigable">false</xsl:with-param>
+                        </xsl:call-template>
                     </xsl:element>
-                </xsl:element>
-            </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             <!-- Remove indexability for users navigation property -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
-                <xsl:element name="Annotation">
-                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                    <xsl:element name="Record" namespace="{namespace-uri()}">
-                        <xsl:element name="PropertyValue">
-                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-                            <xsl:element name="Collection">
-                                <xsl:element name="Record">
-                                    <xsl:element name="PropertyValue">
-                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                                        <xsl:attribute name="Bool">false</xsl:attribute>
-                                    </xsl:element>
-                                </xsl:element>
-                            </xsl:element>
-                        </xsl:element>
+            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.managedDevice/users'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
+                        <xsl:call-template name="NavigationRestrictionsTemplate">
+                            <xsl:with-param name="navigable">false</xsl:with-param>
+                        </xsl:call-template>
                     </xsl:element>
-                </xsl:element>
-            </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             <!-- Remove indexability for activities navigation property -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.list/activities</xsl:attribute>
-                <xsl:element name="Annotation">
-                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                    <xsl:element name="Record" namespace="{namespace-uri()}">
-                        <xsl:element name="PropertyValue">
-                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-                            <xsl:element name="Collection">
-                                <xsl:element name="Record">
-                                    <xsl:element name="PropertyValue">
-                                        <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                                        <xsl:attribute name="Bool">false</xsl:attribute>
-                                    </xsl:element>
-                                </xsl:element>
-                            </xsl:element>
-                        </xsl:element>
+            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.list/activities'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.list/activities</xsl:attribute>
+                        <xsl:call-template name="NavigationRestrictionsTemplate">
+                            <xsl:with-param name="navigable">false</xsl:with-param>
+                        </xsl:call-template>
                     </xsl:element>
-                </xsl:element>
-            </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             <!-- Remove deletability -->
             <xsl:element name="Annotations">
                 <xsl:attribute name="Target">microsoft.graph.security/alerts</xsl:attribute>
@@ -719,6 +732,21 @@
                 </xsl:element>
             </xsl:element>
         </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Remove indexability for joinedGroups navigation property -->
+    <!-- Remove indexability for activities navigation property -->
+    <!-- Remove indexability for users navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/joinedGroups'] |
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice/users'] |
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/activities'] ">
+        <xsl:copy>
+            <xsl:copy-of select="@*|node()"/>
+            <xsl:call-template name="NavigationRestrictionsTemplate">
+                <xsl:with-param name="navigable">false</xsl:with-param>
+            </xsl:call-template>            
         </xsl:copy>
     </xsl:template>
 
