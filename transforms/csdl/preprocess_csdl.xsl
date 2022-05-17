@@ -606,6 +606,18 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="ReferenceableRestrictionsTemplate">
+        <xsl:param name = "referenceable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Referenceable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select="$referenceable"/></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
 
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
@@ -656,7 +668,7 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
-            
+
             <!-- Remove indexability for joinedGroups navigation property -->
             <!-- Add the parent "Annotations" tag if it doesn't exists -->
             <xsl:choose>
@@ -718,20 +730,21 @@
                     </xsl:call-template>
                 </xsl:element>
             </xsl:if>
-            <!-- Add Referenceable annotation for graph/members separately so as not to overwrite the prior
-                 transform added to this navigation property -->
+
+            <!-- Add Referenceable annotations for group/members & publishedResource/agentGroups
+                 separately so as not to overwrite the prior transforms added to these navigation properties -->
             <xsl:element name="Annotations">
-            <xsl:attribute name="Target">microsoft.graph.group/members</xsl:attribute>
-            <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                <xsl:element name="Record">
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Referenceable</xsl:attribute>
-                        <xsl:attribute name="Bool">true</xsl:attribute>
-                    </xsl:element>
-                </xsl:element>
+                <xsl:attribute name="Target">microsoft.graph.group/members</xsl:attribute>
+                <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                    <xsl:with-param name="referenceable">true</xsl:with-param>
+                </xsl:call-template>
             </xsl:element>
-        </xsl:element>
+            <xsl:element name="Annotations">
+            <xsl:attribute name="Target">microsoft.graph.publishedResource/agentGroups</xsl:attribute>
+                <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                    <xsl:with-param name="referenceable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
 
@@ -746,7 +759,7 @@
             <xsl:copy-of select="@*|node()"/>
             <xsl:call-template name="NavigationRestrictionsTemplate">
                 <xsl:with-param name="navigable">false</xsl:with-param>
-            </xsl:call-template>            
+            </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
@@ -802,7 +815,6 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onPremisesAgent']/edm:NavigationProperty[@Name='agentGroups']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printerShare']/edm:NavigationProperty[@Name='allowedGroups']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printerShare']/edm:NavigationProperty[@Name='allowedUsers']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='publishedResource']/edm:NavigationProperty[@Name='agentGroups']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='claimsMappingPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='homeRealmDiscoveryPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='owners']|
@@ -812,15 +824,9 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postFederationSignup']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                <xsl:element name="Record">
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Referenceable</xsl:attribute>
-                        <xsl:attribute name="Bool">true</xsl:attribute>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
+                <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                    <xsl:with-param name="referenceable">true</xsl:with-param>
+                </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
