@@ -283,7 +283,7 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntitySet[@Name='places']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='places']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
