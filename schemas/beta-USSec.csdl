@@ -191,6 +191,11 @@
         <Member Name="office" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="authenticationProtocol">
+        <Member Name="wsFed" Value="0" />
+        <Member Name="saml" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="authenticatorAppContextType" IsFlags="true">
         <Member Name="location" Value="0" />
         <Member Name="app" Value="1" />
@@ -529,6 +534,12 @@
         <Member Name="reset" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="federatedIdpMfaBehavior">
+        <Member Name="acceptIfMfaDoneByFederatedIdp" Value="0" />
+        <Member Name="enforceMfaByFederatedIdp" Value="1" />
+        <Member Name="rejectMfaByFederatedIdp" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="fido2RestrictionEnforcementType">
         <Member Name="allow" Value="0" />
         <Member Name="block" Value="1" />
@@ -751,6 +762,11 @@
         <Member Name="exact" Value="1" />
         <Member Name="near" Value="2" />
       </EnumType>
+      <EnumType Name="multiFactorAuthConfiguration">
+        <Member Name="notRequired" Value="0" />
+        <Member Name="required" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="mutability">
         <Member Name="ReadWrite" Value="0" />
         <Member Name="ReadOnly" Value="1" />
@@ -852,6 +868,12 @@
         <Member Name="business" Value="2" />
         <Member Name="other" Value="3" />
       </EnumType>
+      <EnumType Name="policyScope">
+        <Member Name="none" Value="0" />
+        <Member Name="all" Value="1" />
+        <Member Name="selected" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="processIntegrityLevel">
         <Member Name="unknown" Value="0" />
         <Member Name="untrusted" Value="1" />
@@ -860,6 +882,12 @@
         <Member Name="high" Value="4" />
         <Member Name="system" Value="5" />
         <Member Name="unknownFutureValue" Value="127" />
+      </EnumType>
+      <EnumType Name="promptLoginBehavior">
+        <Member Name="translateToFreshPasswordAuthentication" Value="0" />
+        <Member Name="nativeSupport" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="provisioningAction">
         <Member Name="other" Value="0" />
@@ -1725,6 +1753,18 @@
       <ComplexType Name="averageComparativeScore" OpenType="true">
         <Property Name="averageScore" Type="Edm.Double" />
         <Property Name="basis" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="azureAdJoinPolicy" OpenType="true">
+        <Property Name="allowedGroups" Type="Collection(Edm.String)" />
+        <Property Name="allowedUsers" Type="Collection(Edm.String)" />
+        <Property Name="appliesTo" Type="graph.policyScope" />
+        <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="azureADRegistrationPolicy" OpenType="true">
+        <Property Name="allowedGroups" Type="Collection(Edm.String)" />
+        <Property Name="allowedUsers" Type="Collection(Edm.String)" />
+        <Property Name="appliesTo" Type="graph.policyScope" />
+        <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="blockAccessAction" BaseType="graph.dlpActionInfo" />
       <ComplexType Name="booleanColumn" />
@@ -3370,6 +3410,10 @@
         <Property Name="type" Type="graph.signinFrequencyType" />
         <Property Name="value" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="signingCertificateUpdateStatus">
+        <Property Name="certificateUpdateResult" Type="Edm.String" />
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="signInLocation">
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
@@ -4559,12 +4603,21 @@
         <NavigationProperty Name="registeredUsers" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
       </EntityType>
+      <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity">
+        <Property Name="azureADJoin" Type="graph.azureAdJoinPolicy" />
+        <Property Name="azureADRegistration" Type="graph.azureADRegistrationPolicy" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="multiFactorAuthConfiguration" Type="graph.multiFactorAuthConfiguration" Nullable="false" />
+        <Property Name="userDeviceQuota" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
       <EntityType Name="directory">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="attributeSets" Type="Collection(graph.attributeSet)" ContainsTarget="true" />
         <NavigationProperty Name="customSecurityAttributeDefinitions" Type="Collection(graph.customSecurityAttributeDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -4637,6 +4690,7 @@
         <Property Name="state" Type="graph.domainState" />
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
       </EntityType>
@@ -4871,6 +4925,7 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -5075,6 +5130,9 @@
         <NavigationProperty Name="riskyUsers" Type="Collection(graph.riskyUser)" ContainsTarget="true" />
         <NavigationProperty Name="servicePrincipalRiskDetections" Type="Collection(graph.servicePrincipalRiskDetection)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
@@ -5089,6 +5147,15 @@
         <NavigationProperty Name="dataLossPreventionPolicies" Type="Collection(graph.dataLossPreventionPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityPolicySettings" Type="graph.sensitivityPolicySettings" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <Property Name="activeSignInUri" Type="Edm.String" />
+        <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
+        <Property Name="isSignedAuthenticationRequestRequired" Type="Edm.Boolean" />
+        <Property Name="nextSigningCertificate" Type="Edm.String" />
+        <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior" />
+        <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus" />
+        <Property Name="signOutUri" Type="Edm.String" />
       </EntityType>
       <EntityType Name="invitation" BaseType="graph.entity">
         <Property Name="invitedUserDisplayName" Type="Edm.String" />
@@ -5607,6 +5674,7 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="directoryRoleAccessReviewPolicy" Type="graph.directoryRoleAccessReviewPolicy" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
@@ -5857,6 +5925,16 @@
       </EntityType>
       <EntityType Name="roleManagement">
         <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="samlOrWsFedProvider" BaseType="graph.identityProviderBase" Abstract="true">
+        <Property Name="issuerUri" Type="Edm.String" />
+        <Property Name="metadataExchangeUri" Type="Edm.String" />
+        <Property Name="passiveSignInUri" Type="Edm.String" />
+        <Property Name="preferredAuthenticationProtocol" Type="graph.authenticationProtocol" />
+        <Property Name="signingCertificate" Type="Edm.String" />
       </EntityType>
       <EntityType Name="schemaExtension" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
@@ -8205,6 +8283,45 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceRegistrationPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.directory/featureRolloutPolicies">
         <Annotation Term="Org.OData.Core.V1.Revisions">
