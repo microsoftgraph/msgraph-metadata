@@ -703,6 +703,10 @@
         <Member Name="reviewer" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="accessReviewStageFilterByCurrentUserOptions">
+        <Member Name="reviewer" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="approvalFilterByCurrentUserOptions">
         <Member Name="target" Value="0" />
         <Member Name="createdBy" Value="1" />
@@ -4418,6 +4422,7 @@
         <NavigationProperty Name="fido2Methods" Type="Collection(graph.fido2AuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
@@ -4927,6 +4932,14 @@
         <Property Name="scopeType" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="policy" Type="graph.unifiedRoleManagementPolicy" />
       </EntityType>
+      <EntityType Name="temporaryAccessPassAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="defaultLength" Type="Edm.Int32" />
+        <Property Name="defaultLifetimeInMinutes" Type="Edm.Int32" />
+        <Property Name="isUsableOnce" Type="Edm.Boolean" />
+        <Property Name="maximumLifetimeInMinutes" Type="Edm.Int32" />
+        <Property Name="minimumLifetimeInMinutes" Type="Edm.Int32" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="bitlocker" BaseType="graph.entity">
         <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true" />
       </EntityType>
@@ -5382,8 +5395,6 @@
         <NavigationProperty Name="calendarView" Type="Collection(graph.event)" ContainsTarget="true" />
         <NavigationProperty Name="conversations" Type="Collection(graph.conversation)" ContainsTarget="true" />
         <NavigationProperty Name="events" Type="Collection(graph.event)" ContainsTarget="true" />
-        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
-        <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="rejectedSenders" Type="Collection(graph.directoryObject)">
           <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
             <Record>
@@ -5399,6 +5410,8 @@
         <NavigationProperty Name="groupLifecyclePolicies" Type="Collection(graph.groupLifecyclePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="planner" Type="graph.plannerGroup" ContainsTarget="true" />
         <NavigationProperty Name="onenote" Type="graph.onenote" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
+        <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="team" Type="graph.team" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsAppInstallation" BaseType="graph.entity">
@@ -7856,6 +7869,7 @@
       <ComplexType Name="accessReviewScheduleSettings">
         <Property Name="applyActions" Type="Collection(graph.accessReviewApplyAction)" />
         <Property Name="autoApplyDecisionsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="decisionHistoriesForReviewersEnabled" Type="Edm.Boolean" />
         <Property Name="defaultDecision" Type="Edm.String" />
         <Property Name="defaultDecisionEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="instanceDurationInDays" Type="Edm.Int32" Nullable="false" />
@@ -7864,6 +7878,15 @@
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="reminderNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="accessReviewStageSettings">
+        <Property Name="decisionsThatWillMoveToNextStage" Type="Collection(Edm.String)" />
+        <Property Name="dependsOn" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="durationInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="stageId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="appConsentRequestScope">
         <Property Name="displayName" Type="Edm.String" />
@@ -7907,6 +7930,7 @@
         <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="contactedReviewers" Type="Collection(graph.accessReviewReviewer)" ContainsTarget="true" />
         <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewInstanceDecisionItem)" ContainsTarget="true" />
+        <NavigationProperty Name="stages" Type="Collection(graph.accessReviewStage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessReviewReviewer" BaseType="graph.entity">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -7928,6 +7952,14 @@
         <Property Name="reviewedBy" Type="graph.userIdentity" />
         <Property Name="reviewedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
+      <EntityType Name="accessReviewStage" BaseType="graph.entity">
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="Edm.String" />
+        <NavigationProperty Name="decisions" Type="Collection(graph.accessReviewInstanceDecisionItem)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="accessReviewScheduleDefinition" BaseType="graph.entity">
         <Property Name="additionalNotificationRecipients" Type="Collection(graph.accessReviewNotificationRecipientItem)" />
         <Property Name="createdBy" Type="graph.userIdentity" />
@@ -7941,6 +7973,7 @@
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="scope" Type="graph.accessReviewScope" />
         <Property Name="settings" Type="graph.accessReviewScheduleSettings" />
+        <Property Name="stageSettings" Type="Collection(graph.accessReviewStageSettings)" />
         <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="instances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true" />
       </EntityType>
@@ -11967,6 +12000,15 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="phoneAppVersion" Type="Edm.String" />
         <NavigationProperty Name="device" Type="graph.device" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="temporaryAccessPassAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="isUsable" Type="Edm.Boolean" />
+        <Property Name="isUsableOnce" Type="Edm.Boolean" />
+        <Property Name="lifetimeInMinutes" Type="Edm.Int32" />
+        <Property Name="methodUsabilityReason" Type="Edm.String" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="temporaryAccessPass" Type="Edm.String" />
       </EntityType>
       <EntityType Name="windowsHelloForBusinessAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -15998,6 +16040,9 @@
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewScheduleDefinition" />
       </Action>
+      <Action Name="stop" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.accessReviewStage" />
+      </Action>
       <Action Name="generateDownloadUri" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewHistoryInstance" />
         <ReturnType Type="graph.accessReviewHistoryInstance" />
@@ -16016,6 +16061,11 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewScheduleDefinition)" />
         <Parameter Name="on" Type="graph.accessReviewScheduleDefinitionFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.accessReviewScheduleDefinition)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessReviewStage)" />
+        <Parameter Name="on" Type="graph.accessReviewStageFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessReviewStage)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.appConsentRequest)" />
@@ -17660,7 +17710,14 @@
           </Annotation>
         </EntitySet>
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
-        <EntitySet Name="places" EntityType="microsoft.graph.place" />
+        <EntitySet Name="places" EntityType="microsoft.graph.place">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+            <Collection>
+              <String>microsoft.graph.room</String>
+              <String>microsoft.graph.roomlist</String>
+            </Collection>
+          </Annotation>
+        </EntitySet>
         <EntitySet Name="drives" EntityType="microsoft.graph.drive" />
         <EntitySet Name="shares" EntityType="microsoft.graph.sharedDriveItem" />
         <EntitySet Name="sites" EntityType="microsoft.graph.site">
@@ -21043,6 +21100,45 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.group/rejectedSenders">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/threads">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.group/photo">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -21099,45 +21195,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.group/rejectedSenders">
-        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
-          <Record>
-            <PropertyValue Property="Supported" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.group/threads">
-        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
-          <Record>
-            <PropertyValue Property="Supported" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
@@ -28771,6 +28828,13 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.authentication/temporaryAccessPassMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.channel/messages">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -29150,6 +29214,31 @@
       </EntityType>
     </Schema>
     <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="audioCodec">
+        <Member Name="unknown" Value="0" />
+        <Member Name="invalid" Value="1" />
+        <Member Name="cn" Value="2" />
+        <Member Name="pcma" Value="3" />
+        <Member Name="pcmu" Value="4" />
+        <Member Name="amrWide" Value="5" />
+        <Member Name="g722" Value="6" />
+        <Member Name="g7221" Value="7" />
+        <Member Name="g7221c" Value="8" />
+        <Member Name="g729" Value="9" />
+        <Member Name="multiChannelAudio" Value="10" />
+        <Member Name="muchv2" Value="11" />
+        <Member Name="opus" Value="12" />
+        <Member Name="satin" Value="13" />
+        <Member Name="satinFullband" Value="14" />
+        <Member Name="rtAudio8" Value="15" />
+        <Member Name="rtAudio16" Value="16" />
+        <Member Name="silk" Value="17" />
+        <Member Name="silkNarrow" Value="18" />
+        <Member Name="silkWide" Value="19" />
+        <Member Name="siren" Value="20" />
+        <Member Name="xmsRta" Value="21" />
+        <Member Name="unknownFutureValue" Value="22" />
+      </EnumType>
       <EnumType Name="callType">
         <Member Name="unknown" Value="0" />
         <Member Name="groupCall" Value="1" />
@@ -29195,6 +29284,12 @@
         <Member Name="tunnel" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
+      <EnumType Name="networkTransportProtocol">
+        <Member Name="unknown" Value="0" />
+        <Member Name="udp" Value="1" />
+        <Member Name="tcp" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="productFamily">
         <Member Name="unknown" Value="0" />
         <Member Name="teams" Value="1" />
@@ -29239,6 +29334,20 @@
         <Member Name="good" Value="4" />
         <Member Name="excellent" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="videoCodec">
+        <Member Name="unknown" Value="0" />
+        <Member Name="invalid" Value="1" />
+        <Member Name="av1" Value="2" />
+        <Member Name="h263" Value="3" />
+        <Member Name="h264" Value="4" />
+        <Member Name="h264s" Value="5" />
+        <Member Name="h264uc" Value="6" />
+        <Member Name="h265" Value="7" />
+        <Member Name="rtvc1" Value="8" />
+        <Member Name="rtVideo" Value="9" />
+        <Member Name="xrtvc1" Value="10" />
+        <Member Name="unknownFutureValue" Value="11" />
       </EnumType>
       <EnumType Name="wifiBand">
         <Member Name="unknown" Value="0" />
@@ -29348,6 +29457,7 @@
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="linkSpeed" Type="Edm.Int64" />
         <Property Name="macAddress" Type="Edm.String" />
+        <Property Name="networkTransportProtocol" Type="microsoft.graph.callRecords.networkTransportProtocol" Nullable="false" />
         <Property Name="port" Type="Edm.Int32" />
         <Property Name="receivedQualityEventRatio" Type="Edm.Single" />
         <Property Name="reflexiveIPAddress" Type="Edm.String" />
@@ -29355,6 +29465,7 @@
         <Property Name="relayPort" Type="Edm.Int32" />
         <Property Name="sentQualityEventRatio" Type="Edm.Single" />
         <Property Name="subnet" Type="Edm.String" />
+        <Property Name="traceRouteHops" Type="Collection(microsoft.graph.callRecords.traceRouteHop)" Nullable="false" />
         <Property Name="wifiBand" Type="microsoft.graph.callRecords.wifiBand" Nullable="false" />
         <Property Name="wifiBatteryCharge" Type="Edm.Int32" />
         <Property Name="wifiChannel" Type="Edm.Int32" />
@@ -29366,6 +29477,7 @@
         <Property Name="wifiVendorDriverVersion" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="mediaStream">
+        <Property Name="audioCodec" Type="microsoft.graph.callRecords.audioCodec" />
         <Property Name="averageAudioDegradation" Type="Edm.Single" />
         <Property Name="averageAudioNetworkJitter" Type="Edm.Duration" />
         <Property Name="averageBandwidthEstimate" Type="Edm.Int64" />
@@ -29390,7 +29502,13 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="streamDirection" Type="microsoft.graph.callRecords.mediaStreamDirection" Nullable="false" />
         <Property Name="streamId" Type="Edm.String" />
+        <Property Name="videoCodec" Type="microsoft.graph.callRecords.videoCodec" />
         <Property Name="wasMediaBypassed" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="traceRouteHop">
+        <Property Name="hopCount" Type="Edm.Int32" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="roundTripTime" Type="Edm.Duration" />
       </ComplexType>
       <ComplexType Name="participantEndpoint" BaseType="microsoft.graph.callRecords.endpoint">
         <Property Name="feedback" Type="microsoft.graph.callRecords.userFeedback" />
