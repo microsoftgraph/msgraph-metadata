@@ -165,6 +165,10 @@
                     <String>microsoft.graph.orgContact</String>
                 </Collection>
             </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='directReports']|
@@ -177,6 +181,10 @@
                     <String>microsoft.graph.orgContact</String>
                 </Collection>
             </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='ownedObjects']">
@@ -203,6 +211,10 @@
                     <String>microsoft.graph.servicePrincipal</String>
                 </Collection>
             </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='registeredUsers']">
@@ -216,6 +228,10 @@
                     <String>microsoft.graph.user</String>
                 </Collection>
             </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='owners']|
@@ -234,6 +250,10 @@
             <xsl:call-template name="ReferenceableRestrictionsTemplate">
                 <xsl:with-param name="referenceable">true</xsl:with-param>
             </xsl:call-template>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='createdObjects']|
@@ -270,6 +290,10 @@
                     <String>microsoft.graph.endpoint</String>
                 </Collection>
             </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='deviceAppManagement']/edm:NavigationProperty[@Name='mobileApps']">
@@ -472,7 +496,7 @@
                         </xsl:element>
                         <xsl:element name="PropertyValue">
                             <xsl:attribute name="Property">DocumentationURL</xsl:attribute>
-                            <xsl:attribute name="String">https://developer.microsoft.com/en-us/office/blogs/microsoft-graph-advanced-queries-for-directory-objects-are-now-generally-available/</xsl:attribute>
+                            <xsl:attribute name="String">https://docs.microsoft.com/graph/aad-advanced-queries</xsl:attribute>
                         </xsl:element>
                         <xsl:element name="PropertyValue">
                             <xsl:attribute name="Property">Required</xsl:attribute>
@@ -833,7 +857,7 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Add Referenceable Annotations (for /$ref paths)  and DerivedTypeConstraint for these paths-->
+    <!-- Add Referenceable Annotations (for /$ref paths), DerivedTypeConstraint, and ConsistencyLevel header for these paths-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='owners']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='administrativeUnit']/edm:NavigationProperty[@Name='members']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directoryRole']/edm:NavigationProperty[@Name='members']">
@@ -852,6 +876,28 @@
             <xsl:call-template name="ReferenceableRestrictionsTemplate">
                 <xsl:with-param name="referenceable">true</xsl:with-param>
             </xsl:call-template>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add ConsistencyLevel header for these paths-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='appRoleAssignments'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='appRoleAssignments'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='appRoleAssignmentsTo'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='oAuth2PermissionGrant'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveManagers'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveReports'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='appRoleAssignments'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='oAuth2PermissionGrant']">
+        <xsl:copy>
+            <xsl:copy-of select="@*|node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
