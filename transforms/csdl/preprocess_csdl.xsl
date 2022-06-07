@@ -803,6 +803,7 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='b2cIdentityUserFlow']/edm:NavigationProperty[@Name='identityProviders']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='b2xIdentityUserFlow']/edm:NavigationProperty[@Name='userFlowIdentityProviders']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='externalSponsors']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='internalSponsors']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='memberOf']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='application']/edm:NavigationProperty[@Name='connectorGroup']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connector']/edm:NavigationProperty[@Name='registeredUsers']|
