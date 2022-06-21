@@ -465,6 +465,7 @@
         <Member Name="standard" Value="0" />
         <Member Name="private" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="shared" Value="3" />
       </EnumType>
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
@@ -3114,6 +3115,8 @@
         <Member Name="unarchiveTeam" Value="3" />
         <Member Name="createTeam" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="teamifyGroup" Value="6" />
+        <Member Name="createChannel" Value="7" />
       </EnumType>
       <EnumType Name="teamSpecialization">
         <Member Name="none" Value="0" />
@@ -6356,6 +6359,11 @@
         <Property Name="removeUrl" Type="Edm.String" />
         <Property Name="websiteUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="teamSummary">
+        <Property Name="guestsCount" Type="Edm.Int32" />
+        <Property Name="membersCount" Type="Edm.Int32" />
+        <Property Name="ownersCount" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="teamUnarchivedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="teamId" Type="Edm.String" />
@@ -7334,6 +7342,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="associatedTeamInfo" BaseType="graph.teamInfo" />
       <EntityType Name="attachment" BaseType="graph.entity" Abstract="true">
         <Property Name="contentType" Type="Edm.String" />
         <Property Name="isInline" Type="Edm.Boolean" Nullable="false" />
@@ -7609,10 +7618,12 @@
         <Property Name="email" Type="Edm.String" />
         <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
         <Property Name="membershipType" Type="graph.channelMembershipType" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
+        <NavigationProperty Name="sharedWithTeams" Type="Collection(graph.sharedWithChannelTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
@@ -10553,6 +10564,10 @@
         <Property Name="kioskAppUserModelId" Type="Edm.String" />
         <Property Name="maintenanceStartTime" Type="Edm.TimeOfDay" />
       </EntityType>
+      <EntityType Name="sharedWithChannelTeamInfo" BaseType="graph.teamInfo">
+        <Property Name="isHostTeam" Type="Edm.Boolean" />
+        <NavigationProperty Name="allowedMembers" Type="Collection(graph.conversationMember)" />
+      </EntityType>
       <EntityType Name="shift" BaseType="graph.changeTrackedEntity">
         <Property Name="draftShift" Type="graph.shiftItem" />
         <Property Name="schedulingGroupId" Type="Edm.String" />
@@ -10720,16 +10735,25 @@
         <Property Name="memberSettings" Type="graph.teamMemberSettings" />
         <Property Name="messagingSettings" Type="graph.teamMessagingSettings" />
         <Property Name="specialization" Type="graph.teamSpecialization" />
+        <Property Name="summary" Type="graph.teamSummary" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="visibility" Type="graph.teamVisibilityType" />
         <Property Name="webUrl" Type="Edm.String" />
+        <NavigationProperty Name="allChannels" Type="Collection(graph.channel)" />
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
         <NavigationProperty Name="group" Type="graph.group" />
+        <NavigationProperty Name="incomingChannels" Type="Collection(graph.channel)" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
+      </EntityType>
+      <EntityType Name="teamInfo" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <NavigationProperty Name="team" Type="graph.team" />
       </EntityType>
       <EntityType Name="teamsApp" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -11221,6 +11245,7 @@
         <NavigationProperty Name="shiftPreferences" Type="graph.shiftPreferences" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="vppToken" BaseType="graph.entity">
@@ -15997,6 +16022,19 @@
         <Parameter Name="bindingParameter" Type="graph.reportRoot" />
         <ReturnType Type="graph.report" />
       </Function>
+      <Function Name="doesUserHaveAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+        <Parameter Name="userId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="tenantId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="userPrincipalName" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Function>
       <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applePushNotificationCertificate" />
         <ReturnType Type="Edm.String" Unicode="false" />
@@ -16212,11 +16250,6 @@
         <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
         <ReturnType Type="Collection(graph.archivedPrintJob)" />
-      </Function>
-      <Function Name="getIdentityProviderAccessToken" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.user" />
-        <Parameter Name="identityProviderName" Type="Edm.String" Nullable="false" Unicode="false" />
-        <ReturnType Type="Edm.String" Unicode="false" />
       </Function>
       <Function Name="getMailboxUsageDetail" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
