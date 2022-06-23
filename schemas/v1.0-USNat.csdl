@@ -183,6 +183,11 @@
         <Member Name="optional" Value="1" />
         <Member Name="resource" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationProtocol">
+        <Member Name="wsFed" Value="0" />
+        <Member Name="saml" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="automaticRepliesStatus">
         <Member Name="disabled" Value="0" />
         <Member Name="alwaysEnabled" Value="1" />
@@ -345,6 +350,12 @@
         <Member Name="none" Value="0" />
         <Member Name="contactsOnly" Value="1" />
         <Member Name="all" Value="2" />
+      </EnumType>
+      <EnumType Name="federatedIdpMfaBehavior">
+        <Member Name="acceptIfMfaDoneByFederatedIdp" Value="0" />
+        <Member Name="enforceMfaByFederatedIdp" Value="1" />
+        <Member Name="rejectMfaByFederatedIdp" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="fileHashType">
         <Member Name="unknown" Value="0" />
@@ -523,6 +534,12 @@
         <Member Name="high" Value="4" />
         <Member Name="system" Value="5" />
         <Member Name="unknownFutureValue" Value="127" />
+      </EnumType>
+      <EnumType Name="promptLoginBehavior">
+        <Member Name="translateToFreshPasswordAuthentication" Value="0" />
+        <Member Name="nativeSupport" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="provisioningAction">
         <Member Name="other" Value="0" />
@@ -2154,6 +2171,10 @@
         <Property Name="webHtml" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="signingCertificateUpdateStatus">
+        <Property Name="certificateUpdateResult" Type="Edm.String" />
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="singleServicePrincipal" BaseType="graph.subjectSet">
         <Property Name="description" Type="Edm.String" />
         <Property Name="servicePrincipalId" Type="Edm.String" />
@@ -2846,6 +2867,7 @@
       <EntityType Name="directory">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+        <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -2897,6 +2919,7 @@
         <Property Name="state" Type="graph.domainState" />
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
       </EntityType>
@@ -3120,6 +3143,7 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -3221,6 +3245,9 @@
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="inferenceClassification" BaseType="graph.entity">
         <NavigationProperty Name="overrides" Type="Collection(graph.inferenceClassificationOverride)" ContainsTarget="true" />
       </EntityType>
@@ -3233,6 +3260,15 @@
         <NavigationProperty Name="dataLossPreventionPolicies" Type="Collection(graph.dataLossPreventionPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
         <NavigationProperty Name="sensitivityPolicySettings" Type="graph.sensitivityPolicySettings" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <Property Name="activeSignInUri" Type="Edm.String" />
+        <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
+        <Property Name="isSignedAuthenticationRequestRequired" Type="Edm.Boolean" />
+        <Property Name="nextSigningCertificate" Type="Edm.String" />
+        <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior" />
+        <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus" />
+        <Property Name="signOutUri" Type="Edm.String" />
       </EntityType>
       <EntityType Name="invitation" BaseType="graph.entity">
         <Property Name="invitedUserDisplayName" Type="Edm.String" />
@@ -3582,6 +3618,16 @@
       <EntityType Name="roleManagement">
         <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="samlOrWsFedProvider" BaseType="graph.identityProviderBase" Abstract="true">
+        <Property Name="issuerUri" Type="Edm.String" />
+        <Property Name="metadataExchangeUri" Type="Edm.String" />
+        <Property Name="passiveSignInUri" Type="Edm.String" />
+        <Property Name="preferredAuthenticationProtocol" Type="graph.authenticationProtocol" />
+        <Property Name="signingCertificate" Type="Edm.String" />
       </EntityType>
       <EntityType Name="schemaExtension" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
