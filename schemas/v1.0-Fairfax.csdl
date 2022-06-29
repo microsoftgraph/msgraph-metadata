@@ -276,6 +276,11 @@
         <Member Name="group" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationProtocol">
+        <Member Name="wsFed" Value="0" />
+        <Member Name="saml" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="automaticRepliesStatus">
         <Member Name="disabled" Value="0" />
         <Member Name="alwaysEnabled" Value="1" />
@@ -384,6 +389,7 @@
         <Member Name="standard" Value="0" />
         <Member Name="private" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="shared" Value="3" />
       </EnumType>
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
@@ -770,6 +776,12 @@
         <Member Name="default" Value="0" />
         <Member Name="enabled" Value="1" />
         <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="federatedIdpMfaBehavior">
+        <Member Name="acceptIfMfaDoneByFederatedIdp" Value="0" />
+        <Member Name="enforceMfaByFederatedIdp" Value="1" />
+        <Member Name="rejectMfaByFederatedIdp" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="fido2RestrictionEnforcementType">
@@ -1235,6 +1247,12 @@
         <Member Name="high" Value="4" />
         <Member Name="system" Value="5" />
         <Member Name="unknownFutureValue" Value="127" />
+      </EnumType>
+      <EnumType Name="promptLoginBehavior">
+        <Member Name="translateToFreshPasswordAuthentication" Value="0" />
+        <Member Name="nativeSupport" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="provisioningAction">
         <Member Name="other" Value="0" />
@@ -1759,6 +1777,8 @@
         <Member Name="unarchiveTeam" Value="3" />
         <Member Name="createTeam" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="teamifyGroup" Value="6" />
+        <Member Name="createChannel" Value="7" />
       </EnumType>
       <EnumType Name="teamSpecialization">
         <Member Name="none" Value="0" />
@@ -4074,6 +4094,10 @@
         <Property Name="type" Type="graph.signinFrequencyType" />
         <Property Name="value" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="signingCertificateUpdateStatus">
+        <Property Name="certificateUpdateResult" Type="Edm.String" />
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="signInLocation">
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
@@ -4207,6 +4231,11 @@
         <Property Name="entityId" Type="Edm.String" />
         <Property Name="removeUrl" Type="Edm.String" />
         <Property Name="websiteUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="teamSummary">
+        <Property Name="guestsCount" Type="Edm.Int32" />
+        <Property Name="membersCount" Type="Edm.Int32" />
+        <Property Name="ownersCount" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="teamUnarchivedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="initiator" Type="graph.identitySet" />
@@ -5055,6 +5084,7 @@
         <Property Name="publicClient" Type="graph.publicClientApplication" />
         <Property Name="publisherDomain" Type="Edm.String" />
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false" />
+        <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
@@ -5101,6 +5131,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="associatedTeamInfo" BaseType="graph.teamInfo" />
       <EntityType Name="attachment" BaseType="graph.entity" Abstract="true">
         <Property Name="contentType" Type="Edm.String" />
         <Property Name="isInline" Type="Edm.Boolean" Nullable="false" />
@@ -5228,10 +5259,12 @@
         <Property Name="email" Type="Edm.String" />
         <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
         <Property Name="membershipType" Type="graph.channelMembershipType" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
+        <NavigationProperty Name="sharedWithTeams" Type="Collection(graph.sharedWithChannelTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
@@ -5812,6 +5845,7 @@
       <EntityType Name="directory">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+        <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -5860,6 +5894,7 @@
         <Property Name="state" Type="graph.domainState" />
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
       </EntityType>
@@ -6045,6 +6080,7 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -6173,6 +6209,9 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
@@ -6199,6 +6238,15 @@
       </EntityType>
       <EntityType Name="informationProtection" BaseType="graph.entity">
         <NavigationProperty Name="bitlocker" Type="graph.bitlocker" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <Property Name="activeSignInUri" Type="Edm.String" />
+        <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
+        <Property Name="isSignedAuthenticationRequestRequired" Type="Edm.Boolean" />
+        <Property Name="nextSigningCertificate" Type="Edm.String" />
+        <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior" />
+        <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus" />
+        <Property Name="signOutUri" Type="Edm.String" />
       </EntityType>
       <EntityType Name="invitation" BaseType="graph.entity">
         <Property Name="invitedUserDisplayName" Type="Edm.String" />
@@ -7313,6 +7361,16 @@
         <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.rbacApplication" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
+        <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="samlOrWsFedProvider" BaseType="graph.identityProviderBase" Abstract="true">
+        <Property Name="issuerUri" Type="Edm.String" />
+        <Property Name="metadataExchangeUri" Type="Edm.String" />
+        <Property Name="passiveSignInUri" Type="Edm.String" />
+        <Property Name="preferredAuthenticationProtocol" Type="graph.authenticationProtocol" />
+        <Property Name="signingCertificate" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="schemaExtension" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="owner" Type="Edm.String" Nullable="false" />
@@ -7487,6 +7545,10 @@
         <Property Name="kioskAppUserModelId" Type="Edm.String" />
         <Property Name="maintenanceStartTime" Type="Edm.TimeOfDay" />
       </EntityType>
+      <EntityType Name="sharedWithChannelTeamInfo" BaseType="graph.teamInfo">
+        <Property Name="isHostTeam" Type="Edm.Boolean" />
+        <NavigationProperty Name="allowedMembers" Type="Collection(graph.conversationMember)" />
+      </EntityType>
       <EntityType Name="singleValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Edm.String" />
       </EntityType>
@@ -7577,15 +7639,24 @@
         <Property Name="memberSettings" Type="graph.teamMemberSettings" />
         <Property Name="messagingSettings" Type="graph.teamMessagingSettings" />
         <Property Name="specialization" Type="graph.teamSpecialization" />
+        <Property Name="summary" Type="graph.teamSummary" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="visibility" Type="graph.teamVisibilityType" />
         <Property Name="webUrl" Type="Edm.String" />
+        <NavigationProperty Name="allChannels" Type="Collection(graph.channel)" />
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
         <NavigationProperty Name="group" Type="graph.group" />
+        <NavigationProperty Name="incomingChannels" Type="Collection(graph.channel)" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
+      </EntityType>
+      <EntityType Name="teamInfo" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <NavigationProperty Name="team" Type="graph.team" />
       </EntityType>
       <EntityType Name="teamsApp" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -7961,6 +8032,7 @@
         <NavigationProperty Name="chat" Type="graph.chat" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="vppToken" BaseType="graph.entity">
@@ -12381,6 +12453,19 @@
       <Function Name="deviceConfigurationUserActivity" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="graph.reportRoot" />
         <ReturnType Type="graph.report" />
+      </Function>
+      <Function Name="doesUserHaveAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+        <Parameter Name="userId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="tenantId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="userPrincipalName" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
       <Function Name="downloadApplePushNotificationCertificateSigningRequest" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applePushNotificationCertificate" />
