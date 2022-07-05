@@ -30,5 +30,19 @@ $openAPIParserTool = Join-Path $repoDirectory "tools/OpenAPIParser/OpenAPIParser
 Write-Host "Validating beta OpenAPI doc..." -ForegroundColor Green
 & dotnet run --project $openAPIParserTool $betaYaml
 
-Write-Host "Validating beta OpenAPI doc..." -ForegroundColor Green
+$finalExitCode = 0
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Validation failed for beta OpenAPI doc"
+    $finalExitCode = 1
+}
+
+Write-Host "Validating v1 OpenAPI doc..." -ForegroundColor Green
 & dotnet run --project $openAPIParserTool $v1Yaml
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Validation failed for v1 OpenAPI doc"
+    $finalExitCode = 1
+}
+
+exit $finalExitCode

@@ -41,8 +41,22 @@ Write-Host "Tranforming beta metadata using xslt..." -ForegroundColor Green
 Write-Host "Validating beta metadata after the transform..." -ForegroundColor Green
 & dotnet run --project $metadataParserTool $transformedBeta
 
+$finalExitCode = 0
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Validation failed for beta metadata"
+    $finalExitCode = 1
+}
+
 Write-Host "Tranforming v1.0 metadata using xslt..." -ForegroundColor Green
 & $transformScript -xslPath $xsltPath -inputPath $v1Snapshot -outputPath $transformedV1
 
 Write-Host "Validating v1.0 metadata after the transform..." -ForegroundColor Green
 & dotnet run --project $metadataParserTool $transformedV1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Validation failed for v1 metadata"
+    $finalExitCode = 1
+}
+
+exit $finalExitCode
