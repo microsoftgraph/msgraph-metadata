@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
     $finalExitCode = 1
 }
 
-Write-Host "Validating beta OpenAPI doc..." -ForegroundColor Green
+Write-Host "Validating v1 OpenAPI doc..." -ForegroundColor Green
 & dotnet run --project $openAPIParserTool $v1Yaml
 
 if ($LASTEXITCODE -ne 0) {
