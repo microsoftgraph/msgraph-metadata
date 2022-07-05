@@ -310,6 +310,17 @@
         <Member Name="saml" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="crossTenantAccessPolicyTargetConfigurationAccessType">
+        <Member Name="allowed" Value="1" />
+        <Member Name="blocked" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="crossTenantAccessPolicyTargetType">
+        <Member Name="user" Value="1" />
+        <Member Name="group" Value="2" />
+        <Member Name="application" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="federatedIdpMfaBehavior">
         <Member Name="acceptIfMfaDoneByFederatedIdp" Value="0" />
         <Member Name="enforceMfaByFederatedIdp" Value="1" />
@@ -3851,7 +3862,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Contains the on-premises domainFQDN, also called dnsDomainName synchronized from the on-premises directory. The property is only populated for customers who are synchronizing their on-premises directory to Azure Active Directory via Azure AD Connect. Read-only." />
         </Property>
         <Property Name="onPremisesExtensionAttributes" Type="graph.onPremisesExtensionAttributes">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Contains extensionAttributes1-15 for the user. The individual extension attributes are neither selectable nor filterable. For an onPremisesSyncEnabled user, the source of authority for this set of properties is the on-premises and is read-only. For a cloud-only user (where onPremisesSyncEnabled is false), these properties can be set during creation or update of a user object.  For a cloud-only user previously synced from on-premises Active Directory, these properties are read-only in Microsoft Graph but can be fully managed through the Exchange Admin Center or the Exchange Online V2 module in PowerShell. These extension attributes are also known as Exchange custom attributes 1-15. Returned only on $select." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains extensionAttributes1-15 for the user. These extension attributes are also known as Exchange custom attributes 1-15. For an onPremisesSyncEnabled user, the source of authority for this set of properties is the on-premises and is read-only. For a cloud-only user (where onPremisesSyncEnabled is false), these properties can be set during creation or update of a user object.  For a cloud-only user previously synced from on-premises Active Directory, these properties are read-only in Microsoft Graph but can be fully managed through the Exchange Admin Center or the Exchange Online V2 module in PowerShell. Supports $filter (eq, ne, not, in)." />
         </Property>
         <Property Name="onPremisesImmutableId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="This property is used to associate an on-premises Active Directory user account to their Azure AD user object. This property must be specified when creating a new user account in the Graph if you are using a federated domain for the user's userPrincipalName (UPN) property. Note: The $ and _ characters cannot be used when specifying this property. Supports $filter (eq, ne, not, ge, le, in)." />
@@ -3875,7 +3886,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Contains the on-premises userPrincipalName synchronized from the on-premises directory. The property is only populated for customers who are synchronizing their on-premises directory to Azure Active Directory via Azure AD Connect. Read-only. Supports $filter (eq, ne, not, ge, le, in, startsWith)." />
         </Property>
         <Property Name="otherMails" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A list of additional email addresses for the user; for example: ['bob@contoso.com', 'Robert@fabrikam.com'].NOTE: This property cannot contain accent characters.Supports $filter (eq, not, ge, le, in, startsWith, and counting empty collections)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A list of additional email addresses for the user; for example: ['bob@contoso.com', 'Robert@fabrikam.com'].NOTE: This property cannot contain accent characters.Supports $filter (eq, not, ge, le, in, startsWith, endsWith, and counting empty collections)." />
         </Property>
         <Property Name="passwordPolicies" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies password policies for the user. This value is an enumeration with one possible value being DisableStrongPassword, which allows weaker passwords than the default policy to be specified. DisablePasswordExpiration can also be specified. The two may be specified together; for example: DisablePasswordExpiration, DisableStrongPassword. For more information on the default password policies, see Azure AD pasword policies. Supports $filter (ne, not, and eq on null values)." />
@@ -4246,7 +4257,7 @@
         </NavigationProperty>
         <NavigationProperty Name="followedSites" Type="Collection(graph.site)" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the user. Nullable." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The collection of open extensions defined for the user. Supports $expand. Nullable." />
         </NavigationProperty>
         <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user's terms of use acceptance statuses. Read-only. Nullable." />
@@ -5339,6 +5350,10 @@
         <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The details of the Microsoft Authenticator app registered to a user for authentication." />
         </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the details of the password authentication method registered to a user for authentication." />
+        </NavigationProperty>
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents a Temporary Access Pass registered to a user for authentication through time-limited passcodes." />
         </NavigationProperty>
@@ -5414,6 +5429,9 @@
         </Property>
         <Property Name="specialization" Type="graph.teamSpecialization">
           <Annotation Term="Org.OData.Core.V1.Description" String="Optional. Indicates whether the team is intended for a particular use case.  Each team specialization has access to unique behaviors and experiences targeted to its use case." />
+        </Property>
+        <Property Name="summary" Type="graph.teamSummary">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains summary information about the team, including number of owners, members, and guests." />
         </Property>
         <Property Name="tenantId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the Azure Active Directory tenant." />
@@ -5564,6 +5582,9 @@
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Supports $expand and $filter (eq when counting empty collections)." />
+        </NavigationProperty>
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Federated identities for applications. Supports $expand and $filter (eq when counting empty collections)." />
         </NavigationProperty>
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)">
@@ -5767,6 +5788,7 @@
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Endpoints available for discovery. Services like Sharepoint populate this property with a tenant specific SharePoint endpoints that other applications can discover and use in their experiences." />
         </NavigationProperty>
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)">
           <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
             <Record>
@@ -5919,6 +5941,23 @@
         </Property>
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Following values are supported. Not nullable. UserGroupOrganizationDeviceApplication" />
+        </Property>
+      </EntityType>
+      <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
+        <Property Name="audiences" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Lists the audiences that can appear in the external token. This field is mandatory, and defaults to 'api://AzureADTokenExchange'. It says what Microsoft identity platform should accept in the aud claim in the incoming token. This value represents Azure AD in your external identity provider and has no fixed value across identity providers - you may need to create a new application registration in your identity provider to serve as the audience of this token. Required." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The un-validated, user-provided description of the federated identity credential. Optional." />
+        </Property>
+        <Property Name="issuer" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the external identity provider and must match the issuer claim of the external token being exchanged. The combination of the values of issuer and subject must be unique on the app. Required." />
+        </Property>
+        <Property Name="name" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="is the unique identifier for the federated identity credential, which has a character limit of 120 characters and must be URL friendly. It is immutable once created. Required. Not nullable. Supports $filter (eq)." />
+        </Property>
+        <Property Name="subject" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Required. The identifier of the external software workload within the external identity provider. Like the audience value, it has no fixed format, as each identity provider uses their own - sometimes a GUID, sometimes a colon delimited identifier, sometimes arbitrary strings. The value here must match the sub claim within the token presented to Azure AD. The combination of issuer and subject must be unique on the app. Supports $filter (eq)." />
         </Property>
       </EntityType>
       <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
@@ -6078,6 +6117,9 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The claim-mapping policies for WS-Fed, SAML, OAuth 2.0, and OpenID Connect protocols, for tokens issued to a specific application." />
         </NavigationProperty>
+        <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The custom rules that define an access scenario when interacting with external Azure AD tenants." />
+        </NavigationProperty>
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The policy to control Azure AD authentication behavior for federated users." />
         </NavigationProperty>
@@ -6143,6 +6185,14 @@
         <Property Name="guestUserRoleId" Type="Edm.Guid">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents role templateId for the role that should be granted to guest user. Refer to List unifiedRoleDefinitions to find the list of available role templates. Currently following roles are supported:  User (a0b1b346-4d3e-4e8b-98f8-753987be4970), Guest User (10dae51f-b6af-4016-8d66-8c2a99b929b3), and Restricted Guest User (2af84b1e-32c8-42b7-82bc-daa82404023b)." />
         </Property>
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicy" BaseType="graph.policyBase">
+        <NavigationProperty Name="default" Type="graph.crossTenantAccessPolicyConfigurationDefault" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines the default configuration for how your organization interacts with external Azure Active Directory organizations." />
+        </NavigationProperty>
+        <NavigationProperty Name="partners" Type="Collection(graph.crossTenantAccessPolicyConfigurationPartner)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines partner-specific configurations for external Azure Active Directory organizations." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="permissionGrantPolicy" BaseType="graph.policyBase">
         <NavigationProperty Name="excludes" Type="Collection(graph.permissionGrantConditionSet)" ContainsTarget="true">
@@ -6259,19 +6309,19 @@
       </EntityType>
       <EntityType Name="unifiedRoleManagementPolicyAssignment" BaseType="graph.entity">
         <Property Name="policyId" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The id of the policy." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The id of the policy. Inherited from entity." />
         </Property>
         <Property Name="roleDefinitionId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The id of the role definition where the policy applies. If not specified, the policy applies to all roles." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the role definition object where the policy applies. If not specified, the policy applies to all roles. Supports $filter (eq)." />
         </Property>
         <Property Name="scopeId" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The id of the scope where the policy is assigned. E.g. '/', groupId, etc." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the scope where the policy is assigned.  Can be / for the tenant or a group ID. Required." />
         </Property>
         <Property Name="scopeType" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the scope where the policy is assigned. One of Directory, DirectoryRole, Group." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the scope where the policy is assigned. One of Directory, DirectoryRole. Required." />
         </Property>
         <NavigationProperty Name="policy" Type="graph.unifiedRoleManagementPolicy">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The policy for the assignment." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The policy that's associated with a policy assignment. Supports $expand and a nested $expand of the rules and effectiveRules relationships for the policy." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="temporaryAccessPassAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
@@ -7305,6 +7355,7 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="security" BaseType="graph.entity">
+        <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Notifications for suspicious or potential security issues in a customer’s tenant." />
         </NavigationProperty>
@@ -7879,9 +7930,6 @@
       </EntityType>
       <EntityType Name="identityBuiltInUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
       <EntityType Name="identityContainer" BaseType="graph.entity">
-        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="the entry point for the Conditional Access (CA) object model." />
-        </NavigationProperty>
         <NavigationProperty Name="apiConnectors" Type="Collection(graph.identityApiConnector)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents entry point for API connectors." />
         </NavigationProperty>
@@ -7893,6 +7941,9 @@
         </NavigationProperty>
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents entry point for identity userflow attributes." />
+        </NavigationProperty>
+        <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="the entry point for the Conditional Access (CA) object model." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
@@ -7999,6 +8050,52 @@
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A copy of the customer tenant's display name. The copy is made when the partnership with the customer is established. It is not automatically updated if the customer tenant's display name changes." />
         </Property>
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicyConfigurationDefault" BaseType="graph.entity">
+        <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your default configuration for users from other organizations accessing your resources via Azure AD B2B collaboration." />
+        </Property>
+        <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your default configuration for users in your organization going outbound to access resources in another organization via Azure AD B2B collaboration." />
+        </Property>
+        <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your default configuration for users from other organizations accessing your resources via Azure AD B2B direct connect." />
+        </Property>
+        <Property Name="b2bDirectConnectOutbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your default configuration for users in your organization going outbound to access resources in another organization via Azure AD B2B direct connect." />
+        </Property>
+        <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines the default configuration for trusting other Conditional Access claims from external Azure AD organizations." />
+        </Property>
+        <Property Name="isServiceDefault" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If true, the default configuration is set to the system default configuration. If false, the default settings have been customized." />
+        </Property>
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicyConfigurationPartner">
+        <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your partner-specific configuration for users from other organizations accessing your resources via Azure AD B2B collaboration." />
+        </Property>
+        <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your partner-specific configuration for users in your organization going outbound to access resources in another organization via Azure AD B2B collaboration." />
+        </Property>
+        <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your partner-specific configuration for users from other organizations accessing your resources via Azure B2B direct connect." />
+        </Property>
+        <Property Name="b2bDirectConnectOutbound" Type="graph.crossTenantAccessPolicyB2BSetting">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines your partner-specific configuration for users in your organization going outbound to access resources in another organization via Azure AD B2B direct connect." />
+        </Property>
+        <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines the partner-specific configuration for trusting other Conditional Access claims from external Azure AD organizations." />
+        </Property>
+        <Property Name="isServiceProvider" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifies whether the partner-specific configuration is a Cloud Service Provider for your organization." />
+        </Property>
+        <Property Name="tenantId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The tenant identifier for the partner Azure AD organization. Read-only. Key." />
+        </Property>
+        <Key>
+          <PropertyRef Name="tenantId" />
+        </Key>
       </EntityType>
       <EntityType Name="device" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean">
@@ -9009,54 +9106,54 @@
       </EntityType>
       <EntityType Name="unifiedRoleEligibilityScheduleRequest" BaseType="graph.request">
         <Property Name="action" Type="graph.unifiedRoleScheduleRequestActions">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the type of the operation on the role eligibility assignment. The possible values are: AdminAssign: For administrators to assign role eligibility to users or groups to roles.AdminExtend: For administrators to extend expiring assignments.AdminUpdate: For administrators to change existing role assignments.AdminRenew: For administrators to renew expired assignments.AdminRemove: For administrators to remove users or groups from eligible roles.UserAdd: For users to activate their eligible assignments.UserExtend: For users to request to extend their expiring eligible assignments.UserRemove: For users to deactivate their active eligible assignments.UserRenew: For users to request to renew their expired eligible assignments." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the type of operation on the role eligibility request. The possible values are: AdminAssign: For administrators to assign eligible roles to principals.AdminRemove: For administrators to remove eligible roles from principals. AdminUpdate: For administrators to change existing role eligibilities.AdminExtend: For administrators to extend expiring role eligibilities.AdminRenew: For administrators to renew expired eligibilities.UserAdd: For users to activate their eligible assignments.UserRemove: For users to deactivate their active eligible assignments.UserExtend: For users to request to extend their expiring eligible assignments.UserRenew: For users to request to renew their expired eligible assignments." />
         </Property>
         <Property Name="appScopeId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the app-specific scope when the assignment scope is app-specific. The scope of an assignment determines the set of resources for which the principal has been granted access. App scopes are scopes that are defined and understood by this application only. Use / for tenant-wide app scopes. Use directoryScopeId to limit the scope to particular directory objects, for example, administrative units." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the app-specific scope when the role eligibility is scoped to an app. The scope of a role eligibility determines the set of resources for which the principal is eligible to access. App scopes are scopes that are defined and understood by this application only. Use / for tenant-wide app scopes. Use directoryScopeId to limit the scope to particular directory objects, for example, administrative units. Supports $filter (eq, ne, and on null values)." />
         </Property>
         <Property Name="directoryScopeId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the directory object representing the scope of the assignment. The scope of an assignment determines the set of resources for which the principal has been granted access. Directory scopes are shared scopes stored in the directory that are understood by multiple applications. Use / for tenant-wide scope. Use appScopeId to limit the scope to an application only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the directory object representing the scope of the role eligibility. The scope of a role eligibility determines the set of resources for which the principal has been granted access. Directory scopes are shared scopes stored in the directory that are understood by multiple applications. Use / for tenant-wide scope. Use appScopeId to limit the scope to an application only. Supports $filter (eq, ne, and on null values)." />
         </Property>
         <Property Name="isValidationOnly" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A boolean that determines whether the call is a validation or an actual call. Only set this property if you want to check whether an activation is subject to additional rules like MFA before actually submitting the request." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines whether the call is a validation or an actual call. Only set this property if you want to check whether an activation is subject to additional rules like MFA before actually submitting the request." />
         </Property>
         <Property Name="justification" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A message provided by users and administrators when create the request about why it is needed." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A message provided by users and administrators when create they create the unifiedRoleEligibilityScheduleRequest object." />
         </Property>
         <Property Name="principalId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the principal to which the assignment is being granted to. For example, a user or a group. For groups, they must be assignable to roles, that is, the isAssignableToRole of the group property set to true." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the principal that has been granted the role eligibility. Supports $filter (eq, ne)." />
         </Property>
         <Property Name="roleDefinitionId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the unifiedRoleDefinition the assignment is for. Read only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the unifiedRoleDefinition object that is being assigned to the principal. Supports $filter (eq, ne)." />
         </Property>
         <Property Name="scheduleInfo" Type="graph.requestSchedule">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The schedule object of the role assignment request." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The period of the role eligibility. Recurring schedules are currently unsupported." />
         </Property>
         <Property Name="targetScheduleId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The time period for which the eligibility assignment is valid." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the schedule object that's linked to the eligibility request. Supports $filter (eq, ne)." />
         </Property>
         <Property Name="ticketInfo" Type="graph.ticketInfo">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The details of the ticket number and ticket system that is attached to the role assignment request." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Ticket details linked to the role eligibility request including details of the ticket number and ticket system. Optional." />
         </Property>
         <NavigationProperty Name="appScope" Type="graph.appScope">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only property with details of the app-specific scope when the assignment scope is app-specific. Containment entity." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only property with details of the app-specific scope when the role eligibility is scoped to an app. Nullable. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="directoryScope" Type="graph.directoryObject">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Property referencing the directory object that is the scope of the assignment. Provided so that callers can get the directory object using $expand at the same time as getting the role assignment. Read-only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The directory object that is the scope of the role eligibility. Read-only. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="principal" Type="graph.directoryObject">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Property referencing the principal that is getting a role assignment through the request. Provided so that callers can get the principal using $expand at the same time as getting the role assignment. Read-only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The principal that's getting a role eligibility through the request. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Property indicating the roleDefinition the assignment is for. Provided so that callers can get the role definition using $expand at the same time as getting the role assignment. roleDefinition.Id will be auto expanded." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Detailed information for the unifiedRoleDefinition object that is referenced through the roleDefinitionId property. Supports $expand." />
         </NavigationProperty>
         <NavigationProperty Name="targetSchedule" Type="graph.unifiedRoleEligibilitySchedule">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Property indicating the schedule for an eligible role assignment." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The schedule for a role eligibility that is referenced through the targetScheduleId property. Supports $expand." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="unifiedRoleEligibilitySchedule" BaseType="graph.unifiedRoleScheduleBase">
         <Property Name="memberType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Membership type of the eligible assignment. It can either be Inherited, Direct, or Group." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Membership type of the eligible assignment. It can either be Inherited, Direct, or Group. Supports $filter (eq)." />
         </Property>
         <Property Name="scheduleInfo" Type="graph.requestSchedule">
           <Annotation Term="Org.OData.Core.V1.Description" String="The schedule object of the eligible role assignment request." />
@@ -10777,10 +10874,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of property names and types that make up the schema extension definition." />
         </Property>
         <Property Name="status" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The lifecycle state of the schema extension. Possible states are InDevelopment, Available, and Deprecated. Automatically set to InDevelopment on creation. Schema extensions provides more information on the possible state transitions and behaviors. Supports $filter (eq)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The lifecycle state of the schema extension. Possible states are InDevelopment, Available, and Deprecated. Automatically set to InDevelopment on creation. For more information about the possible state transitions and behaviors, see Schema extensions lifecycle. Supports $filter (eq)." />
         </Property>
         <Property Name="targetTypes" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Set of Microsoft Graph types (that can support extensions) that the schema extension can be applied to. Select from administrativeUnit, contact, device, event, group, message, organization, post, or user." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Set of Microsoft Graph types (that can support extensions) that the schema extension can be applied to. Select from administrativeUnit, contact, device, event, group, message, organization, post, todoTask, todoTaskList, or user." />
         </Property>
       </EntityType>
       <EntityType Name="cloudCommunications" BaseType="graph.entity">
@@ -17182,6 +17279,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The registered device on which Microsoft Authenticator resides. This property is null if the device is not registered for passwordless Phone Sign-In." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="password" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="For security, the password is always returned as null from a LIST or GET operation." />
+        </Property>
+      </EntityType>
       <EntityType Name="temporaryAccessPassAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The date and time when the Temporary Access Pass was created." />
@@ -18746,6 +18849,17 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, users can edit their messages." />
         </Property>
       </ComplexType>
+      <ComplexType Name="teamSummary">
+        <Property Name="guestsCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of guests in a team." />
+        </Property>
+        <Property Name="membersCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of members in a team." />
+        </Property>
+        <Property Name="ownersCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of owners in a team." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="resultInfo">
         <Property Name="code" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The result code." />
@@ -18916,6 +19030,41 @@
         </Property>
       </ComplexType>
       <ComplexType Name="ComplexExtensionValue" OpenType="true" />
+      <ComplexType Name="crossTenantAccessPolicyB2BSetting">
+        <Property Name="applications" Type="graph.crossTenantAccessPolicyTargetConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of applications targeted with your cross-tenant access policy." />
+        </Property>
+        <Property Name="usersAndGroups" Type="graph.crossTenantAccessPolicyTargetConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of users and groups targeted with your cross-tenant access policy." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyTargetConfiguration">
+        <Property Name="accessType" Type="graph.crossTenantAccessPolicyTargetConfigurationAccessType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines whether access is allowed or blocked. The possible values are: allowed, blocked, unknownFutureValue." />
+        </Property>
+        <Property Name="targets" Type="Collection(graph.crossTenantAccessPolicyTarget)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether to target users, groups, or applications with this rule." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyInboundTrust">
+        <Property Name="isCompliantDeviceAccepted" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether compliant devices from external Azure AD organizations are trusted." />
+        </Property>
+        <Property Name="isHybridAzureADJoinedDeviceAccepted" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether hybrid Azure AD joined devices from external Azure AD organizations are trusted." />
+        </Property>
+        <Property Name="isMfaAccepted" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether MFA from external Azure AD organizations is trusted." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyTarget">
+        <Property Name="target" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the user, group, or application; one of the following keywords: AllUsers and AllApplications; or for targets that are applications, you may use reserved values." />
+        </Property>
+        <Property Name="targetType" Type="graph.crossTenantAccessPolicyTargetType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of resource that you want to target. The possible values are: user, group, application, unknownFutureValue." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="defaultUserRolePermissions">
         <Property Name="allowedToCreateApps" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the default user role can create applications." />
@@ -19212,6 +19361,20 @@
       <ComplexType Name="educationSubmissionIndividualRecipient" BaseType="graph.educationSubmissionRecipient">
         <Property Name="userId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="User ID of the user to whom the submission is assigned." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="educationTeamsAppResource" BaseType="graph.educationResource">
+        <Property Name="appIconWebUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL that points to the app's icon." />
+        </Property>
+        <Property Name="appId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Teams App ID of the application." />
+        </Property>
+        <Property Name="teamsEmbeddedContentUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL for the app resource that will be opened by Teams." />
+        </Property>
+        <Property Name="webUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="URL for the app resource that can be opened in the browser." />
         </Property>
       </ComplexType>
       <ComplexType Name="educationWordResource" BaseType="graph.educationResource">
@@ -20728,7 +20891,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The name of the strongly typed property defined as part of a schema extension." />
         </Property>
         <Property Name="type" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String.  See the table below for more details." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String. See the table below for more details." />
         </Property>
       </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
@@ -24288,6 +24451,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: tone0, tone1, tone2, tone3, tone4, tone5, tone6, tone7, tone8, tone9, star, pound, a, b, c, d, flash." />
         </Property>
       </ComplexType>
+      <ComplexType Name="passwordResetResponse">
+        <Property Name="newPassword" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="changeNotification">
         <Property Name="changeType" Type="graph.changeType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of change that will raise the change notification. The supported values are: created, updated, deleted. Required." />
@@ -26403,6 +26569,9 @@
         <Parameter Name="ids" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
         <Parameter Name="types" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(graph.directoryObject)" Nullable="false" />
+      </Action>
+      <Action Name="resetToSystemDefault" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantAccessPolicyConfigurationDefault" Nullable="false" />
       </Action>
       <Action Name="delta" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -29822,6 +29991,12 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.stopHoldMusicOperation" />
       </Action>
+      <Action Name="resetPassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
+        <Parameter Name="newPassword" Type="Edm.String" Unicode="false" />
+        <Parameter Name="requireChangeOnNextSignIn" Type="Edm.Boolean" />
+        <ReturnType Type="graph.passwordResetResponse" />
+      </Action>
       <Action Name="reauthorize" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.subscription" />
       </Action>
@@ -32312,6 +32487,7 @@
       <Annotations Target="microsoft.graph.userActivity" />
       <Annotations Target="microsoft.graph.application" />
       <Annotations Target="microsoft.graph.servicePrincipal" />
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicy" />
       <Annotations Target="microsoft.graph.conditionalAccessPolicy" />
       <Annotations Target="microsoft.graph.bitlocker" />
       <Annotations Target="microsoft.graph.bitlockerRecoveryKey" />
@@ -32523,6 +32699,8 @@
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.administrativeUnit" />
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationDefault" />
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner" />
       <Annotations Target="microsoft.graph.directory/administrativeUnits" />
       <Annotations Target="microsoft.graph.directoryRole" />
       <Annotations Target="microsoft.graph.directoryRoleTemplate" />
@@ -40827,7 +41005,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create open extension" />
-            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties&#xA;in a new or existing instance of a supported resource. The table in the Permissions section lists the resources that support open extensions." />
+            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties in a new or existing instance of a resource. You can create an open extension in a resource instance and store custom data to it all in the same operation, except for specific resources. See known limitations of open extensions for more information. The table in the Permissions section lists the resources that support open extensions." />
           </Record>
         </Annotation>
       </Annotations>
@@ -41015,7 +41193,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create open extension" />
-            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties&#xA;in a new or existing instance of a supported resource. The table in the Permissions section lists the resources that support open extensions." />
+            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties in a new or existing instance of a resource. You can create an open extension in a resource instance and store custom data to it all in the same operation, except for specific resources. See known limitations of open extensions for more information. The table in the Permissions section lists the resources that support open extensions." />
           </Record>
         </Annotation>
       </Annotations>
@@ -45023,8 +45201,8 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Create Calendar" />
-            <PropertyValue Property="LongDescription" String="Use this API to create a new calendar for a user." />
+            <PropertyValue Property="Description" String="Create calendar" />
+            <PropertyValue Property="LongDescription" String="Create a new calendar for a user." />
           </Record>
         </Annotation>
       </Annotations>
@@ -46587,7 +46765,7 @@
       <Annotations Target="microsoft.graph.GraphService/me/drive/root/children/createUploadSession">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Upload large files with an upload session" />
+            <PropertyValue Property="Description" String="driveItem: createUploadSession" />
             <PropertyValue Property="LongDescription" String="Create an upload session to allow your app to upload files up to the maximum file size.&#xA;An upload session allows your app to upload ranges of the file in sequential API requests, which allows the transfer to be resumed if a connection is dropped while the upload is in progress. To upload a file using an upload session, there are two steps:" />
           </Record>
         </Annotation>
@@ -47124,7 +47302,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create open extension" />
-            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties&#xA;in a new or existing instance of a supported resource. The table in the Permissions section lists the resources that support open extensions." />
+            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties in a new or existing instance of a resource. You can create an open extension in a resource instance and store custom data to it all in the same operation, except for specific resources. See known limitations of open extensions for more information. The table in the Permissions section lists the resources that support open extensions." />
           </Record>
         </Annotation>
       </Annotations>
@@ -47274,7 +47452,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create open extension" />
-            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties&#xA;in a new or existing instance of a supported resource. The table in the Permissions section lists the resources that support open extensions." />
+            <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties in a new or existing instance of a resource. You can create an open extension in a resource instance and store custom data to it all in the same operation, except for specific resources. See known limitations of open extensions for more information. The table in the Permissions section lists the resources that support open extensions." />
           </Record>
         </Annotation>
       </Annotations>
@@ -48850,7 +49028,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List roleManagementPolicyAssignments" />
-            <PropertyValue Property="LongDescription" String="Get a list of the unifiedRoleManagementPolicyAssignment objects and their properties." />
+            <PropertyValue Property="LongDescription" String="Get the details of all role management policy assignments including the policies and rules associated with the Azure AD roles." />
           </Record>
         </Annotation>
       </Annotations>
@@ -51033,30 +51211,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/reports/getM365AppPlatformUserCounts/content">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="reportRoot: getM365AppPlatformUserCounts" />
-            <PropertyValue Property="LongDescription" String="Get a report that provides the trend of active users across all apps for each platform – Windows, Mac, web, and mobile - in your organization." />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/reports/getM365AppUserCounts/content">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="reportRoot: getM365AppUserCounts" />
-            <PropertyValue Property="LongDescription" String="Get a report that provides the trend in the number of active users for each app – Outlook, Word, Excel, PowerPoint, OneNote, and Teams - in your organization." />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/reports/getM365AppUserDetail/content">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="reportRoot: getM365AppUserDetail" />
-            <PropertyValue Property="LongDescription" String="Get a report that provides the details about which apps and platforms users have used." />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/reports/monthlyPrintUsageByPrinter">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -52149,6 +52303,22 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/teamwork/deletedTeams">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List deletedTeams" />
+            <PropertyValue Property="LongDescription" String="Get a list of the deletedTeam objects and their properties." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/teamwork/deletedTeams/channels/getAllMessages">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="deletedTeam: getAllMessages" />
+            <PropertyValue Property="LongDescription" String="Retrieve all messages across all channels in a deleted team, including text, audio, and video conversations. To learn more about using the Microsoft Teams export APIs to export content, see Export content with the Microsoft Teams Export APIs." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/teamwork/devices">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -52289,6 +52459,435 @@
           </Record>
         </Annotation>
       </Annotations>
+    </Schema>
+    <Schema Namespace="microsoft.graph.security" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="additionalDataOptions" IsFlags="true">
+        <Member Name="allVersions" Value="1" />
+        <Member Name="linkedFiles" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="caseAction">
+        <Member Name="contentExport" Value="0" />
+        <Member Name="applyTags" Value="1" />
+        <Member Name="convertToPdf" Value="2" />
+        <Member Name="index" Value="3" />
+        <Member Name="estimateStatistics" Value="4" />
+        <Member Name="addToReviewSet" Value="5" />
+        <Member Name="holdUpdate" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="caseOperationStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="submissionFailed" Value="1" />
+        <Member Name="running" Value="2" />
+        <Member Name="succeeded" Value="3" />
+        <Member Name="partiallySucceeded" Value="4" />
+        <Member Name="failed" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="caseStatus" UnderlyingType="Edm.Byte">
+        <Member Name="unknown" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="pendingDelete" Value="2" />
+        <Member Name="closing" Value="3" />
+        <Member Name="closed" Value="4" />
+        <Member Name="closedWithError" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="childSelectability">
+        <Member Name="One" Value="0" />
+        <Member Name="Many" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="dataSourceContainerStatus">
+        <Member Name="active" Value="1" />
+        <Member Name="released" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="dataSourceHoldStatus">
+        <Member Name="notApplied" Value="1" />
+        <Member Name="applied" Value="2" />
+        <Member Name="applying" Value="3" />
+        <Member Name="removing" Value="4" />
+        <Member Name="partial" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="dataSourceScopes" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="allTenantMailboxes" Value="1" />
+        <Member Name="allTenantSites" Value="2" />
+        <Member Name="allCaseCustodians" Value="4" />
+        <Member Name="allCaseNoncustodialDataSources" Value="8" />
+        <Member Name="unknownFutureValue" Value="16" />
+      </EnumType>
+      <EnumType Name="sourceType" IsFlags="true">
+        <Member Name="mailbox" Value="1" />
+        <Member Name="site" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EntityType Name="casesRoot" BaseType="graph.entity">
+        <NavigationProperty Name="ediscoveryCases" Type="Collection(microsoft.graph.security.ediscoveryCase)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="case" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="microsoft.graph.security.caseStatus" />
+      </EntityType>
+      <EntityType Name="caseOperation" BaseType="graph.entity">
+        <Property Name="action" Type="microsoft.graph.security.caseAction">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of action the operation represents. Possible values are: addToReviewSet,applyTags,contentExport,convertToPdf,estimateStatistics, purgeData" />
+        </Property>
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time the operation was completed." />
+        </Property>
+        <Property Name="createdBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user that created the operation." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time the operation was created." />
+        </Property>
+        <Property Name="percentProgress" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The progress of the operation." />
+        </Property>
+        <Property Name="resultInfo" Type="graph.resultInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains success and failure-specific result information." />
+        </Property>
+        <Property Name="status" Type="microsoft.graph.security.caseOperationStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The status of the case operation. Possible values are: notStarted, submissionFailed, running, succeeded, partiallySucceeded, failed." />
+        </Property>
+      </EntityType>
+      <EntityType Name="ediscoveryCase" BaseType="microsoft.graph.security.case">
+        <Property Name="closedBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user who closed the case." />
+        </Property>
+        <Property Name="closedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time when the case was closed. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z" />
+        </Property>
+        <Property Name="externalId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The external case number for customer reference." />
+        </Property>
+        <NavigationProperty Name="custodians" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of case ediscoveryCustodian objects for this case." />
+        </NavigationProperty>
+        <NavigationProperty Name="noncustodialDataSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of case ediscoveryNoncustodialDataSource objects for this case." />
+        </NavigationProperty>
+        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.security.caseOperation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of case caseOperation objects for this case." />
+        </NavigationProperty>
+        <NavigationProperty Name="reviewSets" Type="Collection(microsoft.graph.security.ediscoveryReviewSet)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of eDiscoveryReviewSet objects in the case." />
+        </NavigationProperty>
+        <NavigationProperty Name="searches" Type="Collection(microsoft.graph.security.ediscoverySearch)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of eDiscoverySearch objects associated with this case." />
+        </NavigationProperty>
+        <NavigationProperty Name="settings" Type="microsoft.graph.security.ediscoveryCaseSettings" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of eDIscoverySettings objects in the case." />
+        </NavigationProperty>
+        <NavigationProperty Name="tags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns a list of ediscoveryReviewTag objects associated to this case." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="dataSet" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="dataSource" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the dataSource." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The date and time the dataSource was created." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the dataSource. This will be the name of the SharePoint site." />
+        </Property>
+        <Property Name="holdStatus" Type="microsoft.graph.security.dataSourceHoldStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The hold status of the dataSource.The possible values are: notApplied, applied, applying, removing, partial" />
+        </Property>
+      </EntityType>
+      <EntityType Name="dataSourceContainer" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Created date and time of the dataSourceContainer entity." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the dataSourceContainer entity." />
+        </Property>
+        <Property Name="holdStatus" Type="microsoft.graph.security.dataSourceHoldStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The hold status of the dataSourceContainer.The possible values are: notApplied, applied, applying, removing, partial" />
+        </Property>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Last modified date and time of the dataSourceContainer." />
+        </Property>
+        <Property Name="releasedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time that the dataSourceContainer was released from the case." />
+        </Property>
+        <Property Name="status" Type="microsoft.graph.security.dataSourceContainerStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Latest status of the dataSourceContainer. Possible values are: Active, Released." />
+        </Property>
+      </EntityType>
+      <EntityType Name="ediscoveryAddToReviewSetOperation" BaseType="microsoft.graph.security.caseOperation">
+        <NavigationProperty Name="reviewSet" Type="microsoft.graph.security.ediscoveryReviewSet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="eDiscovery review set to which items matching source collection query gets added." />
+        </NavigationProperty>
+        <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch">
+          <Annotation Term="Org.OData.Core.V1.Description" String="eDiscovery search that gets added to review set." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryReviewSet" BaseType="microsoft.graph.security.dataSet">
+        <NavigationProperty Name="queries" Type="Collection(microsoft.graph.security.ediscoveryReviewSetQuery)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents queries within the review set." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="search" BaseType="graph.entity" Abstract="true">
+        <Property Name="contentQuery" Type="Edm.String" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="ediscoverySearch" BaseType="microsoft.graph.security.search">
+        <Property Name="dataSourceScopes" Type="microsoft.graph.security.dataSourceScopes">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When specified, the collection will span across a service for an entire workload. Possible values are: none, allTenantMailboxes, allTenantSites, allCaseCustodians, allCaseNoncustodialDataSources." />
+        </Property>
+        <NavigationProperty Name="additionalSources" Type="Collection(microsoft.graph.security.dataSource)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Adds an additional source to the eDiscovery search." />
+        </NavigationProperty>
+        <NavigationProperty Name="addToReviewSetOperation" Type="microsoft.graph.security.ediscoveryAddToReviewSetOperation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Adds the results of the eDiscovery search to the specified reviewSet." />
+        </NavigationProperty>
+        <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.security.dataSource)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Custodian sources that are included in the eDiscovery search." />
+        </NavigationProperty>
+        <NavigationProperty Name="lastEstimateStatisticsOperation" Type="microsoft.graph.security.ediscoveryEstimateOperation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The last estimate operation associated with the eDiscovery search." />
+        </NavigationProperty>
+        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="noncustodialDataSource sources that are included in the eDiscovery search" />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryCustodian" BaseType="microsoft.graph.security.dataSourceContainer">
+        <Property Name="acknowledgedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time the custodian acknowledged a hold notification." />
+        </Property>
+        <Property Name="email" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the custodian." />
+        </Property>
+        <NavigationProperty Name="lastIndexOperation" Type="microsoft.graph.security.ediscoveryIndexOperation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Operation entity that represents the latest indexing for the custodian." />
+        </NavigationProperty>
+        <NavigationProperty Name="siteSources" Type="Collection(microsoft.graph.security.siteSource)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Data source entity for SharePoint sites associated with the custodian." />
+        </NavigationProperty>
+        <NavigationProperty Name="unifiedGroupSources" Type="Collection(microsoft.graph.security.unifiedGroupSource)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Data source entity for groups associated with the custodian." />
+        </NavigationProperty>
+        <NavigationProperty Name="userSources" Type="Collection(microsoft.graph.security.userSource)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Data source entity for a the custodian. This is the container for a custodian's mailbox and OneDrive for Business site." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryNoncustodialDataSource" BaseType="microsoft.graph.security.dataSourceContainer">
+        <NavigationProperty Name="dataSource" Type="microsoft.graph.security.dataSource" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User source or SharePoint site data source as non-custodial data source." />
+        </NavigationProperty>
+        <NavigationProperty Name="lastIndexOperation" Type="microsoft.graph.security.ediscoveryIndexOperation">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Operation entity that represents the latest indexing for the non-custodial data source." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryCaseSettings" BaseType="graph.entity">
+        <Property Name="ocr" Type="microsoft.graph.security.ocrSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The OCR (Optical Character Recognition) settings for the case." />
+        </Property>
+        <Property Name="redundancyDetection" Type="microsoft.graph.security.redundancyDetectionSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The redundancy (near duplicate and email threading) detection settings for the case." />
+        </Property>
+        <Property Name="topicModeling" Type="microsoft.graph.security.topicModelingSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Topic Modeling (Themes) settings for the case." />
+        </Property>
+      </EntityType>
+      <EntityType Name="tag" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="ediscoveryReviewTag" BaseType="microsoft.graph.security.tag">
+        <Property Name="childSelectability" Type="microsoft.graph.security.childSelectability">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a single or multiple child tags can be associated with a document. Possible values are: One, Many.  This value controls whether the UX presents the tags as checkboxes or a radio button group." />
+        </Property>
+        <NavigationProperty Name="childTags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns the tags that are a child of a tag." />
+        </NavigationProperty>
+        <NavigationProperty Name="parent" Type="microsoft.graph.security.ediscoveryReviewTag">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Returns the parent tag of the specified tag." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryIndexOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <EntityType Name="siteSource" BaseType="microsoft.graph.security.dataSource">
+        <NavigationProperty Name="site" Type="graph.site" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The SharePoint site associated with the siteSource." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="unifiedGroupSource" BaseType="microsoft.graph.security.dataSource">
+        <Property Name="includedSources" Type="microsoft.graph.security.sourceType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies which sources are included in this group. Possible values are: mailbox, site." />
+        </Property>
+        <NavigationProperty Name="group" Type="graph.group" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represent a group." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="userSource" BaseType="microsoft.graph.security.dataSource">
+        <Property Name="email" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the user's mailbox." />
+        </Property>
+        <Property Name="includedSources" Type="microsoft.graph.security.sourceType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies which sources are included in this group. Possible values are: mailbox, site." />
+        </Property>
+        <Property Name="siteWebUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL of the user's OneDrive for Business site. Read-only." />
+        </Property>
+      </EntityType>
+      <EntityType Name="ediscoveryEstimateOperation" BaseType="microsoft.graph.security.caseOperation">
+        <Property Name="indexedItemCount" Type="Edm.Int64">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The estimated count of items for the search that matched the content query." />
+        </Property>
+        <Property Name="indexedItemsSize" Type="Edm.Int64">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The estimated size of items for the search that matched the content query." />
+        </Property>
+        <Property Name="mailboxCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of mailboxes that had search hits." />
+        </Property>
+        <Property Name="siteCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of mailboxes that had search hits." />
+        </Property>
+        <Property Name="unindexedItemCount" Type="Edm.Int64">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The estimated count of unindexed items for the collection." />
+        </Property>
+        <Property Name="unindexedItemsSize" Type="Edm.Int64">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The estimated size of unindexed items for the collection." />
+        </Property>
+        <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch">
+          <Annotation Term="Org.OData.Core.V1.Description" String="eDiscovery search." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ediscoveryHoldOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <EntityType Name="ediscoveryReviewSetQuery" BaseType="microsoft.graph.security.search" />
+      <EntityType Name="ediscoveryTagOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <ComplexType Name="ocrSettings">
+        <Property Name="isEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether or not OCR is enabled for the case." />
+        </Property>
+        <Property Name="maxImageSize" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Maximum image size that will be processed in KB)." />
+        </Property>
+        <Property Name="timeout" Type="Edm.Duration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The timeout duration for the OCR engine. A longer timeout may increase success of OCR, but may add to the total processing time." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="redundancyDetectionSettings">
+        <Property Name="isEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether email threading and near duplicate detection are enabled." />
+        </Property>
+        <Property Name="maxWords" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the maximum number of words used for email threading and near duplicate detection. To learn more, see Minimum/maximum number of words." />
+        </Property>
+        <Property Name="minWords" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the minimum number of words used for email threading and near duplicate detection. To learn more, see Minimum/maximum number of words." />
+        </Property>
+        <Property Name="similarityThreshold" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the similarity level for documents to be put in the same near duplicate set. To learn more, see Document and email similarity threshold." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="stringValueDictionary" OpenType="true" />
+      <ComplexType Name="topicModelingSettings">
+        <Property Name="dynamicallyAdjustTopicCount" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="To learn more, see Adjust maximum number of themes dynamically." />
+        </Property>
+        <Property Name="ignoreNumbers" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="To learn more, see Include numbers in themes." />
+        </Property>
+        <Property Name="isEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether themes is enabled for the case." />
+        </Property>
+        <Property Name="topicCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="To learn more, see Maximum number of themes." />
+        </Property>
+      </ComplexType>
+      <Function Name="asHierarchy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+        <ReturnType Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+      </Function>
+      <Action Name="activate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+      </Action>
+      <Action Name="applyHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+      </Action>
+      <Action Name="applyHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="applyHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="applyHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+      </Action>
+      <Action Name="release" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+      </Action>
+      <Action Name="release" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+      </Action>
+      <Action Name="removeHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+      </Action>
+      <Action Name="removeHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="removeHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
+        <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="removeHold" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+      </Action>
+      <Action Name="updateIndex" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+      </Action>
+      <Action Name="updateIndex" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+      </Action>
+      <Action Name="addToReviewSet" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSet" />
+        <Parameter Name="search" Type="microsoft.graph.security.ediscoverySearch" />
+        <Parameter Name="additionalDataOptions" Type="microsoft.graph.security.additionalDataOptions" />
+      </Action>
+      <Action Name="applyTags" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSetQuery" />
+        <Parameter Name="tagsToAdd" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+        <Parameter Name="tagsToRemove" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+      </Action>
+      <Action Name="close" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+      </Action>
+      <Action Name="reopen" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+      </Action>
+      <Action Name="estimateStatistics" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
+      </Action>
+      <Action Name="resetToDefault" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCaseSettings" />
+      </Action>
     </Schema>
     <Schema Namespace="microsoft.graph.termStore" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="relationType">
