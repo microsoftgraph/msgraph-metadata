@@ -170,6 +170,13 @@
         <Member Name="customer" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="bookingsAvailabilityStatus">
+        <Member Name="available" Value="0" />
+        <Member Name="busy" Value="1" />
+        <Member Name="slotsAvailable" Value="2" />
+        <Member Name="outOfOffice" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="bookingStaffRole">
         <Member Name="guest" Value="0" />
         <Member Name="administrator" Value="1" />
@@ -4632,6 +4639,7 @@
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
         <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
@@ -4673,6 +4681,7 @@
         <Property Name="publicClient" Type="graph.publicClientApplication" />
         <Property Name="publisherDomain" Type="Edm.String" />
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false" />
+        <Property Name="samlMetadataUrl" Type="Edm.String" />
         <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="spa" Type="graph.spaApplication" />
@@ -5272,6 +5281,12 @@
         <Property Name="status" Type="graph.threatAssessmentStatus" />
         <NavigationProperty Name="results" Type="Collection(graph.threatAssessmentResult)" ContainsTarget="true" />
       </EntityType>
+      <ComplexType Name="availabilityItem">
+        <Property Name="endTime" Type="Edm.TimeOfDay" Nullable="false" />
+        <Property Name="serviceId" Type="Edm.String" />
+        <Property Name="startTime" Type="Edm.TimeOfDay" Nullable="false" />
+        <Property Name="status" Type="graph.bookingsAvailabilityStatus" />
+      </ComplexType>
       <ComplexType Name="bookingCustomerInformationBase" Abstract="true" />
       <ComplexType Name="bookingCustomerInformation" BaseType="graph.bookingCustomerInformationBase">
         <Property Name="customerId" Type="Edm.String" />
@@ -5349,6 +5364,10 @@
         <Property Name="number" Type="Edm.String" />
         <Property Name="region" Type="Edm.String" />
         <Property Name="type" Type="graph.phoneType" />
+      </ComplexType>
+      <ComplexType Name="staffAvailabilityItem">
+        <Property Name="availabilityItems" Type="Collection(graph.availabilityItem)" />
+        <Property Name="staffId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="timeSlot">
         <Property Name="end" Type="graph.dateTimeTimeZone" Nullable="false" />
@@ -8819,6 +8838,7 @@
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="automaticRequestSettings" Type="graph.accessPackageAutomaticRequestSettings" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -9116,6 +9136,15 @@
         <Property Name="isSelfReview" Type="Edm.Boolean" />
         <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
+      </ComplexType>
+      <ComplexType Name="accessPackageAutomaticRequestSettings">
+        <Property Name="gracePeriodBeforeAccessRemoval" Type="Edm.Duration" />
+        <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
+        <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="attributeRuleMembers" BaseType="graph.subjectSet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.subjectSet">
         <Property Name="connectedOrganizationId" Type="Edm.String" />
@@ -13310,6 +13339,13 @@
       </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printJob" />
+      </Action>
+      <Action Name="getStaffAvailability" IsBound="true">
+        <Parameter Name="bookingBusiness" Type="graph.bookingBusiness" Nullable="false" />
+        <Parameter Name="staffIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="startDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Parameter Name="endDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <ReturnType Type="Collection(graph.staffAvailabilityItem)" />
       </Action>
       <Action Name="publish" IsBound="true">
         <Parameter Name="bookingBusiness" Type="graph.bookingBusiness" Nullable="false" />

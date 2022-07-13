@@ -171,6 +171,13 @@
         <Member Name="customer" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="bookingsAvailabilityStatus">
+        <Member Name="available" Value="0" />
+        <Member Name="busy" Value="1" />
+        <Member Name="slotsAvailable" Value="2" />
+        <Member Name="outOfOffice" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="bookingStaffRole">
         <Member Name="guest" Value="0" />
         <Member Name="administrator" Value="1" />
@@ -5462,6 +5469,9 @@
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The async operations that ran or are running on this team." />
         </NavigationProperty>
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The team photo." />
+        </NavigationProperty>
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The general channel for the team." />
         </NavigationProperty>
@@ -5558,6 +5568,9 @@
         </Property>
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the resources that the application needs to access. This property also specifies the set of delegated permissions and application roles that it needs for each of those resources. This configuration of access to the required resources drives the consent experience. No more than 50 resource services (APIs) can be configured. Beginning mid-October 2021, the total number of required permissions must not exceed 400. Not nullable. Supports $filter (eq, not, ge, le)." />
+        </Property>
+        <Property Name="samlMetadataUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The URL where the service exposes SAML metadata for federation. This property is valid only for single-tenant applications. Nullable." />
         </Property>
         <Property Name="serviceManagementReference" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="References application or service contact information from a Service or Asset Management database. Nullable." />
@@ -11251,6 +11264,7 @@
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope">
           <Annotation Term="Org.OData.Core.V1.Description" String="Principals that can be assigned the access package through this policy. The possible values are: notSpecified, specificDirectoryUsers, specificConnectedOrganizationUsers, specificDirectoryServicePrincipals, allMemberUsers, allDirectoryUsers, allDirectoryServicePrincipals, allConfiguredConnectedOrganizationUsers, allExternalUsers, unknownFutureValue." />
         </Property>
+        <Property Name="automaticRequestSettings" Type="graph.accessPackageAutomaticRequestSettings" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z" />
         </Property>
@@ -18471,6 +18485,16 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Run campaigns to remind users to setup targeted authentication methods." />
         </Property>
       </ComplexType>
+      <ComplexType Name="availabilityItem">
+        <Property Name="endTime" Type="Edm.TimeOfDay" Nullable="false" />
+        <Property Name="serviceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the service ID in case of 1:n appointments. If the appointment is of type 1:n, this field will be present, otherwise, null." />
+        </Property>
+        <Property Name="startTime" Type="Edm.TimeOfDay" Nullable="false" />
+        <Property Name="status" Type="graph.bookingsAvailabilityStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The status of the staff member. Possible values are: available, busy, slotsAvailable, outOfOffice, unknownFutureValue." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="bookingCustomerInformationBase" Abstract="true" />
       <ComplexType Name="bookingCustomerInformation" BaseType="graph.bookingCustomerInformationBase">
         <Property Name="customerId" Type="Edm.String">
@@ -18649,6 +18673,14 @@
         <Property Name="region" Type="Edm.String" />
         <Property Name="type" Type="graph.phoneType">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type of phone number. Possible values are: home, business, mobile, other, assistant, homeFax, businessFax, otherFax, pager, radio." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="staffAvailabilityItem">
+        <Property Name="availabilityItems" Type="Collection(graph.availabilityItem)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Each item in this collection indicates a slot and the status of the staff member." />
+        </Property>
+        <Property Name="staffId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the staff member." />
         </Property>
       </ComplexType>
       <ComplexType Name="timeSlot">
@@ -21369,6 +21401,15 @@
         <Property Name="schedule" Type="graph.entitlementManagementSchedule">
           <Annotation Term="Org.OData.Core.V1.Description" String="When the first review should start and how often it should recur." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="accessPackageAutomaticRequestSettings">
+        <Property Name="gracePeriodBeforeAccessRemoval" Type="Edm.Duration" />
+        <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
+        <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="attributeRuleMembers" BaseType="graph.subjectSet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.subjectSet">
         <Property Name="connectedOrganizationId" Type="Edm.String">
@@ -26386,6 +26427,13 @@
       </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printJob" />
+      </Action>
+      <Action Name="getStaffAvailability" IsBound="true">
+        <Parameter Name="bookingBusiness" Type="graph.bookingBusiness" Nullable="false" />
+        <Parameter Name="staffIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="startDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Parameter Name="endDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <ReturnType Type="Collection(graph.staffAvailabilityItem)" />
       </Action>
       <Action Name="publish" IsBound="true">
         <Parameter Name="bookingBusiness" Type="graph.bookingBusiness" Nullable="false" />
@@ -44832,14 +44880,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/directory/federationConfigurations">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Create samlOrWsFedExternalDomainFederation" />
-            <PropertyValue Property="LongDescription" String="Create a new samlOrWsFedExternalDomainFederation object." />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/directory/federationConfigurations/microsoft/domains">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -48883,6 +48923,20 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/policies/externalIdentitiesPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get externalIdentitiesPolicy" />
+            <PropertyValue Property="LongDescription" String="Read the properties and relationships of the tenant-wide externalIdentitiesPolicy object that controls whether external users can leave an Azure AD tenant via self-service controls." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Update externalIdentitiesPolicy" />
+            <PropertyValue Property="LongDescription" String="Update the settings of the tenant-wide externalIdentitiesPolicy object that controls whether external users can leave an Azure AD tenant via self-service controls." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/policies/featureRolloutPolicies">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -51770,7 +51824,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Get plannerTaskDetails" />
-            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of **plannertaskdetails** object." />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a **plannerTaskDetails** object." />
           </Record>
         </Annotation>
       </Annotations>
@@ -51834,7 +51888,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Get plannerTaskDetails" />
-            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of **plannertaskdetails** object." />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a **plannerTaskDetails** object." />
           </Record>
         </Annotation>
       </Annotations>
