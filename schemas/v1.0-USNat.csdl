@@ -439,6 +439,13 @@
         <Member Name="service" Value="5" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="longRunningOperationStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="mailTipsType" IsFlags="true">
         <Member Name="automaticReplies" Value="1" />
         <Member Name="mailboxFullStatus" Value="2" />
@@ -851,6 +858,11 @@
         <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
       </ComplexType>
+      <ComplexType Name="accessPackageAutomaticRequestSettings">
+        <Property Name="gracePeriodBeforeAccessRemoval" Type="Edm.Duration" />
+        <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
+        <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
       <ComplexType Name="accessReviewHistoryScheduleSettings">
         <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
@@ -1015,6 +1027,10 @@
       </ComplexType>
       <ComplexType Name="attendeeBase" BaseType="graph.recipient">
         <Property Name="type" Type="graph.attendeeType" />
+      </ComplexType>
+      <ComplexType Name="attributeRuleMembers" BaseType="graph.subjectSet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="audio">
         <Property Name="album" Type="Edm.String" />
@@ -1798,6 +1814,9 @@
         <Property Name="forceChangePasswordNextSignInWithMfa" Type="Edm.Boolean" />
         <Property Name="password" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="passwordResetResponse">
+        <Property Name="newPassword" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="patternedRecurrence">
         <Property Name="pattern" Type="graph.recurrencePattern" />
         <Property Name="range" Type="graph.recurrenceRange" />
@@ -2358,6 +2377,7 @@
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="automaticRequestSettings" Type="graph.accessPackageAutomaticRequestSettings" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -2567,6 +2587,7 @@
         <Property Name="web" Type="graph.webApplication" />
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
@@ -2617,6 +2638,12 @@
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true" />
         <NavigationProperty Name="provisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
         <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" />
         <Property Name="allowedToUseSSPR" Type="Edm.Boolean" />
@@ -3152,6 +3179,13 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
+        <Property Name="audiences" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="issuer" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="fieldValueSet" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="fileAttachment" BaseType="graph.attachment" HasStream="true">
         <Property Name="contentBytes" Type="Edm.Binary" />
@@ -3343,6 +3377,13 @@
       <EntityType Name="listItemVersion" BaseType="graph.baseItemVersion">
         <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="longRunningOperation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="resourceLocation" Type="Edm.String" />
+        <Property Name="status" Type="graph.longRunningOperationStatus" />
+        <Property Name="statusDetail" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="lookupResultRow" BaseType="graph.entity">
         <Property Name="row" Type="Edm.String" />
       </EntityType>
@@ -3493,6 +3534,10 @@
       </EntityType>
       <EntityType Name="outlookUser" BaseType="graph.entity">
         <NavigationProperty Name="masterCategories" Type="Collection(graph.outlookCategory)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="password" Type="Edm.String" />
       </EntityType>
       <EntityType Name="permission" BaseType="graph.entity">
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
@@ -3741,6 +3786,7 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" />
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
@@ -4036,6 +4082,7 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userType" Type="Edm.String" />
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="authentication" Type="graph.authentication" ContainsTarget="true" />
         <NavigationProperty Name="calendar" Type="graph.calendar" ContainsTarget="true" />
         <NavigationProperty Name="calendarGroups" Type="Collection(graph.calendarGroup)" ContainsTarget="true" />
         <NavigationProperty Name="calendars" Type="Collection(graph.calendar)" ContainsTarget="true" />
@@ -4459,6 +4506,12 @@
       </Action>
       <Action Name="resetDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="resetPassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
+        <Parameter Name="newPassword" Type="Edm.String" Unicode="false" />
+        <Parameter Name="requireChangeOnNextSignIn" Type="Edm.Boolean" />
+        <ReturnType Type="graph.passwordResetResponse" />
       </Action>
       <Action Name="resetUnseenCount" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
