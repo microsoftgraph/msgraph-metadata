@@ -285,6 +285,15 @@
         <Member Name="weak" Value="1" />
         <Member Name="unknown" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationMethodSignInState">
+        <Member Name="notSupported" Value="0" />
+        <Member Name="notAllowedByPolicy" Value="1" />
+        <Member Name="notEnabled" Value="2" />
+        <Member Name="phoneNumberNotUnique" Value="3" />
+        <Member Name="ready" Value="4" />
+        <Member Name="notConfigured" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="authenticationMethodState">
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
@@ -293,6 +302,12 @@
         <Member Name="user" Value="0" />
         <Member Name="group" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationPhoneType">
+        <Member Name="mobile" Value="0" />
+        <Member Name="alternateMobile" Value="1" />
+        <Member Name="office" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="authenticationProtocol">
         <Member Name="wsFed" Value="0" />
@@ -338,6 +353,13 @@
         <Member Name="staff" Value="1" />
         <Member Name="customer" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="bookingsAvailabilityStatus">
+        <Member Name="available" Value="0" />
+        <Member Name="busy" Value="1" />
+        <Member Name="slotsAvailable" Value="2" />
+        <Member Name="outOfOffice" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="bookingStaffRole">
         <Member Name="guest" Value="0" />
@@ -3605,6 +3627,11 @@
         <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
       </ComplexType>
+      <ComplexType Name="accessPackageAutomaticRequestSettings">
+        <Property Name="gracePeriodBeforeAccessRemoval" Type="Edm.Duration" />
+        <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
+        <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
       <ComplexType Name="accessReviewHistoryScheduleSettings">
         <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
@@ -3852,6 +3879,10 @@
       <ComplexType Name="attendeeBase" BaseType="graph.recipient">
         <Property Name="type" Type="graph.attendeeType" />
       </ComplexType>
+      <ComplexType Name="attributeRuleMembers" BaseType="graph.subjectSet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="audio">
         <Property Name="album" Type="Edm.String" />
         <Property Name="albumArtist" Type="Edm.String" />
@@ -3906,6 +3937,12 @@
         <Property Name="scheduledEndDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="scheduledStartDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.automaticRepliesStatus" />
+      </ComplexType>
+      <ComplexType Name="availabilityItem">
+        <Property Name="endDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="serviceId" Type="Edm.String" />
+        <Property Name="startDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="status" Type="graph.bookingsAvailabilityStatus" />
       </ComplexType>
       <ComplexType Name="averageComparativeScore" OpenType="true">
         <Property Name="averageScore" Type="Edm.Double" />
@@ -6270,6 +6307,10 @@
       <ComplexType Name="specialFolder">
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="staffAvailabilityItem">
+        <Property Name="availabilityItems" Type="Collection(graph.availabilityItem)" />
+        <Property Name="staffId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="standardTimeZoneOffset">
         <Property Name="dayOccurrence" Type="Edm.Int32" />
         <Property Name="dayOfWeek" Type="graph.dayOfWeek" />
@@ -6879,6 +6920,7 @@
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="automaticRequestSettings" Type="graph.accessPackageAutomaticRequestSettings" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -7330,6 +7372,7 @@
         <Property Name="publicClient" Type="graph.publicClientApplication" />
         <Property Name="publisherDomain" Type="Edm.String" />
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false" />
+        <Property Name="samlMetadataUrl" Type="Edm.String" />
         <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="spa" Type="graph.spaApplication" />
@@ -7407,11 +7450,14 @@
         <NavigationProperty Name="signIns" Type="Collection(graph.signIn)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="emailMethods" Type="Collection(graph.emailAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="fido2Methods" Type="Collection(graph.fido2AuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="softwareOathMethods" Type="Collection(graph.softwareOathAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
       </EntityType>
@@ -8635,6 +8681,9 @@
         <NavigationProperty Name="schools" Type="Collection(graph.educationSchool)" />
         <NavigationProperty Name="taughtClasses" Type="Collection(graph.educationClass)" />
         <NavigationProperty Name="user" Type="graph.user" />
+      </EntityType>
+      <EntityType Name="emailAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="emailAddress" Type="Edm.String" />
       </EntityType>
       <EntityType Name="emailAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="allowExternalIdToUseEmailOtp" Type="graph.externalEmailOtpState" />
@@ -10017,6 +10066,11 @@
         <Property Name="websites" Type="Collection(graph.website)" />
         <Property Name="yomiCompany" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="phoneAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+        <Property Name="smsSignInState" Type="graph.authenticationMethodSignInState" />
+      </EntityType>
       <EntityType Name="place" BaseType="graph.entity" Abstract="true">
         <Property Name="address" Type="graph.physicalAddress" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -10709,6 +10763,9 @@
         <Property Name="clientSecret" Type="Edm.String" />
         <Property Name="identityProviderType" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="softwareOathAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="secretKey" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="softwareUpdateStatusSummary" BaseType="graph.entity">
         <Property Name="compliantDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="compliantUserCount" Type="Edm.Int32" Nullable="false" />
@@ -10824,6 +10881,7 @@
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
@@ -13339,6 +13397,9 @@
       <Action Name="disableLostMode" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
       </Action>
+      <Action Name="disableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
+      </Action>
       <Action Name="disc" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="settlement" Type="graph.Json" />
@@ -13459,6 +13520,9 @@
         <Parameter Name="nominalRate" Type="graph.Json" />
         <Parameter Name="npery" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="enableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
       </Action>
       <Action Name="eoMonth" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -13970,6 +14034,13 @@
         <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
         <Parameter Name="filter" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Edm.Stream" />
+      </Action>
+      <Action Name="getStaffAvailability" IsBound="true">
+        <Parameter Name="bookingBusiness" Type="graph.bookingBusiness" Nullable="false" />
+        <Parameter Name="staffIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="startDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Parameter Name="endDateTime" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <ReturnType Type="Collection(graph.staffAvailabilityItem)" />
       </Action>
       <Action Name="grant" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.permission" />
@@ -21151,6 +21222,7 @@
                 <NavigationPropertyPath>installedApps</NavigationPropertyPath>
                 <NavigationPropertyPath>members</NavigationPropertyPath>
                 <NavigationPropertyPath>operations</NavigationPropertyPath>
+                <NavigationPropertyPath>photo</NavigationPropertyPath>
               </Collection>
             </PropertyValue>
           </Record>
