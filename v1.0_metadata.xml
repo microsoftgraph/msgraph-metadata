@@ -3286,6 +3286,21 @@
         <Member Name="weak" Value="1" />
         <Member Name="unknown" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationMethodSignInState">
+        <Member Name="notSupported" Value="0" />
+        <Member Name="notAllowedByPolicy" Value="1" />
+        <Member Name="notEnabled" Value="2" />
+        <Member Name="phoneNumberNotUnique" Value="3" />
+        <Member Name="ready" Value="4" />
+        <Member Name="notConfigured" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="authenticationPhoneType">
+        <Member Name="mobile" Value="0" />
+        <Member Name="alternateMobile" Value="1" />
+        <Member Name="office" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="lifecycleEventType">
         <Member Name="missed" Value="0" />
         <Member Name="subscriptionRemoved" Value="1" />
@@ -4376,11 +4391,14 @@
         <Property Name="availability" Type="Edm.String" />
       </EntityType>
       <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="emailMethods" Type="Collection(graph.emailAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="fido2Methods" Type="Collection(graph.fido2AuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="softwareOathMethods" Type="Collection(graph.softwareOathAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
       </EntityType>
@@ -11675,6 +11693,9 @@
         <Property Name="newPassword" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="emailAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="emailAddress" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
         <Property Name="attestationCertificates" Type="Collection(Edm.String)" />
@@ -11693,6 +11714,14 @@
       <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="password" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="phoneAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+        <Property Name="smsSignInState" Type="graph.authenticationMethodSignInState" />
+      </EntityType>
+      <EntityType Name="softwareOathAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="secretKey" Type="Edm.String" />
       </EntityType>
       <EntityType Name="temporaryAccessPassAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -16968,6 +16997,12 @@
         <Parameter Name="bindingParameter" Type="graph.participant" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.stopHoldMusicOperation" />
+      </Action>
+      <Action Name="disableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
+      </Action>
+      <Action Name="enableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
       </Action>
       <Action Name="resetPassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
