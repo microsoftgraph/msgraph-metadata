@@ -22,6 +22,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$repoDirectory
 )
+$LASTEXITCODE = 0
 
 $transformCsdlDirectory = Join-Path $repoDirectory "transforms/csdl"
 $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
