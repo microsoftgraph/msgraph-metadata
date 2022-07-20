@@ -267,6 +267,15 @@
         <Member Name="weak" Value="1" />
         <Member Name="unknown" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationMethodSignInState">
+        <Member Name="notSupported" Value="0" />
+        <Member Name="notAllowedByPolicy" Value="1" />
+        <Member Name="notEnabled" Value="2" />
+        <Member Name="phoneNumberNotUnique" Value="3" />
+        <Member Name="ready" Value="4" />
+        <Member Name="notConfigured" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="authenticationMethodState">
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
@@ -275,6 +284,12 @@
         <Member Name="user" Value="0" />
         <Member Name="group" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationPhoneType">
+        <Member Name="mobile" Value="0" />
+        <Member Name="alternateMobile" Value="1" />
+        <Member Name="office" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="authenticationProtocol">
         <Member Name="wsFed" Value="0" />
@@ -2169,6 +2184,11 @@
         <Property Name="primaryReviewers" Type="Collection(graph.subjectSet)" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
       </ComplexType>
+      <ComplexType Name="accessPackageAutomaticRequestSettings">
+        <Property Name="gracePeriodBeforeAccessRemoval" Type="Edm.Duration" />
+        <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
+        <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
       <ComplexType Name="accessReviewHistoryScheduleSettings">
         <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
@@ -2371,6 +2391,10 @@
       </ComplexType>
       <ComplexType Name="attendeeBase" BaseType="graph.recipient">
         <Property Name="type" Type="graph.attendeeType" />
+      </ComplexType>
+      <ComplexType Name="attributeRuleMembers" BaseType="graph.subjectSet">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="membershipRule" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="audio">
         <Property Name="album" Type="Edm.String" />
@@ -4674,6 +4698,7 @@
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope" />
+        <Property Name="automaticRequestSettings" Type="graph.accessPackageAutomaticRequestSettings" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -5102,6 +5127,7 @@
         <Property Name="web" Type="graph.webApplication" />
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
@@ -5154,11 +5180,14 @@
         <NavigationProperty Name="provisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authentication" BaseType="graph.entity">
+        <NavigationProperty Name="emailMethods" Type="Collection(graph.emailAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="fido2Methods" Type="Collection(graph.fido2AuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="methods" Type="Collection(graph.authenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="microsoftAuthenticatorMethods" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="softwareOathMethods" Type="Collection(graph.softwareOathAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
       </EntityType>
@@ -5996,6 +6025,9 @@
         <Property Name="productKey" Type="Edm.String" />
         <Property Name="targetEdition" Type="graph.windows10EditionType" Nullable="false" />
       </EntityType>
+      <EntityType Name="emailAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="emailAddress" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="emailAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="allowExternalIdToUseEmailOtp" Type="graph.externalEmailOtpState" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
@@ -6100,6 +6132,13 @@
         <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
+        <Property Name="audiences" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="issuer" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
@@ -7155,6 +7194,11 @@
         <Property Name="websites" Type="Collection(graph.website)" />
         <Property Name="yomiCompany" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="phoneAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="phoneType" Type="graph.authenticationPhoneType" />
+        <Property Name="smsSignInState" Type="graph.authenticationMethodSignInState" />
+      </EntityType>
       <EntityType Name="planner" BaseType="graph.entity">
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" ContainsTarget="true" />
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" ContainsTarget="true" />
@@ -7512,6 +7556,7 @@
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="delegatedPermissionClassifications" Type="Collection(graph.delegatedPermissionClassification)" ContainsTarget="true" />
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
@@ -7587,6 +7632,9 @@
         <NavigationProperty Name="items" Type="Collection(graph.baseItem)" ContainsTarget="true" />
         <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true" />
         <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="softwareOathAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="secretKey" Type="Edm.String" />
       </EntityType>
       <EntityType Name="softwareUpdateStatusSummary" BaseType="graph.entity">
         <Property Name="compliantDeviceCount" Type="Edm.Int32" Nullable="false" />
@@ -7673,6 +7721,7 @@
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
       </EntityType>
@@ -9921,6 +9970,9 @@
       <Action Name="disableLostMode" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
       </Action>
+      <Action Name="disableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
+      </Action>
       <Action Name="disc" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="settlement" Type="graph.Json" />
@@ -10041,6 +10093,9 @@
         <Parameter Name="nominalRate" Type="graph.Json" />
         <Parameter Name="npery" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="enableSmsSignIn" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
       </Action>
       <Action Name="eoMonth" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -16504,6 +16559,7 @@
                 <NavigationPropertyPath>installedApps</NavigationPropertyPath>
                 <NavigationPropertyPath>members</NavigationPropertyPath>
                 <NavigationPropertyPath>operations</NavigationPropertyPath>
+                <NavigationPropertyPath>photo</NavigationPropertyPath>
               </Collection>
             </PropertyValue>
           </Record>
