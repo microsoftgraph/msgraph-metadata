@@ -21,6 +21,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$repoDirectory
 )
+$LASTEXITCODE = 0
 
 $betaYaml = Join-Path $repoDirectory "openapi" "beta" "openapi.yaml"
 $v1Yaml = Join-Path $repoDirectory "openapi" "v1.0" "openapi.yaml"
