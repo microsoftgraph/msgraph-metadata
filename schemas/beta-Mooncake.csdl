@@ -3758,6 +3758,12 @@
         <Member Name="hide" Value="1" />
         <Member Name="show" Value="2" />
       </EnumType>
+      <EnumType Name="volumeType">
+        <Member Name="operatingSystemVolume" Value="1" />
+        <Member Name="fixedDataVolume" Value="2" />
+        <Member Name="removableDataVolume" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="vpnAuthenticationMethod">
         <Member Name="certificate" Value="0" />
         <Member Name="usernameAndPassword" Value="1" />
@@ -10030,6 +10036,15 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="publication" Type="graph.publicationFacet" />
       </EntityType>
+      <EntityType Name="bitlocker" BaseType="graph.entity">
+        <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="bitlockerRecoveryKey" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="key" Type="Edm.String" Nullable="false" />
+        <Property Name="volumeType" Type="graph.volumeType" />
+      </EntityType>
       <EntityType Name="businessFlow" BaseType="graph.entity" OpenType="true">
         <Property Name="customData" Type="Edm.String" />
         <Property Name="deDuplicationId" Type="Edm.String" />
@@ -11963,6 +11978,10 @@
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="externalDomainName" BaseType="graph.entity" />
+      <EntityType Name="externalIdentitiesPolicy" BaseType="graph.policyBase">
+        <Property Name="allowDeletedIdentitiesDataRemoval" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowExternalIdentitiesToLeave" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
         <Property Name="audiences" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -12349,7 +12368,9 @@
         <Property Name="classifyAs" Type="graph.inferenceClassificationType" />
         <Property Name="senderEmailAddress" Type="graph.emailAddress" />
       </EntityType>
-      <EntityType Name="informationProtection" BaseType="graph.entity" />
+      <EntityType Name="informationProtection" BaseType="graph.entity">
+        <NavigationProperty Name="bitlocker" Type="graph.bitlocker" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
         <Property Name="activeSignInUri" Type="Edm.String" />
         <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
@@ -14342,6 +14363,7 @@
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="directoryRoleAccessReviewPolicy" Type="graph.directoryRoleAccessReviewPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="externalIdentitiesPolicy" Type="graph.externalIdentitiesPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="roleManagementPolicies" Type="Collection(graph.unifiedRoleManagementPolicy)" ContainsTarget="true" />
@@ -25425,6 +25447,45 @@
       <Annotations Target="microsoft.graph.beginOnboarding(microsoft.graph.remoteAssistancePartner)">
         <Annotation Term="Org.OData.Core.V1.Description" String="A request to start onboarding.  Must be coupled with the appropriate TeamViewer account information" />
       </Annotations>
+      <Annotations Target="microsoft.graph.bitlocker">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.bitLockerEncryptionMethod">
         <Annotation Term="Org.OData.Core.V1.Description" String="BitLockerEncryptionMethod types" />
       </Annotations>
@@ -25460,6 +25521,52 @@
       </Annotations>
       <Annotations Target="microsoft.graph.bitLockerRecoveryInformationType/passwordOnly">
         <Annotation Term="Org.OData.Core.V1.Description" String="Store recovery passwords only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.bitlockerRecoveryKey">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>createdDateTime</PropertyPath>
+                <PropertyPath>key</PropertyPath>
+                <PropertyPath>volumeType</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.bitLockerRecoveryOptions">
         <Annotation Term="Org.OData.Core.V1.Description" String="BitLocker Recovery Options." />
