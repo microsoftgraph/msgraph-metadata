@@ -159,14 +159,12 @@ The path object contains properties that affect how the permission object contro
 ```json
 "paths": {
   "/me/activities/{id}": {
-    "leastPrivilegePath": ["DelegateedWork", "DelegatedPersonal"],
-    "includedProperties": ["id","displayName"],
-    "excludedProperties": ["cost"]
+    "leastPrivilegePermission": ["DelegatedWork", "DelegatedPersonal"]
   }
 ```
 
-### leastPrivilegePath
-The "leastPrivilegePath" member is an array of strings that identify the schemes for which this permission is the least privilege permission for accessing the path.
+### leastPrivilegePermission
+The "leastPrivilegePermission" member is an array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
 
 ## Appendix A. Model Diagram
 
@@ -194,7 +192,7 @@ classDiagram
     PathSet "1" --> "*" Path:paths
 
     class Path{
-        leastPrivilegePath: string
+        leastPrivilegePermission: string
     }
 
     class Scheme{
@@ -311,7 +309,7 @@ classDiagram
         "path": {
             "type": "object",
             "properties": {
-                "leastPrivilegePath": {
+                "leastPrivilegePermission": {
                     "type": "array",
                     "items": { "type":"string"}
                 }
