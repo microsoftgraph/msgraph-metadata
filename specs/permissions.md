@@ -43,13 +43,6 @@ The "permissions" member is a JSON object whose members permission objects. The 
 ### note
 The "note" member is a freeform string that provides additional details at about the permission that cannot be determined from the other members of the permission object.
 
-### alsoRequires
-The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
-
-```
-(User.Read | User.Read.All) & Group.Read
-```
-
 ### implicit
 The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member us usually set to "true" in combination with a "alsoRequires" expression.
 
@@ -166,6 +159,13 @@ The "includedProperties" member is an array of strings that identify properties 
 ### excludedProperties
 The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
 
+### alsoRequires
+The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
+
+```
+(User.Read | User.Read.All) & Group.Read
+```
+
 ## Appendix A. JSON Schema for HTTP Problem 
 ```json
 {
@@ -186,10 +186,6 @@ The "includedProperties" member is an array of strings that identify properties 
                     "properties": {
                         "note": {
                             "type": "string"
-                        },
-                        "alsoRequires": {
-                            "type": "string",
-                            "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
                         },
                         "schemes": {
                             "type": "object",
@@ -258,6 +254,10 @@ The "includedProperties" member is an array of strings that identify properties 
                     "items": {
                         "type": "string"
                     }
+                },
+                "alsoRequires": {
+                    "type": "string",
+                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
                 }
             },
         "scheme": {
