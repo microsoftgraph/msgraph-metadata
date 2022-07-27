@@ -32,6 +32,7 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 	}
 }
 ```
+
 In this example, the claim "PrintSettings.Read.All" is required when using the "DelegatedWork" security scheme to access the resource "/print/settings" using the "GET" method.
 
 ### permissions
@@ -42,13 +43,6 @@ The "permissions" member is a JSON object whose members permission objects. The 
 
 ### note
 The "note" member is a freeform string that provides additional details at about the permission that cannot be determined from the other members of the permission object.
-
-### alsoRequires
-The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
-
-```
-(User.Read | User.Read.All) & Group.Read
-```
 
 ### implicit
 The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member us usually set to "true" in combination with a "alsoRequires" expression.
@@ -77,20 +71,20 @@ TBD
 The "ownerEmail" member is a REQUIRED string that provides a contact mechanism for communicating with the owner of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
 
 ## <a name="pathSetObject"></a>PathSet Object
-A pathSet object identifies a set of paths that are accessible via the identified HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same HTTP methods and and schemes. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying support.  
+A pathSet object identifies a set of paths that are accessible have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
 
 > Note: The design chosen was intentional to encourage permission creators to ensure support for methods and schemes is as consistent as possible. This produces a better developer experience for API consumers.
 
 ```json
 "pathSets": [{
-        "schemes": ["DelegatedWork"],
+        "schemeKeys": ["DelegatedWork"],
         "methods": ["GET"],
         "paths": {
             "/print/settings": {}
         }
     },
     {
-        "schemes": ["Application"],
+        "schemeKeys": ["Application"],
         "methods": ["GET,POST"],
         "paths": {
             "/print/settings": {}
@@ -99,14 +93,28 @@ A pathSet object identifies a set of paths that are accessible via the identifie
 ] 
 ```
 
-### schemes
-The "schemes" member is a REQUIRED array of strings that reference the schemes defined in the [permission object](#permissionObject) that are supported by the paths in this pathSet object.
+### schemeKeys
+The "schemeKeys" member is a REQUIRED array of strings that reference the schemes defined in the [permission object](#permissionObject) that are supported by the paths in this pathSet object. Each value in this array MUST match one of the keys of the "schemes" member in the [permission object](#permissionObject).
 
 ### methods
 The "methods" member is a REQUIRED array of strings that represent the HTTP methods supported by the paths in this pathSet object.
 
 ### paths
 The "paths" member is a REQUIRED object whose keys contain a simplified URI template to identify the resources protected by this permission object.
+
+### alsoRequires
+The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
+
+```
+(User.Read | User.Read.All) & Group.Read
+```
+
+### includedProperties
+The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are accessible with the permission.
+
+### excludedProperties
+The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
+
 
 ## <a name="schemeObject"></a>Scheme Object
 The scheme object has members that describe the permission within the context of the scheme. Additional members provide behavioral constraints of the permission when used with the scheme.  
@@ -121,16 +129,15 @@ The scheme object has members that describe the permission within the context of
         "requiresAdminConsent": true
     },
     "DelegatedPersonal": {
-        "type": "DelegatedPersonal",
         "consentDisplayName": "Read and write app activity to users'activity feed",
         "consentDescription": "Allows the app to read and report the signed-in user's activity in the app."
     },
     "Application": {
-        "type": "Application",
         "adminDisplayName": "Read and write app activity to users' activity feed",
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
     }
 ```
+
 ### adminDisplayName
 The "adminDisplayName" member is a string that provides a short permission name that considers the current scheme and the perspective of a resource administrator.
 
@@ -157,16 +164,50 @@ The path object contains properties that affect how the permission object contro
     "excludedProperties": ["cost"]
   }
 ```
+
 ### leastPrivilegePath
 The "leastPrivilegePath" member is an array of strings that identify the schemes for which this permission is the least privilege permission for accessing the path.
 
-### includedProperties
-The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are accessible with the permission.
+## Appendix A. Model Diagram
 
-### excludedProperties
-The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
+```mermaid
+classDiagram
 
-## Appendix A. JSON Schema for HTTP Problem 
+    class Permission{
+        note: string
+        implicit: bool
+        requiredEnvironments: string[]
+        ownerEmail:string
+        isHidden: bool
+        privilegeLevel: string
+    }
+    Permission "1" --> "*" PathSet:pathSets
+    Permission "1" --> "*" Scheme:schemes
+
+    class PathSet{
+        schemeKeys: string[]     
+        methods: string[] 
+        alsoRequires: stringExpression 
+        includedProperties: string[]     
+        excludedProperties: string[]     
+    }
+    PathSet "1" --> "*" Path:paths
+
+    class Path{
+        leastPrivilegePath: string
+    }
+
+    class Scheme{
+        adminDisplayName: string
+        adminDescription: string
+        userDisplayName: string
+        userDescription: string
+        requiresAdminConsent: string
+    }
+
+```
+
+## Appendix B. JSON Schema for HTTP Problem 
 ```json
 {
     "$schema": "http://json-schema.org/draft-07/schema",
@@ -180,56 +221,61 @@ The "includedProperties" member is an array of strings that identify properties 
             "type": "object",
             "patternProperties": {
                 "[\\w]+\\.[\\w]+[\\.[\\w]+]?": {
-                    "type": "object",
-                    "title": "Permission definition",
-                    "additionalProperties": false,
-                    "properties": {
-                        "note": {
-                            "type": "string"
-                        },
-                        "alsoRequires": {
-                            "type": "string",
-                            "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
-                        },
-                        "schemes": {
-                            "type": "object",
-                            "patternProperties": {
-                                ".*": {
-                                    "$ref": "#/definitions/scheme"
-                                  }
-                                }
-                            }
-                        },
-                        "pathSets": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/pathSet"
-                               } 
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/permission"
+                }
                 }
             }
         }
     },
     "definitions": {
-        "schemeTypes": {
-            "type": "string",
-            "enum": [
-                "delegated-work",
-                "delegated-personal",
-                "application",
-                "resource-specific-consent"
-            ]
-        },
+        "permission": {
+            "type": "object",
+            "title": "Permission definition",
+            "additionalProperties": false,
+            "properties": {
+                "note": {"type": "string"},
+                "implicit": {"type": "boolean"},
+                "isHidden": {"type": "boolean"},
+                "ownerEmail": {"type": "string"},
+                "privilegeLevel": {
+                    "type":"string",
+                    "enum":["low","medium","high"]
+                }
+                "requiredEnvironments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "alsoRequires": {
+                    "type": "string",
+                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
+                },
+                "schemes": {
+                    "type": "object",
+                    "patternProperties": {
+                        ".*": {
+                            "$ref": "#/definitions/scheme"
+                            }
+                        }
+                    }
+                },
+                "pathSets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pathSet"
+                        } 
+                    }
+                }
+            },
         "pathSet": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "schemes": {
+                "schemeKeys": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/schemeTypes"
+                        "type": "string"
                     }
                 },
                 "methods": {
@@ -248,16 +294,26 @@ The "includedProperties" member is an array of strings that identify properties 
                            }
                         }
                     }
-                }
-        },
-        "path": {
-            "type": "object",
-            "properties": {
+                },
+                "includeProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "excludeProperties": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
+                }
+        },
+        "path": {
+            "type": "object",
+            "properties": {
+                "leastPrivilegePath": {
+                    "type": "array",
+                    "items": { "type":"string"}
                 }
             },
         "scheme": {
@@ -266,10 +322,13 @@ The "includedProperties" member is an array of strings that identify properties 
                 "requiresAdminConsent": {
                     "type": "boolean"
                 },
-                "type": {
-                    "$ref": "#/definitions/schemeTypes"
+                "adminDisplayName": {
+                    "type": "string"
                 },
-                "description": {
+                "adminDescription": {
+                    "type": "string"
+                },
+                "consentDisplayName": {
                     "type": "string"
                 },
                 "consentDescription": {
