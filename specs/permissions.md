@@ -12,25 +12,24 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 The canonical model for a permissions document is a JSON [JSON] object. When serialized in a JSON document, that format is identified with the "application/permissions+json" media type.
 
 ```json
-{ 
-  "permissions": { 
-    "PrintSettings.Read.All": { 
-      "schemes": { 
-        "DelegatedWork": { 
-          "type": "DelegatedWork", 
-          "description": "Allow signed in user to read print settings", 
-        } 
-      }, 
-      "pathSets": [ 
-        { 
-          "schemes": ["DelegatedWork"], 
-          "methods": ["GET"], 
-          "paths": { 
-            "/print/settings": {} 
-          } 
-        } 
-      ] 
-    }
+{
+	"permissions": {
+		"PrintSettings.Read.All": {
+			"schemes": {
+				"DelegatedWork": {
+					"type": "DelegatedWork",
+					"description": "Allow signed in user to read print settings"
+				}
+			},
+			"pathSets": [{
+				"schemes": ["DelegatedWork"],
+				"methods": ["GET"],
+				"paths": {
+					"/print/settings": {}
+				}
+			}]
+		}
+	}
 }
 ```
 In this example, the claim "PrintSettings.Read.All" is required when using the "DelegatedWork" security scheme to access the resource "/print/settings" using the "GET" method.
@@ -83,22 +82,21 @@ A pathSet object identifies a set of paths that are accessible via the identifie
 > Note: The design chosen was intentional to encourage permission creators to ensure support for methods and schemes is as consistent as possible. This produces a better developer experience for API consumers.
 
 ```json
- "pathSets": [ 
-   { 
-     "schemes": ["DelegatedWork"], 
-     "methods": ["GET"], 
-     "paths": { 
-  "/print/settings": {} 
-     } 
-   }, 
-   { 
-     "schemes": ["Application"], 
-     "methods": ["GET,POST"], 
-     "paths": { 
-  "/print/settings": {} 
-     } 
-   } 
- ] 
+"pathSets": [{
+        "schemes": ["DelegatedWork"],
+        "methods": ["GET"],
+        "paths": {
+            "/print/settings": {}
+        }
+    },
+    {
+        "schemes": ["Application"],
+        "methods": ["GET,POST"],
+        "paths": {
+            "/print/settings": {}
+        }
+    }
+] 
 ```
 
 ### schemes
