@@ -2683,6 +2683,7 @@
         <Property Name="devices" Type="graph.conditionalAccessDevices" />
         <Property Name="locations" Type="graph.conditionalAccessLocations" />
         <Property Name="platforms" Type="graph.conditionalAccessPlatforms" />
+        <Property Name="servicePrincipalRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="signInRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="users" Type="graph.conditionalAccessUsers" />
       </ComplexType>
@@ -4846,7 +4847,13 @@
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
       </EntityType>
-      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true" />
+      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="visibility" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="scopedRoleMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isPerDeviceAcceptanceRequired" Type="Edm.Boolean" />
@@ -7456,6 +7463,11 @@
         <Property Name="properties" Type="Collection(graph.extensionSchemaProperty)" Nullable="false" />
         <Property Name="status" Type="Edm.String" Nullable="false" />
         <Property Name="targetTypes" Type="Collection(Edm.String)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="scopedRoleMembership" BaseType="graph.entity">
+        <Property Name="administrativeUnitId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleMemberInfo" Type="graph.identity" Nullable="false" />
       </EntityType>
       <EntityType Name="searchEntity" BaseType="graph.entity" />
       <EntityType Name="secureScore" BaseType="graph.entity" OpenType="true">
@@ -13054,7 +13066,9 @@
         <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
-        <Singleton Name="directory" Type="microsoft.graph.directory" />
+        <Singleton Name="directory" Type="microsoft.graph.directory">
+          <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="drive" Type="microsoft.graph.drive" />
         <Singleton Name="external" Type="microsoft.graph.externalConnectors.external" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
@@ -13106,6 +13120,13 @@
       </Annotations>
       <Annotations Target="microsoft.graph.actionState/pending">
         <Annotation Term="Org.OData.Core.V1.Description" String="Action is pending" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.agreement">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
