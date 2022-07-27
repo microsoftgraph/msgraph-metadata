@@ -83,22 +83,22 @@ A pathSet object identifies a set of paths that are accessible via the identifie
 > Note: The design chosen was intentional to encourage permission creators to ensure support for methods and schemes is as consistent as possible. This produces a better developer experience for API consumers.
 
 ```json
-      "pathSets": [ 
-        { 
-          "schemes": ["DelegatedWork"], 
-          "methods": ["GET"], 
-          "paths": { 
-            "/print/settings": {} 
-          } 
-        }, 
-        { 
-          "schemes": ["Application"], 
-          "methods": ["GET,POST"], 
-          "paths": { 
-            "/print/settings": {} 
-          } 
-        } 
-      ] 
+ "pathSets": [ 
+   { 
+     "schemes": ["DelegatedWork"], 
+     "methods": ["GET"], 
+     "paths": { 
+  "/print/settings": {} 
+     } 
+   }, 
+   { 
+     "schemes": ["Application"], 
+     "methods": ["GET,POST"], 
+     "paths": { 
+  "/print/settings": {} 
+     } 
+   } 
+ ] 
 ```
 
 ### schemes
