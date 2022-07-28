@@ -4,6 +4,11 @@
 This document defines a "permission" object and "permissions" document that describes identifiers that can be used by security claims to grant access to HTTP resources.
 
 ## Introduction
+Protecting data in HTTP APIs from unauthorized access is critical. One technique to do this is by associating permissions with resources and requiring API callers to present a bearer token that can prove what permissions have been consented to the caller. This document describes a JSON based document format that can store the relationships between permission and resource.
+
+In this design, the permission is the primary concept and the resources that are controlled are associated to the permission. The relationship is many-to-many and so could be modelled in an inverted way with resources being assigned the permissions. However, the permission centric view was chosen to emphasise to the author of the permission the scope of control being assigned to the permission.  It is the opposite view to how this information will often be used in tooling. Tooling will need to invert the model to identify what permissions could be used to access a resource. The trade-off is the tooling writers will need to do more for the benefit of permission authors. Application users and administrators are increasingly asking for the ability to consent to more fine-grained permissions that are limited in the number of resources they can access via a single permission. This limits the ability of applications performing unintended or malicious actions on behalf of users. Models that present a resource centric view of permissions obscure the total scope of the permission and lead to the creation of permissions that create unnecessary risk.   
+
+The relationship between a permission and the resources it controls have a number of attributes including the HTTP method being granted, the type of security scheme being used, and properties of the resource being protected.  Ideally these relationships would be consistent for all resources controlled by a permission.  However, in reality that is not always the case. This model enables modelling the paths as sets of paths that do behave consistently and a permission can have multiple sets of paths. This approach minimizes the duplication of relationship attributes and encourages consistency in relationship design due to the overhead of managing distinct path sets. 
 
 ## Notational Conventions
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals, as shown here.
@@ -17,8 +22,8 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 		"PrintSettings.Read.All": {
 			"schemes": {
 				"DelegatedWork": {
-					"type": "DelegatedWork",
-					"description": "Allow signed in user to read print settings"
+					"consentDisplayName": "Read print settings",
+					"consentDescription": "Allow signed in user to read print settings"
 				}
 			},
 			"pathSets": [{
@@ -47,7 +52,7 @@ The "note" member is a freeform string that provides additional details at about
 ### implicit
 The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member us usually set to "true" in combination with a "alsoRequires" expression.
 
-> Note: This member enables support for the Microsoft Graph create subscription endpoint and the Search query endpoint. 
+> Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
 
 ### schemes
 The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects](#schemeObject) supported by the permission. The key of each member is an identifier of the scheme and the value is a [Scheme object](#schemeObject) that contains descriptions of the permission within the scheme.   
