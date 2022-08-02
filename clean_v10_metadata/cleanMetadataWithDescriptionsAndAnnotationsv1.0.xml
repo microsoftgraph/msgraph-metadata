@@ -806,6 +806,16 @@
         <Member Name="offline" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="signInFrequencyAuthenticationType">
+        <Member Name="primaryAndSecondaryAuthentication" Value="0" />
+        <Member Name="secondaryAuthentication" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="signInFrequencyInterval">
+        <Member Name="timeBased" Value="0" />
+        <Member Name="everyTime" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="signinFrequencyType">
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
@@ -1729,6 +1739,12 @@
         <Member Name="notRegisteredPendingEnrollment" Value="7" />
         <Member Name="unknown" Value="8" />
       </EnumType>
+      <EnumType Name="diskType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="hdd" Value="1" />
+        <Member Name="ssd" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="managedDeviceOwnerType">
         <Member Name="unknown" Value="0" />
         <Member Name="company" Value="1" />
@@ -1760,6 +1776,13 @@
         <Member Name="googleCloudDevicePolicyController" Value="64" />
         <Member Name="microsoft365ManagedMdm" Value="258" />
         <Member Name="msSense" Value="1024" />
+      </EnumType>
+      <EnumType Name="userExperienceAnalyticsHealthState">
+        <Member Name="unknown" Value="0" />
+        <Member Name="insufficientData" Value="1" />
+        <Member Name="needsAttention" Value="2" />
+        <Member Name="meetingGoals" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="enrollmentState">
         <Member Name="unknown" Value="0" />
@@ -1838,6 +1861,7 @@
         <Member Name="includeCompanyLogo" Value="1" />
         <Member Name="includeCompanyName" Value="2" />
         <Member Name="includeContactInformation" Value="4" />
+        <Member Name="includeDeviceDetails" Value="16" />
       </EnumType>
       <EnumType Name="remoteAssistanceOnboardingStatus">
         <Member Name="notOnboarded" Value="0" />
@@ -5525,7 +5549,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies settings for an application that implements a web API." />
         </Property>
         <Property Name="appId" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the application that is assigned by Azure AD. Not nullable. Read-only." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the application that is assigned by Azure AD. Not nullable. Read-only. Supports $filter (eq)." />
         </Property>
         <Property Name="applicationTemplateId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the applicationTemplate. Supports $filter (eq, not, ne)." />
@@ -5617,7 +5641,7 @@
         </Property>
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Supports $expand and $filter (eq when counting empty collections)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Supports $expand and $filter (eq and ne when counting empty collections and only with advanced query parameters)." />
         </NavigationProperty>
         <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Federated identities for applications. Supports $expand and $filter (eq when counting empty collections)." />
@@ -5976,7 +6000,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Name of the extension property. Not nullable." />
         </Property>
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Following values are supported. Not nullable. UserGroupOrganizationDeviceApplication" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Following values are supported. Not nullable. UserGroupAdministrativeUnitApplicationDeviceOrganization" />
         </Property>
       </EntityType>
       <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
@@ -9844,6 +9868,9 @@
         <NavigationProperty Name="analytics" Type="graph.itemAnalytics">
           <Annotation Term="Org.OData.Core.V1.Description" String="Analytics about the view activities that took place on this item." />
         </NavigationProperty>
+        <NavigationProperty Name="documentSetVersions" Type="Collection(graph.documentSetVersion)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version information for a document set version created by a user." />
+        </NavigationProperty>
         <NavigationProperty Name="driveItem" Type="graph.driveItem">
           <Annotation Term="Org.OData.Core.V1.Description" String="For document libraries, the driveItem relationship exposes the listItem as a [driveItem][]" />
         </NavigationProperty>
@@ -10823,6 +10850,28 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The name of the column  in this content type." />
         </Property>
       </EntityType>
+      <EntityType Name="listItemVersion" BaseType="graph.baseItemVersion">
+        <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of the fields and values for this version of the list item." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="documentSetVersion" BaseType="graph.listItemVersion">
+        <Property Name="comment" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Comment about the captured version." />
+        </Property>
+        <Property Name="createdBy" Type="graph.identitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User who captured the version." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when this version was created." />
+        </Property>
+        <Property Name="items" Type="Collection(graph.documentSetVersionItem)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Items within the document set that are captured as part of this version." />
+        </Property>
+        <Property Name="shouldCaptureMinorVersion" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If true, minor versions of items are also captured; otherwise, only major versions will be captured. Default value is false." />
+        </Property>
+      </EntityType>
       <EntityType Name="fieldValueSet" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="itemActivity" BaseType="graph.entity" OpenType="true">
         <Property Name="access" Type="graph.accessAction">
@@ -10868,11 +10917,6 @@
         </Property>
         <NavigationProperty Name="activities" Type="Collection(graph.itemActivity)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Exposes the itemActivities represented in this itemActivityStat resource." />
-        </NavigationProperty>
-      </EntityType>
-      <EntityType Name="listItemVersion" BaseType="graph.baseItemVersion">
-        <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of the fields and values for this version of the list item." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="sharedDriveItem" BaseType="graph.baseItem">
@@ -16213,6 +16257,68 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Controls the use of biometric gestures, such as face and fingerprint, as an alternative to the Windows Hello for Business PIN.  If set to False, biometric gestures are not allowed. Users must still configure a PIN as a backup in case of failures." />
         </Property>
       </EntityType>
+      <EntityType Name="userExperienceAnalyticsDevicePerformance" BaseType="graph.entity">
+        <Property Name="averageBlueScreens" Type="Edm.Double" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 14 days. Valid values 0 to 9999999" />
+        </Property>
+        <Property Name="averageRestarts" Type="Edm.Double" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 14 days. Valid values 0 to 9999999" />
+        </Property>
+        <Property Name="blueScreenCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 14 days. Valid values 0 to 9999999" />
+        </Property>
+        <Property Name="bootScore" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device boot score." />
+        </Property>
+        <Property Name="coreBootTimeInMs" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core boot time in milliseconds." />
+        </Property>
+        <Property Name="coreLoginTimeInMs" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core login time in milliseconds." />
+        </Property>
+        <Property Name="deviceCount" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User experience analytics summarized device count." />
+        </Property>
+        <Property Name="deviceName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device name." />
+        </Property>
+        <Property Name="diskType" Type="graph.diskType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device disk type. Possible values are: unknown, hdd, ssd, unknownFutureValue." />
+        </Property>
+        <Property Name="groupPolicyBootTimeInMs" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy boot time in milliseconds." />
+        </Property>
+        <Property Name="groupPolicyLoginTimeInMs" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy login time in milliseconds." />
+        </Property>
+        <Property Name="healthStatus" Type="graph.userExperienceAnalyticsHealthState" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The health state of the user experience analytics device. Possible values are: unknown, insufficientData, needsAttention, meetingGoals, unknownFutureValue." />
+        </Property>
+        <Property Name="loginScore" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device login score." />
+        </Property>
+        <Property Name="manufacturer" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device manufacturer." />
+        </Property>
+        <Property Name="model" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device model." />
+        </Property>
+        <Property Name="modelStartupPerformanceScore" Type="Edm.Double" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics model level startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+        </Property>
+        <Property Name="operatingSystemVersion" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device Operating System version." />
+        </Property>
+        <Property Name="responsiveDesktopTimeInMs" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics responsive desktop time in milliseconds." />
+        </Property>
+        <Property Name="restartCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 14 days. Valid values 0 to 9999999" />
+        </Property>
+        <Property Name="startupPerformanceScore" Type="Edm.Double" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+        </Property>
+      </EntityType>
       <EntityType Name="importedWindowsAutopilotDeviceIdentityUpload" BaseType="graph.entity">
         <Property Name="createdDateTimeUtc" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="status" Type="graph.importedWindowsAutopilotDeviceIdentityUploadStatus" Nullable="false" />
@@ -16309,7 +16415,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Filters applied on the report" />
         </Property>
         <Property Name="format" Type="graph.deviceManagementReportFileFormat" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Format of the exported report. Possible values are: csv, pdf." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Format of the exported report. Possible values are: csv, json." />
         </Property>
         <Property Name="localizationType" Type="graph.deviceManagementExportJobLocalizationType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Configures how the requested export job is localized. Possible values are: localizedValuesAsAdditionalColumn, replaceLocalizableValues." />
@@ -20719,6 +20825,17 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Folder name in which the file will be placed when a new document set is created in the library." />
         </Property>
       </ComplexType>
+      <ComplexType Name="documentSetVersionItem">
+        <Property Name="itemId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for the item." />
+        </Property>
+        <Property Name="title" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The title of the item." />
+        </Property>
+        <Property Name="versionId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The version ID of the item." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="driveItemUploadableProperties">
         <Property Name="description" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides a user-visible description of the item. Read-write. Only on OneDrive Personal." />
@@ -21203,6 +21320,9 @@
         <Property Name="platforms" Type="graph.conditionalAccessPlatforms">
           <Annotation Term="Org.OData.Core.V1.Description" String="Platforms included in and excluded from the policy." />
         </Property>
+        <Property Name="servicePrincipalRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Service principal risk levels included in the policy. Possible values are: low, medium, high, none, unknownFutureValue." />
+        </Property>
         <Property Name="signInRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue. Required." />
         </Property>
@@ -21299,6 +21419,12 @@
         </Property>
       </ComplexType>
       <ComplexType Name="signInFrequencySessionControl" BaseType="graph.conditionalAccessSessionControl">
+        <Property Name="authenticationType" Type="graph.signInFrequencyAuthenticationType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The possible values are primaryAndSecondaryAuthentication, secondaryAuthentication, unknownFutureValue." />
+        </Property>
+        <Property Name="frequencyInterval" Type="graph.signInFrequencyInterval">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The possible values are timeBased, everyTime, unknownFutureValue." />
+        </Property>
         <Property Name="type" Type="graph.signinFrequencyType">
           <Annotation Term="Org.OData.Core.V1.Description" String="Possible values are: days, hours, or null if frequencyInterval is everyTime ." />
         </Property>
@@ -25250,7 +25376,9 @@
         <Singleton Name="security" Type="microsoft.graph.security" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="branding" Type="microsoft.graph.organizationalBranding" />
-        <Singleton Name="directory" Type="microsoft.graph.directory" />
+        <Singleton Name="directory" Type="microsoft.graph.directory">
+          <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -25341,6 +25469,10 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.application)" />
         <ReturnType Type="Collection(graph.application)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.device)" />
+        <ReturnType Type="Collection(graph.device)" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryRole)" />
@@ -26644,6 +26776,9 @@
         <Parameter Name="parentReference" Type="graph.itemReference" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
+      </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.documentSetVersion" />
       </Action>
       <Action Name="setMobileDeviceManagementAuthority" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.organization" />
@@ -29786,6 +29921,19 @@
         <Parameter Name="filter" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Edm.Stream" />
       </Action>
+      <Action Name="getNoncompliantDevicesAndSettingsReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="select" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="search" Type="Edm.String" Unicode="false" />
+        <Parameter Name="groupBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="orderBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Edm.Stream" />
+      </Action>
       <Action Name="getPolicyNonComplianceMetadata" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
@@ -32182,6 +32330,18 @@
       <Annotations Target="microsoft.graph.deviceRegistrationState/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="The device registration status is unknown." />
       </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for unknown or default diskType" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/hdd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for HDD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/ssd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for SSD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDeviceOwnerType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Owner type of device." />
       </Annotations>
@@ -32265,6 +32425,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managementAgentType/msSense">
         <Annotation Term="Org.OData.Core.V1.Description" String="" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsHealthState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
       </Annotations>
       <Annotations Target="microsoft.graph.enrollmentState/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device enrollment state is unknown" />
@@ -32449,6 +32612,9 @@
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeContactInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Include Contact Info." />
       </Annotations>
+      <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeDeviceDetails">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Include Device Details." />
+      </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistanceOnboardingStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The current TeamViewer connector status" />
       </Annotations>
@@ -32474,7 +32640,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values for the file format of a report" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/csv">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Comma-separated values" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="CSV Format" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/pdf">
         <Annotation Term="Org.OData.Core.V1.Description" String="Portable Document Format" />
@@ -33742,6 +33908,13 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.device">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.directory/administrativeUnits">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -40315,6 +40488,69 @@
       <Annotations Target="microsoft.graph.managedDeviceOverview/mdmEnrolledCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="The number of devices enrolled in MDM" />
       </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device performance entity contains device boot performance details." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageBlueScreens">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageRestarts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/blueScreenCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/bootScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device boot score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User experience analytics summarized device count." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/diskType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device disk type." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/healthStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The health state of the user experience analytics device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/loginScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device login score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/manufacturer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device manufacturer." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/model">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device model." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/modelStartupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics model level startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/operatingSystemVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device Operating System version." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/responsiveDesktopTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics responsive desktop time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/restartCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/startupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+      </Annotations>
       <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
       </Annotations>
@@ -41672,6 +41908,14 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/users/drive">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get Drive" />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a Drive resource. A Drive is the top-level container for a file system, such as OneDrive or SharePoint document libraries." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/users/appRoleAssignments">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -41732,14 +41976,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/users/drive">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Get Drive" />
-            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a Drive resource. A Drive is the top-level container for a file system, such as OneDrive or SharePoint document libraries." />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/users/drives">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -41793,6 +42029,30 @@
           <Record>
             <PropertyValue Property="Description" String="List oauth2PermissionGrants" />
             <PropertyValue Property="LongDescription" String="Retrieve a list of oAuth2PermissionGrant entities, which represent delegated permissions granted to enable a client application to access an API on behalf of the user." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/users/onlineMeetings/MSo1N2Y5ZGFjYy03MWJmLTQ3NDMtYjQxMy01M2EdFGkdRWHJlQ/transcripts">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List transcripts" />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of callTranscript objects associated with an onlineMeeting." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/users/onlineMeetings/MSo1N2Y5ZGFjYy03MWJmLTQ3NDMtYjQxMy01M2EdFGkdRWHJlQ/transcripts/MSMjMCMjNzU3ODc2ZDYtOTcwMi00MDhkLWFkNDItOTE2ZDNmZjkwZGY4">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get callTranscript" />
+            <PropertyValue Property="LongDescription" String="Retrieve a callTranscript object associated with an onlineMeeting. Retrieving the transcript returns the metadata of the single transcript associated with the online meeting. Retrieving the content of the transcript returns the stream of text associated with the transcript." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/users/onlineMeetings/MSo1N2Y5ZGFjYy03MWJmLTQ3NDMtYjQxMy01M2EdFGkdRWHJlQ/transcripts/MSMjMCMjNzU3ODc2ZDYtOTcwMi00MDhkLWFkNDItOTE2ZDNmZjkwZGY4/content">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get callTranscript" />
+            <PropertyValue Property="LongDescription" String="Retrieve a callTranscript object associated with an onlineMeeting. Retrieving the transcript returns the metadata of the single transcript associated with the online meeting. Retrieving the content of the transcript returns the stream of text associated with the transcript." />
           </Record>
         </Annotation>
       </Annotations>
@@ -42139,14 +42399,14 @@
       <Annotations Target="microsoft.graph.GraphService/applications/extensionProperties">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Create extensionProperty" />
-            <PropertyValue Property="LongDescription" String="Create a new extensionProperty definition. You can use this operation to add a custom property value to the targeted object type defined in the extensionProperty, using standard creation and update requests to the target object." />
+            <PropertyValue Property="Description" String="Create extensionProperty (directory extension)" />
+            <PropertyValue Property="LongDescription" String="Create a new directory extension definition, represented by an extensionProperty object." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="List extensionProperties" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of extensionProperty objects on an application." />
+            <PropertyValue Property="Description" String="List extensionProperties (directory extensions)" />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of directory extension definitions, represented by extensionProperty objects on an application." />
           </Record>
         </Annotation>
       </Annotations>
@@ -42482,7 +42742,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="directoryObject: getAvailableExtensionProperties" />
-            <PropertyValue Property="LongDescription" String="Return all or a filtered list of the directory extension properties that have been registered in a directory. The following entities support extension properties: **user**, **group**, **organization**, **device**, **application**, and **servicePrincipal**." />
+            <PropertyValue Property="LongDescription" String="Return all directory extension definitions that have been registered in a directory, including through multi-tenant apps. The following entities support extension properties:&#xA;+ user&#xA;+ group&#xA;+ administrativeUnit&#xA;+ application&#xA;+ device&#xA;+ organization" />
           </Record>
         </Annotation>
       </Annotations>
@@ -42506,7 +42766,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Activate directoryRole" />
-            <PropertyValue Property="LongDescription" String="Activate a directory role. To read a directory role or update its members, it must first be activated in the tenant. Only the Company Administrators  and the implicit Users directory roles are activated by default. To access and assign members to another directory role, you must first activate it with its corresponding directory role template (directoryRoleTemplate)." />
+            <PropertyValue Property="LongDescription" String="Activate a directory role. To read a directory role or update its members, it must first be activated in the tenant. The Company Administrators and the implicit user directory roles (**User**, **Guest User**, and **Restricted Guest User** roles) are activated by default. To access and assign members to other directory roles, you must first activate it with its corresponding directory role template ID." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
@@ -42573,12 +42833,6 @@
           <Record>
             <PropertyValue Property="Description" String="List domains" />
             <PropertyValue Property="LongDescription" String="Retrieve a list of domain objects." />
-            <PropertyValue Property="ReadByKeyRestrictions">
-              <Record>
-                <PropertyValue Property="Description" String="Get domain" />
-                <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of domain object." />
-              </Record>
-            </PropertyValue>
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -43123,19 +43377,27 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/groups/threads/AAQkADI5YzgxODgyLTExZDgtNDhkMS1iZDRjLTBhZGZiN2ExYWQxNwMkABAADW7fw6FZNEuyjrGA9R8SshAADW7fw6FZNEuyjrGA9R8Ssg/posts">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List posts" />
-            <PropertyValue Property="LongDescription" String="Get the posts of the specified thread. You can specify both the parent conversation and the thread, or, &#xA;you can specify the thread without referencing the parent conversation." />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groups/threads/AAQkADJizZJpEWwqDHsEpV_KA/posts/AAMkADJiUg96QZUkA/reply">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create openTypeExtension" />
             <PropertyValue Property="LongDescription" String="Create an open extension (openTypeExtension object) and add custom properties in a new or existing instance of a resource. You can create an open extension in a resource instance and store custom data to it all in the same operation, except for specific resources. See known limitations of open extensions for more information. The table in the Permissions section lists the resources that support open extensions." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/groups/threads/AAQkAGI5MWY5ZmUyLTJiNzYtNDE0ZC04OWEwLWM3M2FjYmM3NzNlZgMkABAAG5c7eC4NYEynIoXsuxXB9RAAG5c7eC4NYEynIoXsuxXB9Q/posts">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get post" />
+            <PropertyValue Property="LongDescription" String="Get the properties and relationships of a post in a specified thread. You can specify both the parent &#xA;conversation and the thread, or, you can specify the thread without referencing the parent conversation. Since the **post** resource supports extensions, you can also use the `GET` operation to get custom properties and extension data in a **post** instance." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/groups/threads/AAQkAGI5MWY5ZmUyLTJiNzYtNDE0ZC04OWEwLWM3M2FjYmM3NzNlZgMkABAAG5c7eC4NYEynIoXsuxXB9RAAG5c7eC4NYEynIoXsuxXB9Q/posts/AQMkAGI5MWY5ZmUyLTJiNzYtNDE0ZC04OWEwLWM3M2FjYmM3NwAzZWYARgAAA_b2VnUAiWNLj0xeSOs499YHAMT2RdsuOqRIlQZ4vOzp66YAAAIBDAAAAMT2RdsuOqRIlQZ4vOzp66YAAAINKgAAAA/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List attachments" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of attachment objects attached to a post." />
           </Record>
         </Annotation>
       </Annotations>
@@ -43252,6 +43514,14 @@
           <Record>
             <PropertyValue Property="Description" String="oauth2permissiongrant: delta" />
             <PropertyValue Property="LongDescription" String="Get newly created, updated, or deleted **oauth2permissiongrant** objects without performing a full read of the entire resource collection. For details, see Using delta query." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/oauth2PermissionGrants/QVzct6doFkStXRSoh_HGZcTUnzAfhaVGjK7Cv0gMgUsj54JH9PTzSqduJeO6sNiW">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get oAuth2PermissionGrant (a delegated permission grant)" />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties of a single delegated permission grant represented by an oAuth2PermissionGrant object. An **oAuth2PermissionGrant** represents delegated permissions which have been granted for a client application to access an API on behalf of a signed-in user." />
           </Record>
         </Annotation>
       </Annotations>
@@ -43837,6 +44107,14 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/places/Building2Rooms/microsoft/rooms">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List places" />
+            <PropertyValue Property="LongDescription" String="Get a collection of the specified type of place objects defined in the tenant. For example, you can get all the rooms, all the room lists, or the rooms in a specific room list in the tenant. A **place** object can be one of the following types: Both **room** and **roomList** are derived from the **place** object. By default, this operation returns 100 places per page. Compared with the findRooms and findRoomLists functions, this operation returns a richer payload for rooms and room lists. See details for how they compare." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/drives">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -44379,6 +44657,13 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/schemaExtensions/extcivhhslh_sbtest1">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get schemaExtension" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/schemaExtensions/exto6x7sfft_courses">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
@@ -44492,14 +44777,6 @@
           <Record>
             <PropertyValue Property="Description" String="Create chat" />
             <PropertyValue Property="LongDescription" String="Create a new chat object." />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/chats/members">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List conversationMembers" />
-            <PropertyValue Property="LongDescription" String="List all conversation members in a chat or channel." />
           </Record>
         </Annotation>
       </Annotations>
@@ -49006,6 +49283,22 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/events/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List attachments" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of attachment objects attached to an event." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/events/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e/instances">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List instances" />
+            <PropertyValue Property="LongDescription" String="Get the instances (occurrences) of an event for a specified time range.  If the event is a `seriesMaster` type, this returns the &#xA;occurrences and exceptions of the event in the specified time range." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/me/findMeetingTimes">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -49191,12 +49484,6 @@
             <PropertyValue Property="LongDescription" String="Use this API to create a new child mailFolder. If you intend a new folder to be hidden, you must set the **isHidden** property to `true` on creation." />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List childFolders" />
-            <PropertyValue Property="LongDescription" String="Get the folder collection under the specified folder. You can use the `.../me/mailFolders` shortcut to get the top-level &#xA;folder collection and navigate to another folder. By default, this operation does not return hidden folders. Use a query parameter _includeHiddenFolders_ to include them in the response." />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/me/mailFolders/copy">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -49225,12 +49512,6 @@
           <Record>
             <PropertyValue Property="Description" String="Create Message" />
             <PropertyValue Property="LongDescription" String="Use this API to create a new Message in a mailfolder." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List messages" />
-            <PropertyValue Property="LongDescription" String="Get all the messages in the specified user's mailbox, or those messages in a specified folder in the mailbox." />
           </Record>
         </Annotation>
       </Annotations>
@@ -49277,6 +49558,30 @@
           <Record>
             <PropertyValue Property="Description" String="List messages" />
             <PropertyValue Property="LongDescription" String="List all the messages in the specified user's mailbox, or those messages in a specified folder in the mailbox." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/mailFolders/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OAAuAAAAAAAiQ8W967B7TKBjgx9rVEURAQAiIsqMbYjsT5e/childFolders">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List childFolders" />
+            <PropertyValue Property="LongDescription" String="Get the folder collection under the specified folder. You can use the `.../me/mailFolders` shortcut to get the top-level &#xA;folder collection and navigate to another folder. By default, this operation does not return hidden folders. Use a query parameter _includeHiddenFolders_ to include them in the response." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/mailFolders/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OAAuAAAAAAAiQ8W967B7TKBjgx9rVEURAQAiIsqMbYjsT5e/messages">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List messages" />
+            <PropertyValue Property="LongDescription" String="Get all the messages in the specified user's mailbox, or those messages in a specified folder in the mailbox." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/mailFolders/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OAAuAAAAAAAiQ8W967B7TKBjgx9rVEURAQAiIsqMbYjsT5e/messages/delta">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="message: delta" />
+            <PropertyValue Property="LongDescription" String="Get a set of messages that have been added, deleted, or updated in a specified folder. A **delta** function call for messages in a folder is similar to a GET request, except that by appropriately &#xA;applying state tokens in one or more of these calls, you can [query for incremental changes in the messages in &#xA;that folder](/graph/delta-query-messages). This allows you to maintain and synchronize a local store of a user's messages without &#xA;having to fetch the entire set of messages from the server every time.  " />
           </Record>
         </Annotation>
       </Annotations>
@@ -49487,6 +49792,14 @@
           <Record>
             <PropertyValue Property="Description" String="Add attachment" />
             <PropertyValue Property="LongDescription" String="Use this API to add an attachment to a message.  An attachment can be one of the following types: All these types of attachment resources are derived from the attachment&#xA;resource.  You can add an attachment to an existing message by posting to its attachments collection, or to a new &#xA;message that is being drafted, or created and sent on the fly." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/me/messages/AAMkAGVmMDEzMTM4LTZmYWUtNDdkNC1hMDZiLTU1OGY5OTZhYmY4OABGAAAAAAAiQ8W967B7TKBjgx9rVEURBwAiIsqMbYjsT5e/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List attachments" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of attachment objects attached to a message." />
           </Record>
         </Annotation>
       </Annotations>
@@ -52472,7 +52785,7 @@
       <Annotations Target="microsoft.graph.GraphService/identityGovernance/entitlementManagement/accessPackageAssignmentApprovals/stages">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="List stages" />
+            <PropertyValue Property="Description" String="List approval stages" />
             <PropertyValue Property="LongDescription" String="In Azure AD entitlement management, list the approvalStage objects associated with an approval object. This call can be made by an approver, providing the identifier of the access package assignment request." />
           </Record>
         </Annotation>
@@ -53064,6 +53377,20 @@
           <Record>
             <PropertyValue Property="Description" String="cloudPcDeviceImage: getSourceImages" />
             <PropertyValue Property="LongDescription" String="Get cloudPcSourceDeviceImage objects. View a list of all the managed image resources from your Azure Active Directory subscriptions." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/deviceManagement/virtualEndpoint/externalPartnerSettings">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create cloudPcExternalPartnerSetting" />
+            <PropertyValue Property="LongDescription" String="Create a new cloudPcExternalPartnerSetting object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List cloudPcExternalPartnerSettings" />
+            <PropertyValue Property="LongDescription" String="Get a list of the cloudPcExternalPartnerSetting objects and their properties." />
           </Record>
         </Annotation>
       </Annotations>
