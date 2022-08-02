@@ -806,6 +806,16 @@
         <Member Name="offline" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="signInFrequencyAuthenticationType">
+        <Member Name="primaryAndSecondaryAuthentication" Value="0" />
+        <Member Name="secondaryAuthentication" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="signInFrequencyInterval">
+        <Member Name="timeBased" Value="0" />
+        <Member Name="everyTime" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="signinFrequencyType">
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
@@ -1729,6 +1739,12 @@
         <Member Name="notRegisteredPendingEnrollment" Value="7" />
         <Member Name="unknown" Value="8" />
       </EnumType>
+      <EnumType Name="diskType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="hdd" Value="1" />
+        <Member Name="ssd" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="managedDeviceOwnerType">
         <Member Name="unknown" Value="0" />
         <Member Name="company" Value="1" />
@@ -1760,6 +1776,13 @@
         <Member Name="googleCloudDevicePolicyController" Value="64" />
         <Member Name="microsoft365ManagedMdm" Value="258" />
         <Member Name="msSense" Value="1024" />
+      </EnumType>
+      <EnumType Name="userExperienceAnalyticsHealthState">
+        <Member Name="unknown" Value="0" />
+        <Member Name="insufficientData" Value="1" />
+        <Member Name="needsAttention" Value="2" />
+        <Member Name="meetingGoals" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="enrollmentState">
         <Member Name="unknown" Value="0" />
@@ -1838,6 +1861,7 @@
         <Member Name="includeCompanyLogo" Value="1" />
         <Member Name="includeCompanyName" Value="2" />
         <Member Name="includeContactInformation" Value="4" />
+        <Member Name="includeDeviceDetails" Value="16" />
       </EnumType>
       <EnumType Name="remoteAssistanceOnboardingStatus">
         <Member Name="notOnboarded" Value="0" />
@@ -6674,6 +6698,7 @@
         <Property Name="contentType" Type="graph.contentTypeInfo" />
         <Property Name="sharepointIds" Type="graph.sharepointIds" />
         <NavigationProperty Name="analytics" Type="graph.itemAnalytics" />
+        <NavigationProperty Name="documentSetVersions" Type="Collection(graph.documentSetVersion)" ContainsTarget="true" />
         <NavigationProperty Name="driveItem" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true" />
         <NavigationProperty Name="versions" Type="Collection(graph.listItemVersion)" ContainsTarget="true" />
@@ -7427,6 +7452,11 @@
         <Property Name="fileName" Type="Edm.String" />
         <Property Name="folderName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="documentSetVersionItem">
+        <Property Name="itemId" Type="Edm.String" />
+        <Property Name="title" Type="Edm.String" />
+        <Property Name="versionId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="driveItemUploadableProperties">
         <Property Name="description" Type="Edm.String" />
         <Property Name="fileSize" Type="Edm.Int64" />
@@ -7546,6 +7576,16 @@
       <EntityType Name="columnLink" BaseType="graph.entity">
         <Property Name="name" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="listItemVersion" BaseType="graph.baseItemVersion">
+        <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="documentSetVersion" BaseType="graph.listItemVersion">
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="items" Type="Collection(graph.documentSetVersionItem)" />
+        <Property Name="shouldCaptureMinorVersion" Type="Edm.Boolean" />
+      </EntityType>
       <EntityType Name="fieldValueSet" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="itemActivity" BaseType="graph.entity" OpenType="true">
         <Property Name="access" Type="graph.accessAction" />
@@ -7564,9 +7604,6 @@
         <Property Name="move" Type="graph.itemActionStat" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <NavigationProperty Name="activities" Type="Collection(graph.itemActivity)" />
-      </EntityType>
-      <EntityType Name="listItemVersion" BaseType="graph.baseItemVersion">
-        <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="sharedDriveItem" BaseType="graph.baseItem">
         <Property Name="owner" Type="graph.identitySet" />
@@ -7949,6 +7986,7 @@
         <Property Name="devices" Type="graph.conditionalAccessDevices" />
         <Property Name="locations" Type="graph.conditionalAccessLocations" />
         <Property Name="platforms" Type="graph.conditionalAccessPlatforms" />
+        <Property Name="servicePrincipalRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="signInRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="userRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="users" Type="graph.conditionalAccessUsers" />
@@ -7993,6 +8031,8 @@
         <Property Name="mode" Type="graph.persistentBrowserSessionMode" />
       </ComplexType>
       <ComplexType Name="signInFrequencySessionControl" BaseType="graph.conditionalAccessSessionControl">
+        <Property Name="authenticationType" Type="graph.signInFrequencyAuthenticationType" />
+        <Property Name="frequencyInterval" Type="graph.signInFrequencyInterval" />
         <Property Name="type" Type="graph.signinFrequencyType" />
         <Property Name="value" Type="Edm.Int32" />
       </ComplexType>
@@ -10362,6 +10402,28 @@
       <ComplexType Name="windowsDeviceAzureADAccount" BaseType="graph.windowsDeviceAccount">
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
+      <EntityType Name="userExperienceAnalyticsDevicePerformance" BaseType="graph.entity">
+        <Property Name="averageBlueScreens" Type="Edm.Double" Nullable="false" />
+        <Property Name="averageRestarts" Type="Edm.Double" Nullable="false" />
+        <Property Name="blueScreenCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="bootScore" Type="Edm.Int32" Nullable="false" />
+        <Property Name="coreBootTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="coreLoginTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="deviceCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" />
+        <Property Name="diskType" Type="graph.diskType" Nullable="false" />
+        <Property Name="groupPolicyBootTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="groupPolicyLoginTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="healthStatus" Type="graph.userExperienceAnalyticsHealthState" Nullable="false" />
+        <Property Name="loginScore" Type="Edm.Int32" Nullable="false" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="modelStartupPerformanceScore" Type="Edm.Double" Nullable="false" />
+        <Property Name="operatingSystemVersion" Type="Edm.String" />
+        <Property Name="responsiveDesktopTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="restartCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="startupPerformanceScore" Type="Edm.Double" Nullable="false" />
+      </EntityType>
       <ComplexType Name="importedWindowsAutopilotDeviceIdentityState">
         <Property Name="deviceErrorCode" Type="Edm.Int32" Nullable="false" />
         <Property Name="deviceErrorName" Type="Edm.String" />
@@ -12511,6 +12573,9 @@
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
       </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.documentSetVersion" />
+      </Action>
       <Action Name="setMobileDeviceManagementAuthority" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.organization" />
         <ReturnType Type="Edm.Int32" Nullable="false" />
@@ -12544,6 +12609,10 @@
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.application)" />
         <ReturnType Type="Collection(graph.application)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.device)" />
+        <ReturnType Type="Collection(graph.device)" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.directoryRole)" />
@@ -16686,6 +16755,19 @@
         <Parameter Name="filter" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Edm.Stream" />
       </Action>
+      <Action Name="getNoncompliantDevicesAndSettingsReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="select" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="search" Type="Edm.String" Unicode="false" />
+        <Parameter Name="groupBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="orderBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Edm.Stream" />
+      </Action>
       <Action Name="getPolicyNonComplianceMetadata" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
@@ -17198,7 +17280,9 @@
         <Singleton Name="security" Type="microsoft.graph.security" />
         <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="branding" Type="microsoft.graph.organizationalBranding" />
-        <Singleton Name="directory" Type="microsoft.graph.directory" />
+        <Singleton Name="directory" Type="microsoft.graph.directory">
+          <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -19216,6 +19300,18 @@
       <Annotations Target="microsoft.graph.deviceRegistrationState/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="The device registration status is unknown." />
       </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for unknown or default diskType" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/hdd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for HDD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/ssd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for SSD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDeviceOwnerType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Owner type of device." />
       </Annotations>
@@ -19299,6 +19395,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managementAgentType/msSense">
         <Annotation Term="Org.OData.Core.V1.Description" String="" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsHealthState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
       </Annotations>
       <Annotations Target="microsoft.graph.enrollmentState/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device enrollment state is unknown" />
@@ -19483,6 +19582,9 @@
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeContactInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Include Contact Info." />
       </Annotations>
+      <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeDeviceDetails">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Include Device Details." />
+      </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistanceOnboardingStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The current TeamViewer connector status" />
       </Annotations>
@@ -19508,7 +19610,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values for the file format of a report" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/csv">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Comma-separated values" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="CSV Format" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/pdf">
         <Annotation Term="Org.OData.Core.V1.Description" String="Portable Document Format" />
@@ -20828,6 +20930,13 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.device">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.directory/administrativeUnits">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -27400,6 +27509,69 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managedDeviceOverview/mdmEnrolledCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="The number of devices enrolled in MDM" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device performance entity contains device boot performance details." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageBlueScreens">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageRestarts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/blueScreenCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/bootScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device boot score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User experience analytics summarized device count." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/diskType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device disk type." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/healthStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The health state of the user experience analytics device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/loginScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device login score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/manufacturer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device manufacturer." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/model">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device model." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/modelStartupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics model level startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/operatingSystemVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device Operating System version." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/responsiveDesktopTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics responsive desktop time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/restartCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/startupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
       </Annotations>
       <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentityState/deviceErrorCode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device error code reported by Device Directory Service(DDS)." />
