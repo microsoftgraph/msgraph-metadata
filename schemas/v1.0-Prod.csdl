@@ -875,6 +875,12 @@
         <Member Name="enhanced" Value="3" />
         <Member Name="full" Value="4" />
       </EnumType>
+      <EnumType Name="diskType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="hdd" Value="1" />
+        <Member Name="ssd" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="edgeCookiePolicy">
         <Member Name="userDefined" Value="0" />
         <Member Name="allow" Value="1" />
@@ -1443,6 +1449,7 @@
         <Member Name="includeCompanyLogo" Value="1" />
         <Member Name="includeCompanyName" Value="2" />
         <Member Name="includeContactInformation" Value="4" />
+        <Member Name="includeDeviceDetails" Value="16" />
       </EnumType>
       <EnumType Name="onenotePatchActionType">
         <Member Name="Replace" Value="0" />
@@ -3327,6 +3334,13 @@
         <Member Name="administrator" Value="3" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="userExperienceAnalyticsHealthState">
+        <Member Name="unknown" Value="0" />
+        <Member Name="insufficientData" Value="1" />
+        <Member Name="needsAttention" Value="2" />
+        <Member Name="meetingGoals" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="userFlowType">
         <Member Name="signUp" Value="1" />
         <Member Name="signIn" Value="2" />
@@ -3865,6 +3879,12 @@
       <ComplexType Name="assignmentOrder">
         <Property Name="order" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="attachmentInfo">
+        <Property Name="attachmentType" Type="graph.attachmentType" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int64" />
+      </ComplexType>
       <ComplexType Name="attachmentItem">
         <Property Name="attachmentType" Type="graph.attachmentType" />
         <Property Name="contentId" Type="Edm.String" />
@@ -4264,6 +4284,7 @@
         <Property Name="devices" Type="graph.conditionalAccessDevices" />
         <Property Name="locations" Type="graph.conditionalAccessLocations" />
         <Property Name="platforms" Type="graph.conditionalAccessPlatforms" />
+        <Property Name="servicePrincipalRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="signInRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="userRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="users" Type="graph.conditionalAccessUsers" />
@@ -7447,6 +7468,17 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="size" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="attachmentBase" BaseType="graph.entity" Abstract="true" HasStream="true">
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="attachmentSession" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.Stream" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="nextExpectedRanges" Type="Collection(Edm.String)" />
       </EntityType>
       <EntityType Name="attendanceRecord" BaseType="graph.entity">
         <Property Name="attendanceIntervals" Type="Collection(graph.attendanceInterval)" />
@@ -10883,6 +10915,9 @@
         <Property Name="isAssigned" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="assignments" Type="Collection(graph.targetedManagedAppPolicyAssignment)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="taskFileAttachment" BaseType="graph.attachmentBase">
+        <Property Name="contentBytes" Type="Edm.Binary" Nullable="false" />
+      </EntityType>
       <EntityType Name="team" BaseType="graph.entity" OpenType="true">
         <Property Name="classification" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -11058,13 +11093,17 @@
         <Property Name="completedDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="dueDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="hasAttachments" Type="Edm.Boolean" />
         <Property Name="importance" Type="graph.importance" Nullable="false" />
         <Property Name="isReminderOn" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="reminderDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.taskStatus" Nullable="false" />
         <Property Name="title" Type="Edm.String" />
+        <NavigationProperty Name="attachments" Type="Collection(graph.attachmentBase)" ContainsTarget="true" />
+        <NavigationProperty Name="attachmentSessions" Type="Collection(graph.attachmentSession)" ContainsTarget="true" />
         <NavigationProperty Name="checklistItems" Type="Collection(graph.checklistItem)" ContainsTarget="true" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="linkedResources" Type="Collection(graph.linkedResource)" ContainsTarget="true" />
@@ -11382,6 +11421,28 @@
       <EntityType Name="userConsentRequest" BaseType="graph.request">
         <Property Name="reason" Type="Edm.String" />
         <NavigationProperty Name="approval" Type="graph.approval" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="userExperienceAnalyticsDevicePerformance" BaseType="graph.entity">
+        <Property Name="averageBlueScreens" Type="Edm.Double" Nullable="false" />
+        <Property Name="averageRestarts" Type="Edm.Double" Nullable="false" />
+        <Property Name="blueScreenCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="bootScore" Type="Edm.Int32" Nullable="false" />
+        <Property Name="coreBootTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="coreLoginTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="deviceCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" />
+        <Property Name="diskType" Type="graph.diskType" Nullable="false" />
+        <Property Name="groupPolicyBootTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="groupPolicyLoginTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="healthStatus" Type="graph.userExperienceAnalyticsHealthState" Nullable="false" />
+        <Property Name="loginScore" Type="Edm.Int32" Nullable="false" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="modelStartupPerformanceScore" Type="Edm.Double" Nullable="false" />
+        <Property Name="operatingSystemVersion" Type="Edm.String" />
+        <Property Name="responsiveDesktopTimeInMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="restartCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="startupPerformanceScore" Type="Edm.Double" Nullable="false" />
       </EntityType>
       <EntityType Name="userFlowLanguageConfiguration" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -13240,6 +13301,11 @@
         <ReturnType Type="graph.uploadSession" />
       </Action>
       <Action Name="createUploadSession" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.attachmentBase)" />
+        <Parameter Name="attachmentInfo" Type="graph.attachmentInfo" Nullable="false" />
+        <ReturnType Type="graph.uploadSession" />
+      </Action>
+      <Action Name="createUploadSession" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="item" Type="graph.driveItemUploadableProperties" />
         <Parameter Name="deferCommit" Type="Edm.Boolean" />
@@ -13976,6 +14042,19 @@
         <Parameter Name="bindingParameter" Type="graph.directoryObject" Nullable="false" />
         <Parameter Name="securityEnabledOnly" Type="Edm.Boolean" />
         <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="getNoncompliantDevicesAndSettingsReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="select" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="search" Type="Edm.String" Unicode="false" />
+        <Parameter Name="groupBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="orderBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Edm.Stream" />
       </Action>
       <Action Name="getNotebookFromWebUrl" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.notebook)" />
@@ -17231,7 +17310,9 @@
         <Singleton Name="compliance" Type="microsoft.graph.compliance" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
-        <Singleton Name="directory" Type="microsoft.graph.directory" />
+        <Singleton Name="directory" Type="microsoft.graph.directory">
+          <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="drive" Type="microsoft.graph.drive" />
         <Singleton Name="education" Type="microsoft.graph.educationRoot">
           <NavigationPropertyBinding Path="classes/group" Target="directoryObjects" />
@@ -20517,7 +20598,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values for the file format of a report" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/csv">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Comma-separated values" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="CSV Format" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/pdf">
         <Annotation Term="Org.OData.Core.V1.Description" String="Portable Document Format" />
@@ -20761,6 +20842,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.disconnect(microsoft.graph.remoteAssistancePartner)">
         <Annotation Term="Org.OData.Core.V1.Description" String="A request to remove the active TeamViewer connector" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/hdd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for HDD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/ssd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for SSD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for unknown or default diskType" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
       </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Download Apple push notification certificate signing request" />
@@ -24251,6 +24344,9 @@
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeContactInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Include Contact Info." />
       </Annotations>
+      <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeDeviceDetails">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Include Device Details." />
+      </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/none">
         <Annotation Term="Org.OData.Core.V1.Description" String="No Branding." />
       </Annotations>
@@ -25800,6 +25896,50 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.todoTask/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.todoTask/attachmentSessions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.todoTaskList/tasks">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -26179,6 +26319,72 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device performance entity contains device boot performance details." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageBlueScreens">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageRestarts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/blueScreenCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/bootScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device boot score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/coreLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device core login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User experience analytics summarized device count." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/deviceName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/diskType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device disk type." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyBootTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy boot time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/groupPolicyLoginTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device group policy login time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/healthStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The health state of the user experience analytics device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/loginScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device login score." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/manufacturer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device manufacturer." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/model">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device model." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/modelStartupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics model level startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/operatingSystemVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device Operating System version." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/responsiveDesktopTimeInMs">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics responsive desktop time in milliseconds." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/restartCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 14 days. Valid values 0 to 9999999" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/startupPerformanceScore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userExperienceAnalyticsHealthState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
       </Annotations>
       <Annotations Target="microsoft.graph.userInstallStateSummary">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for the installation state summary for a user." />
