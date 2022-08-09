@@ -13311,6 +13311,23 @@
       <EntityType Name="urlAssessmentRequest" BaseType="graph.threatAssessmentRequest">
         <Property Name="url" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <ComplexType Name="attachmentInfo">
+        <Property Name="attachmentType" Type="graph.attachmentType" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int64" />
+      </ComplexType>
+      <EntityType Name="attachmentBase" BaseType="graph.entity" Abstract="true" HasStream="true">
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="attachmentSession" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.Stream" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="nextExpectedRanges" Type="Collection(Edm.String)" />
+      </EntityType>
       <EntityType Name="checklistItem" BaseType="graph.entity">
         <Property Name="checkedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -13322,6 +13339,9 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="externalId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="taskFileAttachment" BaseType="graph.attachmentBase">
+        <Property Name="contentBytes" Type="Edm.Binary" Nullable="false" />
       </EntityType>
       <EntityType Name="todoTaskList" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -13338,13 +13358,17 @@
         <Property Name="completedDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="dueDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="hasAttachments" Type="Edm.Boolean" />
         <Property Name="importance" Type="graph.importance" Nullable="false" />
         <Property Name="isReminderOn" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="reminderDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.taskStatus" Nullable="false" />
         <Property Name="title" Type="Edm.String" />
+        <NavigationProperty Name="attachments" Type="Collection(graph.attachmentBase)" ContainsTarget="true" />
+        <NavigationProperty Name="attachmentSessions" Type="Collection(graph.attachmentSession)" ContainsTarget="true" />
         <NavigationProperty Name="checklistItems" Type="Collection(graph.checklistItem)" ContainsTarget="true" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="linkedResources" Type="Collection(graph.linkedResource)" ContainsTarget="true" />
@@ -16682,6 +16706,11 @@
       <Action Name="createUploadSession" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printDocument" />
         <Parameter Name="properties" Type="graph.printDocumentUploadProperties" Nullable="false" />
+        <ReturnType Type="graph.uploadSession" />
+      </Action>
+      <Action Name="createUploadSession" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.attachmentBase)" />
+        <Parameter Name="attachmentInfo" Type="graph.attachmentInfo" Nullable="false" />
         <ReturnType Type="graph.uploadSession" />
       </Action>
       <Action Name="getSchedule" IsBound="true">
@@ -30003,6 +30032,50 @@
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.todoTask/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.todoTask/attachmentSessions">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
