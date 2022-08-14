@@ -118,7 +118,7 @@ The "alsoRequires" member is logical expression of permissions that must be pres
 The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are accessible with the permission.
 
 ### excludedProperties
-The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
+The "excludedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
 
 
 ## <a name="schemeObject"></a>Scheme Object
