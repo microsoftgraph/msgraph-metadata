@@ -76,7 +76,7 @@ TBD
 The "ownerEmail" member is a REQUIRED string that provides a contact mechanism for communicating with the owner of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
 
 ## <a name="pathSetObject"></a>PathSet Object
-A pathSet object identifies a set of paths that are accessible have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
+A pathSet object identifies a set of paths that are accessible and have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
 
 > Note: The design chosen was intentional to encourage permission creators to ensure support for methods and schemes is as consistent as possible. This produces a better developer experience for API consumers.
 
