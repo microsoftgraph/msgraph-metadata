@@ -319,6 +319,16 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.ediscovery']/edm:EntityType[@Name='case']/edm:NavigationProperty[@Name='operations']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.ediscovery.caseExportOperation</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
 
     <!-- Remove attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/@HasStream|
