@@ -22,8 +22,8 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 		"PrintSettings.Read.All": {
 			"schemes": {
 				"DelegatedWork": {
-					"consentDisplayName": "Read print settings",
-					"consentDescription": "Allow signed in user to read print settings"
+					"userConsentDisplayName": "Read print settings",
+					"userConsentDescription": "Allow signed in user to read print settings"
 				}
 			},
 			"pathSets": [{
@@ -46,6 +46,8 @@ The "permissions" member is a JSON object whose members permission objects. The 
 
 ## <a name="permissionObject"></a>Permission Object
 
+The permissions object contains the details about a permission that can be used as claim in a API security token.
+
 ### note
 The "note" member is a freeform string that provides additional details at about the permission that cannot be determined from the other members of the permission object.
 
@@ -60,20 +62,24 @@ The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects
 ### pathSets
 The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [pathSet object](#pathSetObject). 
 
+### privilegeLevel
+The "privilegeLevel" member value provides a hint as to the risks of consenting this permissions. Valid values include: low, medium and high.
+
+## <a name="provisioningInfo"></a>Provisioning Info Object
+
+The provisioning info object contains information related to the deployment of the permission into its environment. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
+
 ### isHidden
 The "isHidden" member is a boolean value that indicates if a permission should be publicly usable in the API.  
 
 ### requiredEnvironments
 The "requiredEnvironments" member is an array of strings that identifies the deployment environments in which the permission SHOULD be supported. When this member is not present, support for all environments is implied.
 
-### privilegeLevel
-The "privilegeLevel" member value provides a hint as to the risks of consenting this permissions. Valid values include: low, medium and high.
+### resourceAppId
+The "resourceAppId" member value provides an identifier of the resource server that is used to enforce Conditional Access checks for this permission.
 
-### appIdForConditionalAccessChecks
-TBD
-
-### ownerEmail
-The "ownerEmail" member is a REQUIRED string that provides a contact mechanism for communicating with the owner of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
+### ownerSecurityGroup
+The "ownerSecurityGroup" member is a REQUIRED string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
 
 ## <a name="pathSetObject"></a>PathSet Object
 A pathSet object identifies a set of paths that are accessible have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
@@ -129,13 +135,13 @@ The scheme object has members that describe the permission within the context of
     "DelegatedWork": {
         "adminDisplayName": "Read and write app activity to users'activity feed",
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
-        "consentDisplayName": "Read and write app activity to users'activity feed",
-        "consentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
+        "userConsentDisplayName": "Read and write app activity to users'activity feed",
+        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
         "requiresAdminConsent": true
     },
     "DelegatedPersonal": {
-        "consentDisplayName": "Read and write app activity to users'activity feed",
-        "consentDescription": "Allows the app to read and report the signed-in user's activity in the app."
+        "userConsentDisplayName": "Read and write app activity to users'activity feed",
+        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app."
     },
     "Application": {
         "adminDisplayName": "Read and write app activity to users' activity feed",
@@ -149,11 +155,11 @@ The "adminDisplayName" member is a string that provides a short permission name 
 ### adminDescription
 The "adminDescription" member is a string that describes the permission considering the current scheme from the perspective of a resource administrator.
 
-### consentDisplayName
-The "consentDisplayName" member is a REQUIRED string that provides a short permission name that considers the current scheme and the perspective of the user consenting an application.
+### userConsentDisplayName
+The "userConsentDisplayName" member is a REQUIRED string that provides a short permission name that considers the current scheme and the perspective of the user consenting an application.
 
-### consentDescription
-The "consentDescription" member is a REQUIRED string that describes the permission considering the current scheme from the perspective of the user consenting an application.
+### userConsentDescription
+The "userConsentDescription" member is a REQUIRED string that describes the permission considering the current scheme from the perspective of the user consenting an application.
 
 ### requiresAdminConsent
 The "requiresAdminConsent" member is a boolean value with a default value of false. When true, this permission can only be consented by an adminstrator.
@@ -331,10 +337,10 @@ classDiagram
                 "adminDescription": {
                     "type": "string"
                 },
-                "consentDisplayName": {
+                "userConsentDisplayName": {
                     "type": "string"
                 },
-                "consentDescription": {
+                "userConsentDescription": {
                     "type": "string"
                 }
             }
