@@ -82,7 +82,7 @@ The "resourceAppId" member value provides an identifier of the resource server t
 The "ownerSecurityGroup" member is a REQUIRED string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
 
 ## <a name="pathSetObject"></a>PathSet Object
-A pathSet object identifies a set of paths that are accessible have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
+A pathSet object identifies a set of paths that are accessible and have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
 
 > Note: The design chosen was intentional to encourage permission creators to ensure support for methods and schemes is as consistent as possible. This produces a better developer experience for API consumers.
 
@@ -124,7 +124,7 @@ The "alsoRequires" member is logical expression of permissions that must be pres
 The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are accessible with the permission.
 
 ### excludedProperties
-The "includedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
+The "excludedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
 
 
 ## <a name="schemeObject"></a>Scheme Object
