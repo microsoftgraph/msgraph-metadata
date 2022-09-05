@@ -65,6 +65,9 @@ The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [
 ### privilegeLevel
 The "privilegeLevel" member value provides a hint as to the risks of consenting this permissions. Valid values include: low, medium and high.
 
+### provisioningInfo
+The "provisioningInfo" member value provides a set of information related to the provisioning of the permission.
+
 ## <a name="provisioningInfo"></a>Provisioning Info Object
 
 The provisioning info object contains information related to the deployment of the permission into its environment. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
@@ -185,13 +188,18 @@ classDiagram
     class Permission{
         note: string
         implicit: bool
-        requiredEnvironments: string[]
-        ownerEmail:string
-        isHidden: bool
         privilegeLevel: string
     }
     Permission "1" --> "*" PathSet:pathSets
     Permission "1" --> "*" Scheme:schemes
+    Permission  -->  ProvisioningInfo:provisioningInfo
+
+    class ProvisioningInfo {
+        requiredEnvironments: string[]
+        ownerSecurityGroup:string
+        resourceAppId: string
+        isHidden: bool
+    }
 
     class PathSet{
         schemeKeys: string[]     
@@ -203,147 +211,19 @@ classDiagram
     PathSet "1" --> "*" Path:paths
 
     class Path{
-        leastPrivilegePermission: string
+        leastPrivilegePermission: string[]
     }
 
     class Scheme{
         adminDisplayName: string
         adminDescription: string
-        userDisplayName: string
-        userDescription: string
+        userConsentDisplayName: string
+        userConsentDescription: string
         requiresAdminConsent: string
     }
 
 ```
 
 ## Appendix B. JSON Schema for HTTP Problem 
-```json
-{
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "title": "Schema for OAuth Permissions",
-    "type": "object",
-    "properties": {
-        "additionalProperties": false,
-        "permissions": {
-            "title": "Map of permission name to definition",
-            "additionalProperties": false,
-            "type": "object",
-            "patternProperties": {
-                "[\\w]+\\.[\\w]+[\\.[\\w]+]?": {
-                    "$ref": "#/definitions/permission"
-                }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "permission": {
-            "type": "object",
-            "title": "Permission definition",
-            "additionalProperties": false,
-            "properties": {
-                "note": {"type": "string"},
-                "implicit": {"type": "boolean"},
-                "isHidden": {"type": "boolean"},
-                "ownerEmail": {"type": "string"},
-                "privilegeLevel": {
-                    "type":"string",
-                    "enum":["low","medium","high"]
-                }
-                "requiredEnvironments": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "alsoRequires": {
-                    "type": "string",
-                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
-                },
-                "schemes": {
-                    "type": "object",
-                    "patternProperties": {
-                        ".*": {
-                            "$ref": "#/definitions/scheme"
-                            }
-                        }
-                    }
-                },
-                "pathSets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/pathSet"
-                        } 
-                    }
-                }
-            },
-        "pathSet": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "schemeKeys": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "methods": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "enum": ["GET","PUT","POST","DELETE","PATCH","HEAD","OPTIONS","<WriteMethods>","<ReadMethods>"
-                        ]
-                    }
-                },
-                "paths": {
-                    "type": "object",
-                    "patternProperties": {
-                        ".*": {
-                            "$ref": "#/definitions/path"
-                           }
-                        }
-                    }
-                },
-                "includeProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "excludeProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-        },
-        "path": {
-            "type": "object",
-            "properties": {
-                "leastPrivilegePermission": {
-                    "type": "array",
-                    "items": { "type":"string"}
-                }
-            },
-        "scheme": {
-            "type": "object",
-            "properties": {
-                "requiresAdminConsent": {
-                    "type": "boolean"
-                },
-                "adminDisplayName": {
-                    "type": "string"
-                },
-                "adminDescription": {
-                    "type": "string"
-                },
-                "userConsentDisplayName": {
-                    "type": "string"
-                },
-                "userConsentDescription": {
-                    "type": "string"
-                }
-            }
-    }
-}
-```
+
+https://microsoftgraph.github.io/msgraph-metadata/graph-permissions-schema.json
