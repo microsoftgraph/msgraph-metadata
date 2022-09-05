@@ -226,4 +226,4 @@ classDiagram
 
 ## Appendix B. JSON Schema for HTTP Problem 
 
-https://microsoftgraph.github.io/msgraph-metadata/graph-permissions-schema.json
+[JSON Schema](https://microsoftgraph.github.io/msgraph-metadata/graph-permissions-schema.json)
