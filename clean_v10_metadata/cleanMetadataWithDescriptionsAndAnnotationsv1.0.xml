@@ -3645,7 +3645,6 @@
       <EntityType Name="auditLogRoot" BaseType="graph.entity">
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true" />
         <NavigationProperty Name="provisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
-        <NavigationProperty Name="restrictedSignIns" Type="Collection(graph.restrictedSignIn)" ContainsTarget="true" />
         <NavigationProperty Name="signIns" Type="Collection(graph.signIn)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
@@ -3801,9 +3800,6 @@
         <Property Name="userPrincipalName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="User principal name of the user that initiated the sign-in. Supports $filter (eq and startsWith operators only)." />
         </Property>
-      </EntityType>
-      <EntityType Name="restrictedSignIn" BaseType="graph.signIn">
-        <Property Name="targetTenantId" Type="Edm.Guid" />
       </EntityType>
       <EntityType Name="invitation" BaseType="graph.entity">
         <Property Name="invitedUserDisplayName" Type="Edm.String">
@@ -3989,6 +3985,9 @@
         </Property>
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="For example: ['SMTP: bob@contoso.com', 'smtp: bob@sales.contoso.com']. Changes to the mail property will also update this collection to include the value as an SMTP address. For more information, see mail and proxyAddresses properties. The proxy address prefixed with SMTP (capitalized) is the primary proxy address while those prefixed with smtp are the secondary proxy addresses. For Azure AD B2C accounts, this property has a limit of ten unique addresses. Read-only in Microsoft Graph; you can update this property only through the Microsoft 365 admin center. Not nullable. Returned only on $select. Supports $filter (eq, not, ge, le, startsWith, endsWith, and counting empty collections)." />
+        </Property>
+        <Property Name="securityIdentifier" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Security identifier (SID) of the user, used in Windows scenarios. Read-only. Returned by default. Supports $select and $filter (eq, not, ge, le, startsWith)." />
         </Property>
         <Property Name="showInAddressList" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Do not use in Microsoft Graph. Manage this property through the Microsoft 365 admin center instead. Represents whether the user should be included in the Outlook global address list. See Known issue." />
@@ -13371,8 +13370,12 @@
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Name of the discovered application. Read-only" />
         </Property>
-        <Property Name="platform" Type="graph.detectedAppPlatformType" Nullable="false" />
-        <Property Name="publisher" Type="Edm.String" />
+        <Property Name="platform" Type="graph.detectedAppPlatformType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the operating system / platform of the discovered application.  Some possible values are Windows, iOS, macOS. The default value is unknown (0). Possible values are: unknown, windows, windowsMobile, windowsHolographic, ios, macOS, chromeOS, androidOSP, androidDeviceAdministrator, androidWorkProfile, androidDedicatedAndFullyManaged." />
+        </Property>
+        <Property Name="publisher" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the publisher of the discovered application. For example: 'Microsoft'.  The default value is an empty string." />
+        </Property>
         <Property Name="sizeInByte" Type="Edm.Int64" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Discovered application size in bytes. Read-only" />
         </Property>
@@ -16133,68 +16136,114 @@
         </Property>
       </EntityType>
       <EntityType Name="windowsUpdateForBusinessConfiguration" BaseType="graph.deviceConfiguration">
-        <Property Name="allowWindows11Upgrade" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowWindows11Upgrade" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, allows eligible Windows 10 devices to upgrade to Windows 11. When FALSE, implies the device stays on the existing operating system. Returned by default. Query parameters are not supported." />
+        </Property>
         <Property Name="automaticUpdateMode" Type="graph.automaticUpdateMode" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Automatic update mode. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl." />
         </Property>
-        <Property Name="autoRestartNotificationDismissal" Type="graph.autoRestartNotificationDismissalMethod" Nullable="false" />
+        <Property Name="autoRestartNotificationDismissal" Type="graph.autoRestartNotificationDismissalMethod" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specify the method by which the auto-restart required notification is dismissed. Possible values are: NotConfigured, Automatic, User. Returned by default. Query parameters are not supported. Possible values are: notConfigured, automatic, user, unknownFutureValue." />
+        </Property>
         <Property Name="businessReadyUpdatesOnly" Type="graph.windowsUpdateType" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Determines which branch devices will receive their updates from. Possible values are: userDefined, all, businessReadyOnly, windowsInsiderBuildFast, windowsInsiderBuildSlow, windowsInsiderBuildRelease." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines which branch devices will receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, WindowsInsiderBuildSlow, WindowsInsiderBuildRelease. Returned by default. Query parameters are not supported. Possible values are: userDefined, all, businessReadyOnly, windowsInsiderBuildFast, windowsInsiderBuildSlow, windowsInsiderBuildRelease." />
         </Property>
-        <Property Name="deadlineForFeatureUpdatesInDays" Type="Edm.Int32" />
-        <Property Name="deadlineForQualityUpdatesInDays" Type="Edm.Int32" />
-        <Property Name="deadlineGracePeriodInDays" Type="Edm.Int32" />
+        <Property Name="deadlineForFeatureUpdatesInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="deadlineForQualityUpdatesInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="deadlineGracePeriodInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported." />
+        </Property>
         <Property Name="deliveryOptimizationMode" Type="graph.windowsDeliveryOptimizationMode" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Delivery Optimization Mode. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Delivery Optimization Mode. Possible values are: UserDefined, HttpOnly, HttpWithPeeringNat, HttpWithPeeringPrivateGroup, HttpWithInternetPeering, SimpleDownload, BypassMode. UserDefined allows the user to set. Returned by default. Query parameters are not supported. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode." />
         </Property>
         <Property Name="driversExcluded" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Exclude Windows update Drivers" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, excludes Windows update Drivers. When FALSE, does not exclude Windows update Drivers. Returned by default. Query parameters are not supported." />
         </Property>
-        <Property Name="engagedRestartDeadlineInDays" Type="Edm.Int32" />
-        <Property Name="engagedRestartSnoozeScheduleInDays" Type="Edm.Int32" />
-        <Property Name="engagedRestartTransitionScheduleInDays" Type="Edm.Int32" />
+        <Property Name="engagedRestartDeadlineInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Deadline in days before automatically scheduling and executing a pending restart outside of active hours, with valid range from 2 to 30 days. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="engagedRestartSnoozeScheduleInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of days a user can snooze Engaged Restart reminder notifications with valid range from 1 to 3 days. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="engagedRestartTransitionScheduleInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart, which requires the user to schedule, with valid range from 0 to 30 days. Returned by default. Query parameters are not supported." />
+        </Property>
         <Property Name="featureUpdatesDeferralPeriodInDays" Type="Edm.Int32" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Defer Feature Updates by these many days" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defer Feature Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported." />
         </Property>
         <Property Name="featureUpdatesPaused" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Pause Feature Updates" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s" />
         </Property>
         <Property Name="featureUpdatesPauseExpiryDateTime" Type="Edm.DateTimeOffset" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Feature Updates Pause Expiry datetime" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Feature Updates Pause Expiry datetime. This value is 35 days from the time admin paused or extended the pause for the ring. Returned by default. Query parameters are not supported." />
         </Property>
-        <Property Name="featureUpdatesPauseStartDate" Type="Edm.Date" />
-        <Property Name="featureUpdatesRollbackStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="featureUpdatesRollbackWindowInDays" Type="Edm.Int32" />
-        <Property Name="featureUpdatesWillBeRolledBack" Type="Edm.Boolean" />
+        <Property Name="featureUpdatesPauseStartDate" Type="Edm.Date">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Feature Updates Pause start date. This value is the time when the admin paused or extended the pause for the ring. Returned by default. Query parameters are not supported. This property is read-only." />
+        </Property>
+        <Property Name="featureUpdatesRollbackStartDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Feature Updates Rollback Start datetime.This value is the time when the admin rolled back the Feature update for the ring.Returned by default.Query parameters are not supported." />
+        </Property>
+        <Property Name="featureUpdatesRollbackWindowInDays" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of days after a Feature Update for which a rollback is valid with valid range from 2 to 60 days. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="featureUpdatesWillBeRolledBack" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, rollback Feature Updates on the next device check in. When FALSE, do not rollback Feature Updates on the next device check in. Returned by default.Query parameters are not supported." />
+        </Property>
         <Property Name="installationSchedule" Type="graph.windowsUpdateInstallScheduleType">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Installation schedule" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Installation Schedule. Possible values are: ActiveHoursStart, ActiveHoursEnd, ScheduledInstallDay, ScheduledInstallTime. Returned by default. Query parameters are not supported." />
         </Property>
         <Property Name="microsoftUpdateServiceAllowed" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Allow Microsoft Update Service" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, allows Microsoft Update Service. When FALSE, does not allow Microsoft Update Service. Returned by default. Query parameters are not supported." />
         </Property>
-        <Property Name="postponeRebootUntilAfterDeadline" Type="Edm.Boolean" />
+        <Property Name="postponeRebootUntilAfterDeadline" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported." />
+        </Property>
         <Property Name="prereleaseFeatures" Type="graph.prereleaseFeatures" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The pre-release features. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Pre-Release Features. Possible values are: UserDefined, SettingsOnly, SettingsAndExperimentations, NotAllowed. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed." />
         </Property>
         <Property Name="qualityUpdatesDeferralPeriodInDays" Type="Edm.Int32" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Defer Quality Updates by these many days" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defer Quality Updates by these many days with valid range from 0 to 30 days. Returned by default. Query parameters are not supported." />
         </Property>
         <Property Name="qualityUpdatesPaused" Type="Edm.Boolean" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Pause Quality Updates" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported." />
         </Property>
         <Property Name="qualityUpdatesPauseExpiryDateTime" Type="Edm.DateTimeOffset" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Quality Updates Pause Expiry datetime" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Quality Updates Pause Expiry datetime. This value is 35 days from the time admin paused or extended the pause for the ring. Returned by default. Query parameters are not supported." />
         </Property>
-        <Property Name="qualityUpdatesPauseStartDate" Type="Edm.Date" />
-        <Property Name="qualityUpdatesRollbackStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="qualityUpdatesWillBeRolledBack" Type="Edm.Boolean" />
-        <Property Name="scheduleImminentRestartWarningInMinutes" Type="Edm.Int32" />
-        <Property Name="scheduleRestartWarningInHours" Type="Edm.Int32" />
-        <Property Name="skipChecksBeforeRestart" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="updateNotificationLevel" Type="graph.windowsUpdateNotificationDisplayOption" Nullable="false" />
-        <Property Name="updateWeeks" Type="graph.windowsUpdateForBusinessUpdateWeeks" />
-        <Property Name="userPauseAccess" Type="graph.enablement" Nullable="false" />
-        <Property Name="userWindowsUpdateScanAccess" Type="graph.enablement" Nullable="false" />
+        <Property Name="qualityUpdatesPauseStartDate" Type="Edm.Date">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Quality Updates Pause start date. This value is the time when the admin paused or extended the pause for the ring. Returned by default. Query parameters are not supported. This property is read-only." />
+        </Property>
+        <Property Name="qualityUpdatesRollbackStartDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The Quality Updates Rollback Start datetime. This value is the time when the admin rolled back the Quality update for the ring. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="qualityUpdatesWillBeRolledBack" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, rollback Quality Updates on the next device check in. When FALSE, do not rollback Quality Updates on the next device check in. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="scheduleImminentRestartWarningInMinutes" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="scheduleRestartWarningInHours" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specify the period for auto-restart warning reminder notifications. Supported values: 2, 4, 8, 12 or 24 (hours). Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="skipChecksBeforeRestart" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, skips all checks before restart: Battery level = 40%, User presence, Display Needed, Presentation mode, Full screen mode, phone call state, game mode etc. When FALSE, does not skip all checks before restart. Returned by default. Query parameters are not supported." />
+        </Property>
+        <Property Name="updateNotificationLevel" Type="graph.windowsUpdateNotificationDisplayOption" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies what Windows Update notifications users see. Possible values are: NotConfigured, DefaultNotifications, RestartWarningsOnly, DisableAllNotifications. Returned by default. Query parameters are not supported. Possible values are: notConfigured, defaultNotifications, restartWarningsOnly, disableAllNotifications, unknownFutureValue." />
+        </Property>
+        <Property Name="updateWeeks" Type="graph.windowsUpdateForBusinessUpdateWeeks">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Schedule the update installation on the weeks of the month. Possible values are: UserDefined, FirstWeek, SecondWeek, ThirdWeek, FourthWeek, EveryWeek. Returned by default. Query parameters are not supported. Possible values are: userDefined, firstWeek, secondWeek, thirdWeek, fourthWeek, everyWeek, unknownFutureValue." />
+        </Property>
+        <Property Name="userPauseAccess" Type="graph.enablement" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether to enable end user’s access to pause software updates. Possible values are: NotConfigured, Enabled, Disabled. Returned by default. Query parameters are not supported. Possible values are: notConfigured, enabled, disabled." />
+        </Property>
+        <Property Name="userWindowsUpdateScanAccess" Type="graph.enablement" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies whether to disable user’s access to scan Windows Update. Possible values are: NotConfigured, Enabled, Disabled. Returned by default. Query parameters are not supported. Possible values are: notConfigured, enabled, disabled." />
+        </Property>
       </EntityType>
       <EntityType Name="enrollmentConfigurationAssignment" BaseType="graph.entity">
         <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget">
@@ -16379,7 +16428,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Filters applied on the report" />
         </Property>
         <Property Name="format" Type="graph.deviceManagementReportFileFormat" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Format of the exported report. Possible values are: csv, json." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Format of the exported report. Possible values are: csv, pdf, json, unknownFutureValue." />
         </Property>
         <Property Name="localizationType" Type="graph.deviceManagementExportJobLocalizationType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Configures how the requested export job is localized. Possible values are: localizedValuesAsAdditionalColumn, replaceLocalizableValues." />
@@ -26699,16 +26748,16 @@
         </Parameter>
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
+      <Function EntitySetPath="bindingParameter/channels/messages" Name="getAllMessages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
       <Function EntitySetPath="bindingParameter/messages" Name="getAllMessages" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Function EntitySetPath="bindingParameter/messages" Name="getAllMessages" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
-        <ReturnType Type="Collection(graph.chatMessage)" />
-      </Function>
-      <Function EntitySetPath="bindingParameter/channels/messages" Name="getAllMessages" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Action Name="instantiate" IsBound="true">
@@ -32806,6 +32855,20 @@
       </Action>
       <Action Name="clearUserPreferredPresence" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="presence: clearUserPreferredPresence" />
+            <PropertyValue Property="LongDescription" String="Clear the preferred availability and activity status for a user." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/presence-clearuserpreferredpresence?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Action>
       <Action Name="setPresence" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
@@ -32833,6 +32896,20 @@
         <Parameter Name="availability" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="activity" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="expirationDuration" Type="Edm.Duration" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="presence: setUserPreferredPresence" />
+            <PropertyValue Property="LongDescription" String="Set the preferred availability and activity status for a user. If the preferred presence of a user is set, the user's presence shows as the preferred status. Preferred presence takes effect only when at least one presence session exists for the user. Otherwise, the user's presence shows as `Offline`. A presence session is created as a result of a successful setPresence operation, or if the user is signed in on a Microsoft Teams client. For more details, see presence sessions and time-out and expiration." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/presence-setuserpreferredpresence?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Action>
       <Action Name="createOrGet" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.onlineMeeting)" />
@@ -45585,6 +45662,9 @@
             <PropertyValue Property="LongDescription" String="Retrieve a list of a user's temporaryAccessPassAuthenticationMethod objects and their properties. This API will only return a single object in the collection as a user can have only one Temporary Access Pass method." />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.externalConnectors.externalConnection/state">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.channel/messages">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
