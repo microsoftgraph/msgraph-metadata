@@ -805,12 +805,34 @@
                 </xsl:call-template>
             </xsl:element>
 
-            <!-- Add UpdateRestrictions for team/schedule navigation property -->
             <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <!-- Add UpdateRestrictions for team/schedule navigation property -->
+            <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
+            <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.team/schedule</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/assignmentPolicies'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement/assignmentPolicies</xsl:attribute>
                         <xsl:call-template name="UpdateRestrictionsTemplate">
                             <xsl:with-param name="httpMethod">PUT</xsl:with-param>
                         </xsl:call-template>
