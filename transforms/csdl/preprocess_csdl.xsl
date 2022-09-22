@@ -634,6 +634,18 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="UpdateRestrictionsTemplate">
+        <xsl:param name = "httpMethod" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="NavigationRestrictionsTemplate">
         <xsl:param name = "navigable" />
         <xsl:element name="Annotation">
@@ -792,6 +804,19 @@
                     <xsl:with-param name="referenceable">true</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
+
+            <!-- Add UpdateRestrictions for team/schedule navigation property -->
+            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.team/schedule</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         </xsl:copy>
     </xsl:template>
 
