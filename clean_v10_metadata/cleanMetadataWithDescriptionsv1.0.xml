@@ -3072,6 +3072,64 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="payloadDeliveryPlatform">
+        <Member Name="unknown" Value="0" />
+        <Member Name="sms" Value="1" />
+        <Member Name="email" Value="2" />
+        <Member Name="teams" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="simulationAttackTechnique">
+        <Member Name="unknown" Value="0" />
+        <Member Name="credentialHarvesting" Value="1" />
+        <Member Name="attachmentMalware" Value="2" />
+        <Member Name="driveByUrl" Value="3" />
+        <Member Name="linkInAttachment" Value="4" />
+        <Member Name="linkToMalwareFile" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="simulationAttackType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="social" Value="1" />
+        <Member Name="cloud" Value="2" />
+        <Member Name="endpoint" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="simulationAutomationRunStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="skipped" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="simulationAutomationStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="draft" Value="1" />
+        <Member Name="notRunning" Value="2" />
+        <Member Name="running" Value="3" />
+        <Member Name="completed" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="simulationStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="draft" Value="1" />
+        <Member Name="running" Value="2" />
+        <Member Name="scheduled" Value="3" />
+        <Member Name="succeeded" Value="4" />
+        <Member Name="failed" Value="5" />
+        <Member Name="cancelled" Value="6" />
+        <Member Name="excluded" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
+      <EnumType Name="trainingStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="assigned" Value="1" />
+        <Member Name="inProgress" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="overdue" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="alertFeedback">
         <Member Name="unknown" Value="0" />
         <Member Name="truePositive" Value="1" />
@@ -7472,9 +7530,14 @@
       </EntityType>
       <EntityType Name="security" BaseType="graph.entity">
         <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="attackSimulation" Type="graph.attackSimulationRoot" ContainsTarget="true" />
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="attackSimulationRoot" BaseType="graph.entity" Abstract="true">
+        <NavigationProperty Name="simulationAutomations" Type="Collection(graph.simulationAutomation)" ContainsTarget="true" />
+        <NavigationProperty Name="simulations" Type="Collection(graph.simulation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="alert" BaseType="graph.entity" OpenType="true">
         <Property Name="activityGroupName" Type="Edm.String">
@@ -8059,6 +8122,7 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified named locations." />
         </NavigationProperty>
@@ -11334,8 +11398,23 @@
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
+        <NavigationProperty Name="accessPackagesIncompatibleWith" Type="Collection(graph.accessPackage)" />
         <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
+        <NavigationProperty Name="incompatibleAccessPackages" Type="Collection(graph.accessPackage)">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="Referenceable" Bool="true" />
+            </Record>
+          </Annotation>
+        </NavigationProperty>
+        <NavigationProperty Name="incompatibleGroups" Type="Collection(graph.group)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="Referenceable" Bool="true" />
+            </Record>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope">
@@ -11572,6 +11651,11 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="agreementFileVersion" BaseType="graph.agreementFileProperties" />
+      <EntityType Name="authenticationContextClassReference" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isAvailable" Type="Edm.Boolean" />
+      </EntityType>
       <EntityType Name="namedLocation" BaseType="graph.entity">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents creation date and time of the location using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
@@ -14931,6 +15015,7 @@
         <NavigationProperty Name="dailyPrintUsageByUser" Type="Collection(graph.printUsageByUser)" ContainsTarget="true" />
         <NavigationProperty Name="monthlyPrintUsageByPrinter" Type="Collection(graph.printUsageByPrinter)" ContainsTarget="true" />
         <NavigationProperty Name="monthlyPrintUsageByUser" Type="Collection(graph.printUsageByUser)" ContainsTarget="true" />
+        <NavigationProperty Name="security" Type="graph.securityReportsRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="printUsage" BaseType="graph.entity" Abstract="true">
         <Property Name="completedBlackAndWhiteJobCount" Type="Edm.Int64" Nullable="false" />
@@ -14946,6 +15031,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The UPN of the user represented by these statistics." />
         </Property>
       </EntityType>
+      <EntityType Name="securityReportsRoot" BaseType="graph.entity" />
       <EntityType Name="sharedPCConfiguration" BaseType="graph.deviceConfiguration">
         <Property Name="accountManagerPolicy" Type="graph.sharedPCAccountManagerPolicy">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies how accounts are managed on a shared PC. Only applies when disableAccountManager is false." />
@@ -17330,6 +17416,41 @@
         <Property Name="userId" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The id for the user on whom the operation is performed." />
         </Property>
+      </EntityType>
+      <EntityType Name="simulationAutomation" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.emailIdentity" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.emailIdentity" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="nextRunDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.simulationAutomationStatus" />
+        <NavigationProperty Name="runs" Type="Collection(graph.simulationAutomationRun)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="simulation" BaseType="graph.entity">
+        <Property Name="attackTechnique" Type="graph.simulationAttackTechnique" />
+        <Property Name="attackType" Type="graph.simulationAttackType" />
+        <Property Name="automationId" Type="Edm.String" />
+        <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdBy" Type="graph.emailIdentity" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isAutomated" Type="Edm.Boolean" />
+        <Property Name="lastModifiedBy" Type="graph.emailIdentity" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="launchDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="payloadDeliveryPlatform" Type="graph.payloadDeliveryPlatform" />
+        <Property Name="report" Type="graph.simulationReport" />
+        <Property Name="status" Type="graph.simulationStatus" />
+      </EntityType>
+      <EntityType Name="simulationAutomationRun" BaseType="graph.entity">
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="simulationId" Type="Edm.String" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.simulationAutomationRunStatus" />
       </EntityType>
       <EntityType Name="commsOperation" BaseType="graph.entity" OpenType="true">
         <Property Name="clientContext" Type="Edm.String">
@@ -23916,6 +24037,99 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Required. Short text description of the user's unique activity (for example, document name in cases where an activity refers to document creation)" />
         </Property>
       </ComplexType>
+      <ComplexType Name="assignedTrainingInfo">
+        <Property Name="assignedUserCount" Type="Edm.Int32" />
+        <Property Name="completedUserCount" Type="Edm.Int32" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="attackSimulationRepeatOffender">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser" />
+        <Property Name="repeatOffenceCount" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="attackSimulationUser">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="attackSimulationSimulationUserCoverage">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser" />
+        <Property Name="clickCount" Type="Edm.Int32" />
+        <Property Name="compromisedCount" Type="Edm.Int32" />
+        <Property Name="latestSimulationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="simulationCount" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="attackSimulationTrainingUserCoverage">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser" />
+        <Property Name="userTrainings" Type="Collection(graph.userTrainingStatusInfo)" />
+      </ComplexType>
+      <ComplexType Name="userTrainingStatusInfo">
+        <Property Name="assignedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="trainingStatus" Type="graph.trainingStatus" />
+      </ComplexType>
+      <ComplexType Name="emailIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="email" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="recommendedAction">
+        <Property Name="actionWebUrl" Type="Edm.String" />
+        <Property Name="potentialScoreImpact" Type="Edm.Double" />
+        <Property Name="title" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="simulationEvent">
+        <Property Name="count" Type="Edm.Int32" />
+        <Property Name="eventName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="simulationEventsContent">
+        <Property Name="compromisedRate" Type="Edm.Double" />
+        <Property Name="events" Type="Collection(graph.simulationEvent)" />
+      </ComplexType>
+      <ComplexType Name="simulationReport">
+        <Property Name="overview" Type="graph.simulationReportOverview" />
+        <Property Name="simulationUsers" Type="Collection(graph.userSimulationDetails)" />
+      </ComplexType>
+      <ComplexType Name="simulationReportOverview">
+        <Property Name="recommendedActions" Type="Collection(graph.recommendedAction)" />
+        <Property Name="resolvedTargetsCount" Type="Edm.Int32" />
+        <Property Name="simulationEventsContent" Type="graph.simulationEventsContent" />
+        <Property Name="trainingEventsContent" Type="graph.trainingEventsContent" />
+      </ComplexType>
+      <ComplexType Name="userSimulationDetails">
+        <Property Name="assignedTrainingsCount" Type="Edm.Int32" />
+        <Property Name="completedTrainingsCount" Type="Edm.Int32" />
+        <Property Name="compromisedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="inProgressTrainingsCount" Type="Edm.Int32" />
+        <Property Name="isCompromised" Type="Edm.Boolean" />
+        <Property Name="reportedPhishDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="simulationEvents" Type="Collection(graph.userSimulationEventInfo)" />
+        <Property Name="simulationUser" Type="graph.attackSimulationUser" />
+        <Property Name="trainingEvents" Type="Collection(graph.userTrainingEventInfo)" />
+      </ComplexType>
+      <ComplexType Name="trainingEventsContent">
+        <Property Name="assignedTrainingsInfos" Type="Collection(graph.assignedTrainingInfo)" />
+        <Property Name="trainingsAssignedUserCount" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="userSimulationEventInfo">
+        <Property Name="browser" Type="Edm.String" />
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="eventName" Type="Edm.String" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="osPlatformDeviceDetails" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userTrainingEventInfo">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="latestTrainingStatus" Type="graph.trainingStatus" />
+        <Property Name="trainingAssignedProperties" Type="graph.userTrainingContentEventInfo" />
+        <Property Name="trainingCompletedProperties" Type="graph.userTrainingContentEventInfo" />
+        <Property Name="trainingUpdatedProperties" Type="graph.userTrainingContentEventInfo" />
+      </ComplexType>
+      <ComplexType Name="userTrainingContentEventInfo">
+        <Property Name="browser" Type="Edm.String" />
+        <Property Name="contentDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="osPlatformDeviceDetails" Type="Edm.String" />
+        <Property Name="potentialScoreImpact" Type="Edm.Double" />
+      </ComplexType>
       <ComplexType Name="alertDetection">
         <Property Name="detectionType" Type="Edm.String" />
         <Property Name="method" Type="Edm.String" />
@@ -26297,14 +26511,14 @@
         <ReturnType Type="Collection(graph.userConsentRequest)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
-        <Parameter Name="on" Type="graph.accessPackageFilterByCurrentUserOptions" Nullable="false" />
-        <ReturnType Type="Collection(graph.accessPackage)" />
-      </Function>
-      <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
         <Parameter Name="on" Type="graph.accessPackageAssignmentFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.accessPackageAssignment)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
+        <Parameter Name="on" Type="graph.accessPackageFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessPackage)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignmentRequest)" />
@@ -26340,6 +26554,16 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.unifiedRoleEligibilityScheduleRequest)" />
         <Parameter Name="on" Type="graph.roleEligibilityScheduleRequestFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.unifiedRoleEligibilityScheduleRequest)" />
+      </Function>
+      <Function Name="additionalAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
+        <ReturnType Type="Collection(graph.accessPackageAssignment)" />
+      </Function>
+      <Function Name="additionalAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
+        <Parameter Name="accessPackageId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="incompatibleAccessPackageId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.accessPackageAssignment)" />
       </Function>
       <Function Name="getOmaSettingPlainTextValue" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceConfiguration" />
@@ -26834,6 +27058,18 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.notebook)" />
         <Parameter Name="includePersonalNotebooks" Type="Edm.Boolean" Nullable="false" />
         <ReturnType Type="Collection(graph.recentNotebook)" />
+      </Function>
+      <Function Name="getAttackSimulationRepeatOffenders" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationRepeatOffender)" />
+      </Function>
+      <Function Name="getAttackSimulationSimulationUserCoverage" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationSimulationUserCoverage)" />
+      </Function>
+      <Function Name="getAttackSimulationTrainingUserCoverage" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationTrainingUserCoverage)" />
       </Function>
       <Function Name="doesUserHaveAccess" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
@@ -37367,6 +37603,7 @@
       <Annotations Target="microsoft.graph.agreementFile" />
       <Annotations Target="microsoft.graph.agreementFileLocalization" />
       <Annotations Target="microsoft.graph.agreementFileVersion" />
+      <Annotations Target="microsoft.graph.authenticationContextClassReference" />
       <Annotations Target="microsoft.graph.namedLocation" />
       <Annotations Target="microsoft.graph.riskDetection" />
       <Annotations Target="microsoft.graph.riskyUser" />
