@@ -3508,6 +3508,10 @@
         <Member Name="chat" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="teamworkTagType">
+        <Member Name="standard" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
       <EnumType Name="teamworkUserIdentityType">
         <Member Name="aadUser" Value="0" />
         <Member Name="onPremiseAadUser" Value="1" />
@@ -3841,6 +3845,7 @@
         <Property Name="ageGroup" Type="Edm.String" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
         <Property Name="assignedPlans" Type="Collection(graph.assignedPlan)" Nullable="false" />
+        <Property Name="authorizationInfo" Type="graph.authorizationInfo" />
         <Property Name="businessPhones" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="city" Type="Edm.String" />
         <Property Name="companyName" Type="Edm.String" />
@@ -4184,6 +4189,9 @@
         <Property Name="capabilityStatus" Type="Edm.String" />
         <Property Name="service" Type="Edm.String" />
         <Property Name="servicePlanId" Type="Edm.Guid" />
+      </ComplexType>
+      <ComplexType Name="authorizationInfo">
+        <Property Name="certificateUserIds" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="employeeOrgData">
         <Property Name="costCenter" Type="Edm.String" />
@@ -4729,6 +4737,7 @@
         <NavigationProperty Name="operations" Type="Collection(graph.teamsAsyncOperation)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true" />
+        <NavigationProperty Name="tags" Type="Collection(graph.teamworkTag)" ContainsTarget="true" />
         <NavigationProperty Name="template" Type="graph.teamsTemplate" />
         <NavigationProperty Name="schedule" Type="graph.schedule" ContainsTarget="true" />
       </EntityType>
@@ -6046,6 +6055,14 @@
         <Property Name="status" Type="graph.teamsAsyncOperationStatus" Nullable="false" />
         <Property Name="targetResourceId" Type="Edm.String" />
         <Property Name="targetResourceLocation" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="teamworkTag" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="memberCount" Type="Edm.Int32" />
+        <Property Name="tagType" Type="graph.teamworkTagType" />
+        <Property Name="teamId" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.teamworkTagMember)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="schedule" BaseType="graph.entity">
@@ -12720,8 +12737,14 @@
         <Property Name="tollNumber" Type="Edm.String" />
         <Property Name="tollNumbers" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="broadcastMeetingCaptionSettings">
+        <Property Name="isCaptionEnabled" Type="Edm.Boolean" />
+        <Property Name="spokenLanguage" Type="Edm.String" />
+        <Property Name="translationLanguages" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="broadcastMeetingSettings">
         <Property Name="allowedAudience" Type="graph.broadcastMeetingAudience" />
+        <Property Name="captions" Type="graph.broadcastMeetingCaptionSettings" />
         <Property Name="isAttendeeReportEnabled" Type="Edm.Boolean" />
         <Property Name="isQuestionAndAnswerEnabled" Type="Edm.Boolean" />
         <Property Name="isRecordingEnabled" Type="Edm.Boolean" />
@@ -12873,6 +12896,12 @@
         <Property Name="sequenceId" Type="Edm.Int64" Nullable="false" />
         <Property Name="tone" Type="graph.tone" Nullable="false" />
       </ComplexType>
+      <EntityType Name="commsOperation" BaseType="graph.entity" OpenType="true">
+        <Property Name="clientContext" Type="Edm.String" />
+        <Property Name="resultInfo" Type="graph.resultInfo" />
+        <Property Name="status" Type="graph.operationStatus" Nullable="false" />
+      </EntityType>
+      <EntityType Name="addLargeGalleryViewOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="attendanceRecord" BaseType="graph.entity">
         <Property Name="attendanceIntervals" Type="Collection(graph.attendanceInterval)" />
         <Property Name="emailAddress" Type="Edm.String" />
@@ -12886,11 +12915,6 @@
         <Property Name="sources" Type="Collection(Edm.String)" />
       </EntityType>
       <EntityType Name="contentSharingSession" BaseType="graph.entity" OpenType="true" />
-      <EntityType Name="commsOperation" BaseType="graph.entity" OpenType="true">
-        <Property Name="clientContext" Type="Edm.String" />
-        <Property Name="resultInfo" Type="graph.resultInfo" />
-        <Property Name="status" Type="graph.operationStatus" Nullable="false" />
-      </EntityType>
       <EntityType Name="participant" BaseType="graph.entity">
         <Property Name="info" Type="graph.participantInfo" Nullable="false" />
         <Property Name="isInLobby" Type="Edm.Boolean" Nullable="false" />
@@ -13320,6 +13344,11 @@
         <Property Name="isActive" Type="Edm.Boolean" />
         <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
         <Property Name="url" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="teamworkTagMember" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
         <NavigationProperty Name="chat" Type="graph.chat" />
@@ -18175,6 +18204,11 @@
       </Action>
       <Action Name="restoreFactoryDefaults" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printer" />
+      </Action>
+      <Action Name="addLargeGalleryView" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.call" />
+        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.addLargeGalleryViewOperation" />
       </Action>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -30627,6 +30661,33 @@
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
           <Record>
             <PropertyValue Property="Referenceable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.team/schedule">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.entitlementManagement/assignmentPolicies">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
           </Record>
         </Annotation>
       </Annotations>
