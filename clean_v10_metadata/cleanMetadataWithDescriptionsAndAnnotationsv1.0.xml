@@ -3072,6 +3072,64 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="payloadDeliveryPlatform">
+        <Member Name="unknown" Value="0" />
+        <Member Name="sms" Value="1" />
+        <Member Name="email" Value="2" />
+        <Member Name="teams" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="simulationAttackTechnique">
+        <Member Name="unknown" Value="0" />
+        <Member Name="credentialHarvesting" Value="1" />
+        <Member Name="attachmentMalware" Value="2" />
+        <Member Name="driveByUrl" Value="3" />
+        <Member Name="linkInAttachment" Value="4" />
+        <Member Name="linkToMalwareFile" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="simulationAttackType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="social" Value="1" />
+        <Member Name="cloud" Value="2" />
+        <Member Name="endpoint" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="simulationAutomationRunStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="skipped" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="simulationAutomationStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="draft" Value="1" />
+        <Member Name="notRunning" Value="2" />
+        <Member Name="running" Value="3" />
+        <Member Name="completed" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="simulationStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="draft" Value="1" />
+        <Member Name="running" Value="2" />
+        <Member Name="scheduled" Value="3" />
+        <Member Name="succeeded" Value="4" />
+        <Member Name="failed" Value="5" />
+        <Member Name="cancelled" Value="6" />
+        <Member Name="excluded" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
+      <EnumType Name="trainingStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="assigned" Value="1" />
+        <Member Name="inProgress" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="overdue" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="alertFeedback">
         <Member Name="unknown" Value="0" />
         <Member Name="truePositive" Value="1" />
@@ -3652,7 +3710,9 @@
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EntityType Name="entity" Abstract="true">
-        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="id" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique idenfier for an entity. Read-only." />
+        </Property>
         <Key>
           <PropertyRef Name="id" />
         </Key>
@@ -4437,7 +4497,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The id of the resource service principal to which access is authorized. This identifies the API which the client is authorized to attempt to call on behalf of a signed-in user. Supports $filter (eq only)." />
         </Property>
         <Property Name="scope" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A space-separated list of the claim values for delegated permissions which should be included in access tokens for the resource application (the API). For example, openid User.Read GroupMember.Read.All. Each claim value should match the value field of one of the delegated permissions defined by the API, listed in the oauth2PermissionScopes property of the resource service principal." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A space-separated list of the claim values for delegated permissions which should be included in access tokens for the resource application (the API). For example, openid User.Read GroupMember.Read.All. Each claim value should match the value field of one of the delegated permissions defined by the API, listed in the oauth2PermissionScopes property of the resource service principal. Must not exceed 3850 characters in length." />
         </Property>
       </EntityType>
       <EntityType Name="scopedRoleMembership" BaseType="graph.entity">
@@ -7472,9 +7532,18 @@
       </EntityType>
       <EntityType Name="security" BaseType="graph.entity">
         <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="attackSimulation" Type="graph.attackSimulationRoot" ContainsTarget="true" />
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="attackSimulationRoot" BaseType="graph.entity" Abstract="true">
+        <NavigationProperty Name="simulationAutomations" Type="Collection(graph.simulationAutomation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents simulation automation created to run on a tenant." />
+        </NavigationProperty>
+        <NavigationProperty Name="simulations" Type="Collection(graph.simulation)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents an attack simulation training campaign in a tenant." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="alert" BaseType="graph.entity" OpenType="true">
         <Property Name="activityGroupName" Type="Edm.String">
@@ -8059,6 +8128,9 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified authentication context class references." />
+        </NavigationProperty>
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified named locations." />
         </NavigationProperty>
@@ -10991,7 +11063,9 @@
         <Property Name="callChainId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="A unique identifier for all the participant calls in a conference or a unique identifier for two participant calls in a P2P call.  This needs to be copied over from Microsoft.Graph.Call.CallChainId." />
         </Property>
-        <Property Name="callOptions" Type="graph.callOptions" />
+        <Property Name="callOptions" Type="graph.callOptions">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Contains the optional features for the call." />
+        </Property>
         <Property Name="callRoutes" Type="Collection(graph.callRoute)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The routing information on how the call was retargeted. Read-only." />
         </Property>
@@ -11001,7 +11075,9 @@
         <Property Name="direction" Type="graph.callDirection">
           <Annotation Term="Org.OData.Core.V1.Description" String="The direction of the call. The possible value are incoming or outgoing. Read-only." />
         </Property>
-        <Property Name="incomingContext" Type="graph.incomingContext" />
+        <Property Name="incomingContext" Type="graph.incomingContext">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Call context associated with an incoming call." />
+        </Property>
         <Property Name="mediaConfig" Type="graph.mediaConfig">
           <Annotation Term="Org.OData.Core.V1.Description" String="The media configuration. Required." />
         </Property>
@@ -11012,15 +11088,29 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The meeting information that's required for joining a meeting." />
         </Property>
         <Property Name="myParticipantId" Type="Edm.String" />
-        <Property Name="requestedModalities" Type="Collection(graph.modality)" />
-        <Property Name="resultInfo" Type="graph.resultInfo" />
-        <Property Name="source" Type="graph.participantInfo" />
-        <Property Name="state" Type="graph.callState" />
-        <Property Name="subject" Type="Edm.String" />
-        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)" />
+        <Property Name="requestedModalities" Type="Collection(graph.modality)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The list of requested modalities. Possible values are: unknown, audio, video, videoBasedScreenSharing, data." />
+        </Property>
+        <Property Name="resultInfo" Type="graph.resultInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The result information. For example can hold termination reason. Read-only." />
+        </Property>
+        <Property Name="source" Type="graph.participantInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The originator of the call." />
+        </Property>
+        <Property Name="state" Type="graph.callState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The call state. Possible values are: incoming, establishing, ringing, established, hold, transferring, transferAccepted, redirecting, terminating, terminated. Read-only." />
+        </Property>
+        <Property Name="subject" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The subject of the conversation." />
+        </Property>
+        <Property Name="targets" Type="Collection(graph.invitationParticipantInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The targets of the call. Required information for creating peer to peer call." />
+        </Property>
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="toneInfo" Type="graph.toneInfo" />
-        <Property Name="transcription" Type="graph.callTranscriptionInfo" />
+        <Property Name="transcription" Type="graph.callTranscriptionInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The transcription information for the call. Read-only." />
+        </Property>
         <NavigationProperty Name="audioRoutingGroups" Type="Collection(graph.audioRoutingGroup)" ContainsTarget="true" />
         <NavigationProperty Name="contentSharingSessions" Type="Collection(graph.contentSharingSession)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
@@ -11334,8 +11424,23 @@
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
+        <NavigationProperty Name="accessPackagesIncompatibleWith" Type="Collection(graph.accessPackage)" />
         <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
+        <NavigationProperty Name="incompatibleAccessPackages" Type="Collection(graph.accessPackage)">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="Referenceable" Bool="true" />
+            </Record>
+          </Annotation>
+        </NavigationProperty>
+        <NavigationProperty Name="incompatibleGroups" Type="Collection(graph.group)">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="Referenceable" Bool="true" />
+            </Record>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
         <Property Name="allowedTargetScope" Type="graph.allowedTargetScope">
@@ -11572,6 +11677,17 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="agreementFileVersion" BaseType="graph.agreementFileProperties" />
+      <EntityType Name="authenticationContextClassReference" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A short explanation of the policies that are enforced by authenticationContextClassReference. This value should be used to provide secondary text to describe the authentication context class reference when building user-facing admin experiences. For example, a selection UX." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The display name is the friendly name of the authenticationContextClassReference object. This value should be used to identify the authentication context class reference when building user-facing admin experiences. For example, a selection UX." />
+        </Property>
+        <Property Name="isAvailable" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the authenticationContextClassReference has been published by the security admin and is ready for use by apps. When it is set to false, it should not be shown in authentication context selection UX, or used to protect app resources. It will be shown and available for Conditional Access policy authoring. The default value is false.  Supports $filter (eq)." />
+        </Property>
+      </EntityType>
       <EntityType Name="namedLocation" BaseType="graph.entity">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents creation date and time of the location using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
@@ -14931,6 +15047,7 @@
         <NavigationProperty Name="dailyPrintUsageByUser" Type="Collection(graph.printUsageByUser)" ContainsTarget="true" />
         <NavigationProperty Name="monthlyPrintUsageByPrinter" Type="Collection(graph.printUsageByPrinter)" ContainsTarget="true" />
         <NavigationProperty Name="monthlyPrintUsageByUser" Type="Collection(graph.printUsageByUser)" ContainsTarget="true" />
+        <NavigationProperty Name="security" Type="graph.securityReportsRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="printUsage" BaseType="graph.entity" Abstract="true">
         <Property Name="completedBlackAndWhiteJobCount" Type="Edm.Int64" Nullable="false" />
@@ -14946,6 +15063,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The UPN of the user represented by these statistics." />
         </Property>
       </EntityType>
+      <EntityType Name="securityReportsRoot" BaseType="graph.entity" />
       <EntityType Name="sharedPCConfiguration" BaseType="graph.deviceConfiguration">
         <Property Name="accountManagerPolicy" Type="graph.sharedPCAccountManagerPolicy">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies how accounts are managed on a shared PC. Only applies when disableAccountManager is false." />
@@ -17329,6 +17447,99 @@
         </Property>
         <Property Name="userId" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The id for the user on whom the operation is performed." />
+        </Property>
+      </EntityType>
+      <EntityType Name="simulationAutomation" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.emailIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user who created the attack simulation automation." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when the attack simulation automation was created." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description of the attack simulation automation." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the attack simulation automation. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="lastModifiedBy" Type="graph.emailIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user who most recently modified the attack simulation automation." />
+        </Property>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when the attack simulation automation was most recently modified." />
+        </Property>
+        <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the latest run of the attack simulation automation." />
+        </Property>
+        <Property Name="nextRunDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the upcoming run of the attack simulation automation." />
+        </Property>
+        <Property Name="status" Type="graph.simulationAutomationStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Status of the attack simulation automation. Supports $filter and $orderby. The possible values are: unknown, draft, notRunning, running, completed, unknownFutureValue." />
+        </Property>
+        <NavigationProperty Name="runs" Type="Collection(graph.simulationAutomationRun)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of simulation automation runs." />
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="simulation" BaseType="graph.entity">
+        <Property Name="attackTechnique" Type="graph.simulationAttackTechnique">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The social engineering technique used in the attack simulation and training campaign. Supports $filter and $orderby. Possible values are: unknown, credentialHarvesting, attachmentMalware, driveByUrl, linkInAttachment, linkToMalwareFile, unknownFutureValue. For more information on the types of social engineering attack techniques, see simulations." />
+        </Property>
+        <Property Name="attackType" Type="graph.simulationAttackType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Attack type of the attack simulation and training campaign. Supports $filter and $orderby. Possible values are: unknown, social, cloud, endpoint, unknownFutureValue." />
+        </Property>
+        <Property Name="automationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the attack simulation automation." />
+        </Property>
+        <Property Name="completionDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of completion of the attack simulation and training campaign. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="createdBy" Type="graph.emailIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user who created the attack simulation and training campaign." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of creation of the attack simulation and training campaign." />
+        </Property>
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Description of the attack simulation and training campaign." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the attack simulation and training campaign. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="isAutomated" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Flag that represents if the attack simulation and training campaign was created from a simulation automation flow. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="lastModifiedBy" Type="graph.emailIdentity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user who most recently modified the attack simulation and training campaign." />
+        </Property>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the most recent modification of the attack simulation and training campaign." />
+        </Property>
+        <Property Name="launchDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the launch/start of the attack simulation and training campaign. Supports $filter and $orderby." />
+        </Property>
+        <Property Name="payloadDeliveryPlatform" Type="graph.payloadDeliveryPlatform">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Method of delivery of the phishing payload used in the attack simulation and training campaign. Possible values are: unknown, sms, email, teams, unknownFutureValue." />
+        </Property>
+        <Property Name="report" Type="graph.simulationReport">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Report of the attack simulation and training campaign." />
+        </Property>
+        <Property Name="status" Type="graph.simulationStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Status of the attack simulation and training campaign. Supports $filter and $orderby. Possible values are: unknown, draft, running, scheduled, succeeded, failed, cancelled, excluded, unknownFutureValue." />
+        </Property>
+      </EntityType>
+      <EntityType Name="simulationAutomationRun" BaseType="graph.entity">
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when the run ends in an attack simulation automation." />
+        </Property>
+        <Property Name="simulationId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier for the attack simulation campaign initiated in the attack simulation automation run." />
+        </Property>
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when the run starts in an attack simulation automation." />
+        </Property>
+        <Property Name="status" Type="graph.simulationAutomationRunStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Status of the attack simulation automation run. The possible values are: unknown, running, succeeded, failed, skipped, unknownFutureValue." />
         </Property>
       </EntityType>
       <EntityType Name="commsOperation" BaseType="graph.entity" OpenType="true">
@@ -23916,6 +24127,217 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Required. Short text description of the user's unique activity (for example, document name in cases where an activity refers to document creation)" />
         </Property>
       </ComplexType>
+      <ComplexType Name="assignedTrainingInfo">
+        <Property Name="assignedUserCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of users who were assigned the training in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="completedUserCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of users who completed the training in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the training in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="attackSimulationRepeatOffender">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="repeatOffenceCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of repeat offences of the user in attack simulation and training campaigns." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="attackSimulationUser">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the user." />
+        </Property>
+        <Property Name="email" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the user." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="This is the id property value of the user resource that represents the user in the Azure Active Directory tenant." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="attackSimulationSimulationUserCoverage">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="clickCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of link clicks in the received payloads by the user in attack simulation and training campaigns." />
+        </Property>
+        <Property Name="compromisedCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of compromising actions by the user in attack simulation and training campaigns." />
+        </Property>
+        <Property Name="latestSimulationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the latest attack simulation and training campaign that the user was included in." />
+        </Property>
+        <Property Name="simulationCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of attack simulation and training campaigns that the user was included in." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="attackSimulationTrainingUserCoverage">
+        <Property Name="attackSimulationUser" Type="graph.attackSimulationUser">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="userTrainings" Type="Collection(graph.userTrainingStatusInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of assigned trainings and their statuses for the user." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="userTrainingStatusInfo">
+        <Property Name="assignedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of assignment of the training to the user." />
+        </Property>
+        <Property Name="completionDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of completion of the training by the user." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the assigned training." />
+        </Property>
+        <Property Name="trainingStatus" Type="graph.trainingStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The status of the training assigned to the user. Possible values are: unknown, assigned, inProgress, completed, overdue, unknownFutureValue." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="emailIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="email" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the user." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="recommendedAction">
+        <Property Name="actionWebUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Web URL to the recommended action." />
+        </Property>
+        <Property Name="potentialScoreImpact" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Potential improvement in the tenant security score from the recommended action." />
+        </Property>
+        <Property Name="title" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Title of the recommended action." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="simulationEvent">
+        <Property Name="count" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Count of the simulation event occurrence in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="eventName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the simulation event in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="simulationEventsContent">
+        <Property Name="compromisedRate" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Actual percentage of users who fell for the simulated attack in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="events" Type="Collection(graph.simulationEvent)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of simulation events in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="simulationReport">
+        <Property Name="overview" Type="graph.simulationReportOverview">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Overview of an attack simulation and training campaign." />
+        </Property>
+        <Property Name="simulationUsers" Type="Collection(graph.userSimulationDetails)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The tenant users and their online actions in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="simulationReportOverview">
+        <Property Name="recommendedActions" Type="Collection(graph.recommendedAction)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of recommended actions for a tenant to improve its security posture based on the attack simulation and training campaign attack type." />
+        </Property>
+        <Property Name="resolvedTargetsCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of valid users in the attack simulation and training campaign." />
+        </Property>
+        <Property Name="simulationEventsContent" Type="graph.simulationEventsContent">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Summary of simulation events in the attack simulation and training campaign." />
+        </Property>
+        <Property Name="trainingEventsContent" Type="graph.trainingEventsContent">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Summary of assigned trainings in the attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="userSimulationDetails">
+        <Property Name="assignedTrainingsCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of trainings assigned to a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="completedTrainingsCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of trainings completed by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="compromisedDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the compromising online action by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="inProgressTrainingsCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of trainings in progress by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="isCompromised" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether a user was compromised in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="reportedPhishDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time when a user reported the delivered payload as phishing in the attack simulation and training campaign." />
+        </Property>
+        <Property Name="simulationEvents" Type="Collection(graph.userSimulationEventInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of simulation events of a user in the attack simulation and training campaign." />
+        </Property>
+        <Property Name="simulationUser" Type="graph.attackSimulationUser">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="trainingEvents" Type="Collection(graph.userTrainingEventInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of training events of a user in the attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="trainingEventsContent">
+        <Property Name="assignedTrainingsInfos" Type="Collection(graph.assignedTrainingInfo)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of assigned trainings and their information in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="trainingsAssignedUserCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of users who were assigned trainings in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="userSimulationEventInfo">
+        <Property Name="browser" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Browser information from where the simulation event was initiated by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the simulation event by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="eventName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the simulation event by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="ipAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="IP address from where the simulation event was initiated by a user in an attack simulation and training campaign." />
+        </Property>
+        <Property Name="osPlatformDeviceDetails" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The operating system, platform, and device details from where the simulation event was initiated by a user in an attack simulation and training campaign." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="userTrainingEventInfo">
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the training." />
+        </Property>
+        <Property Name="latestTrainingStatus" Type="graph.trainingStatus">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Latest status of the training assigned to the user. Possible values are: unknown, assigned, inProgress, completed, overdue, unknownFutureValue." />
+        </Property>
+        <Property Name="trainingAssignedProperties" Type="graph.userTrainingContentEventInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Event details of the training when it was assigned to the user." />
+        </Property>
+        <Property Name="trainingCompletedProperties" Type="graph.userTrainingContentEventInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Event details of the training when it was completed by the user." />
+        </Property>
+        <Property Name="trainingUpdatedProperties" Type="graph.userTrainingContentEventInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Event details of the training when it was updated/in-progress by the user." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="userTrainingContentEventInfo">
+        <Property Name="browser" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Browser of the user from where the training event was generated." />
+        </Property>
+        <Property Name="contentDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of the training content playback by the user." />
+        </Property>
+        <Property Name="ipAddress" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="IP address of the user for the training event." />
+        </Property>
+        <Property Name="osPlatformDeviceDetails" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The operating system, platform, and device details of the user for the training event." />
+        </Property>
+        <Property Name="potentialScoreImpact" Type="Edm.Double">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Potential improvement in the tenant security posture after completion of the training by the user." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="alertDetection">
         <Property Name="detectionType" Type="Edm.String" />
         <Property Name="method" Type="Edm.String" />
@@ -24375,8 +24797,12 @@
         </Property>
       </ComplexType>
       <ComplexType Name="callOptions" Abstract="true">
-        <Property Name="hideBotAfterEscalation" Type="Edm.Boolean" />
-        <Property Name="isContentSharingNotificationEnabled" Type="Edm.Boolean" />
+        <Property Name="hideBotAfterEscalation" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether to hide the app after the call is escalated." />
+        </Property>
+        <Property Name="isContentSharingNotificationEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether content sharing notifications should be enabled for the call." />
+        </Property>
       </ComplexType>
       <ComplexType Name="callRoute">
         <Property Name="final" Type="graph.identitySet" Nullable="false">
@@ -26297,14 +26723,14 @@
         <ReturnType Type="Collection(graph.userConsentRequest)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
-        <Parameter Name="on" Type="graph.accessPackageFilterByCurrentUserOptions" Nullable="false" />
-        <ReturnType Type="Collection(graph.accessPackage)" />
-      </Function>
-      <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
         <Parameter Name="on" Type="graph.accessPackageAssignmentFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.accessPackageAssignment)" />
+      </Function>
+      <Function Name="filterByCurrentUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
+        <Parameter Name="on" Type="graph.accessPackageFilterByCurrentUserOptions" Nullable="false" />
+        <ReturnType Type="Collection(graph.accessPackage)" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignmentRequest)" />
@@ -26340,6 +26766,16 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.unifiedRoleEligibilityScheduleRequest)" />
         <Parameter Name="on" Type="graph.roleEligibilityScheduleRequestFilterByCurrentUserOptions" Nullable="false" />
         <ReturnType Type="Collection(graph.unifiedRoleEligibilityScheduleRequest)" />
+      </Function>
+      <Function Name="additionalAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
+        <ReturnType Type="Collection(graph.accessPackageAssignment)" />
+      </Function>
+      <Function Name="additionalAccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
+        <Parameter Name="accessPackageId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="incompatibleAccessPackageId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.accessPackageAssignment)" />
       </Function>
       <Function Name="getOmaSettingPlainTextValue" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceConfiguration" />
@@ -26834,6 +27270,18 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.notebook)" />
         <Parameter Name="includePersonalNotebooks" Type="Edm.Boolean" Nullable="false" />
         <ReturnType Type="Collection(graph.recentNotebook)" />
+      </Function>
+      <Function Name="getAttackSimulationRepeatOffenders" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationRepeatOffender)" />
+      </Function>
+      <Function Name="getAttackSimulationSimulationUserCoverage" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationSimulationUserCoverage)" />
+      </Function>
+      <Function Name="getAttackSimulationTrainingUserCoverage" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.securityReportsRoot" />
+        <ReturnType Type="Collection(graph.attackSimulationTrainingUserCoverage)" />
       </Function>
       <Function Name="doesUserHaveAccess" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
@@ -32679,6 +33127,20 @@
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.addLargeGalleryViewOperation" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="call: addLargeGalleryView" />
+            <PropertyValue Property="LongDescription" String="Add the large gallery view to a call." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/call-addlargegalleryview?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Action>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -39015,6 +39477,25 @@
             <PropertyValue Property="Sortable" Bool="false" />
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.authenticationContextClassReference">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.namedLocation">
@@ -50565,6 +51046,86 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.attackSimulationRoot/simulationAutomations">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List simulationAutomations" />
+            <PropertyValue Property="LongDescription" String="Get a list of attack simulation automations for a tenant." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/attacksimulationroot-list-simulationautomations?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.simulationAutomation/runs">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List runs" />
+            <PropertyValue Property="LongDescription" String="Get a list of the attack simulation automation runs for a tenant." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/simulationautomation-list-runs?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.attackSimulationRoot/simulations">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List simulations" />
+            <PropertyValue Property="LongDescription" String="Get a list of attack simulation campaigns for a tenant." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/attacksimulationroot-list-simulations?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.simulationReport/overview">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get simulationReportOverview" />
+            <PropertyValue Property="LongDescription" String="Get an overview of an attack simulation and training campaign." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/simulationreportoverview-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.simulationReport/simulationUsers">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List simulationUsers" />
+            <PropertyValue Property="LongDescription" String="List users of a tenant and their online actions in an attack simulation campaign." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/usersimulationdetails-list?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.security.casesRoot/ediscoveryCases">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -51231,6 +51792,58 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityuserflowattributeassignment-getorder?view=graph-rest-1.0" />
             </Record>
           </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessRoot/authenticationContextClassReferences">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List authenticationContextClassReferences" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of authenticationContextClassReference objects." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/conditionalaccessroot-list-authenticationcontextclassreferences?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/identity/conditionalAccess/authenticationContextClassReferences/c1">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Update authenticationContextClassReference" />
+            <PropertyValue Property="LongDescription" String="Create an authenticationContextClassReference object, if the ID has not been used. If ID has been used, this call updates the authenticationContextClassReference object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authenticationcontextclassreference-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authenticationcontextclassreference-get?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authenticationcontextclassreference-delete?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get authenticationContextClassReference" />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a authenticationContextClassReference object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete authenticationContextClassReference" />
+            <PropertyValue Property="LongDescription" String="Delete an authenticationContextClassReference object that's not published or used by a conditional access policy." />
+          </Record>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.conditionalAccessRoot/namedLocations">
@@ -55162,6 +55775,22 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.call/contentSharingSessions">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List contentSharingSessions" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of contentSharingSession objects in a call." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/call-list-contentsharingsessions?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.call/participants">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -55744,6 +56373,54 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/reportroot-list-monthlyprintusagebyuser?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.securityReportsRoot/getAttackSimulationRepeatOffenders">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="securityReportsRoot: getAttackSimulationRepeatOffenders" />
+            <PropertyValue Property="LongDescription" String="List the tenant users who have yielded to attacks more than once in attack simulation and training campaigns. This function supports `@odata.nextLink` for pagination." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/securityreportsroot-getattacksimulationrepeatoffenders?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.securityReportsRoot/getAttackSimulationSimulationUserCoverage">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="securityReportsRoot: getAttackSimulationSimulationUserCoverage" />
+            <PropertyValue Property="LongDescription" String="List training coverage for each tenant user in attack simulation and training campaigns. This function supports `@odata.nextLink` for pagination." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/securityreportsroot-getattacksimulationsimulationusercoverage?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.securityReportsRoot/getAttackSimulationTrainingUserCoverage">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="securityReportsRoot: getAttackSimulationTrainingUserCoverage" />
+            <PropertyValue Property="LongDescription" String="List training coverage for tenant users in attack simulation and training campaigns. This function supports `@odata.nextLink` for pagination." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/securityreportsroot-getattacksimulationtrainingusercoverage?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
