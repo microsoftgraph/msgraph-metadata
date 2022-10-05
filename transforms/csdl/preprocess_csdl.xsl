@@ -319,6 +319,16 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.ediscovery']/edm:EntityType[@Name='case']/edm:NavigationProperty[@Name='operations']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.ediscovery.caseExportOperation</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
 
     <!-- Remove attribute -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='onenotePage']/@HasStream|
@@ -625,13 +635,13 @@
         </xsl:element>
     </xsl:template>
     <xsl:template name="UpdateRestrictionsTemplate">
-        <xsl:param name = "updatable" />
+        <xsl:param name = "httpMethod" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
                 <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Updatable</xsl:attribute>
-                    <xsl:attribute name="Bool"><xsl:value-of select = "$updatable" /></xsl:attribute>
+                    <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -794,6 +804,41 @@
                     <xsl:with-param name="referenceable">true</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
+
+            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <!-- Add UpdateRestrictions for team/schedule navigation property -->
+            <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
+            <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.team/schedule</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/assignmentPolicies'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement/assignmentPolicies</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
             <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
             <xsl:element name="Annotations">
@@ -827,7 +872,7 @@
     </xsl:template>
 
     <!-- Remove directoryObject Capability Annotations -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+    <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
     <!-- Add workbooks entity set if missing -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']">
