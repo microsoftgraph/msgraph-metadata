@@ -624,6 +624,18 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="UpdateRestrictionsTemplate">
+        <xsl:param name = "updatable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Updatable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select = "$updatable" /></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="NavigationRestrictionsTemplate">
         <xsl:param name = "navigable" />
         <xsl:element name="Annotation">
@@ -782,6 +794,20 @@
                     <xsl:with-param name="referenceable">true</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
+            
+            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
+                <xsl:call-template name="UpdateRestrictionsTemplate">
+                    <xsl:with-param name="updatable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+            <xsl:element name="Annotations">
+               <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
+               <xsl:call-template name="InsertRestrictionsTemplate">
+                   <xsl:with-param name="insertable">true</xsl:with-param>
+               </xsl:call-template>
+           </xsl:element> 
         </xsl:copy>
     </xsl:template>
 
