@@ -291,6 +291,17 @@
         <Member Name="reviewer" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
       </EnumType>
+      <EnumType Name="crossTenantAccessPolicyTargetConfigurationAccessType">
+        <Member Name="allowed" Value="1" />
+        <Member Name="blocked" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="crossTenantAccessPolicyTargetType">
+        <Member Name="user" Value="1" />
+        <Member Name="group" Value="2" />
+        <Member Name="application" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
         <Member Name="monday" Value="1" />
@@ -475,6 +486,12 @@
         <Member Name="basic" Value="2" />
         <Member Name="enhanced" Value="3" />
         <Member Name="full" Value="4" />
+      </EnumType>
+      <EnumType Name="diskType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="hdd" Value="1" />
+        <Member Name="ssd" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="edgeCookiePolicy">
         <Member Name="userDefined" Value="0" />
@@ -772,6 +789,7 @@
         <Member Name="includeCompanyLogo" Value="1" />
         <Member Name="includeCompanyName" Value="2" />
         <Member Name="includeContactInformation" Value="4" />
+        <Member Name="includeDeviceDetails" Value="16" />
       </EnumType>
       <EnumType Name="onlineMeetingProviderType">
         <Member Name="unknown" Value="0" />
@@ -1691,6 +1709,23 @@
       <ComplexType Name="contentTypeOrder">
         <Property Name="default" Type="Edm.Boolean" />
         <Property Name="position" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyB2BSetting">
+        <Property Name="applications" Type="graph.crossTenantAccessPolicyTargetConfiguration" />
+        <Property Name="usersAndGroups" Type="graph.crossTenantAccessPolicyTargetConfiguration" />
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyInboundTrust">
+        <Property Name="isCompliantDeviceAccepted" Type="Edm.Boolean" />
+        <Property Name="isHybridAzureADJoinedDeviceAccepted" Type="Edm.Boolean" />
+        <Property Name="isMfaAccepted" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyTarget">
+        <Property Name="target" Type="Edm.String" />
+        <Property Name="targetType" Type="graph.crossTenantAccessPolicyTargetType" />
+      </ComplexType>
+      <ComplexType Name="crossTenantAccessPolicyTargetConfiguration">
+        <Property Name="accessType" Type="graph.crossTenantAccessPolicyTargetConfigurationAccessType" />
+        <Property Name="targets" Type="Collection(graph.crossTenantAccessPolicyTarget)" />
       </ComplexType>
       <ComplexType Name="currencyColumn">
         <Property Name="locale" Type="Edm.String" />
@@ -2957,7 +2992,13 @@
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
       </EntityType>
-      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true" />
+      <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="visibility" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="scopedRoleMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isPerDeviceAcceptanceRequired" Type="Edm.Boolean" />
@@ -3423,6 +3464,30 @@
         <Property Name="toRecipients" Type="Collection(graph.recipient)" Nullable="false" />
         <Property Name="uniqueSenders" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="posts" Type="Collection(graph.post)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicy" BaseType="graph.policyBase">
+        <NavigationProperty Name="default" Type="graph.crossTenantAccessPolicyConfigurationDefault" ContainsTarget="true" />
+        <NavigationProperty Name="partners" Type="Collection(graph.crossTenantAccessPolicyConfigurationPartner)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicyConfigurationDefault" BaseType="graph.entity">
+        <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bDirectConnectOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust" />
+        <Property Name="isServiceDefault" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="crossTenantAccessPolicyConfigurationPartner">
+        <Key>
+          <PropertyRef Name="tenantId" />
+        </Key>
+        <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="b2bDirectConnectOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
+        <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust" />
+        <Property Name="isServiceProvider" Type="Edm.Boolean" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="defaultManagedAppProtection" BaseType="graph.managedAppProtection">
         <Property Name="appDataEncryptionType" Type="graph.managedAppDataEncryptionType" Nullable="false" />
@@ -4933,6 +4998,7 @@
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="roleManagementPolicies" Type="Collection(graph.unifiedRoleManagementPolicy)" ContainsTarget="true" />
@@ -5028,6 +5094,11 @@
         <Property Name="properties" Type="Collection(graph.extensionSchemaProperty)" Nullable="false" />
         <Property Name="status" Type="Edm.String" Nullable="false" />
         <Property Name="targetTypes" Type="Collection(Edm.String)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="scopedRoleMembership" BaseType="graph.entity">
+        <Property Name="administrativeUnitId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleMemberInfo" Type="graph.identity" Nullable="false" />
       </EntityType>
       <EntityType Name="serviceAnnouncement" BaseType="graph.entity">
         <NavigationProperty Name="healthOverviews" Type="Collection(graph.serviceHealth)" ContainsTarget="true" />
@@ -6477,6 +6548,19 @@
         <Parameter Name="securityEnabledOnly" Type="Edm.Boolean" />
         <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
       </Action>
+      <Action Name="getNoncompliantDevicesAndSettingsReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="select" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="search" Type="Edm.String" Unicode="false" />
+        <Parameter Name="groupBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="orderBy" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="skip" Type="Edm.Int32" />
+        <Parameter Name="top" Type="Edm.Int32" />
+        <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="filter" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Edm.Stream" />
+      </Action>
       <Action Name="getPolicyNonComplianceMetadata" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagementReports" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
@@ -6655,6 +6739,9 @@
       </Action>
       <Action Name="resetPasscode" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
+      </Action>
+      <Action Name="resetToSystemDefault" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantAccessPolicyConfigurationDefault" Nullable="false" />
       </Action>
       <Action Name="resetUnseenCount" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
@@ -7109,7 +7196,9 @@
         <Singleton Name="branding" Type="microsoft.graph.organizationalBranding" />
         <Singleton Name="deviceAppManagement" Type="microsoft.graph.deviceAppManagement" />
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
-        <Singleton Name="directory" Type="microsoft.graph.directory" />
+        <Singleton Name="directory" Type="microsoft.graph.directory">
+          <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="drive" Type="microsoft.graph.drive" />
         <Singleton Name="identityGovernance" Type="microsoft.graph.identityGovernance" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
@@ -7150,6 +7239,13 @@
       </Annotations>
       <Annotations Target="microsoft.graph.actionState/pending">
         <Annotation Term="Org.OData.Core.V1.Description" String="Action is pending" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.agreement">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -8446,6 +8542,88 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationDefault">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.defaultManagedAppProtection">
         <Annotation Term="Org.OData.Core.V1.Description" String="Policy used to configure detailed management settings for a specified set of apps for all users not targeted by a TargetedManagedAppProtection Policy" />
@@ -9943,7 +10121,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values for the file format of a report" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/csv">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Comma-separated values" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="CSV Format" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementReportFileFormat/pdf">
         <Annotation Term="Org.OData.Core.V1.Description" String="Portable Document Format" />
@@ -10145,6 +10323,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.disconnect(microsoft.graph.remoteAssistancePartner)">
         <Annotation Term="Org.OData.Core.V1.Description" String="A request to remove the active TeamViewer connector" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/hdd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for HDD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/ssd">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for SSD devices" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Enum member for unknown or default diskType" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enum member" />
       </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Download Apple push notification certificate signing request" />
@@ -13456,6 +13646,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeContactInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Include Contact Info." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeDeviceDetails">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Include Device Details." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/none">
         <Annotation Term="Org.OData.Core.V1.Description" String="No Branding." />
