@@ -636,13 +636,24 @@
     </xsl:template>
     <xsl:template name="UpdateRestrictionsTemplate">
         <xsl:param name = "httpMethod" />
+        <xsl:param name = "updatable" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
-                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
-                </xsl:element>
+              <xsl:choose>  
+                 <xsl:when test="$httpMethod"> 
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                           <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
+                    </xsl:element>
+                </xsl:when>
+                <xsl:when test="$updatable">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">Updatable</xsl:attribute>
+                        <xsl:attribute name="Bool"><xsl:value-of select="$updatable"/></xsl:attribute>
+                    </xsl:element>                                    
+                </xsl:when>
+              </xsl:choose>                
             </xsl:element>
         </xsl:element>
     </xsl:template>
@@ -839,6 +850,20 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+            <xsl:element name="Annotations">
+                <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
+                <xsl:call-template name="UpdateRestrictionsTemplate">
+                    <xsl:with-param name="updatable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+            <xsl:element name="Annotations">
+               <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
+               <xsl:call-template name="InsertRestrictionsTemplate">
+                   <xsl:with-param name="insertable">true</xsl:with-param>
+               </xsl:call-template>
+           </xsl:element> 
         </xsl:copy>
     </xsl:template>
 
