@@ -195,6 +195,8 @@
         <Member Name="viewer" Value="2" />
         <Member Name="externalGuest" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="scheduler" Value="5" />
+        <Member Name="teamMember" Value="6" />
       </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
@@ -3733,7 +3735,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates additional details on the activity." />
         </Property>
         <Property Name="category" Type="Edm.String" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)" />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates which resource category that's targeted by the activity. For example: UserManagement, GroupManagement, ApplicationManagement, RoleManagement." />
         </Property>
         <Property Name="correlationId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services." />
@@ -5188,6 +5190,9 @@
         <Property Name="managementAgent" Type="graph.managementAgentType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Management channel of the device. Intune, EAS, etc. This property is read-only. Possible values are: eas, mdm, easMdm, intuneClient, easIntuneClient, configurationManagerClient, configurationManagerClientMdm, configurationManagerClientMdmEas, unknown, jamf, googleCloudDevicePolicyController." />
         </Property>
+        <Property Name="managementCertificateExpirationDate" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Reports device management certificate expiration date. This property is read-only." />
+        </Property>
         <Property Name="manufacturer" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Manufacturer of the device. This property is read-only." />
         </Property>
@@ -5221,6 +5226,9 @@
         <Property Name="remoteAssistanceSessionUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Url that allows a Remote Assistance session to be established with the device. This property is read-only." />
         </Property>
+        <Property Name="requireUserEnrollmentApproval" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Reports if the managed iOS device is user approval enrollment. This property is read-only." />
+        </Property>
         <Property Name="serialNumber" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="SerialNumber. This property is read-only." />
         </Property>
@@ -5249,6 +5257,9 @@
         <NavigationProperty Name="deviceConfigurationStates" Type="Collection(graph.deviceConfigurationState)" ContainsTarget="true" />
         <NavigationProperty Name="deviceCategory" Type="graph.deviceCategory" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Device category" />
+        </NavigationProperty>
+        <NavigationProperty Name="users" Type="Collection(graph.user)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The primary users associated with the managed device." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="managedAppRegistration" BaseType="graph.entity" Abstract="true">
@@ -5618,7 +5629,9 @@
         <NavigationProperty Name="primaryChannel" Type="graph.channel" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The general channel for the team." />
         </NavigationProperty>
-        <NavigationProperty Name="tags" Type="Collection(graph.teamworkTag)" ContainsTarget="true" />
+        <NavigationProperty Name="tags" Type="Collection(graph.teamworkTag)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The tags associated with the team." />
+        </NavigationProperty>
         <NavigationProperty Name="template" Type="graph.teamsTemplate">
           <Annotation Term="Org.OData.Core.V1.Description" String="The template this team was created from. See available templates." />
         </NavigationProperty>
@@ -6565,6 +6578,7 @@
         <Property Name="additionalInformation" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Additional information that is sent to the customer when an appointment is confirmed." />
         </Property>
+        <Property Name="anonymousJoinWebUrl" Type="Edm.String" />
         <Property Name="customers" Type="Collection(graph.bookingCustomerInformationBase)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="It lists down the customer properties for an appointment. An appointment will contain a list of customer information and each unit will indicate the properties of a customer who is part of that appointment. Optional." />
         </Property>
@@ -6654,6 +6668,7 @@
         <Property Name="isPublished" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="The scheduling page has been made available to external customers. Use the publish and unpublish actions to set this property. Read-only." />
         </Property>
+        <Property Name="languageTag" Type="Edm.String" />
         <Property Name="phone" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The telephone number for the business. The phone property, together with address and webSiteUrl, appear in the footer of a business scheduling page." />
         </Property>
@@ -6725,12 +6740,14 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="A service name." />
         </Property>
+        <Property Name="isAnonymousJoinEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isHiddenFromCustomers" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="True means this service is not available to customers for booking." />
         </Property>
         <Property Name="isLocationOnline" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="True indicates that the appointments for the service will be held online. Default value is false." />
         </Property>
+        <Property Name="languageTag" Type="Edm.String" Nullable="false" />
         <Property Name="maximumAttendeesCount" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The maximum number of customers allowed in a service. If maximumAttendeesCount of the service is greater than 1, pass valid customer IDs while creating or updating an appointment. To create a customer, use the Create bookingCustomer operation." />
         </Property>
@@ -6786,6 +6803,7 @@
         <Property Name="emailAddress" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The email address of the staff member. This can be in the same Microsoft 365 tenant as the business, or in a different email domain. This email address can be used if the sendConfirmationsToOwner property is set to true in the scheduling policy of the business. Required." />
         </Property>
+        <Property Name="isEmailNotificationEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="role" Type="graph.bookingStaffRole" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The role of the staff member in the business. Possible values are: guest, administrator, viewer, externalGuest and unknownFutureValue. Required." />
         </Property>
@@ -6946,7 +6964,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether there are members in this group that have license errors from its group-based license assignment. This property is never returned on a GET operation. You can use it as a $filter argument to get groups that have members with license errors (that is, filter for this property being true). See an example. Supports $filter (eq)." />
         </Property>
         <Property Name="isAssignableToRole" Type="Edm.Boolean">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this group can be assigned to an Azure Active Directory role or not. Optional. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true and the group cannot be a dynamic group (that is, groupTypes cannot contain DynamicMembership). Only callers in Global administrator and Privileged role administrator roles can set this property. The caller must be assigned the RoleManagement.ReadWrite.Directory permission to set this property or update the membership of such groups. For more, see Using a group to manage Azure AD role assignmentsReturned by default. Supports $filter (eq, ne, not)." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this group can be assigned to an Azure Active Directory role or not. Optional. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true and the group cannot be a dynamic group (that is, groupTypes cannot contain DynamicMembership). Only callers in Global Administrator and Privileged Role Administrator roles can set this property. The caller must also be assigned the RoleManagement.ReadWrite.Directory permission to set this property or update the membership of such groups. For more, see Using a group to manage Azure AD role assignmentsReturned by default. Supports $filter (eq, ne, not)." />
         </Property>
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates status of the group license assignment to all members of the group. Default value is false. Read-only. Possible values: QueuedForProcessing, ProcessingInProgress, and ProcessingComplete.Returned only on $select. Read-only." />
@@ -7383,12 +7401,24 @@
         </Property>
       </EntityType>
       <EntityType Name="teamworkTag" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="memberCount" Type="Edm.Int32" />
-        <Property Name="tagType" Type="graph.teamworkTagType" />
-        <Property Name="teamId" Type="Edm.String" />
-        <NavigationProperty Name="members" Type="Collection(graph.teamworkTagMember)" ContainsTarget="true" />
+        <Property Name="description" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The description of the tag as it will appear to the user in Microsoft Teams." />
+        </Property>
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The name of the tag as it will appear to the user in Microsoft Teams." />
+        </Property>
+        <Property Name="memberCount" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The number of users assigned to the tag." />
+        </Property>
+        <Property Name="tagType" Type="graph.teamworkTagType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the tag. Default is standard." />
+        </Property>
+        <Property Name="teamId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="ID of the team in which the tag is defined." />
+        </Property>
+        <NavigationProperty Name="members" Type="Collection(graph.teamworkTagMember)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Users assigned to the tag." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="schedule" BaseType="graph.entity">
@@ -11424,7 +11454,9 @@
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
-        <NavigationProperty Name="accessPackagesIncompatibleWith" Type="Collection(graph.accessPackage)" />
+        <NavigationProperty Name="accessPackagesIncompatibleWith" Type="Collection(graph.accessPackage)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The access packages that are incompatible with this package. Read-only." />
+        </NavigationProperty>
         <NavigationProperty Name="assignmentPolicies" Type="Collection(graph.accessPackageAssignmentPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
         <NavigationProperty Name="incompatibleAccessPackages" Type="Collection(graph.accessPackage)">
@@ -11433,6 +11465,7 @@
               <PropertyValue Property="Referenceable" Bool="true" />
             </Record>
           </Annotation>
+          <Annotation Term="Org.OData.Core.V1.Description" String="The access packages whose assigned users are ineligible to be assigned this access package." />
         </NavigationProperty>
         <NavigationProperty Name="incompatibleGroups" Type="Collection(graph.group)">
           <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
@@ -11440,6 +11473,7 @@
               <PropertyValue Property="Referenceable" Bool="true" />
             </Record>
           </Annotation>
+          <Annotation Term="Org.OData.Core.V1.Description" String="The groups whose members are ineligible to be assigned this access package." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="accessPackageAssignmentPolicy" BaseType="graph.entity">
@@ -13503,6 +13537,12 @@
         </Property>
         <Property Name="certificateSerialNumber" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Certificate serial number. This property is read-only." />
+        </Property>
+        <Property Name="certificateUploadFailureReason" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The reason the certificate upload failed." />
+        </Property>
+        <Property Name="certificateUploadStatus" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The certificate upload status." />
         </Property>
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The expiration date and time for Apple push notification certificate." />
@@ -17941,9 +17981,15 @@
         </Property>
       </EntityType>
       <EntityType Name="teamworkTagMember" BaseType="graph.entity">
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="tenantId" Type="Edm.String" />
-        <Property Name="userId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The member's display name." />
+        </Property>
+        <Property Name="tenantId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the tenant that the tag member is a part of." />
+        </Property>
+        <Property Name="userId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user ID of the member." />
+        </Property>
       </EntityType>
       <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
         <NavigationProperty Name="chat" Type="graph.chat">
@@ -21968,6 +22014,24 @@
         <Property Name="v5_1" Type="Edm.Boolean" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Version 5.1 or later." />
         </Property>
+        <Property Name="v6_0" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 6.0 or later." />
+        </Property>
+        <Property Name="v7_0" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 7.0 or later." />
+        </Property>
+        <Property Name="v7_1" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 7.1 or later." />
+        </Property>
+        <Property Name="v8_0" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 8.0 or later." />
+        </Property>
+        <Property Name="v8_1" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 8.1 or later." />
+        </Property>
+        <Property Name="v9_0" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Version 9.0 or later." />
+        </Property>
       </ComplexType>
       <ComplexType Name="appConfigurationSettingItem">
         <Property Name="appConfigKey" Type="Edm.String" Nullable="false">
@@ -22936,8 +23000,26 @@
         </Property>
       </ComplexType>
       <ComplexType Name="deviceOperatingSystemSummary">
+        <Property Name="androidCorporateWorkProfileCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The count of Corporate work profile Android devices. Also known as Corporate Owned Personally Enabled (COPE). Valid values -1 to 2147483647" />
+        </Property>
         <Property Name="androidCount" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Number of android device count." />
+        </Property>
+        <Property Name="androidDedicatedCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of dedicated Android devices." />
+        </Property>
+        <Property Name="androidDeviceAdminCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of device admin Android devices." />
+        </Property>
+        <Property Name="androidFullyManagedCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of fully managed Android devices." />
+        </Property>
+        <Property Name="androidWorkProfileCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of work profile Android devices." />
+        </Property>
+        <Property Name="configMgrDeviceCount" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of ConfigMgr managed devices." />
         </Property>
         <Property Name="iosCount" Type="Edm.Int32" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Number of iOS device count." />
@@ -26863,6 +26945,26 @@
         <ReturnType Type="Edm.Stream" Nullable="false" />
       </Function>
       <Function Name="getEmailAppUsageVersionsUserCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppPlatformUserCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserDetail" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getM365AppUserDetail" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
@@ -33792,6 +33894,16 @@
           </Collection>
         </Annotation>
       </Action>
+      <Action Name="sendActivityNotificationToRecipients" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.teamwork" />
+        <Parameter Name="topic" Type="graph.teamworkActivityTopic" />
+        <Parameter Name="activityType" Type="Edm.String" Unicode="false" />
+        <Parameter Name="chainId" Type="Edm.Int64" />
+        <Parameter Name="previewText" Type="graph.itemBody" />
+        <Parameter Name="teamsAppId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="templateParameters" Type="Collection(graph.keyValuePair)" />
+        <Parameter Name="recipients" Type="Collection(graph.teamworkNotificationRecipient)" />
+      </Action>
       <Action Name="upgrade" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -37171,6 +37283,9 @@
       <Annotations Target="microsoft.graph.bookingAppointment">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents a booked appointment of a service by a customer in a business." />
       </Annotations>
+      <Annotations Target="microsoft.graph.bookingAppointment/anonymousJoinWebUrl">
+        <Annotation Term="Org.OData.Core.V1.IsURL" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.bookingAppointment/duration">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
@@ -39622,6 +39737,24 @@
       </Annotations>
       <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v5_1">
         <Annotation Term="Org.OData.Core.V1.Description" String="Version 5.1 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v6_0">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 6.0 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v7_0">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 7.0 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v7_1">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 7.1 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v8_0">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 8.0 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v8_1">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 8.1 or later." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.androidMinimumOperatingSystem/v9_0">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Version 9.0 or later." />
       </Annotations>
       <Annotations Target="microsoft.graph.appConfigurationSettingItem">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for App configuration setting item." />
@@ -43083,6 +43216,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/managementCertificateExpirationDate">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reports device management certificate expiration date. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/manufacturer">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Manufacturer of the device. This property is read-only." />
@@ -43156,6 +43296,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/requireUserEnrollmentApproval">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reports if the managed iOS device is user approval enrollment. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/serialNumber">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="SerialNumber. This property is read-only." />
@@ -43214,6 +43361,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/deviceCategory">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device category" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/users">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The primary users associated with the managed device." />
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="IndexableByKey" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.reportRoot">
         <Annotation Term="Org.OData.Core.V1.Description" String="The resource that represents an instance of Enrollment Failure Reports." />
@@ -45154,8 +45315,26 @@
       <Annotations Target="microsoft.graph.deviceOperatingSystemSummary">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device operating system summary." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidCorporateWorkProfileCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The count of Corporate work profile Android devices. Also known as Corporate Owned Personally Enabled (COPE). Valid values -1 to 2147483647" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Number of android device count." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidDedicatedCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of dedicated Android devices." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidDeviceAdminCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of device admin Android devices." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidFullyManagedCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of fully managed Android devices." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/androidWorkProfileCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of work profile Android devices." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/configMgrDeviceCount">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of ConfigMgr managed devices." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceOperatingSystemSummary/iosCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Number of iOS device count." />
@@ -45206,6 +45385,12 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.applePushNotificationCertificate/certificateUploadFailureReason">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The reason the certificate upload failed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.applePushNotificationCertificate/certificateUploadStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The certificate upload status." />
+      </Annotations>
       <Annotations Target="microsoft.graph.applePushNotificationCertificate/expirationDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="The expiration date and time for Apple push notification certificate." />
       </Annotations>
@@ -45255,13 +45440,13 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device performance entity contains device boot performance details." />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageBlueScreens">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 14 days. Valid values 0 to 9999999" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Blue Screens per device in the last 30 days. Valid values 0 to 9999999" />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/averageRestarts">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 14 days. Valid values 0 to 9999999" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Average (mean) number of Restarts per device in the last 30 days. Valid values 0 to 9999999" />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/blueScreenCount">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 14 days. Valid values 0 to 9999999" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Blue Screens in the last 30 days. Valid values 0 to 9999999" />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/bootScore">
         <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device boot score." />
@@ -45309,7 +45494,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics responsive desktop time in milliseconds." />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/restartCount">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 14 days. Valid values 0 to 9999999" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Number of Restarts in the last 30 days. Valid values 0 to 9999999" />
       </Annotations>
       <Annotations Target="microsoft.graph.userExperienceAnalyticsDevicePerformance/startupPerformanceScore">
         <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analytics device startup performance score. Valid values -1.79769313486232E+308 to 1.79769313486232E+308" />
@@ -46727,19 +46912,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.managedDevice/users">
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="RestrictedProperties">
-              <Collection>
-                <Record>
-                  <PropertyValue Property="IndexableByKey" Bool="false" />
-                </Record>
-              </Collection>
-            </PropertyValue>
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.list/activities">
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
           <Record>
@@ -46888,6 +47060,27 @@
             <PropertyValue Property="Description" String="List assignmentPolicies" />
             <PropertyValue Property="LongDescription" String="In Azure AD entitlement management, retrieve a list of accessPackageAssignmentPolicy objects. If the delegated user is in a directory role, the resulting list includes all the assignment policies that the caller has access to read, across all catalogs and access packages. If the delegated user is an access package manager or catalog owner, they should instead retrieve the policies for the access packages they can read with list accessPackages by including `$expand=accessPackageAssignmentPolicies` as a query parameter." />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSchool/administrativeUnit">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List administrativeUnit an educationSchool" />
+            <PropertyValue Property="LongDescription" String="Get a list of **administrativeUnits** associated with an educationSchool object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/educationschool-list-administrativeunit?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/invitations">
@@ -50881,6 +51074,58 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/timeoffrequest-decline?view=graph-rest-1.0" />
             </Record>
           </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.team/tags">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create teamworkTag" />
+            <PropertyValue Property="LongDescription" String="Create a standard tag for members in a team." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/teamworktag-post?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/teamworktag-list?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List teamworkTags" />
+            <PropertyValue Property="LongDescription" String="Get a list of the tag objects and their properties." />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.teamworkTag/members">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List members in a teamworkTag" />
+            <PropertyValue Property="LongDescription" String="Get a list of the members of a standard tag in a team and their properties." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/teamworktagmember-list?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/teamworktagmember-post?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create teamworkTagMember" />
+            <PropertyValue Property="LongDescription" String="Create a new teamworkTagMember object in a team." />
+          </Record>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.auditLogRoot/directoryAudits">
@@ -55268,22 +55513,6 @@
           </Collection>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.educationSchool/administrativeUnit">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List administrativeUnit an educationSchool" />
-            <PropertyValue Property="LongDescription" String="Get a list of **administrativeUnits** associated with an educationSchool object." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/educationschool-list-administrativeunit?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.educationClass/schools">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -56054,6 +56283,54 @@
             <PropertyValue Property="Description" String="Create accessPackage" />
             <PropertyValue Property="LongDescription" String="Create a new accessPackage object. The access package will be added to an existing accessPackageCatalog." />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.accessPackage/accessPackagesIncompatibleWith">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List accessPackagesIncompatibleWith" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of the accessPackage objects that have marked a specified accessPackage as incompatible." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/accesspackage-list-accesspackagesincompatiblewith?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.accessPackage/incompatibleAccessPackages">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List incompatibleAccessPackages" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of the accessPackage objects that have been marked as incompatible on an accessPackage.  " />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/accesspackage-list-incompatibleaccesspackages?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.accessPackage/incompatibleGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List incompatibleGroups" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of the group objects that have been marked as incompatible on an accessPackage.  " />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/accesspackage-list-incompatiblegroups?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.entitlementManagement/assignmentRequests">
