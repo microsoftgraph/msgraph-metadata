@@ -134,6 +134,12 @@
         <Member Name="disabled" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="featureTargetType">
+        <Member Name="group" Value="0" />
+        <Member Name="administrativeUnit" Value="1" />
+        <Member Name="role" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="fido2RestrictionEnforcementType">
         <Member Name="allow" Value="0" />
         <Member Name="block" Value="1" />
@@ -832,6 +838,15 @@
       <EnumType Name="signinFrequencyType">
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
+      </EnumType>
+      <EnumType Name="templateScenarios" IsFlags="true">
+        <Member Name="new" Value="0" />
+        <Member Name="secureFoundation" Value="1" />
+        <Member Name="zeroTrust" Value="2" />
+        <Member Name="remoteWork" Value="4" />
+        <Member Name="protectAdmins" Value="8" />
+        <Member Name="emergingThreats" Value="16" />
+        <Member Name="unknownFutureValue" Value="32" />
       </EnumType>
       <EnumType Name="tokenIssuerType">
         <Member Name="AzureAD" Value="0" />
@@ -4549,8 +4564,10 @@
         <Property Name="onlineMeetingInfo" Type="graph.teamworkOnlineMeetingInfo" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="topic" Type="Edm.String" />
+        <Property Name="viewpoint" Type="graph.chatViewpoint" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
+        <NavigationProperty Name="lastMessagePreview" Type="graph.chatMessageInfo" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
         <NavigationProperty Name="pinnedMessages" Type="Collection(graph.pinnedChatMessageInfo)" ContainsTarget="true" />
@@ -4858,6 +4875,15 @@
         <Property Name="providerResourceId" Type="Edm.String" />
         <Property Name="uri" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <ComplexType Name="authenticationMethodFeatureConfiguration">
+        <Property Name="excludeTarget" Type="graph.featureTarget" />
+        <Property Name="includeTarget" Type="graph.featureTarget" />
+        <Property Name="state" Type="graph.advancedConfigState" />
+      </ComplexType>
+      <ComplexType Name="featureTarget">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="targetType" Type="graph.featureTargetType" />
+      </ComplexType>
       <ComplexType Name="authenticationMethodsRegistrationCampaign">
         <Property Name="excludeTargets" Type="Collection(graph.excludeTarget)" Nullable="false" />
         <Property Name="includeTargets" Type="Collection(graph.authenticationMethodsRegistrationCampaignIncludeTarget)" Nullable="false" />
@@ -4877,6 +4903,10 @@
         <Property Name="aaGuids" Type="Collection(Edm.String)" />
         <Property Name="enforcementType" Type="graph.fido2RestrictionEnforcementType" />
         <Property Name="isEnforced" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="microsoftAuthenticatorFeatureSettings">
+        <Property Name="displayAppInformationRequiredState" Type="graph.authenticationMethodFeatureConfiguration" />
+        <Property Name="displayLocationInformationRequiredState" Type="graph.authenticationMethodFeatureConfiguration" />
       </ComplexType>
       <ComplexType Name="registrationEnforcement">
         <Property Name="authenticationMethodsRegistrationCampaign" Type="graph.authenticationMethodsRegistrationCampaign" />
@@ -4922,6 +4952,7 @@
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="featureSettings" Type="graph.microsoftAuthenticatorFeatureSettings" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
@@ -5839,6 +5870,7 @@
         <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
       <EntityType Name="socialIdentityProvider" BaseType="graph.identityProviderBase">
@@ -8201,6 +8233,11 @@
         <Property Name="operator" Type="Edm.String" />
         <Property Name="termsOfUse" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="conditionalAccessPolicyDetail">
+        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
+        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls" />
+        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls" />
+      </ComplexType>
       <ComplexType Name="conditionalAccessSessionControls">
         <Property Name="applicationEnforcedRestrictions" Type="graph.applicationEnforcedRestrictionsSessionControl" />
         <Property Name="cloudAppSecurity" Type="graph.cloudAppSecuritySessionControl" />
@@ -8237,6 +8274,12 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false" />
       </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
@@ -12303,6 +12346,10 @@
         <Property Name="chatId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
+      <ComplexType Name="chatViewpoint">
+        <Property Name="isHidden" Type="Edm.Boolean" />
+        <Property Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="conversationMemberRoleUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="conversationMemberRoles" Type="Collection(Edm.String)" />
         <Property Name="conversationMemberUser" Type="graph.teamworkUserIdentity" />
@@ -12477,6 +12524,14 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="teamsApp" Type="graph.teamsApp" />
+      </EntityType>
+      <EntityType Name="chatMessageInfo" BaseType="graph.entity">
+        <Property Name="body" Type="graph.itemBody" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="eventDetail" Type="graph.eventMessageDetail" />
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
       </EntityType>
       <EntityType Name="pinnedChatMessageInfo" BaseType="graph.entity">
         <NavigationProperty Name="message" Type="graph.chatMessage" />
@@ -17626,6 +17681,23 @@
         </Parameter>
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
+      <Action Name="hideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
+      <Action Name="markChatReadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
+      <Action Name="markChatUnreadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Parameter Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
+      </Action>
+      <Action Name="unhideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
       <Action Name="sendActivityNotificationToRecipients" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamwork" />
         <Parameter Name="topic" Type="graph.teamworkActivityTopic" />
@@ -22478,6 +22550,25 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.riskDetection">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
