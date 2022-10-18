@@ -134,6 +134,12 @@
         <Member Name="disabled" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="featureTargetType">
+        <Member Name="group" Value="0" />
+        <Member Name="administrativeUnit" Value="1" />
+        <Member Name="role" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="fido2RestrictionEnforcementType">
         <Member Name="allow" Value="0" />
         <Member Name="block" Value="1" />
@@ -832,6 +838,15 @@
       <EnumType Name="signinFrequencyType">
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
+      </EnumType>
+      <EnumType Name="templateScenarios" IsFlags="true">
+        <Member Name="new" Value="0" />
+        <Member Name="secureFoundation" Value="1" />
+        <Member Name="zeroTrust" Value="2" />
+        <Member Name="remoteWork" Value="4" />
+        <Member Name="protectAdmins" Value="8" />
+        <Member Name="emergingThreats" Value="16" />
+        <Member Name="unknownFutureValue" Value="32" />
       </EnumType>
       <EnumType Name="tokenIssuerType">
         <Member Name="AzureAD" Value="0" />
@@ -5541,11 +5556,17 @@
         <Property Name="topic" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="(Optional) Subject or topic for the chat. Only available for group chats." />
         </Property>
+        <Property Name="viewpoint" Type="graph.chatViewpoint">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents caller-specific information about the chat, such as last message read date and time. This property is populated only when the request is made in a delegated context." />
+        </Property>
         <Property Name="webUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The URL for the chat in Microsoft Teams. The URL should be treated as an opaque blob, and not parsed. Read-only." />
         </Property>
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of all the apps in the chat. Nullable." />
+        </NavigationProperty>
+        <NavigationProperty Name="lastMessagePreview" Type="graph.chatMessageInfo" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Preview of the last message sent in the chat. Null if no messages have been sent in the chat. Currently, only the list chats operation supports this property." />
         </NavigationProperty>
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of all the members in the chat. Nullable." />
@@ -6270,8 +6291,11 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="featureSettings" Type="graph.microsoftAuthenticatorFeatureSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of Microsoft Authenticator settings such as application context and location context, and whether they are enabled for all users or specific users only." />
+        </Property>
         <NavigationProperty Name="includeTargets" Type="Collection(graph.microsoftAuthenticatorAuthenticationMethodTarget)" ContainsTarget="true">
-          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of users or groups who are enabled to use the authentication method." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of users or groups who are enabled to use the authentication method. Expanded by default." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
@@ -6521,9 +6545,15 @@
         </NavigationProperty>
       </EntityType>
       <EntityType Name="x509CertificateAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
-        <Property Name="authenticationModeConfiguration" Type="graph.x509CertificateAuthenticationModeConfiguration" />
-        <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)" />
-        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+        <Property Name="authenticationModeConfiguration" Type="graph.x509CertificateAuthenticationModeConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines strong authentication configurations. This configuration includes the default authentication mode and the different rules for strong authentication bindings." />
+        </Property>
+        <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines fields in the X.509 certificate that map to attributes of the Azure AD user object in order to bind the certificate to the user. The priority of the object determines the order in which the binding is carried out. The first binding that matches will be used and the rest ignored." />
+        </Property>
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of users or groups who are enabled to use the authentication method." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="bitlocker" BaseType="graph.entity">
         <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true">
@@ -8166,6 +8196,9 @@
         </NavigationProperty>
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified Conditional Access (CA) policies." />
+        </NavigationProperty>
+        <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Returns a collection of the specified Conditional Access templates." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
@@ -11733,6 +11766,20 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The Timestamp type represents last modified date and time of the location using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
       </EntityType>
+      <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user-friendly name of the template." />
+        </Property>
+        <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Complete list of policy details specific to the template. This property contains the JSON of policy settings for configuring a Conditional Access policy." />
+        </Property>
+        <Property Name="name" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The user-friendly name of the template." />
+        </Property>
+        <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="List of conditional access scenarios that the template is recommended for. The possible values are: new, secureFoundation, zeroTrust, remoteWork, protectAdmins, emergingThreats, unknownFutureValue. This is a multi-valued enum. Supports $filter (has)." />
+        </Property>
+      </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of countries and/or regions in two-letter format specified by ISO 3166-2. Required." />
@@ -11787,7 +11834,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Details of the detected risk. The possible values are: none, adminGeneratedTemporaryPassword, userPerformedSecuredPasswordChange, userPerformedSecuredPasswordReset, adminConfirmedSigninSafe, aiConfirmedSigninSafe, userPassedMFADrivenByRiskBasedPolicy, adminDismissedAllRiskForUser, adminConfirmedSigninCompromised, hidden, adminConfirmedUserCompromised, unknownFutureValue, m365DAdminDismissedDetection. Note that you must use the Prefer: include - unknown -enum-members request header to get the following value(s) in this evolvable enum: m365DAdminDismissedDetection." />
         </Property>
         <Property Name="riskEventType" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected. The possible values are unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence, generic,adminConfirmedUserCompromised, passwordSpray, impossibleTravel, newCountry, anomalousToken, tokenIssuerAnomaly,suspiciousBrowser, riskyIPAddress, mcasSuspiciousInboxManipulationRules, suspiciousInboxForwarding, and unknownFutureValue. If the risk detection is a premium detection, will show generic. For more information about each value, see riskEventType values." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of risk event detected. The possible values are unlikelyTravel, anonymizedIPAddress, maliciousIPAddress, unfamiliarFeatures, malwareInfectedIPAddress, suspiciousIPAddress, leakedCredentials, investigationsThreatIntelligence, generic,adminConfirmedUserCompromised, passwordSpray, impossibleTravel, newCountry, anomalousToken, tokenIssuerAnomaly,suspiciousBrowser, riskyIPAddress, mcasSuspiciousInboxManipulationRules, suspiciousInboxForwarding, and anomalousUserActivity. If the risk detection is a premium detection, will show generic. For more information about each value, see riskEventType values." />
         </Property>
         <Property Name="riskLevel" Type="graph.riskLevel">
           <Annotation Term="Org.OData.Core.V1.Description" String="Level of the detected risk. Possible values are: low, medium, high, hidden, none, unknownFutureValue." />
@@ -17917,6 +17964,26 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The application that is linked to the tab. This cannot be changed after tab creation." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="chatMessageInfo" BaseType="graph.entity">
+        <Property Name="body" Type="graph.itemBody">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Body of the chatMessage. This will still contain markers for @mentions and attachments even though the object does not return @mentions and attachments." />
+        </Property>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date time object representing the time at which message was created." />
+        </Property>
+        <Property Name="eventDetail" Type="graph.eventMessageDetail">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Read-only.  If present, represents details of an event that happened in a chat, a channel, or a team, for example, members were added, and so on. For event messages, the messageType property will be set to systemEventMessage." />
+        </Property>
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Information about the sender of the message." />
+        </Property>
+        <Property Name="isDeleted" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="If set to true, the original message has been deleted." />
+        </Property>
+        <Property Name="messageType" Type="graph.chatMessageType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of chat message. The possible values are: message, unknownFutureValue, systemEventMessage." />
+        </Property>
+      </EntityType>
       <EntityType Name="pinnedChatMessageInfo" BaseType="graph.entity">
         <NavigationProperty Name="message" Type="graph.chatMessage">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents details about the chat message that is pinned." />
@@ -18904,6 +18971,25 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The relative URI the service provider would redirect to after completion of the single sign-on flow." />
         </Property>
       </ComplexType>
+      <ComplexType Name="authenticationMethodFeatureConfiguration">
+        <Property Name="excludeTarget" Type="graph.featureTarget">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A single entity that is excluded from this feature." />
+        </Property>
+        <Property Name="includeTarget" Type="graph.featureTarget">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A single entity that is included in this feature." />
+        </Property>
+        <Property Name="state" Type="graph.advancedConfigState">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Enable or disable the feature. Possible values are: default, enabled, disabled, unknownFutureValue. The default value is used when the configuration hasn't been explicitly set and uses the default behavior of Azure AD for the setting. The default value is disabled." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="featureTarget">
+        <Property Name="id" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the entity that's targeted in the include or exclude rule, or all_users to target all users." />
+        </Property>
+        <Property Name="targetType" Type="graph.featureTargetType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The kind of entity that's targeted. The possible values are: group, administrativeUnit, role, unknownFutureValue." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="authenticationMethodsRegistrationCampaign">
         <Property Name="excludeTargets" Type="Collection(graph.excludeTarget)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="Users and groups of users that are excluded from being prompted to set up the authentication method." />
@@ -18948,24 +19034,48 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Determines if the configured key enforcement is enabled." />
         </Property>
       </ComplexType>
+      <ComplexType Name="microsoftAuthenticatorFeatureSettings">
+        <Property Name="displayAppInformationRequiredState" Type="graph.authenticationMethodFeatureConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines whether the user's Authenticator app will show them the client app they are signing into." />
+        </Property>
+        <Property Name="displayLocationInformationRequiredState" Type="graph.authenticationMethodFeatureConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Determines whether the user's Authenticator app will show them the geographic location of where the authentication request originated from." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="registrationEnforcement">
         <Property Name="authenticationMethodsRegistrationCampaign" Type="graph.authenticationMethodsRegistrationCampaign">
           <Annotation Term="Org.OData.Core.V1.Description" String="Run campaigns to remind users to set up targeted authentication methods." />
         </Property>
       </ComplexType>
       <ComplexType Name="x509CertificateAuthenticationModeConfiguration">
-        <Property Name="rules" Type="Collection(graph.x509CertificateRule)" />
-        <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode" />
+        <Property Name="rules" Type="Collection(graph.x509CertificateRule)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Rules are configured in addition to the authentication mode to bind a specific x509CertificateRuleType to an x509CertificateAuthenticationMode. For example, bind the policyOID with identifier 1.32.132.343 to x509CertificateMultiFactor authentication mode." />
+        </Property>
+        <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of strong authentication mode. The possible values are: x509CertificateSingleFactor, x509CertificateMultiFactor, unknownFutureValue." />
+        </Property>
       </ComplexType>
       <ComplexType Name="x509CertificateRule">
-        <Property Name="identifier" Type="Edm.String" />
-        <Property Name="x509CertificateAuthenticationMode" Type="graph.x509CertificateAuthenticationMode" />
-        <Property Name="x509CertificateRuleType" Type="graph.x509CertificateRuleType" />
+        <Property Name="identifier" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the X.509 certificate. Required." />
+        </Property>
+        <Property Name="x509CertificateAuthenticationMode" Type="graph.x509CertificateAuthenticationMode">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of strong authentication mode. The possible values are: x509CertificateSingleFactor, x509CertificateMultiFactor, unknownFutureValue. Required." />
+        </Property>
+        <Property Name="x509CertificateRuleType" Type="graph.x509CertificateRuleType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the X.509 certificate mode configuration rule. The possible values are: issuerSubject, policyOID, unknownFutureValue. Required." />
+        </Property>
       </ComplexType>
       <ComplexType Name="x509CertificateUserBinding">
-        <Property Name="priority" Type="Edm.Int32" Nullable="false" />
-        <Property Name="userProperty" Type="Edm.String" />
-        <Property Name="x509CertificateField" Type="Edm.String" />
+        <Property Name="priority" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The priority of the binding. Azure AD uses the binding with the highest priority. This value must be a non-negative integer and unique in the collection of objects in the certificateUserBindings property of an x509CertificateAuthenticationMethodConfiguration object. Required" />
+        </Property>
+        <Property Name="userProperty" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines the Azure AD user property of the user object to use for the binding. The possible values are: userPrincipalName, onPremisesUserPrincipalName, certificateUserIds. Required." />
+        </Property>
+        <Property Name="x509CertificateField" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The field on the X.509 certificate to use for the binding. The possible values are: PrincipalName, RFC822Name, SubjectKeyIdentifier, SHA1PublicKey." />
+        </Property>
       </ComplexType>
       <ComplexType Name="availabilityItem">
         <Property Name="endDateTime" Type="graph.dateTimeTimeZone" Nullable="false">
@@ -21695,6 +21805,17 @@
         </Property>
         <Property Name="termsOfUse" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of terms of use IDs required by the policy." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="conditionalAccessPolicyDetail">
+        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the type of conditions that govern when the policy applies." />
+        </Property>
+        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents grant controls that must be fulfilled for the policy." />
+        </Property>
+        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents a complex type of session controls that is enforced after sign-in." />
         </Property>
       </ComplexType>
       <ComplexType Name="conditionalAccessSessionControls">
@@ -25491,6 +25612,14 @@
         </Property>
         <Property Name="initiator" Type="graph.identitySet">
           <Annotation Term="Org.OData.Core.V1.Description" String="Initiator of the event." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="chatViewpoint">
+        <Property Name="isHidden" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the chat is hidden for the current user." />
+        </Property>
+        <Property Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the dateTime up until which the current user has read chatMessages in a specific chat." />
         </Property>
       </ComplexType>
       <ComplexType Name="conversationMemberRoleUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
@@ -33894,6 +34023,79 @@
           </Collection>
         </Annotation>
       </Action>
+      <Action Name="hideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="chat: hideForUser" />
+            <PropertyValue Property="LongDescription" String="Hide a chat for a user." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/chat-hideforuser?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
+      <Action Name="markChatReadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="chat: markChatReadForUser" />
+            <PropertyValue Property="LongDescription" String="Mark a chat as read for a user." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/chat-markchatreadforuser?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
+      <Action Name="markChatUnreadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Parameter Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="chat: markChatUnreadForUser" />
+            <PropertyValue Property="LongDescription" String="Mark a chat as unread for a user." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/chat-markchatunreadforuser?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
+      <Action Name="unhideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="chat: unhideForUser" />
+            <PropertyValue Property="LongDescription" String="Unhide a chat for a user." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/chat-unhideforuser?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
       <Action Name="sendActivityNotificationToRecipients" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamwork" />
         <Parameter Name="topic" Type="graph.teamworkActivityTopic" />
@@ -39647,6 +39849,25 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.riskDetection">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -46479,7 +46700,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List channel messages" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of messages (without the replies) in a channel of a team.  To get the replies for a message, call the list message replies or the get message reply API. " />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of messages (without the replies) in a channel of a team.  To get the replies for a message, call the list message replies or the get message reply API.  This method supports federation. To list channel messages in application context, the request must be made from the tenant that the channel owner belongs to (represented by the **tenantId** property on the channel)." />
           </Record>
         </Annotation>
       </Annotations>
@@ -47276,6 +47497,32 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.authentication/emailMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create emailMethod" />
+            <PropertyValue Property="LongDescription" String="Set a user's emailAuthenticationMethod object. Email authentication is a self-service password reset method. A user may only have one email authentication method." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authentication-post-emailmethods?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authentication-list-emailmethods?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List emailMethods" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of a user's emailAuthenticationMethod objects and their properties. This API will return only a single object in the collection as only one email method can be set for a user." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.authentication/microsoftAuthenticatorMethods">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -47328,7 +47575,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List chats" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of chats that the user is part of." />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of chats that the user is part of. This method supports federation. When a user ID is provided, the calling application must belong to the same tenant that the user belongs to." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
@@ -47576,22 +47823,6 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-delta?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/users/kim/authentication/emailMethods">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Create emailMethod" />
-            <PropertyValue Property="LongDescription" String="Set a user's emailAuthenticationMethod object. Email authentication is a self-service password reset method. A user may only have one email authentication method." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authentication-post-emailmethods?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -49418,6 +49649,12 @@
           <Record>
             <PropertyValue Property="Description" String="List subscribedSkus" />
             <PropertyValue Property="LongDescription" String="Get the list of commercial subscriptions that an organization has acquired. For the mapping of license names as displayed on the Azure portal or the Microsoft 365 admin center against their Microsoft Graph **skuId** and **skuPartNumber** properties, see Product names and service plan identifiers for licensing." />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Get subscribedSku" />
+                <PropertyValue Property="LongDescription" String="Get a specific commercial subscription that an organization has acquired." />
+              </Record>
+            </PropertyValue>
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
@@ -49425,6 +49662,10 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscribedsku-list?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscribedsku-get?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -50131,6 +50372,10 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/schemaextension-update?view=graph-rest-1.0" />
             </Record>
             <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/schemaextension-get?view=graph-rest-1.0" />
+            </Record>
+            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/schemaextension-delete?view=graph-rest-1.0" />
             </Record>
@@ -50140,6 +50385,11 @@
           <Record>
             <PropertyValue Property="Description" String="List schemaExtensions" />
             <PropertyValue Property="LongDescription" String="Get a list of schemaExtension objects in your tenant. The schema extensions can be `InDevelopment`, `Available`, or `Deprecated` and includes schema extensions:&#xA;+ Created by any apps you own in the current tenant.&#xA;+ Owned by other apps that are marked as `Available`.&#xA;+ Created by other developers from other tenants and marked as `Available`. This is different from other APIs that only return tenant-specific data. Extension data created based on schema extension definitions is tenant-specific and can only be accessed by apps explicitly granted permission. " />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Get schemaExtension" />
+              </Record>
+            </PropertyValue>
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -50153,21 +50403,6 @@
             <PropertyValue Property="Description" String="Delete schemaExtension" />
             <PropertyValue Property="LongDescription" String="Delete the definition of a schema extension. Only the app that created the schema extension (owner app) can delete the schema extension definition, and only when the extension is in the `InDevelopment` state. Deleting a schema extension definition does not affect accessing custom data that has been added to resource instances based on that definition." />
           </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/schemaExtensions/extcivhhslh_sbtest1">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Get schemaExtension" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/schemaextension-get?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groupLifecyclePolicies">
@@ -50334,11 +50569,11 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List chats" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of chats that the user is part of." />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of chats that the user is part of. This method supports federation. When a user ID is provided, the calling application must belong to the same tenant that the user belongs to." />
             <PropertyValue Property="ReadByKeyRestrictions">
               <Record>
                 <PropertyValue Property="Description" String="Get chat" />
-                <PropertyValue Property="LongDescription" String="Retrieve a single chat (without its messages)." />
+                <PropertyValue Property="LongDescription" String="Retrieve a single chat (without its messages). This method supports federation. To access a chat, at least one chat member must belong to the tenant the request initiated from." />
               </Record>
             </PropertyValue>
           </Record>
@@ -50398,7 +50633,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List members of a chat" />
-            <PropertyValue Property="LongDescription" String="List all conversation members in a chat." />
+            <PropertyValue Property="LongDescription" String="List all conversation members in a chat. This method supports federation. For one-on-one chats, at least one chat member must belong to the tenant the request initiates from. For group chats, the chat must be initiated by a user in the tenant the request initiates from." />
           </Record>
         </Annotation>
       </Annotations>
@@ -50428,7 +50663,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List messages in a chat" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of messages in a chat." />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of messages in a chat. This method supports federation. To list chat messages in application context, the request must be made from the tenant that the channel owner belongs to (represented by the **tenantId** property on the channel)." />
           </Record>
         </Annotation>
       </Annotations>
@@ -50588,7 +50823,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List channels" />
-            <PropertyValue Property="LongDescription" String="Retrieve the list of channels in this team." />
+            <PropertyValue Property="LongDescription" String="Retrieve the list of channels in this team. This method supports federation. Any shared channel that the request initiator belongs to will be included in the response." />
           </Record>
         </Annotation>
       </Annotations>
@@ -50634,7 +50869,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List members of a channel" />
-            <PropertyValue Property="LongDescription" String="Retrieve a list of conversationMembers from a channel." />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of conversationMembers from a channel. This method supports federation. Only a user who is a member of the shared channel can retrieve the channel member list." />
           </Record>
         </Annotation>
       </Annotations>
@@ -52154,6 +52389,22 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessRoot/templates">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List conditionalAccessTemplates" />
+            <PropertyValue Property="LongDescription" String="Get a list of the conditionalAccessTemplate objects and their properties." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/conditionalaccessroot-list-templates?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityContainer/identityProviders">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -52439,22 +52690,6 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-list-agreementacceptances?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.authentication/emailMethods">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="List emailMethods" />
-            <PropertyValue Property="LongDescription" String="Retrieve a list of a user's emailAuthenticationMethod objects and their properties. This API will return only a single object in the collection as only one email method can be set for a user." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/authentication-list-emailmethods?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -54835,6 +55070,42 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/x509Certificate">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete x509CertificateAuthenticationMethodConfiguration" />
+            <PropertyValue Property="LongDescription" String="Delete the tenant-customized x509CertificateAuthenticationMethodConfiguration object and restore the default configuration." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/x509certificateauthenticationmethodconfiguration-delete?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/x509certificateauthenticationmethodconfiguration-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/x509certificateauthenticationmethodconfiguration-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Update x509CertificateAuthenticationMethodConfiguration" />
+            <PropertyValue Property="LongDescription" String="Update the properties of the X.509 certificate authentication method." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get x509CertificateAuthenticationMethodConfiguration" />
+            <PropertyValue Property="LongDescription" String="Read the configuration details for the X.509 certificate authentication method in the authentication methods policy." />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.policyRoot/authorizationPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
@@ -56931,7 +57202,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Get plannerPlanDetails" />
-            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of **plannerplandetails** object." />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of a **plannerPlanDetails** object." />
           </Record>
         </Annotation>
       </Annotations>
