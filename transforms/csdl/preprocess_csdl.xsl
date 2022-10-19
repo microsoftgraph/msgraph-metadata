@@ -432,6 +432,10 @@
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/>
 
+    <!-- Replace graph.report return type with Edm.Stream return type -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:ReturnType[@Type='graph.report']]/edm:ReturnType/@Type">
+       <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
+    </xsl:template>
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
