@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
   <edmx:DataServices>
     <Schema Namespace="microsoft.graph" Alias="graph" xmlns="http://docs.oasis-open.org/odata/ns/edm">
@@ -1402,6 +1401,10 @@
         <Property Name="chatDisplayName" Type="Edm.String" />
         <Property Name="chatId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
+      </ComplexType>
+      <ComplexType Name="chatViewpoint">
+        <Property Name="isHidden" Type="Edm.Boolean" />
+        <Property Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="choiceColumn">
         <Property Name="allowTextEntry" Type="Edm.Boolean" />
@@ -3253,8 +3256,10 @@
         <Property Name="onlineMeetingInfo" Type="graph.teamworkOnlineMeetingInfo" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="topic" Type="Edm.String" />
+        <Property Name="viewpoint" Type="graph.chatViewpoint" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.teamsAppInstallation)" ContainsTarget="true" />
+        <NavigationProperty Name="lastMessagePreview" Type="graph.chatMessageInfo" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
         <NavigationProperty Name="pinnedMessages" Type="Collection(graph.pinnedChatMessageInfo)" ContainsTarget="true" />
@@ -3286,6 +3291,14 @@
         <NavigationProperty Name="replies" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
+      <EntityType Name="chatMessageInfo" BaseType="graph.entity">
+        <Property Name="body" Type="graph.itemBody" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="eventDetail" Type="graph.eventMessageDetail" />
+        <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
+        <Property Name="isDeleted" Type="Edm.Boolean" />
+        <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
+      </EntityType>
       <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="classificationJobResponse" BaseType="graph.jobResponseBase">
         <Property Name="result" Type="graph.detectedSensitiveContentWrapper" />
@@ -5137,6 +5150,10 @@
         <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
+      <Action Name="hideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
       <Action Name="instantiate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applicationTemplate" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
@@ -5159,6 +5176,15 @@
         <Parameter Name="values" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="resultColumnNames" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="markChatReadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
+      <Action Name="markChatUnreadForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+        <Parameter Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
       </Action>
       <Action Name="move" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
@@ -5357,6 +5383,10 @@
       </Action>
       <Action Name="unfollow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
+      </Action>
+      <Action Name="unhideForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
       </Action>
       <Action Name="unsubscribeByMail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
