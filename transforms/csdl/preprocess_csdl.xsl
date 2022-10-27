@@ -432,8 +432,8 @@
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/>
 
-    <!-- Replace graph.report return type with Edm.Stream return type -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:ReturnType[@Type='graph.report']]/edm:ReturnType/@Type">
+    <!-- Replace graph.report return type with Edm.Stream return type for report functions that start with 'get' -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[starts-with(@Name, 'get')][edm:ReturnType[@Type='graph.report']]/edm:ReturnType/@Type">
        <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
     </xsl:template>
 
