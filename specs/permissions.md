@@ -167,18 +167,31 @@ The "userConsentDescription" member is a REQUIRED string that describes the perm
 ### requiresAdminConsent
 The "requiresAdminConsent" member is a boolean value with a default value of false. When true, this permission can only be consented by an adminstrator.
 
-## <a name="pathObject"></a>Path Object
-The path object contains properties that affect how the permission object controls access to resource identified by the key of the path object.
+## <a name="pathMember"></a>Path Member
+The path member value contains metadata that affect how the permission object controls access to the resource identified by the key of the path member.
 
 ```json
 "paths": {
-  "/me/activities/{id}": {
-    "leastPrivilegePermission": ["DelegatedWork", "DelegatedPersonal"]
+  "/me/activities/{id}": "least=DelegatedWork,DelegatedPersonal"
   }
 ```
 
-### leastPrivilegePermission
-The "leastPrivilegePermission" member is an array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
+The syntax of the path value is as follows:
+
+```
+pathValue = keyValuePair *( ";" *SP keyValuePair )
+keyValuePair = key "=" value
+key = 1*char
+value = 1*char
+char = DIGIT / ALPHA
+```
+The definition of SP, DIGIT and ALPHA can be found in [RFC5234](https://www.rfc-editor.org/rfc/rfc5234.html#appendix-B) 
+
+### least metadata
+The `least` metadata value is a comma delimited array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
+
+
+Currently the only defined metadata key for the path member is `least`. In the future, new keys may be added.
 
 ## Appendix A. Model Diagram
 
