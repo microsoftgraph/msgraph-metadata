@@ -1,3 +1,4 @@
+
 # Permissions for HTTP APIs 
 
 ## Abstract
@@ -224,7 +225,7 @@ classDiagram
     PathSet "1" --> "*" Path:paths
 
     class Path{
-        leastPrivilegePermission: string[]
+        string
     }
 
     class Scheme{
