@@ -93,6 +93,10 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- Remove Entity -->
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='cloudPcSharedUseServicePlan']"/>
+
     <!-- Remove Property -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='changeNotification']/edm:Property[@Name='sequenceNumber']"/>
@@ -100,7 +104,8 @@
     <!-- Remove NavigationProperty -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='approval']/edm:NavigationProperty[@Name='request']"/>
-
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='virtualEndpoint']/edm:NavigationProperty[@Name='sharedUseServicePlans']"/>
+    
     <!-- Remove all capability annotations -->
 
     <xsl:template match="*[starts-with(@Term, 'Org.OData.Capabilities')]">
