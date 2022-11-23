@@ -386,6 +386,12 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="shared" Value="3" />
       </EnumType>
+      <EnumType Name="chatMessageActions" IsFlags="true">
+        <Member Name="reactionAdded" Value="1" />
+        <Member Name="reactionRemoved" Value="2" />
+        <Member Name="actionUndefined" Value="4" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
         <Member Name="high" Value="1" />
@@ -1025,6 +1031,17 @@
         <Member Name="active" Value="0" />
         <Member Name="delinked" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="plannerCreationSourceKind">
+        <Member Name="none" Value="0" />
+        <Member Name="external" Value="1" />
+        <Member Name="publication" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="plannerExternalTaskSourceDisplayType">
+        <Member Name="none" Value="1" />
+        <Member Name="default" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="plannerPlanContextType">
         <Member Name="teamsTab" Value="1" />
@@ -2282,6 +2299,12 @@
         <Property Name="channelId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
+      <ComplexType Name="channelSummary">
+        <Property Name="guestsCount" Type="Edm.Int32" />
+        <Property Name="hasMembersFromOtherTenants" Type="Edm.Boolean" />
+        <Property Name="membersCount" Type="Edm.Int32" />
+        <Property Name="ownersCount" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="channelUnsetAsFavoriteByDefaultEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="channelId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
@@ -2299,6 +2322,11 @@
         <Property Name="thumbnailUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
+      <ComplexType Name="chatMessageHistoryItem">
+        <Property Name="actions" Type="graph.chatMessageActions" Nullable="false" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reaction" Type="graph.chatMessageReaction" />
+      </ComplexType>
       <ComplexType Name="chatMessageMention">
         <Property Name="id" Type="Edm.Int32" />
         <Property Name="mentioned" Type="graph.chatMessageMentionedIdentitySet" />
@@ -2983,6 +3011,9 @@
         <Property Name="messageLanguage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="ipRange" Abstract="true" />
+      <ComplexType Name="ipSegmentConfiguration" BaseType="graph.segmentConfiguration">
+        <NavigationProperty Name="applicationSegments" Type="Collection(graph.ipApplicationSegment)" ContainsTarget="true" />
+      </ComplexType>
       <ComplexType Name="iPv4CidrRange" BaseType="graph.ipRange">
         <Property Name="cidrAddress" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -3402,6 +3433,7 @@
         <Property Name="isTranslateHostHeaderEnabled" Type="Edm.Boolean" />
         <Property Name="isTranslateLinksInBodyEnabled" Type="Edm.Boolean" />
         <Property Name="onPremisesApplicationSegments" Type="Collection(graph.onPremisesApplicationSegment)" />
+        <Property Name="segmentsConfiguration" Type="graph.segmentConfiguration" />
         <Property Name="singleSignOnSettings" Type="graph.onPremisesPublishingSingleSignOn" />
         <Property Name="useAlternateUrlForTranslationAndRedirect" Type="Edm.Boolean" />
         <Property Name="verifiedCustomDomainCertificatesMetadata" Type="graph.verifiedCustomDomainCertificatesMetadata" />
@@ -3556,6 +3588,9 @@
         <Property Name="orderHint" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerAssignments" OpenType="true" />
+      <ComplexType Name="plannerBucketCreation" Abstract="true">
+        <Property Name="creationSourceKind" Type="graph.plannerCreationSourceKind" />
+      </ComplexType>
       <ComplexType Name="plannerCategoryDescriptions">
         <Property Name="category1" Type="Edm.String" />
         <Property Name="category10" Type="Edm.String" />
@@ -3591,6 +3626,16 @@
         <Property Name="title" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerChecklistItems" OpenType="true" />
+      <ComplexType Name="plannerExternalBucketSource" BaseType="graph.plannerBucketCreation">
+        <Property Name="contextScenarioId" Type="Edm.String" />
+        <Property Name="externalContextId" Type="Edm.String" />
+        <Property Name="externalObjectId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="plannerExternalPlanSource" BaseType="graph.plannerPlanCreation">
+        <Property Name="contextScenarioId" Type="Edm.String" />
+        <Property Name="externalContextId" Type="Edm.String" />
+        <Property Name="externalObjectId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="plannerExternalReference">
         <Property Name="alias" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
@@ -3599,6 +3644,15 @@
         <Property Name="type" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerExternalReferences" OpenType="true" />
+      <ComplexType Name="plannerExternalTaskSource" BaseType="graph.plannerTaskCreation">
+        <Property Name="contextScenarioId" Type="Edm.String" />
+        <Property Name="displayLinkType" Type="graph.plannerExternalTaskSourceDisplayType" />
+        <Property Name="displayNameSegments" Type="Collection(Edm.String)" />
+        <Property Name="externalContextId" Type="Edm.String" />
+        <Property Name="externalObjectId" Type="Edm.String" />
+        <Property Name="externalObjectVersion" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="plannerFavoritePlanReference">
         <Property Name="orderHint" Type="Edm.String" />
         <Property Name="planTitle" Type="Edm.String" />
@@ -3606,9 +3660,9 @@
       <ComplexType Name="plannerFavoritePlanReferenceCollection" OpenType="true" />
       <ComplexType Name="plannerOrderHintsByAssignee" OpenType="true" />
       <ComplexType Name="plannerPlanContainer">
-        <Property Name="containerId" Type="Edm.String" Nullable="false" />
-        <Property Name="type" Type="graph.plannerContainerType" Nullable="false" />
-        <Property Name="url" Type="Edm.String" Nullable="false" />
+        <Property Name="containerId" Type="Edm.String" />
+        <Property Name="type" Type="graph.plannerContainerType" />
+        <Property Name="url" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerPlanContext">
         <Property Name="associationType" Type="Edm.String" />
@@ -3625,15 +3679,19 @@
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerPlanContextDetailsCollection" OpenType="true" />
+      <ComplexType Name="plannerPlanCreation" Abstract="true">
+        <Property Name="creationSourceKind" Type="graph.plannerCreationSourceKind" />
+      </ComplexType>
       <ComplexType Name="plannerRecentPlanReference">
         <Property Name="lastAccessedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="planTitle" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerRecentPlanReferenceCollection" OpenType="true" />
       <ComplexType Name="plannerTaskCreation">
+        <Property Name="creationSourceKind" Type="graph.plannerCreationSourceKind" />
         <Property Name="teamsPublicationInfo" Type="graph.plannerTeamsPublicationInfo" />
       </ComplexType>
-      <ComplexType Name="plannerTeamsPublicationInfo">
+      <ComplexType Name="plannerTeamsPublicationInfo" BaseType="graph.plannerTaskCreation">
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="publicationId" Type="Edm.String" />
         <Property Name="publishedToPlanId" Type="Edm.String" />
@@ -3984,6 +4042,7 @@
         <Property Name="subProvider" Type="Edm.String" />
         <Property Name="vendor" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="segmentConfiguration" />
       <ComplexType Name="selfSignedCertificate">
         <Property Name="customKeyIdentifier" Type="Edm.Binary" />
         <Property Name="displayName" Type="Edm.String" />
@@ -4699,6 +4758,9 @@
         <Property Name="oauth2AllowImplicitFlow" Type="Edm.Boolean" />
         <Property Name="redirectUris" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="webSegmentConfiguration" BaseType="graph.segmentConfiguration">
+        <NavigationProperty Name="applicationSegments" Type="Collection(graph.webApplicationSegment)" ContainsTarget="true" />
+      </ComplexType>
       <ComplexType Name="website">
         <Property Name="address" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -5162,6 +5224,7 @@
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
       </EntityType>
+      <EntityType Name="applicationSegment" BaseType="graph.entity" Abstract="true" />
       <EntityType Name="applicationSignInDetailedSummary" BaseType="graph.entity">
         <Property Name="aggregatedEventDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="appDisplayName" Type="Edm.String" Nullable="false" />
@@ -5307,6 +5370,9 @@
         <Property Name="guestUserRoleId" Type="Edm.Guid" />
         <Property Name="permissionGrantPolicyIdsAssignedToDefaultUserRole" Type="Collection(Edm.String)" />
       </EntityType>
+      <EntityType Name="azureCommunicationServicesUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="azureCommunicationServicesId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="baseItem" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -5401,6 +5467,7 @@
         <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
         <Property Name="membershipType" Type="graph.channelMembershipType" />
         <Property Name="moderationSettings" Type="graph.channelModerationSettings" />
+        <Property Name="summary" Type="graph.channelSummary" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
@@ -5442,6 +5509,7 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="locale" Type="Edm.String" Nullable="false" />
         <Property Name="mentions" Type="Collection(graph.chatMessageMention)" />
+        <Property Name="messageHistory" Type="Collection(graph.chatMessageHistoryItem)" />
         <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
         <Property Name="onBehalfOf" Type="graph.chatMessageFromIdentitySet" />
         <Property Name="policyViolation" Type="graph.chatMessagePolicyViolation" />
@@ -5616,6 +5684,13 @@
         <Property Name="toRecipients" Type="Collection(graph.recipient)" Nullable="false" />
         <Property Name="uniqueSenders" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="posts" Type="Collection(graph.post)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="corsConfiguration_v2" BaseType="graph.entity">
+        <Property Name="allowedHeaders" Type="Collection(Edm.String)" />
+        <Property Name="allowedMethods" Type="Collection(Edm.String)" />
+        <Property Name="allowedOrigins" Type="Collection(Edm.String)" />
+        <Property Name="maxAgeInSeconds" Type="Edm.Int32" />
+        <Property Name="resource" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
@@ -6308,6 +6383,10 @@
         <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="invitedUser" Type="graph.user" />
       </EntityType>
+      <EntityType Name="ipApplicationSegment" BaseType="graph.applicationSegment">
+        <Property Name="destinationHost" Type="Edm.String" />
+        <Property Name="port" Type="Edm.Int32" />
+      </EntityType>
       <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
         <Property Name="ipRanges" Type="Collection(graph.ipRange)" Nullable="false" />
         <Property Name="isTrusted" Type="Edm.Boolean" Nullable="false" />
@@ -6546,6 +6625,7 @@
       </EntityType>
       <EntityType Name="onPremisesPublishingProfile" BaseType="graph.entity">
         <Property Name="hybridAgentUpdaterConfiguration" Type="graph.hybridAgentUpdaterConfiguration" />
+        <Property Name="isDefaultAccessEnabled" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <NavigationProperty Name="agentGroups" Type="Collection(graph.onPremisesAgentGroup)" ContainsTarget="true" />
         <NavigationProperty Name="agents" Type="Collection(graph.onPremisesAgent)" ContainsTarget="true" />
@@ -6818,6 +6898,7 @@
         <Property Name="unassignedOrderHint" Type="Edm.String" />
       </EntityType>
       <EntityType Name="plannerBucket" BaseType="graph.plannerDelta">
+        <Property Name="creationSource" Type="graph.plannerBucketCreation" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="orderHint" Type="Edm.String" />
         <Property Name="planId" Type="Edm.String" />
@@ -6835,6 +6916,7 @@
         <Property Name="contexts" Type="graph.plannerPlanContextCollection" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="creationSource" Type="graph.plannerPlanCreation" />
         <Property Name="owner" Type="Edm.String" />
         <Property Name="title" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" />
@@ -8056,6 +8138,12 @@
         <Property Name="userId" Type="Edm.String" Nullable="false" />
         <Property Name="webUrl" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="webApplicationSegment" BaseType="graph.applicationSegment">
+        <Property Name="alternateUrl" Type="Edm.String" />
+        <Property Name="externalUrl" Type="Edm.String" />
+        <Property Name="internalUrl" Type="Edm.String" />
+        <NavigationProperty Name="corsConfigurations" Type="Collection(graph.corsConfiguration_v2)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="workPosition" BaseType="graph.itemFacet">
         <Property Name="categories" Type="Collection(Edm.String)" />
         <Property Name="colleagues" Type="Collection(graph.relatedPerson)" />
@@ -8213,15 +8301,6 @@
         <Parameter Name="bindingParameter" Type="graph.dataClassificationService" />
         <Parameter Name="file" Type="Edm.Stream" />
         <Parameter Name="sensitiveTypeIds" Type="Collection(Edm.String)" Unicode="false" />
-        <ReturnType Type="graph.classificationJobResponse" />
-      </Action>
-      <Action Name="classifyText" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.dataClassificationService" />
-        <Parameter Name="text" Type="Edm.String" Unicode="false" />
-        <Parameter Name="fileExtension" Type="Edm.String" Unicode="false" />
-        <Parameter Name="sensitiveTypeIds" Type="Collection(Edm.String)" Unicode="false" />
-        <Parameter Name="scopesToRun" Type="graph.sensitiveTypeScope" />
-        <Parameter Name="matchTolerancesToInclude" Type="graph.mlClassificationMatchTolerance" />
         <ReturnType Type="graph.classificationJobResponse" />
       </Action>
       <Action Name="clone" IsBound="true">
@@ -11221,6 +11300,20 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.onPremisesApplicationSegment">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-06-01" />
+              <PropertyValue Property="Description" String="The onPremisesApplicationSegment type is deprecated and will being used on June 01, 2023. Please use the new applicationSegment type." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2023-06-01" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.orgContact">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -11329,7 +11422,7 @@
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
             <Record>
-              <PropertyValue Property="Date" Date="2020-08-20" />
+              <PropertyValue Property="Date" Date="2021-02-20" />
               <PropertyValue Property="Description" String="The Outlook tasks API is deprecated and will stop returning data on February 20, 2023. Please use the new To Do API. For more details, please visit https://developer.microsoft.com/en-us/office/blogs/announcing-the-general-availability-of-microsoft-to-do-apis-on-graph/" />
               <PropertyValue Property="Kind">
                 <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
@@ -11359,7 +11452,7 @@
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
             <Record>
-              <PropertyValue Property="Date" Date="2020-08-20" />
+              <PropertyValue Property="Date" Date="2021-02-20" />
               <PropertyValue Property="Description" String="The Outlook tasks API is deprecated and will stop returning data on February 20, 2023. Please use the new To Do API. For more details, please visit https://developer.microsoft.com/en-us/office/blogs/announcing-the-general-availability-of-microsoft-to-do-apis-on-graph/" />
               <PropertyValue Property="Kind">
                 <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
@@ -11389,7 +11482,7 @@
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
             <Record>
-              <PropertyValue Property="Date" Date="2020-08-20" />
+              <PropertyValue Property="Date" Date="2021-02-20" />
               <PropertyValue Property="Description" String="The Outlook tasks API is deprecated and will stop returning data on February 20, 2023. Please use the new To Do API. For more details, please visit https://developer.microsoft.com/en-us/office/blogs/announcing-the-general-availability-of-microsoft-to-do-apis-on-graph/" />
               <PropertyValue Property="Kind">
                 <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
