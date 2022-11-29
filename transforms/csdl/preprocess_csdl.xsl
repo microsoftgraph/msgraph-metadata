@@ -913,6 +913,31 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+         <xsl:call-template name="UpdateRestrictionsTemplate">
+            <xsl:with-param name="updatable">true</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="InsertRestrictionsTemplate">
+             <xsl:with-param name="insertable">true</xsl:with-param>
+          </xsl:call-template>
+       </xsl:copy>
+    </xsl:template>
+    
+    <!-- Add FilterRestrictions to directorySetting entity type -->
+     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+           <xsl:attribute name="Target">microsoft.graph.directorySetting</xsl:attribute>
+             <xsl:call-template name="FilterRestrictionsTemplate">
+               <xsl:with-param name="filterable">false</xsl:with-param>
+             </xsl:call-template>
+       </xsl:copy>
+    </xsl:template>
+
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
