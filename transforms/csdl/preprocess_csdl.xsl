@@ -692,6 +692,18 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="FilterRestrictionsTemplate">
+        <xsl:param name = "filterable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.FilterRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Filterable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select="$filterable"/></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
 
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
@@ -729,6 +741,7 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
             <!-- Remove navigability for workbook navigation property -->
             <xsl:element name="Annotations">
                 <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
@@ -856,18 +869,32 @@
             </xsl:choose>
             
             <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
-                <xsl:call-template name="UpdateRestrictionsTemplate">
-                    <xsl:with-param name="updatable">true</xsl:with-param>
-                </xsl:call-template>
-            </xsl:element>
-            <xsl:element name="Annotations">
-               <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
-               <xsl:call-template name="InsertRestrictionsTemplate">
-                   <xsl:with-param name="insertable">true</xsl:with-param>
-               </xsl:call-template>
-           </xsl:element> 
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
+                       <xsl:call-template name="UpdateRestrictionsTemplate">
+                          <xsl:with-param name="updatable">true</xsl:with-param>
+                       </xsl:call-template>
+                       <xsl:call-template name="InsertRestrictionsTemplate">
+                           <xsl:with-param name="insertable">true</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>       
+            
+           <!-- Add FilterRestrictions to directorySetting entity type -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directorySetting'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.directorySetting</xsl:attribute>
+                       <xsl:call-template name="FilterRestrictionsTemplate">
+                           <xsl:with-param name="filterable">false</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+    
         </xsl:copy>
     </xsl:template>
 
@@ -884,6 +911,31 @@
                 <xsl:with-param name="navigable">false</xsl:with-param>
             </xsl:call-template>
         </xsl:copy>
+    </xsl:template>
+
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+         <xsl:call-template name="UpdateRestrictionsTemplate">
+            <xsl:with-param name="updatable">true</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="InsertRestrictionsTemplate">
+             <xsl:with-param name="insertable">true</xsl:with-param>
+          </xsl:call-template>
+       </xsl:copy>
+    </xsl:template>
+    
+    <!-- Add FilterRestrictions to directorySetting entity type -->
+     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+           <xsl:attribute name="Target">microsoft.graph.directorySetting</xsl:attribute>
+             <xsl:call-template name="FilterRestrictionsTemplate">
+               <xsl:with-param name="filterable">false</xsl:with-param>
+             </xsl:call-template>
+       </xsl:copy>
     </xsl:template>
 
     <!-- Remove directoryObject Capability Annotations -->
