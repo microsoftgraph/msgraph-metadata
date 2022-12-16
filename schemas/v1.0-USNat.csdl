@@ -115,6 +115,12 @@
         <Member Name="inOrganization" Value="0" />
         <Member Name="notInOrganization" Value="1" />
       </EnumType>
+      <EnumType Name="advancedConfigState">
+        <Member Name="default" Value="0" />
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -187,6 +193,15 @@
         <Member Name="required" Value="0" />
         <Member Name="optional" Value="1" />
         <Member Name="resource" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationMethodState">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+      </EnumType>
+      <EnumType Name="authenticationMethodTargetType">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="authenticationProtocol">
         <Member Name="wsFed" Value="0" />
@@ -428,6 +443,11 @@
         <Member Name="enforceMfaByFederatedIdp" Value="1" />
         <Member Name="rejectMfaByFederatedIdp" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="fido2RestrictionEnforcementType">
+        <Member Name="allow" Value="0" />
+        <Member Name="block" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="fileHashType">
         <Member Name="unknown" Value="0" />
@@ -974,6 +994,16 @@
         <Member Name="third" Value="2" />
         <Member Name="fourth" Value="3" />
         <Member Name="last" Value="4" />
+      </EnumType>
+      <EnumType Name="x509CertificateAuthenticationMode">
+        <Member Name="x509CertificateSingleFactor" Value="0" />
+        <Member Name="x509CertificateMultiFactor" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="x509CertificateRuleType">
+        <Member Name="issuerSubject" Value="0" />
+        <Member Name="policyOID" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <ComplexType Name="aadUserConversationMemberResult" BaseType="graph.actionResultPart">
         <Property Name="userId" Type="Edm.String" />
@@ -1696,6 +1726,11 @@
         <Property Name="issuerUri" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="externalSponsors" BaseType="graph.subjectSet" />
+      <ComplexType Name="fido2KeyRestrictions">
+        <Property Name="aaGuids" Type="Collection(Edm.String)" />
+        <Property Name="enforcementType" Type="graph.fido2RestrictionEnforcementType" />
+        <Property Name="isEnforced" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="file">
         <Property Name="hashes" Type="graph.hashes" />
         <Property Name="mimeType" Type="Edm.String" />
@@ -2825,6 +2860,20 @@
         <Property Name="startTime" Type="Edm.TimeOfDay" />
         <Property Name="timeZone" Type="graph.timeZoneBase" />
       </ComplexType>
+      <ComplexType Name="x509CertificateAuthenticationModeConfiguration">
+        <Property Name="rules" Type="Collection(graph.x509CertificateRule)" />
+        <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode" />
+      </ComplexType>
+      <ComplexType Name="x509CertificateRule">
+        <Property Name="identifier" Type="Edm.String" />
+        <Property Name="x509CertificateAuthenticationMode" Type="graph.x509CertificateAuthenticationMode" />
+        <Property Name="x509CertificateRuleType" Type="graph.x509CertificateRuleType" />
+      </ComplexType>
+      <ComplexType Name="x509CertificateUserBinding">
+        <Property Name="priority" Type="Edm.Int32" Nullable="false" />
+        <Property Name="userProperty" Type="Edm.String" />
+        <Property Name="x509CertificateField" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="aadUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="email" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -3107,6 +3156,7 @@
         <Property Name="publicClient" Type="graph.publicClientApplication" />
         <Property Name="publisherDomain" Type="Edm.String" />
         <Property Name="requiredResourceAccess" Type="Collection(graph.requiredResourceAccess)" Nullable="false" />
+        <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
@@ -3172,6 +3222,21 @@
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="authenticationMethodConfiguration" BaseType="graph.entity" Abstract="true">
+        <Property Name="state" Type="graph.authenticationMethodState" />
+      </EntityType>
+      <EntityType Name="authenticationMethodsPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="policyVersion" Type="Edm.String" />
+        <Property Name="reconfirmationInDays" Type="Edm.Int32" />
+        <NavigationProperty Name="authenticationMethodConfigurations" Type="Collection(graph.authenticationMethodConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationMethodTarget" BaseType="graph.entity">
+        <Property Name="isRegistrationRequired" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
+      </EntityType>
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
         <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" />
         <Property Name="allowedToUseSSPR" Type="Edm.Boolean" />
@@ -3808,6 +3873,12 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="subject" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="fido2AuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="isAttestationEnforced" Type="Edm.Boolean" />
+        <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
+        <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="fieldValueSet" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="fileAttachment" BaseType="graph.attachment" HasStream="true">
         <Property Name="contentBytes" Type="Edm.Binary" />
@@ -4225,6 +4296,7 @@
       <EntityType Name="policyRoot">
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationMethodsPolicy" Type="graph.authenticationMethodsPolicy" ContainsTarget="true" />
         <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
@@ -4591,6 +4663,14 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="temporaryAccessPassAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="defaultLength" Type="Edm.Int32" />
+        <Property Name="defaultLifetimeInMinutes" Type="Edm.Int32" />
+        <Property Name="isUsableOnce" Type="Edm.Boolean" />
+        <Property Name="maximumLifetimeInMinutes" Type="Edm.Int32" />
+        <Property Name="minimumLifetimeInMinutes" Type="Edm.Int32" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="termsOfUseContainer" BaseType="graph.entity">
         <NavigationProperty Name="agreementAcceptances" Type="Collection(graph.agreementAcceptance)" ContainsTarget="true" />
         <NavigationProperty Name="agreements" Type="Collection(graph.agreement)" ContainsTarget="true" />
@@ -4869,6 +4949,11 @@
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="x509CertificateAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="authenticationModeConfiguration" Type="graph.x509CertificateAuthenticationModeConfiguration" />
+        <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
@@ -5376,6 +5461,9 @@
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="NewReminderTime" Type="graph.dateTimeTimeZone" Nullable="false" />
       </Action>
+      <Action Name="softDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chatMessage" />
+      </Action>
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
       </Action>
@@ -5403,6 +5491,9 @@
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
+      </Action>
+      <Action Name="undoSoftDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chatMessage" />
       </Action>
       <Action Name="unfollow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -5701,6 +5792,7 @@
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="applicationTemplates" EntityType="microsoft.graph.applicationTemplate" />
+        <EntitySet Name="authenticationMethodConfigurations" EntityType="microsoft.graph.authenticationMethodConfiguration" />
         <EntitySet Name="certificateBasedAuthConfiguration" EntityType="microsoft.graph.certificateBasedAuthConfiguration" />
         <EntitySet Name="chats" EntityType="microsoft.graph.chat" />
         <EntitySet Name="contacts" EntityType="microsoft.graph.orgContact">
@@ -5774,6 +5866,7 @@
         </EntitySet>
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
         <Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" />
+        <Singleton Name="authenticationMethodsPolicy" Type="microsoft.graph.authenticationMethodsPolicy" />
         <Singleton Name="branding" Type="microsoft.graph.organizationalBranding" />
         <Singleton Name="dataClassification" Type="microsoft.graph.dataClassificationService" />
         <Singleton Name="directory" Type="microsoft.graph.directory">
