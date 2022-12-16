@@ -77,6 +77,8 @@
         <Member Name="hidden" Value="9" />
         <Member Name="adminConfirmedUserCompromised" Value="10" />
         <Member Name="unknownFutureValue" Value="11" />
+        <Member Name="adminConfirmedServicePrincipalCompromised" Value="13" />
+        <Member Name="adminDismissedAllRiskForServicePrincipal" Value="14" />
         <Member Name="m365DAdminDismissedDetection" Value="12" />
       </EnumType>
       <EnumType Name="riskEventType">
@@ -771,6 +773,7 @@
         <Member Name="signin" Value="0" />
         <Member Name="user" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="servicePrincipal" Value="3" />
       </EnumType>
       <EnumType Name="cloudAppSecuritySessionControlType">
         <Member Name="mcasConfigured" Value="0" />
@@ -4733,6 +4736,20 @@
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <Annotation Term="OData.Community.Keys.V1.AlternateKeys">
+          <Collection>
+            <Record Type="OData.Community.Keys.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="OData.Community.Keys.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="appId" />
+                    <PropertyValue Property="Name" PropertyPath="appId" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <ComplexType Name="addIn">
         <Property Name="id" Type="Edm.Guid" />
@@ -5006,6 +5023,7 @@
         <Property Name="guestUserRoleId" Type="Edm.Guid" />
       </EntityType>
       <EntityType Name="crossTenantAccessPolicy" BaseType="graph.policyBase">
+        <Property Name="allowedCloudEndpoints" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="default" Type="graph.crossTenantAccessPolicyConfigurationDefault" ContainsTarget="true" />
         <NavigationProperty Name="partners" Type="Collection(graph.crossTenantAccessPolicyConfigurationPartner)" ContainsTarget="true" />
       </EntityType>
@@ -5082,7 +5100,7 @@
         <Property Name="key" Type="Edm.String" Nullable="false" />
         <Property Name="volumeType" Type="graph.volumeType" />
       </EntityType>
-      <EntityType Name="informationProtection" BaseType="graph.entity">
+      <EntityType Name="informationProtection">
         <NavigationProperty Name="bitlocker" Type="graph.bitlocker" ContainsTarget="true" />
         <NavigationProperty Name="threatAssessmentRequests" Type="Collection(graph.threatAssessmentRequest)" ContainsTarget="true" />
       </EntityType>
@@ -5589,6 +5607,8 @@
       </EntityType>
       <EntityType Name="security" BaseType="graph.entity">
         <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="alerts_v2" Type="Collection(microsoft.graph.security.alert)" ContainsTarget="true" />
+        <NavigationProperty Name="incidents" Type="Collection(microsoft.graph.security.incident)" ContainsTarget="true" />
         <NavigationProperty Name="attackSimulation" Type="graph.attackSimulationRoot" ContainsTarget="true" />
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
@@ -6091,6 +6111,20 @@
         <NavigationProperty Name="registeredUsers" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <Annotation Term="OData.Community.Keys.V1.AlternateKeys">
+          <Collection>
+            <Record Type="OData.Community.Keys.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="OData.Community.Keys.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="deviceId" />
+                    <PropertyValue Property="Name" PropertyPath="deviceId" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
@@ -6109,6 +6143,20 @@
         <Property Name="roleTemplateId" Type="Edm.String" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="scopedMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
+        <Annotation Term="OData.Community.Keys.V1.AlternateKeys">
+          <Collection>
+            <Record Type="OData.Community.Keys.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="OData.Community.Keys.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="roleTemplateId" />
+                    <PropertyValue Property="Name" PropertyPath="roleTemplateId" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="directoryRoleTemplate" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String" />
@@ -8280,6 +8328,10 @@
       <ComplexType Name="iPv6CidrRange" BaseType="graph.ipRange">
         <Property Name="cidrAddress" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="riskServicePrincipalActivity">
+        <Property Name="detail" Type="graph.riskDetail" />
+        <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="riskUserActivity">
         <Property Name="detail" Type="graph.riskDetail" />
         <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
@@ -8307,7 +8359,9 @@
       </EntityType>
       <EntityType Name="identityProtectionRoot">
         <NavigationProperty Name="riskDetections" Type="Collection(graph.riskDetection)" ContainsTarget="true" />
+        <NavigationProperty Name="riskyServicePrincipals" Type="Collection(graph.riskyServicePrincipal)" ContainsTarget="true" />
         <NavigationProperty Name="riskyUsers" Type="Collection(graph.riskyUser)" ContainsTarget="true" />
+        <NavigationProperty Name="servicePrincipalRiskDetections" Type="Collection(graph.servicePrincipalRiskDetection)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="riskDetection" BaseType="graph.entity">
         <Property Name="activity" Type="graph.activityType" />
@@ -8330,6 +8384,18 @@
         <Property Name="userId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="riskyServicePrincipal" BaseType="graph.entity">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isProcessing" Type="Edm.Boolean" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="riskLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="servicePrincipalType" Type="Edm.String" />
+        <NavigationProperty Name="history" Type="Collection(graph.riskyServicePrincipalHistoryItem)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="riskyUser" BaseType="graph.entity">
         <Property Name="isDeleted" Type="Edm.Boolean" />
         <Property Name="isProcessing" Type="Edm.Boolean" />
@@ -8341,9 +8407,35 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
         <NavigationProperty Name="history" Type="Collection(graph.riskyUserHistoryItem)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="servicePrincipalRiskDetection" BaseType="graph.entity">
+        <Property Name="activity" Type="graph.activityType" />
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="additionalInfo" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="correlationId" Type="Edm.String" />
+        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="keyIds" Type="Collection(Edm.String)" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="location" Type="graph.signInLocation" />
+        <Property Name="requestId" Type="Edm.String" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="riskEventType" Type="Edm.String" />
+        <Property Name="riskLevel" Type="graph.riskLevel" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="servicePrincipalDisplayName" Type="Edm.String" />
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
+      </EntityType>
       <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
         <Property Name="ipRanges" Type="Collection(graph.ipRange)" Nullable="false" />
         <Property Name="isTrusted" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="riskyServicePrincipalHistoryItem" BaseType="graph.riskyServicePrincipal">
+        <Property Name="activity" Type="graph.riskServicePrincipalActivity" />
+        <Property Name="initiatedBy" Type="Edm.String" />
       </EntityType>
       <EntityType Name="riskyUserHistoryItem" BaseType="graph.riskyUser">
         <Property Name="activity" Type="graph.riskUserActivity" />
@@ -8453,6 +8545,11 @@
       </EntityType>
       <ComplexType Name="identitySource" Abstract="true" />
       <ComplexType Name="azureActiveDirectoryTenant" BaseType="graph.identitySource">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="crossCloudAzureActiveDirectoryTenant" BaseType="graph.identitySource">
+        <Property Name="cloudInstance" Type="Edm.String" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
       </ComplexType>
@@ -11132,9 +11229,9 @@
       <ComplexType Name="plannerExternalReferences" OpenType="true" />
       <ComplexType Name="plannerOrderHintsByAssignee" OpenType="true" />
       <ComplexType Name="plannerPlanContainer">
-        <Property Name="containerId" Type="Edm.String" Nullable="false" />
-        <Property Name="type" Type="graph.plannerContainerType" Nullable="false" />
-        <Property Name="url" Type="Edm.String" Nullable="false" />
+        <Property Name="containerId" Type="Edm.String" />
+        <Property Name="type" Type="graph.plannerContainerType" />
+        <Property Name="url" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerUserIds" OpenType="true" />
       <EntityType Name="planner" BaseType="graph.entity">
@@ -12577,6 +12674,9 @@
         <Property Name="userId" Type="Edm.String" />
         <NavigationProperty Name="user" Type="graph.user" />
       </EntityType>
+      <EntityType Name="anonymousGuestConversationMember" BaseType="graph.conversationMember">
+        <Property Name="anonymousGuestId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="appCatalogs" BaseType="graph.entity">
         <NavigationProperty Name="teamsApps" Type="Collection(graph.teamsApp)" ContainsTarget="true" />
       </EntityType>
@@ -12643,6 +12743,16 @@
         <Property Name="contentType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
+      <EntityType Name="microsoftAccountUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="userId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="skypeForBusinessUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="skypeUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="skypeId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="teamsAppDefinition" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="description" Type="Edm.String" />
@@ -13144,6 +13254,10 @@
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
+      </Action>
+      <Action Name="promote" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="verify" IsBound="true" EntitySetPath="bindingParameter">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
@@ -16510,8 +16624,16 @@
         <ReturnType Type="Collection(graph.unifiedRoleEligibilityScheduleRequest)" />
       </Function>
       <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
+        <Parameter Name="servicePrincipalIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
         <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
+        <Parameter Name="servicePrincipalIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="dismiss" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
@@ -21547,6 +21669,54 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.alert">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.incident">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.alert">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -22739,12 +22909,60 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.riskyServicePrincipal">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.riskyUser">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
             <PropertyValue Property="Countable" Bool="true" />
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.servicePrincipalRiskDetection">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.riskyServicePrincipalHistoryItem">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
@@ -29667,7 +29885,67 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.authentication/fido2Methods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/microsoftAuthenticatorMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/passwordMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/softwareOathMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.authentication/temporaryAccessPassMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/windowsHelloForBusinessMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -29949,6 +30227,7 @@
         <Member Name="addToReviewSet" Value="5" />
         <Member Name="holdUpdate" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
+        <Member Name="purgeData" Value="8" />
       </EnumType>
       <EnumType Name="caseOperationStatus">
         <Member Name="notStarted" Value="0" />
@@ -29994,13 +30273,224 @@
         <Member Name="allCaseNoncustodialDataSources" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
       </EnumType>
+      <EnumType Name="purgeAreas" IsFlags="true">
+        <Member Name="mailboxes" Value="1" />
+        <Member Name="teamsMessages" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="purgeType">
+        <Member Name="recoverable" Value="0" />
+        <Member Name="permanentlyDeleted" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="sourceType" IsFlags="true">
         <Member Name="mailbox" Value="1" />
         <Member Name="site" Value="2" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="alertClassification" UnderlyingType="Edm.Byte">
+        <Member Name="unknown" Value="0" />
+        <Member Name="falsePositive" Value="10" />
+        <Member Name="truePositive" Value="20" />
+        <Member Name="informationalExpectedActivity" Value="30" />
+        <Member Name="unknownFutureValue" Value="39" />
+      </EnumType>
+      <EnumType Name="alertDetermination">
+        <Member Name="unknown" Value="0" />
+        <Member Name="apt" Value="10" />
+        <Member Name="malware" Value="20" />
+        <Member Name="securityPersonnel" Value="30" />
+        <Member Name="securityTesting" Value="40" />
+        <Member Name="unwantedSoftware" Value="50" />
+        <Member Name="other" Value="60" />
+        <Member Name="multiStagedAttack" Value="70" />
+        <Member Name="compromisedAccount" Value="80" />
+        <Member Name="phishing" Value="90" />
+        <Member Name="maliciousUserActivity" Value="100" />
+        <Member Name="notMalicious" Value="110" />
+        <Member Name="notEnoughDataToValidate" Value="120" />
+        <Member Name="confirmedActivity" Value="130" />
+        <Member Name="lineOfBusinessApplication" Value="140" />
+        <Member Name="unknownFutureValue" Value="149" />
+      </EnumType>
+      <EnumType Name="alertSeverity">
+        <Member Name="unknown" Value="0" />
+        <Member Name="informational" Value="32" />
+        <Member Name="low" Value="64" />
+        <Member Name="medium" Value="128" />
+        <Member Name="high" Value="256" />
+        <Member Name="unknownFutureValue" Value="511" />
+      </EnumType>
+      <EnumType Name="alertStatus">
+        <Member Name="unknown" Value="0" />
+        <Member Name="new" Value="2" />
+        <Member Name="inProgress" Value="4" />
+        <Member Name="resolved" Value="8" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="defenderAvStatus">
+        <Member Name="notReporting" Value="0" />
+        <Member Name="disabled" Value="1" />
+        <Member Name="notUpdated" Value="2" />
+        <Member Name="updated" Value="3" />
+        <Member Name="unknown" Value="4" />
+        <Member Name="notSupported" Value="1000" />
+        <Member Name="unknownFutureValue" Value="1023" />
+      </EnumType>
+      <EnumType Name="detectionSource">
+        <Member Name="unknown" Value="0" />
+        <Member Name="microsoftDefenderForEndpoint" Value="1" />
+        <Member Name="antivirus" Value="2" />
+        <Member Name="smartScreen" Value="4" />
+        <Member Name="customTi" Value="8" />
+        <Member Name="microsoftDefenderForOffice365" Value="512" />
+        <Member Name="automatedInvestigation" Value="1024" />
+        <Member Name="microsoftThreatExperts" Value="2048" />
+        <Member Name="customDetection" Value="4096" />
+        <Member Name="microsoftDefenderForIdentity" Value="8192" />
+        <Member Name="cloudAppSecurity" Value="16384" />
+        <Member Name="microsoft365Defender" Value="32768" />
+        <Member Name="azureAdIdentityProtection" Value="65536" />
+        <Member Name="manual" Value="262144" />
+        <Member Name="microsoftDataLossPrevention" Value="524288" />
+        <Member Name="appGovernancePolicy" Value="1048576" />
+        <Member Name="appGovernanceDetection" Value="2097152" />
+        <Member Name="unknownFutureValue" Value="4194303" />
+      </EnumType>
+      <EnumType Name="detectionStatus">
+        <Member Name="detected" Value="0" />
+        <Member Name="blocked" Value="1" />
+        <Member Name="prevented" Value="2" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="deviceHealthStatus">
+        <Member Name="active" Value="0" />
+        <Member Name="inactive" Value="1" />
+        <Member Name="impairedCommunication" Value="2" />
+        <Member Name="noSensorData" Value="3" />
+        <Member Name="noSensorDataImpairedCommunication" Value="4" />
+        <Member Name="unknown" Value="5" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="deviceRiskScore">
+        <Member Name="none" Value="0" />
+        <Member Name="informational" Value="5" />
+        <Member Name="low" Value="10" />
+        <Member Name="medium" Value="20" />
+        <Member Name="high" Value="30" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="evidenceRemediationStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="remediated" Value="1" />
+        <Member Name="prevented" Value="2" />
+        <Member Name="blocked" Value="3" />
+        <Member Name="notFound" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="evidenceRole">
+        <Member Name="unknown" Value="0" />
+        <Member Name="contextual" Value="1" />
+        <Member Name="scanned" Value="2" />
+        <Member Name="source" Value="3" />
+        <Member Name="destination" Value="4" />
+        <Member Name="created" Value="5" />
+        <Member Name="added" Value="6" />
+        <Member Name="compromised" Value="7" />
+        <Member Name="edited" Value="8" />
+        <Member Name="attacked" Value="9" />
+        <Member Name="attacker" Value="10" />
+        <Member Name="commandAndControl" Value="11" />
+        <Member Name="loaded" Value="12" />
+        <Member Name="suspicious" Value="13" />
+        <Member Name="policyViolator" Value="14" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="evidenceVerdict">
+        <Member Name="unknown" Value="0" />
+        <Member Name="suspicious" Value="1" />
+        <Member Name="malicious" Value="2" />
+        <Member Name="noThreatsFound" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="incidentStatus">
+        <Member Name="active" Value="1" />
+        <Member Name="resolved" Value="2" />
+        <Member Name="redirected" Value="64" />
+        <Member Name="unknownFutureValue" Value="127" />
+      </EnumType>
+      <EnumType Name="onboardingStatus">
+        <Member Name="insufficientInfo" Value="0" />
+        <Member Name="onboarded" Value="1" />
+        <Member Name="canBeOnboarded" Value="2" />
+        <Member Name="unsupported" Value="3" />
+        <Member Name="unknownFutureValue" Value="31" />
+      </EnumType>
+      <EnumType Name="serviceSource">
+        <Member Name="unknown" Value="0" />
+        <Member Name="microsoftDefenderForEndpoint" Value="1" />
+        <Member Name="microsoftDefenderForIdentity" Value="2" />
+        <Member Name="microsoftDefenderForCloudApps" Value="4" />
+        <Member Name="microsoftDefenderForOffice365" Value="8" />
+        <Member Name="microsoft365Defender" Value="16" />
+        <Member Name="azureAdIdentityProtection" Value="32" />
+        <Member Name="microsoftAppGovernance" Value="64" />
+        <Member Name="dataLossPrevention" Value="128" />
+        <Member Name="unknownFutureValue" Value="255" />
+      </EnumType>
+      <EnumType Name="vmCloudProvider">
+        <Member Name="unknown" Value="0" />
+        <Member Name="azure" Value="1" />
+        <Member Name="unknownFutureValue" Value="15" />
+      </EnumType>
       <EntityType Name="casesRoot" BaseType="graph.entity">
         <NavigationProperty Name="ediscoveryCases" Type="Collection(microsoft.graph.security.ediscoveryCase)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="alert" BaseType="graph.entity">
+        <Property Name="actorDisplayName" Type="Edm.String" />
+        <Property Name="alertWebUrl" Type="Edm.String" />
+        <Property Name="assignedTo" Type="Edm.String" />
+        <Property Name="category" Type="Edm.String" />
+        <Property Name="classification" Type="microsoft.graph.security.alertClassification" />
+        <Property Name="comments" Type="Collection(microsoft.graph.security.alertComment)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="detectionSource" Type="microsoft.graph.security.detectionSource" />
+        <Property Name="detectorId" Type="Edm.String" />
+        <Property Name="determination" Type="microsoft.graph.security.alertDetermination" />
+        <Property Name="evidence" Type="Collection(microsoft.graph.security.alertEvidence)" />
+        <Property Name="firstActivityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="incidentId" Type="Edm.String" />
+        <Property Name="incidentWebUrl" Type="Edm.String" />
+        <Property Name="lastActivityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastUpdateDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="mitreTechniques" Type="Collection(Edm.String)" />
+        <Property Name="providerAlertId" Type="Edm.String" />
+        <Property Name="recommendedActions" Type="Edm.String" />
+        <Property Name="resolvedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="serviceSource" Type="microsoft.graph.security.serviceSource" Nullable="false" />
+        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
+        <Property Name="status" Type="microsoft.graph.security.alertStatus" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="threatDisplayName" Type="Edm.String" />
+        <Property Name="threatFamilyName" Type="Edm.String" />
+        <Property Name="title" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="incident" BaseType="graph.entity">
+        <Property Name="assignedTo" Type="Edm.String" />
+        <Property Name="classification" Type="microsoft.graph.security.alertClassification" />
+        <Property Name="comments" Type="Collection(microsoft.graph.security.alertComment)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="customTags" Type="Collection(Edm.String)" />
+        <Property Name="determination" Type="microsoft.graph.security.alertDetermination" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="incidentWebUrl" Type="Edm.String" />
+        <Property Name="lastUpdateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="redirectIncidentId" Type="Edm.String" />
+        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
+        <Property Name="status" Type="microsoft.graph.security.incidentStatus" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <NavigationProperty Name="alerts" Type="Collection(microsoft.graph.security.alert)" />
       </EntityType>
       <ComplexType Name="ocrSettings">
         <Property Name="isEnabled" Type="Edm.Boolean" />
@@ -30143,8 +30633,168 @@
         <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch" />
       </EntityType>
       <EntityType Name="ediscoveryHoldOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <EntityType Name="ediscoveryPurgeDataOperation" BaseType="microsoft.graph.security.caseOperation" />
       <EntityType Name="ediscoveryReviewSetQuery" BaseType="microsoft.graph.security.search" />
       <EntityType Name="ediscoveryTagOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <ComplexType Name="alertComment">
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="createdByDisplayName" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="alertEvidence">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="remediationStatus" Type="microsoft.graph.security.evidenceRemediationStatus" Nullable="false" />
+        <Property Name="remediationStatusDetails" Type="Edm.String" />
+        <Property Name="roles" Type="Collection(microsoft.graph.security.evidenceRole)" Nullable="false" />
+        <Property Name="tags" Type="Collection(Edm.String)" />
+        <Property Name="verdict" Type="microsoft.graph.security.evidenceVerdict" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="analyzedMessageEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="antiSpamDirection" Type="Edm.String" />
+        <Property Name="attachmentsCount" Type="Edm.Int64" />
+        <Property Name="deliveryAction" Type="Edm.String" />
+        <Property Name="deliveryLocation" Type="Edm.String" />
+        <Property Name="internetMessageId" Type="Edm.String" />
+        <Property Name="language" Type="Edm.String" />
+        <Property Name="networkMessageId" Type="Edm.String" />
+        <Property Name="p1Sender" Type="microsoft.graph.security.emailSender" />
+        <Property Name="p2Sender" Type="microsoft.graph.security.emailSender" />
+        <Property Name="receivedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="recipientEmailAddress" Type="Edm.String" />
+        <Property Name="senderIp" Type="Edm.String" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="threatDetectionMethods" Type="Collection(Edm.String)" />
+        <Property Name="threats" Type="Collection(Edm.String)" />
+        <Property Name="urlCount" Type="Edm.Int64" />
+        <Property Name="urls" Type="Collection(Edm.String)" />
+        <Property Name="urn" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="emailSender">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="domainName" Type="Edm.String" />
+        <Property Name="emailAddress" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="cloudApplicationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="appId" Type="Edm.Int64" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="instanceId" Type="Edm.Int64" />
+        <Property Name="instanceName" Type="Edm.String" />
+        <Property Name="saasAppId" Type="Edm.Int64" />
+      </ComplexType>
+      <ComplexType Name="deviceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="azureAdDeviceId" Type="Edm.String" />
+        <Property Name="defenderAvStatus" Type="microsoft.graph.security.defenderAvStatus" />
+        <Property Name="deviceDnsName" Type="Edm.String" />
+        <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="healthStatus" Type="microsoft.graph.security.deviceHealthStatus" />
+        <Property Name="loggedOnUsers" Type="Collection(microsoft.graph.security.loggedOnUser)" />
+        <Property Name="mdeDeviceId" Type="Edm.String" />
+        <Property Name="onboardingStatus" Type="microsoft.graph.security.onboardingStatus" />
+        <Property Name="osBuild" Type="Edm.Int64" />
+        <Property Name="osPlatform" Type="Edm.String" />
+        <Property Name="rbacGroupId" Type="Edm.Int32" />
+        <Property Name="rbacGroupName" Type="Edm.String" />
+        <Property Name="riskScore" Type="microsoft.graph.security.deviceRiskScore" />
+        <Property Name="version" Type="Edm.String" />
+        <Property Name="vmMetadata" Type="microsoft.graph.security.vmMetadata" />
+      </ComplexType>
+      <ComplexType Name="loggedOnUser">
+        <Property Name="accountName" Type="Edm.String" />
+        <Property Name="domainName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="vmMetadata">
+        <Property Name="cloudProvider" Type="microsoft.graph.security.vmCloudProvider" Nullable="false" />
+        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="subscriptionId" Type="Edm.String" />
+        <Property Name="vmId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="fileDetails">
+        <Property Name="fileName" Type="Edm.String" />
+        <Property Name="filePath" Type="Edm.String" />
+        <Property Name="filePublisher" Type="Edm.String" />
+        <Property Name="fileSize" Type="Edm.Int64" />
+        <Property Name="issuer" Type="Edm.String" />
+        <Property Name="sha1" Type="Edm.String" />
+        <Property Name="sha256" Type="Edm.String" />
+        <Property Name="signer" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="fileEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="detectionStatus" Type="microsoft.graph.security.detectionStatus" />
+        <Property Name="fileDetails" Type="microsoft.graph.security.fileDetails" />
+        <Property Name="mdeDeviceId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="huntingQueryResults">
+        <Property Name="results" Type="Collection(microsoft.graph.security.huntingRowResult)" />
+        <Property Name="schema" Type="Collection(microsoft.graph.security.singlePropertySchema)" />
+      </ComplexType>
+      <ComplexType Name="huntingRowResult" OpenType="true" />
+      <ComplexType Name="singlePropertySchema">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="ipEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="countryLetterCode" Type="Edm.String" />
+        <Property Name="ipAddress" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="mailboxEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="primaryAddress" Type="Edm.String" />
+        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+      </ComplexType>
+      <ComplexType Name="userAccount">
+        <Property Name="accountName" Type="Edm.String" />
+        <Property Name="azureAdUserId" Type="Edm.String" />
+        <Property Name="domainName" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+        <Property Name="userSid" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="mailClusterEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="clusterBy" Type="Edm.String" />
+        <Property Name="clusterByValue" Type="Edm.String" />
+        <Property Name="emailCount" Type="Edm.Int64" />
+        <Property Name="networkMessageIds" Type="Collection(Edm.String)" />
+        <Property Name="query" Type="Edm.String" />
+        <Property Name="urn" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="oauthApplicationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="objectId" Type="Edm.String" />
+        <Property Name="publisher" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="processEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="detectionStatus" Type="microsoft.graph.security.detectionStatus" />
+        <Property Name="imageFile" Type="microsoft.graph.security.fileDetails" />
+        <Property Name="mdeDeviceId" Type="Edm.String" />
+        <Property Name="parentProcessCreationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="parentProcessId" Type="Edm.Int64" />
+        <Property Name="parentProcessImageFile" Type="microsoft.graph.security.fileDetails" />
+        <Property Name="processCommandLine" Type="Edm.String" />
+        <Property Name="processCreationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="processId" Type="Edm.Int64" />
+        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+      </ComplexType>
+      <ComplexType Name="registryKeyEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="registryHive" Type="Edm.String" />
+        <Property Name="registryKey" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="registryValueEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="registryHive" Type="Edm.String" />
+        <Property Name="registryKey" Type="Edm.String" />
+        <Property Name="registryValue" Type="Edm.String" />
+        <Property Name="registryValueName" Type="Edm.String" />
+        <Property Name="registryValueType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="securityGroupEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="securityGroupId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="urlEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="url" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+      </ComplexType>
       <Action Name="activate" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
       </Action>
@@ -30207,6 +30857,15 @@
       <Action Name="estimateStatistics" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
       </Action>
+      <Action Name="purgeData" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
+        <Parameter Name="purgeType" Type="microsoft.graph.security.purgeType">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="purgeAreas" Type="microsoft.graph.security.purgeAreas">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+      </Action>
       <Action Name="resetToDefault" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCaseSettings" />
       </Action>
@@ -30214,6 +30873,11 @@
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
         <ReturnType Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
       </Function>
+      <Action Name="runHuntingQuery" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.security" />
+        <Parameter Name="query" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="microsoft.graph.security.huntingQueryResults" />
+      </Action>
     </Schema>
     <Schema Namespace="microsoft.graph.termStore" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="relationType">
