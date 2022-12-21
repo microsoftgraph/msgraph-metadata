@@ -614,6 +614,20 @@
     </xsl:template>
 
     <!-- Capability Annotations Templates -->
+    <xsl:template name="ReadRestrictionsTemplate">
+        <xsl:param name = "readable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Readable</xsl:attribute>
+                    <xsl:attribute name="Bool">
+                        <xsl:value-of select = "$readable" />
+                    </xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="DeleteRestrictionsTemplate">
         <xsl:param name = "deletable" />
         <xsl:element name="Annotation">
@@ -881,9 +895,21 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>       
-            
-           <!-- Add FilterRestrictions to directorySetting entity type -->
+            </xsl:choose>
+
+            <!-- Remove readability for teams entity set -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.GraphService/teams</xsl:attribute>
+                        <xsl:call-template name="ReadRestrictionsTemplate">
+                            <xsl:with-param name="readable">false</xsl:with-param>
+                        </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+
+            <!-- Add FilterRestrictions to directorySetting entity type -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directorySetting'])">
                     <xsl:element name="Annotations">
