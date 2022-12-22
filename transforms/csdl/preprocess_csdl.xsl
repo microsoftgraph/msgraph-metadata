@@ -349,7 +349,6 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='driveItem']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='root']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='items']/@ContainsTarget|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='list']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drive']/@ContainsTarget|
