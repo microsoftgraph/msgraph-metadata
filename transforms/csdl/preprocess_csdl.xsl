@@ -616,6 +616,7 @@
     <!-- Capability Annotations Templates -->
     <xsl:template name="ReadRestrictionsTemplate">
         <xsl:param name = "readable" />
+        <xsl:param name = "readableByKey" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
@@ -624,6 +625,17 @@
                     <xsl:attribute name="Bool">
                         <xsl:value-of select = "$readable" />
                     </xsl:attribute>
+                </xsl:element>
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">ReadByKeyRestrictions</xsl:attribute>
+                    <xsl:element name="Record" namespace="{namespace-uri()}">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Readable</xsl:attribute>
+                            <xsl:attribute name="Bool">
+                                <xsl:value-of select = "$readableByKey" />
+                            </xsl:attribute>
+                        </xsl:element>
+                    </xsl:element>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -897,13 +909,14 @@
                 </xsl:when>
             </xsl:choose>
 
-            <!-- Remove readability for teams entity set -->
+            <!-- Remove readability only for teams entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams'])">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.GraphService/teams</xsl:attribute>
                         <xsl:call-template name="ReadRestrictionsTemplate">
                             <xsl:with-param name="readable">false</xsl:with-param>
+                            <xsl:with-param name="readableByKey">true</xsl:with-param>
                         </xsl:call-template>                        
                     </xsl:element>
                 </xsl:when>
