@@ -881,9 +881,26 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>       
+            </xsl:choose>
+
+            <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.GraphService/applicationTemplates</xsl:attribute>
+                        <xsl:call-template name="InsertRestrictionsTemplate">
+                            <xsl:with-param name="insertable">false</xsl:with-param>
+                        </xsl:call-template><xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="updatable">false</xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:call-template name="DeleteRestrictionsTemplate">
+                            <xsl:with-param name="deletable">false</xsl:with-param>
+                        </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
-           <!-- Add FilterRestrictions to directorySetting entity type -->
+            <!-- Add FilterRestrictions to directorySetting entity type -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directorySetting'])">
                     <xsl:element name="Annotations">
@@ -926,6 +943,23 @@
           </xsl:call-template>
        </xsl:copy>
     </xsl:template>
+
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates']">
+      <xsl:copy>
+        <xsl:copy-of select="@*|node()"/>
+          <xsl:call-template name="InsertRestrictionsTemplate">
+            <xsl:with-param name="insertable">false</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="UpdateRestrictionsTemplate">
+            <xsl:with-param name="updatable">false</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="DeleteRestrictionsTemplate">
+            <xsl:with-param name="deletable">false</xsl:with-param>
+          </xsl:call-template>
+      </xsl:copy>
+    </xsl:template>    
     
     <!-- Add FilterRestrictions to directorySetting entity type -->
      <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">
