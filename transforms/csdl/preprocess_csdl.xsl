@@ -965,6 +965,18 @@
           </xsl:call-template>
        </xsl:copy>
     </xsl:template>
+
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Remove readability only for teams entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/teams']">
+      <xsl:copy>
+        <xsl:copy-of select="@*|node()"/>
+           <xsl:call-template name="ReadRestrictionsTemplate">
+              <xsl:with-param name="readable">false</xsl:with-param>
+              <xsl:with-param name="readableByKey">true</xsl:with-param>
+           </xsl:call-template>
+      </xsl:copy>
+    </xsl:template>
     
     <!-- Add FilterRestrictions to directorySetting entity type -->
      <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">
