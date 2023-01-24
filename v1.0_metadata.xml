@@ -2104,6 +2104,48 @@
         <Member Name="Completed" Value="2" />
         <Member Name="Failed" Value="3" />
       </EnumType>
+      <EnumType Name="delegatedAdminAccessAssignmentStatus">
+        <Member Name="pending" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="deleting" Value="2" />
+        <Member Name="deleted" Value="3" />
+        <Member Name="error" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="delegatedAdminAccessContainerType">
+        <Member Name="securityGroup" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipOperationType">
+        <Member Name="delegatedAdminAccessAssignmentUpdate" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipRequestAction">
+        <Member Name="lockForApproval" Value="0" />
+        <Member Name="approve" Value="1" />
+        <Member Name="terminate" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipRequestStatus">
+        <Member Name="created" Value="0" />
+        <Member Name="pending" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipStatus">
+        <Member Name="activating" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="approvalPending" Value="2" />
+        <Member Name="approved" Value="3" />
+        <Member Name="created" Value="4" />
+        <Member Name="expired" Value="5" />
+        <Member Name="expiring" Value="6" />
+        <Member Name="terminated" Value="7" />
+        <Member Name="terminating" Value="8" />
+        <Member Name="terminationRequested" Value="9" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
       <EnumType Name="roleAssignmentScheduleFilterByCurrentUserOptions">
         <Member Name="principal" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
@@ -11518,6 +11560,67 @@
         <Property Name="content" Type="Edm.Stream" />
         <Property Name="contentUrl" Type="Edm.String" />
       </EntityType>
+      <ComplexType Name="delegatedAdminAccessContainer">
+        <Property Name="accessContainerId" Type="Edm.String" Nullable="false" />
+        <Property Name="accessContainerType" Type="graph.delegatedAdminAccessContainerType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdminAccessDetails">
+        <Property Name="unifiedRoles" Type="Collection(graph.unifiedRole)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="unifiedRole">
+        <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdminRelationshipCustomerParticipant">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <EntityType Name="delegatedAdminAccessAssignment" BaseType="graph.entity">
+        <Property Name="accessContainer" Type="graph.delegatedAdminAccessContainer" Nullable="false" />
+        <Property Name="accessDetails" Type="graph.delegatedAdminAccessDetails" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminAccessAssignmentStatus" />
+      </EntityType>
+      <EntityType Name="delegatedAdminCustomer" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="serviceManagementDetails" Type="Collection(graph.delegatedAdminServiceManagementDetail)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="delegatedAdminServiceManagementDetail" BaseType="graph.entity">
+        <Property Name="serviceManagementUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="serviceName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationship" BaseType="graph.entity">
+        <Property Name="accessDetails" Type="graph.delegatedAdminAccessDetails" Nullable="false" />
+        <Property Name="activatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="customer" Type="graph.delegatedAdminRelationshipCustomerParticipant" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="duration" Type="Edm.Duration" Nullable="false" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminRelationshipStatus" />
+        <NavigationProperty Name="accessAssignments" Type="Collection(graph.delegatedAdminAccessAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.delegatedAdminRelationshipOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="requests" Type="Collection(graph.delegatedAdminRelationshipRequest)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationshipOperation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="data" Type="Edm.String" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="operationType" Type="graph.delegatedAdminRelationshipOperationType" Nullable="false" />
+        <Property Name="status" Type="graph.longRunningOperationStatus" Nullable="false" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationshipRequest" BaseType="graph.entity">
+        <Property Name="action" Type="graph.delegatedAdminRelationshipRequestAction" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminRelationshipRequestStatus" />
+      </EntityType>
+      <EntityType Name="tenantRelationship">
+        <NavigationProperty Name="delegatedAdminCustomers" Type="Collection(graph.delegatedAdminCustomer)" ContainsTarget="true" />
+        <NavigationProperty Name="delegatedAdminRelationships" Type="Collection(graph.delegatedAdminRelationship)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="approvalSettings">
         <Property Name="approvalMode" Type="Edm.String" />
         <Property Name="approvalStages" Type="Collection(graph.unifiedApprovalStage)" />
@@ -12403,7 +12506,7 @@
         <Property Name="deviceTag" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="phoneAppVersion" Type="Edm.String" />
-        <NavigationProperty Name="device" Type="graph.device" ContainsTarget="true" />
+        <NavigationProperty Name="device" Type="graph.device" />
       </EntityType>
       <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -12430,7 +12533,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
-        <NavigationProperty Name="device" Type="graph.device" ContainsTarget="true" />
+        <NavigationProperty Name="device" Type="graph.device" />
       </EntityType>
       <ComplexType Name="changeNotification">
         <Property Name="changeType" Type="graph.changeType" Nullable="false" />
@@ -18173,6 +18276,7 @@
           <NavigationPropertyBinding Path="plans/buckets" Target="planner/buckets" />
           <NavigationPropertyBinding Path="plans/tasks" Target="planner/tasks" />
         </Singleton>
+        <Singleton Name="tenantRelationships" Type="microsoft.graph.tenantRelationship" />
         <Singleton Name="print" Type="microsoft.graph.print" />
         <Singleton Name="external" Type="microsoft.graph.externalConnectors.external" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
@@ -30508,6 +30612,7 @@
       <EnumType Name="incidentStatus">
         <Member Name="active" Value="1" />
         <Member Name="resolved" Value="2" />
+        <Member Name="inProgress" Value="4" />
         <Member Name="redirected" Value="64" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
