@@ -645,21 +645,35 @@
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
               <xsl:choose>  
-                 <xsl:when test="$httpMethod"> 
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
-                           <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
-                    </xsl:element>
+                 <xsl:when test="$httpMethod">
+                 <xsl:call-template name="UpdateMethodTemplate">
+                   <xsl:with-param name="httpMethod"><xsl:value-of select="$httpMethod"/></xsl:with-param>
+                 </xsl:call-template>                    
                 </xsl:when>
-                <xsl:when test="$updatable">
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Updatable</xsl:attribute>
-                        <xsl:attribute name="Bool"><xsl:value-of select="$updatable"/></xsl:attribute>
-                    </xsl:element>                                    
+              </xsl:choose>
+              <xsl:choose>
+                 <xsl:when test="$updatable">
+                    <xsl:call-template name="updatableTemplate">
+                      <xsl:with-param name="updatable"><xsl:value-of select="$updatable"/></xsl:with-param>
+                    </xsl:call-template>                                                        
                 </xsl:when>
               </xsl:choose>                
             </xsl:element>
         </xsl:element>
+    </xsl:template>
+    <xsl:template name="UpdateMethodTemplate">
+        <xsl:param name = "httpMethod" />
+        <xsl:element name="PropertyValue">
+           <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+              <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name ="updatableTemplate">
+       <xsl:param name = "updatable" />
+       <xsl:element name="PropertyValue">
+         <xsl:attribute name="Property">Updatable</xsl:attribute>
+         <xsl:attribute name="Bool"><xsl:value-of select="$updatable"/></xsl:attribute>
+       </xsl:element>
     </xsl:template>
     <xsl:template name="NavigationRestrictionsTemplate">
         <xsl:param name = "navigable" />
@@ -833,10 +847,11 @@
                 </xsl:call-template>
             </xsl:element>
 
-            <!-- Add the parent "Annotations" tag if it doesn't exists -->
+            <!-- Add the parent "Annotations" tag if it doesn't exist -->
             <!-- Add UpdateRestrictions for team/schedule navigation property -->
             <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
             <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
+            <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -863,6 +878,17 @@
                         <xsl:attribute name="Target">microsoft.graph.entitlementManagement/assignmentPolicies</xsl:attribute>
                         <xsl:call-template name="UpdateRestrictionsTemplate">
                             <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.synchronization/secrets'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.synchronization/secrets</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                            <xsl:with-param name="updatable">true</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -938,6 +964,39 @@
        </xsl:copy>
     </xsl:template>
 
+    <!-- If the parent "Annotation" tag already exists, modify it -->
+    <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
+      <xsl:copy>
+        <xsl:element name="Record" namespace="{namespace-uri()}">
+          <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/PUT</xsl:element>
+            </xsl:element>
+            <xsl:element name="PropertyValue">
+              <xsl:attribute name="Property">Updatable</xsl:attribute>
+              <xsl:attribute name="Bool">true</xsl:attribute>
+            </xsl:element>
+        </xsl:element>
+      </xsl:copy>
+    </xsl:template>
+    
+    <!-- If the grand-parent "Annotation" tag already exists, modify it -->
+    <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">
+      <xsl:copy>
+        <xsl:copy-of select="@*|node()"/>            
+        <xsl:element name="Annotations">
+          <xsl:attribute name="Target">microsoft.graph.synchronization/secrets</xsl:attribute>
+          <xsl:call-template name="UpdateRestrictionsTemplate">
+            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+            <xsl:with-param name="updatable">true</xsl:with-param>
+           </xsl:call-template>
+        </xsl:element>
+      </xsl:copy>
+    </xsl:template>
+    
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
