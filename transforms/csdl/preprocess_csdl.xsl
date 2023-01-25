@@ -653,7 +653,7 @@
               </xsl:choose>
               <xsl:choose>
                  <xsl:when test="$updatable">
-                    <xsl:call-template name="updatableTemplate">
+                    <xsl:call-template name="UpdatableTemplate">
                       <xsl:with-param name="updatable"><xsl:value-of select="$updatable"/></xsl:with-param>
                     </xsl:call-template>                                                        
                 </xsl:when>
@@ -668,7 +668,7 @@
               <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
         </xsl:element>
     </xsl:template>
-    <xsl:template name ="updatableTemplate">
+    <xsl:template name ="UpdatableTemplate">
        <xsl:param name = "updatable" />
        <xsl:element name="PropertyValue">
          <xsl:attribute name="Property">Updatable</xsl:attribute>
@@ -967,41 +967,39 @@
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">     
-      <xsl:choose>
-        <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
-          <xsl:copy>
-            <xsl:copy-of select="@*|node()"/>
-              <xsl:call-template name="UpdateRestrictionsTemplate">
-                <xsl:with-param name="httpMethod">PUT</xsl:with-param>
-                <xsl:with-param name="updatable">true</xsl:with-param>
-              </xsl:call-template>
-          </xsl:copy>
-        </xsl:when>
-      <xsl:otherwise>
-        <xsl:copy>
-          <xsl:apply-templates select="@* | node()"/>
-        </xsl:copy>    
-      </xsl:otherwise>
-     </xsl:choose> 
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="UpdateRestrictionsTemplate">
+                        <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        <xsl:with-param name="updatable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose> 
     </xsl:template>
     
     <!-- If the parent "Annotation" tag already exists, modify it --> 
     <!-- Update UpdateRestrictions for synchronization/secrets complex property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
-      <xsl:copy>
-       <xsl:copy-of select="@*"/>   
-        <xsl:element name="Record" namespace="{namespace-uri()}">
-          <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
-                <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/PUT</xsl:element>
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="UpdateMethodTemplate">
+                    <xsl:with-param name="httpMethod">PUT</xsl:with-param>            
+                </xsl:call-template>
+                <xsl:call-template name="UpdatableTemplate">
+                    <xsl:with-param name="updatable">true</xsl:with-param>            
+                </xsl:call-template>       
             </xsl:element>
-            <xsl:element name="PropertyValue">
-              <xsl:attribute name="Property">Updatable</xsl:attribute>
-              <xsl:attribute name="Bool">true</xsl:attribute>
-            </xsl:element>
-        </xsl:element>
-      </xsl:copy>
+        </xsl:copy>
     </xsl:template>
     
     <!-- Remove directoryObject Capability Annotations -->
