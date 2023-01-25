@@ -964,10 +964,32 @@
        </xsl:copy>
     </xsl:template>
 
-    <!-- If the parent "Annotation" tag already exists, modify it -->
+    <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">     
+      <xsl:choose>
+        <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
+          <xsl:copy>
+            <xsl:copy-of select="@*|node()"/>
+              <xsl:call-template name="UpdateRestrictionsTemplate">
+                <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                <xsl:with-param name="updatable">true</xsl:with-param>
+              </xsl:call-template>
+          </xsl:copy>
+        </xsl:when>
+      <xsl:otherwise>
+        <xsl:copy>
+          <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>    
+      </xsl:otherwise>
+     </xsl:choose> 
+    </xsl:template>
+    
+    <!-- If the parent "Annotation" tag already exists, modify it --> 
+    <!-- Update UpdateRestrictions for synchronization/secrets complex property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
       <xsl:copy>
+       <xsl:copy-of select="@*"/>   
         <xsl:element name="Record" namespace="{namespace-uri()}">
           <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
             <xsl:element name="PropertyValue">
@@ -978,21 +1000,6 @@
               <xsl:attribute name="Property">Updatable</xsl:attribute>
               <xsl:attribute name="Bool">true</xsl:attribute>
             </xsl:element>
-        </xsl:element>
-      </xsl:copy>
-    </xsl:template>
-    
-    <!-- If the grand-parent "Annotation" tag already exists, modify it -->
-    <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">
-      <xsl:copy>
-        <xsl:copy-of select="@*|node()"/>            
-        <xsl:element name="Annotations">
-          <xsl:attribute name="Target">microsoft.graph.synchronization/secrets</xsl:attribute>
-          <xsl:call-template name="UpdateRestrictionsTemplate">
-            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
-            <xsl:with-param name="updatable">true</xsl:with-param>
-           </xsl:call-template>
         </xsl:element>
       </xsl:copy>
     </xsl:template>
