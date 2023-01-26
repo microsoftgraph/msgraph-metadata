@@ -35,5 +35,5 @@ Write-Host "Tranforming $version metadata using xslt..." -ForegroundColor Green
 & $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed
 
 Write-Host "Validating $version metadata after the transform..." -ForegroundColor Green
-dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
-hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
+& dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
+& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
