@@ -79,7 +79,8 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsPhone81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsUniversalAppX']/edm:NavigationProperty[@Name='committedContainedApps']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
-                  edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']
+                  edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='analytics']
                          ">
         <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
@@ -118,7 +119,8 @@
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='bitlocker']"/>
-
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='drive']"/>
+    
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
         <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
@@ -336,10 +338,20 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
-    <!-- Remove ContainsTarget -->
+    <!-- Remove ContainsTarget attribute.
+         This will remove the containment for all output CSDL files -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget">
-        <xsl:apply-templates select="@* | node()"/>
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='drive']/edm:NavigationProperty[@Name='root']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='listItem']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sharedDriveItem']/edm:NavigationProperty[@Name='listItem']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookTable']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookRange']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookNamedItem']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookChart']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookPivotTable']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget">
     </xsl:template>
 
     <!-- Remove ContainsTarget for problematic containment navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file.
@@ -631,11 +643,17 @@
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.InsertRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Insertable</xsl:attribute>
-                    <xsl:attribute name="Bool"><xsl:value-of select = "$insertable" /></xsl:attribute>
-                </xsl:element>
+                <xsl:call-template name="InsertableTemplate">
+                    <xsl:with-param name="insertable"><xsl:value-of select="$insertable" /></xsl:with-param>            
+                </xsl:call-template>
             </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="InsertableTemplate">
+        <xsl:param name = "insertable" />
+        <xsl:element name="PropertyValue">
+            <xsl:attribute name="Property">Insertable</xsl:attribute>
+            <xsl:attribute name="Bool"><xsl:value-of select="$insertable" /></xsl:attribute>
         </xsl:element>
     </xsl:template>
     <xsl:template name="UpdateRestrictionsTemplate">
@@ -755,20 +773,6 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
-            
-            <!-- Remove navigability for workbook navigation property -->
-            <xsl:element name="Annotations">
-                <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
-                <xsl:element name="Annotation">
-                    <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                    <xsl:element name="Record" namespace="{namespace-uri()}">
-                        <xsl:element name="PropertyValue">
-                            <xsl:attribute name="Property">Navigability</xsl:attribute>
-                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
-                        </xsl:element>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
 
             <!-- Remove indexability for joinedGroups navigation property -->
             <!-- Add the parent "Annotations" tag if it doesn't exists -->
@@ -852,6 +856,8 @@
             <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
             <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
             <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
+            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+            <!-- Add Insertability for driveItem/children navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -893,8 +899,6 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
-            
-            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit'])">
                     <xsl:element name="Annotations">
@@ -907,7 +911,17 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>       
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.driveItem/children'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.driveItem/children</xsl:attribute>                       
+                       <xsl:call-template name="InsertRestrictionsTemplate">
+                           <xsl:with-param name="insertable">true</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose> 
             
            <!-- Add FilterRestrictions to directorySetting entity type -->
             <xsl:choose>
@@ -929,8 +943,8 @@
     <!-- Remove indexability for activities navigation property -->
     <!-- Remove indexability for users navigation property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/joinedGroups'] |
-                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice/users'] |
-                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/activities'] ">
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice/users'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/activities'] ">
         <xsl:copy>
             <xsl:copy-of select="@*|node()"/>
             <xsl:call-template name="NavigationRestrictionsTemplate">
@@ -951,6 +965,40 @@
              <xsl:with-param name="insertable">true</xsl:with-param>
           </xsl:call-template>
        </xsl:copy>
+    </xsl:template>
+    
+    <!-- If only the grand-parent "Annotations" tag exists, modify it -->
+    <!-- Add Insertability for driveItem/children navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']">     
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="InsertRestrictionsTemplate">
+                        <xsl:with-param name="insertable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose> 
+    </xsl:template>
+    
+    <!-- If the parent "Annotation" tag already exists, modify it -->
+    <!-- Update Insertability for driveItem/children navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="InsertableTemplate">
+                    <xsl:with-param name="insertable">true</xsl:with-param>            
+                </xsl:call-template>       
+            </xsl:element>
+        </xsl:copy>
     </xsl:template>
     
     <!-- Add FilterRestrictions to directorySetting entity type -->
