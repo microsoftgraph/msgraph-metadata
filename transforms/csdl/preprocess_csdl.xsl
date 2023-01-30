@@ -1164,7 +1164,16 @@
     </xsl:template>
 
     <!-- Add IfMatch header for these paths-->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='planner']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='planner'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='planner'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='planner']/edm:NavigationPrssoperty[@Name='plans'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='planner']/edm:NavigationProperty[@Name='tasks'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='planner']/edm:NavigationProperty[@Name='buckets'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerPlan']/edm:NavigationProperty[@Name='details'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerTask']/edm:NavigationProperty[@Name='details'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerTask']/edm:NavigationProperty[@Name='assignedToTaskBoardFormat'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerTask']/edm:NavigationProperty[@Name='progressTaskBoardFormat'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='plannerTask']/edm:NavigationProperty[@Name='bucketTaskBoardFormat']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
             <xsl:element name="Annotation">
