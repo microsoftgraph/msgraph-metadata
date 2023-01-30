@@ -506,7 +506,7 @@
         </xsl:element>
     </xsl:template>
 
-    <!-- Add custom headers (ConsistencyLevel) to AAD objects -->
+    <!-- Header templates -->
     <xsl:template name="ConsistencyLevelHeaderTemplate">
         <xsl:element name="Record" namespace="{namespace-uri()}">
             <xsl:element name="PropertyValue">
@@ -543,6 +543,30 @@
                                     </xsl:element>
                                 </xsl:element>
                             </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+
+    <xsl:template name="IfMatchHeaderTemplate">
+        <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">CustomHeaders</xsl:attribute>
+                <xsl:element name="Collection">
+                    <xsl:element name="Record">
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Name</xsl:attribute>
+                            <xsl:attribute name="String">If-Match</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Description</xsl:attribute>
+                            <xsl:attribute name="String">ETag value.</xsl:attribute>
+                        </xsl:element>
+                        <xsl:element name="PropertyValue">
+                            <xsl:attribute name="Property">Required</xsl:attribute>
+                            <xsl:attribute name="Bool">true</xsl:attribute>
                         </xsl:element>
                     </xsl:element>
                 </xsl:element>
@@ -1135,6 +1159,17 @@
             <xsl:element name="Annotation">
                 <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
                 <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add IfMatch header for these paths-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='planner']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
+                <xsl:call-template name="IfMatchHeaderTemplate"/>
             </xsl:element>
         </xsl:copy>
     </xsl:template>
