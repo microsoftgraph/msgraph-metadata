@@ -1686,6 +1686,7 @@
         <Member Name="connectionPending" Value="1" />
         <Member Name="connected" Value="2" />
         <Member Name="disconnected" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="deviceManagementExchangeConnectorSyncType">
         <Member Name="fullSync" Value="0" />
@@ -1696,6 +1697,7 @@
         <Member Name="hosted" Value="1" />
         <Member Name="serviceToService" Value="2" />
         <Member Name="dedicated" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="deviceManagementPartnerAppType">
         <Member Name="unknown" Value="0" />
@@ -1954,6 +1956,7 @@
         <Member Name="includeContactInformation" Value="4" />
         <Member Name="includeCompanyPortalLink" Value="8" />
         <Member Name="includeDeviceDetails" Value="16" />
+        <Member Name="unknownFutureValue" Value="32" />
       </EnumType>
       <EnumType Name="remoteAssistanceOnboardingStatus">
         <Member Name="notOnboarded" Value="0" />
@@ -3446,6 +3449,7 @@
         <Member Name="presenter" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="producer" Value="3" />
+        <Member Name="coorganizer" Value="4" />
       </EnumType>
       <EnumType Name="recordingStatus">
         <Member Name="unknown" Value="0" />
@@ -9872,6 +9876,9 @@
         <Property Name="v8_0" Type="Edm.Boolean" Nullable="false" />
         <Property Name="v8_1" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="windowsUniversalAppXAppAssignmentSettings" BaseType="graph.mobileAppAssignmentSettings">
+        <Property Name="useDeviceContext" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <EntityType Name="mobileApp" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -10109,6 +10116,10 @@
         <Property Name="revokeOnMdmHandoffDisabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="windowsHelloForBusinessBlocked" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
+      <EntityType Name="iosiPadOSWebClip" BaseType="graph.mobileApp">
+        <Property Name="appUrl" Type="Edm.String" />
+        <Property Name="useManagedBrowser" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="iosLobApp" BaseType="graph.mobileLobApp">
         <Property Name="applicableDeviceType" Type="graph.iosDeviceType" Nullable="false" />
         <Property Name="buildNumber" Type="Edm.String" />
@@ -10296,6 +10307,9 @@
       </EntityType>
       <EntityType Name="windowsUniversalAppXContainedApp" BaseType="graph.mobileContainedApp">
         <Property Name="appUserModelId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="windowsWebApp" BaseType="graph.mobileApp">
+        <Property Name="appUrl" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="auditActor">
         <Property Name="applicationDisplayName" Type="Edm.String" />
@@ -10524,6 +10538,7 @@
       </EntityType>
       <EntityType Name="deviceManagementPartner" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="groupsRequiringPartnerEnrollment" Type="Collection(graph.deviceManagementPartnerAssignment)" />
         <Property Name="isConfigured" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastHeartbeatDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="partnerAppType" Type="graph.deviceManagementPartnerAppType" Nullable="false" />
@@ -10544,14 +10559,21 @@
         <Property Name="version" Type="Edm.String" />
       </EntityType>
       <EntityType Name="mobileThreatDefenseConnector" BaseType="graph.entity">
+        <Property Name="allowPartnerToCollectIOSApplicationMetadata" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowPartnerToCollectIOSPersonalApplicationMetadata" Type="Edm.Boolean" Nullable="false" />
         <Property Name="androidDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
         <Property Name="androidEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="androidMobileApplicationManagementEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="iosDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
         <Property Name="iosEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="iosMobileApplicationManagementEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastHeartbeatDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="microsoftDefenderForEndpointAttachEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="partnerState" Type="graph.mobileThreatPartnerTenantState" Nullable="false" />
         <Property Name="partnerUnresponsivenessThresholdInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="partnerUnsupportedOsVersionBlocked" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="windowsDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="windowsEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="applePushNotificationCertificate" BaseType="graph.entity">
         <Property Name="appleIdentifier" Type="Edm.String" />
@@ -10611,6 +10633,7 @@
         <Property Name="defaultLocale" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="roleScopeTagIds" Type="Collection(Edm.String)" />
         <NavigationProperty Name="localizedNotificationMessages" Type="Collection(graph.localizedNotificationMessage)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="resourceOperation" BaseType="graph.entity">
@@ -11913,11 +11936,17 @@
       <ComplexType Name="complianceManagementPartnerAssignment">
         <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget" />
       </ComplexType>
+      <ComplexType Name="deviceAndAppManagementData">
+        <Property Name="content" Type="Edm.Stream" />
+      </ComplexType>
       <ComplexType Name="deviceEnrollmentPlatformRestriction">
         <Property Name="osMaximumVersion" Type="Edm.String" />
         <Property Name="osMinimumVersion" Type="Edm.String" />
         <Property Name="personalDeviceEnrollmentBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="platformBlocked" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="deviceManagementPartnerAssignment">
+        <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget" />
       </ComplexType>
       <ComplexType Name="rgbColor">
         <Property Name="b" Type="Edm.Byte" Nullable="false" />
@@ -14432,6 +14461,16 @@
         <Parameter Name="EndDateTime" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.reminder)" Nullable="false" />
       </Function>
+      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.user" />
+        <ReturnType Type="graph.deviceAndAppManagementData" />
+      </Function>
+      <Function Name="exportDeviceAndAppManagementData" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.user" />
+        <Parameter Name="skip" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="top" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.deviceAndAppManagementData" />
+      </Function>
       <Action Name="removeAllDevicesFromManagement" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" />
       </Action>
@@ -14446,6 +14485,10 @@
       <Function Name="getManagedAppPolicies" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" />
         <ReturnType Type="Collection(graph.managedAppPolicy)" />
+      </Function>
+      <Function Name="getManagedDevicesWithAppFailures" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.user" />
+        <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
       <Action Name="exportPersonalData" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" />
@@ -21489,6 +21532,9 @@
       <Annotations Target="microsoft.graph.deviceManagementExchangeConnectorStatus/disconnected">
         <Annotation Term="Org.OData.Core.V1.Description" String="Disconnected from the Exchange Environment" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementExchangeConnectorStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementExchangeConnectorSyncType">
         <Annotation Term="Org.OData.Core.V1.Description" String="The type of Exchange Connector sync requested." />
       </Annotations>
@@ -21512,6 +21558,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementExchangeConnectorType/dedicated">
         <Annotation Term="Org.OData.Core.V1.Description" String="Connects to O365 Dedicated Exchange environment." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementExchangeConnectorType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementPartnerAppType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Partner App Type." />
@@ -22138,22 +22187,25 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Branding Options for the Message Template. Branding is defined in the Intune Admin Console." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/none">
-        <Annotation Term="Org.OData.Core.V1.Description" String="No Branding." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that no branding options are set in the message template." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeCompanyLogo">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Include Company Logo." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates to include company logo in the message template." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeCompanyName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Include Company Name." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates to include company name in the message template." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeContactInformation">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Include Contact Info." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates to include contact information in the message template." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeCompanyPortalLink">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Include Company Portal Link." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates to include company portal website link in the message template." />
       </Annotations>
       <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/includeDeviceDetails">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Include Device Details." />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates to include device details in the message template." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.notificationTemplateBrandingOptions/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.remoteAssistanceOnboardingStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The current TeamViewer connector status" />
@@ -25050,6 +25102,12 @@
       <Annotations Target="microsoft.graph.windowsMinimumOperatingSystem/v8_1">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows version 8.1 or later." />
       </Annotations>
+      <Annotations Target="microsoft.graph.windowsUniversalAppXAppAssignmentSettings">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties used when assigning a Windows Universal AppX mobile app to a group." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsUniversalAppXAppAssignmentSettings/useDeviceContext">
+        <Annotation Term="Org.OData.Core.V1.Description" String="If true, uses device execution context for Windows Universal AppX mobile app. Device-context install is not allowed when this type of app is targeted with Available intent. Defaults to false." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="An abstract class containing the base properties for Intune mobile apps." />
       </Annotations>
@@ -25187,6 +25245,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceAppManagement/windowsInformationProtectionPolicies">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows information protection for apps running on devices which are not MDM enrolled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.iosiPadOSWebClip">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for iOS web apps." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.iosiPadOSWebClip/appUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates iOS/iPadOS web clip app URL. Example: &quot;https://www.contoso.com&quot;" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.iosiPadOSWebClip/useManagedBrowser">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not to use managed browser. When TRUE, the app will be required to be opened in Microsoft Edge. When FALSE, the app will not be required to be opened in Microsoft Edge. By default, this property is set to FALSE." />
       </Annotations>
       <Annotations Target="microsoft.graph.iosLobApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for iOS Line Of Business apps." />
@@ -25767,6 +25834,12 @@
       <Annotations Target="microsoft.graph.windowsUniversalAppXContainedApp/appUserModelId">
         <Annotation Term="Org.OData.Core.V1.Description" String="The app user model ID of the contained app of a WindowsUniversalAppX app." />
       </Annotations>
+      <Annotations Target="microsoft.graph.windowsWebApp">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for Windows web apps." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsWebApp/appUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Windows web app URL. Example: &quot;https://www.contoso.com&quot;" />
+      </Annotations>
       <Annotations Target="microsoft.graph.auditActor">
         <Annotation Term="Org.OData.Core.V1.Description" String="A class containing the properties for Audit Actor." />
       </Annotations>
@@ -25858,7 +25931,6 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Resources being modified." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
         <Annotation Term="Org.OData.Core.V1.Description" String="Singleton entity that acts as a container for all device management functionality." />
       </Annotations>
       <Annotations Target="microsoft.graph.termsAndConditions">
@@ -28511,9 +28583,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.reportRoot">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The resource that represents an instance of Enrollment Failure Reports." />
-      </Annotations>
       <Annotations Target="microsoft.graph.settingStateDeviceSummary/compliantDeviceCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Device Compliant count for the setting" />
       </Annotations>
@@ -29958,6 +30027,9 @@
       <Annotations Target="microsoft.graph.complianceManagementPartnerAssignment/target">
         <Annotation Term="Org.OData.Core.V1.Description" String="Group assignment target." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceAndAppManagementData">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Exported Data" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction">
         <Annotation Term="Org.OData.Core.V1.Description" String="Platform specific enrollment restrictions" />
       </Annotations>
@@ -29972,6 +30044,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/platformBlocked">
         <Annotation Term="Org.OData.Core.V1.Description" String="Block the platform from enrolling" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementPartnerAssignment">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User group targeting for Device Management Partner" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementPartnerAssignment/target">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User groups targeting for devices to be enrolled through partner." />
       </Annotations>
       <Annotations Target="microsoft.graph.intuneBrand/contactITEmailAddress">
         <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the person/organization responsible for IT support." />
@@ -30177,6 +30255,9 @@
       <Annotations Target="microsoft.graph.deviceManagementPartner/displayName">
         <Annotation Term="Org.OData.Core.V1.Description" String="Partner display name" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementPartner/groupsRequiringPartnerEnrollment">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User groups that specifies whether enrollment is through partner." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementPartner/isConfigured">
         <Annotation Term="Org.OData.Core.V1.Description" String="Whether device management partner is configured or not" />
       </Annotations>
@@ -30201,11 +30282,20 @@
       <Annotations Target="microsoft.graph.enrollmentConfigurationAssignment/target">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents an assignment to managed devices in the tenant" />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/allowPartnerToCollectIOSApplicationMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates the data sync partner may collect metadata about installed applications from Intune for IOS devices. When FALSE, indicates the data sync partner may not collect metadata about installed applications from Intune for IOS devices. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/allowPartnerToCollectIOSPersonalApplicationMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates the data sync partner may collect metadata about personally installed applications from Intune for IOS devices. When FALSE, indicates the data sync partner may not collect metadata about personally installed applications from Intune for IOS devices. Default value is FALSE." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/androidDeviceBlockedOnMissingPartnerData">
         <Annotation Term="Org.OData.Core.V1.Description" String="For Android, set whether Intune must receive data from the data sync partner prior to marking a device compliant" />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/androidEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="For Android, set whether data from the data sync partner should be used during compliance evaluations" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/androidMobileApplicationManagementEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, inidicates that data from the data sync partner can be used during Mobile Application Management (MAM) evaluations for Android devices. When FALSE, inidicates that data from the data sync partner should not be used during Mobile Application Management (MAM) evaluations for Android devices. Only one partner per platform may be enabled for Mobile Application Management (MAM) evaluation. Default value is FALSE." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/iosDeviceBlockedOnMissingPartnerData">
         <Annotation Term="Org.OData.Core.V1.Description" String="For IOS, set whether Intune must receive data from the data sync partner prior to marking a device compliant" />
@@ -30213,8 +30303,14 @@
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/iosEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="For IOS, get or set whether data from the data sync partner should be used during compliance evaluations" />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/iosMobileApplicationManagementEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, inidicates that data from the data sync partner can be used during Mobile Application Management (MAM) evaluations for IOS devices. When FALSE, inidicates that data from the data sync partner should not be used during Mobile Application Management (MAM) evaluations for IOS devices. Only one partner per platform may be enabled for Mobile Application Management (MAM) evaluation. Default value is FALSE." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/lastHeartbeatDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="DateTime of last Heartbeat recieved from the Data Sync Partner" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/microsoftDefenderForEndpointAttachEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, inidicates that configuration profile management via Microsoft Defender for Endpoint is enabled. When FALSE, inidicates that configuration profile management via Microsoft Defender for Endpoint is disabled. Default value is FALSE." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Data Sync Partner state for this account" />
@@ -30224,6 +30320,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerUnsupportedOsVersionBlocked">
         <Annotation Term="Org.OData.Core.V1.Description" String="Get or set whether to block devices on the enabled platforms that do not meet the minimum version requirements of the Data Sync Partner" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/windowsDeviceBlockedOnMissingPartnerData">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, inidicates that Intune must receive data from the data sync partner prior to marking a device compliant for Windows. When FALSE, inidicates that Intune may make a device compliant without receiving data from the data sync partner for Windows. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/windowsEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, inidicates that data from the data sync partner can be used during compliance evaluations for Windows. When FALSE, inidicates that data from the data sync partner should not be used during compliance evaluations for Windows. Default value is FALSE." />
       </Annotations>
       <Annotations Target="microsoft.graph.onPremisesConditionalAccessSettings/enabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if on premises conditional access is enabled for this organization" />
@@ -31329,6 +31431,9 @@
       <Annotations Target="microsoft.graph.notificationMessageTemplate/lastModifiedDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="DateTime the object was last modified." />
       </Annotations>
+      <Annotations Target="microsoft.graph.notificationMessageTemplate/roleScopeTagIds">
+        <Annotation Term="Org.OData.Core.V1.Description" String="List of Scope Tags for this Entity instance." />
+      </Annotations>
       <Annotations Target="microsoft.graph.notificationMessageTemplate/localizedNotificationMessages">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of localized messages for this Notification Message Template." />
       </Annotations>
@@ -31787,6 +31892,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.getManagedAppPolicies(microsoft.graph.user)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Gets app restrictions for a given user." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.getManagedDevicesWithAppFailures(microsoft.graph.user)">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Retrieves the list of devices with failed apps" />
       </Annotations>
       <Annotations Target="microsoft.graph.setMobileDeviceManagementAuthority(microsoft.graph.organization)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Set mobile device management authority" />
