@@ -24,7 +24,7 @@ param(
 )
 $yaml = Join-Path $repoDirectory "openapi" $version "openapi.yaml"
 
-Write-Host "Validating $version OpenAPI doc..." -ForegroundColor Green
+Write-Host "Validating $yaml OpenAPI doc..." -ForegroundColor Green
 
 & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
 & hidi validate -d $yaml

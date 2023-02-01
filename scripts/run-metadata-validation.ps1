@@ -31,9 +31,9 @@ $snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
 
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 
-Write-Host "Tranforming $version metadata using xslt..." -ForegroundColor Green
+Write-Host "Tranforming $snapshot metadata using xslt..." -ForegroundColor Green
 & $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed
 
-Write-Host "Validating $version metadata after the transform..." -ForegroundColor Green
+Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
 & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
 & hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
