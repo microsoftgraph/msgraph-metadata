@@ -29,12 +29,11 @@ $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
 
 $snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
 
-$metadataParserTool = Join-Path $repoDirectory "tools/MetadataParser/MetadataParser.csproj"
-
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 
-Write-Host "Tranforming $version metadata using xslt..." -ForegroundColor Green
-& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed
+Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
+& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false
 
-Write-Host "Validating $version metadata after the transform..." -ForegroundColor Green
-& dotnet run --project $metadataParserTool $transformed
+Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
+& dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
+& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
