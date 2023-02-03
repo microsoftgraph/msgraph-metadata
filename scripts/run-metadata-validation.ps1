@@ -31,8 +31,8 @@ $snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
 
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 
-Write-Host "Tranforming $snapshot metadata using xslt..." -ForegroundColor Green
-& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed
+Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
+& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false
 
 Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
 & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
