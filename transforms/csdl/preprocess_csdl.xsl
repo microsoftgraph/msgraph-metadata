@@ -97,6 +97,7 @@
     <!-- Remove Property -->
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='changeNotification']/edm:Property[@Name='sequenceNumber']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='searchQuery']/edm:Property[@Name='query_string']"/>
 
     <!-- Remove NavigationProperty -->
 
