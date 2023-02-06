@@ -879,9 +879,10 @@
             <!-- Add UpdateRestrictions for team/schedule navigation property -->
             <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
             <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
-            <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
+            <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <!-- Add Insertability for driveItem/children navigation property -->
+            <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -913,17 +914,6 @@
                 </xsl:when>
             </xsl:choose>
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.synchronization/secrets'])">
-                    <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.synchronization/secrets</xsl:attribute>
-                        <xsl:call-template name="UpdateRestrictionsTemplate">
-                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
-                            <xsl:with-param name="updatable">true</xsl:with-param>
-                        </xsl:call-template>
-                    </xsl:element>
-                </xsl:when>
-            </xsl:choose>
-            <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit'])">
                     <xsl:element name="Annotations">
                        <xsl:attribute name="Target">microsoft.graph.educationSchool/administrativeUnit</xsl:attribute>
@@ -937,6 +927,17 @@
                 </xsl:when>
             </xsl:choose>
             <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.synchronization/secrets'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.synchronization/secrets</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                            <xsl:with-param name="updatable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.driveItem/children'])">
                     <xsl:element name="Annotations">
                        <xsl:attribute name="Target">microsoft.graph.driveItem/children</xsl:attribute>                       
@@ -946,8 +947,23 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose> 
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.GraphService/applicationTemplates</xsl:attribute>
+                        <xsl:call-template name="InsertRestrictionsTemplate">
+                            <xsl:with-param name="insertable">false</xsl:with-param>
+                        </xsl:call-template><xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="updatable">false</xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:call-template name="DeleteRestrictionsTemplate">
+                            <xsl:with-param name="deletable">false</xsl:with-param>
+                        </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
-           <!-- Add FilterRestrictions to directorySetting entity type -->
+            <!-- Add FilterRestrictions to directorySetting entity type -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directorySetting'])">
                     <xsl:element name="Annotations">
@@ -990,6 +1006,23 @@
           </xsl:call-template>
        </xsl:copy>
     </xsl:template>
+
+    <!-- If the parent "Annotations" tag already exists modify it -->
+    <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates']">
+      <xsl:copy>
+        <xsl:copy-of select="@*|node()"/>
+          <xsl:call-template name="InsertRestrictionsTemplate">
+            <xsl:with-param name="insertable">false</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="UpdateRestrictionsTemplate">
+            <xsl:with-param name="updatable">false</xsl:with-param>
+          </xsl:call-template>
+          <xsl:call-template name="DeleteRestrictionsTemplate">
+            <xsl:with-param name="deletable">false</xsl:with-param>
+          </xsl:call-template>
+      </xsl:copy>
+    </xsl:template>    
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add Insertability for driveItem/children navigation property -->
