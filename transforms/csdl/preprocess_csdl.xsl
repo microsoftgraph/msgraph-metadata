@@ -120,7 +120,17 @@
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='conditionalAccess']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='bitlocker']"/>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='drive']"/>
+
+    <!--Remove drive singleton for Kiota-based CSDL-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:Singleton[@Name='drive']" >
+        <xsl:choose>
+            <xsl:when test="$open-api-generation='False'">
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()" />
+                </xsl:copy>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
     
     <!-- Add annotations -->
     <xsl:attribute-set name="LongDescriptionNavigable">
@@ -339,11 +349,14 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
-    <!-- Remove ContainsTarget attribute.
-         This will remove the containment for all output CSDL files -->
+    <!-- Remove ContainsTarget attribute. -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget">
+        <xsl:apply-templates select="@* | node()"/>
+    </xsl:template>
+
+    <!-- Remove ContainsTarget attribute for Kiota-based CSDL -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='drives']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='drive']/edm:NavigationProperty[@Name='root']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='listItem']/@ContainsTarget|
@@ -353,6 +366,13 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookNamedItem']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookChart']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='workbookPivotTable']/edm:NavigationProperty[@Name='worksheet']/@ContainsTarget">
+        <xsl:choose>
+            <xsl:when test="$open-api-generation='False'">
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()" />
+                </xsl:copy>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <!-- Remove ContainsTarget for problematic containment navigation properties for the cleanMetadataWithDescriptionsAndAnnotations CSDL file.
