@@ -670,7 +670,19 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Capability Annotations Templates -->
+    <!-- Capability Annotations Templates -->    
+    <xsl:template name="ReadRestrictionsTemplate">
+        <xsl:param name = "readable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Readable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select = "$readable" /></xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="DeleteRestrictionsTemplate">
         <xsl:param name = "deletable" />
         <xsl:element name="Annotation">
@@ -904,6 +916,7 @@
             <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <!-- Add Insertability for driveItem/children navigation property -->
             <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
+            <!-- Remove Readability, Insertability for places entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -974,12 +987,26 @@
                         <xsl:attribute name="Target">microsoft.graph.GraphService/applicationTemplates</xsl:attribute>
                         <xsl:call-template name="InsertRestrictionsTemplate">
                             <xsl:with-param name="insertable">false</xsl:with-param>
-                        </xsl:call-template><xsl:call-template name="UpdateRestrictionsTemplate">
+                        </xsl:call-template>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
                             <xsl:with-param name="updatable">false</xsl:with-param>
                         </xsl:call-template>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/places'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.GraphService/places</xsl:attribute>
+                            <xsl:call-template name="ReadRestrictionsTemplate">
+                                <xsl:with-param name="readable">false</xsl:with-param>
+                            </xsl:call-template>
+                            <xsl:call-template name="InsertRestrictionsTemplate">
+                                <xsl:with-param name="insertable">false</xsl:with-param>
+                            </xsl:call-template>                            
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
@@ -1123,10 +1150,69 @@
                 </xsl:call-template>
                 <xsl:call-template name="UpdatableTemplate">
                     <xsl:with-param name="updatable">true</xsl:with-param>            
-                </xsl:call-template>       
+                </xsl:call-template>   
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+    
+    
+    <!-- If the parent "Annotation" tag already exists, modify it --> 
+    <!-- Update ReadRestrictions for places entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/places']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions']">
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Readable</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                </xsl:element>     
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- If only the grand-parent "Annotations" tag exists, modify it -->    
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/places']">     
+        <xsl:choose>
+            <!--ReadRestrictions and InsertRestrictions not present--> 
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions']) and not(edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="ReadRestrictionsTemplate">
+                        <xsl:with-param name="readable">false</xsl:with-param>
+                    </xsl:call-template>
+                    <xsl:call-template name="InsertRestrictionsTemplate">
+                        <xsl:with-param name="insertable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!--ReadRestrictions not present--> 
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="ReadRestrictionsTemplate">
+                        <xsl:with-param name="readable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!--InsertRestrictions not present--> 
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="InsertRestrictionsTemplate">
+                        <xsl:with-param name="insertable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <!--Both ReadRestrictions and InsertRestrictions present--> 
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose>        
+    </xsl:template>    
+    
     
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
