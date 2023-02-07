@@ -41,7 +41,7 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 In this example, the claim "PrintSettings.Read.All" is required when using the "DelegatedWork" security scheme to access the resource "/print/settings" using the "GET" method.
 
 ### permissions
-The "permissions" member is a JSON object whose members permission objects. The key of each member is the claim identifier used for the [Permission Object](#permissionObject)    
+The "permissions" member is a JSON object whose members are permission objects. The key of each member is the claim identifier used for the [Permission Object](#permissionObject)    
 
 
 ## <a name="permissionObject"></a>Permission Object
@@ -49,10 +49,10 @@ The "permissions" member is a JSON object whose members permission objects. The 
 The permissions object contains the details about a permission that can be used as claim in a API security token.
 
 ### note
-The "note" member is a freeform string that provides additional details at about the permission that cannot be determined from the other members of the permission object.
+The "note" member is a freeform string that provides additional details about the permission that cannot be determined from the other members of the permission object.
 
 ### implicit
-The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member us usually set to "true" in combination with a "alsoRequires" expression.
+The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
 
 > Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
 
