@@ -9,41 +9,22 @@
     Validates that the OpenAPI docs are parsable by Microsoft.OpenApi.Readers package
 
 .Example
-    ./scripts/run-openapi-validation.ps1 -repoDirectory C:/github/msgraph-metadata
+    ./scripts/run-openapi-validation.ps1 -repoDirectory C:/github/msgraph-metadata -version "v1.0"
 
 .Example
-    ./scripts/run-openapi-validation.ps1 -repoDirectory $GITHUB_WORKSPACE
+    ./scripts/run-openapi-validation.ps1 -repoDirectory $GITHUB_WORKSPACE -version "v1.0"
 
 .Parameter repoDirectory
     Full path the the root directory of msgraph-metadata checkout.
 #>
 
 param(
-    [Parameter(Mandatory=$true)][string]$repoDirectory
+    [Parameter(Mandatory=$true)][string]$repoDirectory,
+    [Parameter(Mandatory=$true)][string]$version
 )
-$LASTEXITCODE = 0
+$yaml = Join-Path $repoDirectory "openapi" $version "openapi.yaml"
 
-$betaYaml = Join-Path $repoDirectory "openapi" "beta" "openapi.yaml"
-$v1Yaml = Join-Path $repoDirectory "openapi" "v1.0" "openapi.yaml"
+Write-Host "Validating $yaml OpenAPI doc..." -ForegroundColor Green
 
-$openAPIParserTool = Join-Path $repoDirectory "tools/OpenAPIParser/OpenAPIParser.csproj"
-
-Write-Host "Validating beta OpenAPI doc..." -ForegroundColor Green
-& dotnet run --project $openAPIParserTool $betaYaml
-
-$finalExitCode = 0
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Validation failed for beta OpenAPI doc"
-    $finalExitCode = 1
-}
-
-Write-Host "Validating v1 OpenAPI doc..." -ForegroundColor Green
-& dotnet run --project $openAPIParserTool $v1Yaml
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Validation failed for v1 OpenAPI doc"
-    $finalExitCode = 1
-}
-
-exit $finalExitCode
+& dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
+& hidi validate -d $yaml

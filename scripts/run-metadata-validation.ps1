@@ -6,58 +6,34 @@
     Runs MetadataParser tool to validate latest XSLT rules don't break downstream parsing of the metadata
 
 .Description
-    1. tranforms latests snapshots of beta and v1 metadata
+    1. tranforms latests snapshots of beta or v1 metadata
     2. validates that the transformed metadata is parsable as OData EDM model and conversion to OpenAPI document is possible
 
 .Example
-    ./scripts/run-metadata-validation.ps1 -repoDirectory C:/github/msgraph-metadata
+    ./scripts/run-metadata-validation.ps1 -repoDirectory C:/github/msgraph-metadata -version "v1.0"
 
 .Example
-    ./scripts/run-metadata-validation.ps1 -repoDirectory $GITHUB_WORKSPACE
+    ./scripts/run-metadata-validation.ps1 -repoDirectory $GITHUB_WORKSPACE -version "v1.0"
 
 .Parameter repoDirectory
     Full path the the root directory of msgraph-metadata checkout.
 #>
 
 param(
-    [Parameter(Mandatory=$true)][string]$repoDirectory
+    [Parameter(Mandatory=$true)][string]$repoDirectory,
+    [Parameter(Mandatory=$true)][string]$version
 )
-$LASTEXITCODE = 0
-
 $transformCsdlDirectory = Join-Path $repoDirectory "transforms/csdl"
 $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
 $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
 
-$betaSnapshot = Join-Path $repoDirectory "beta_metadata.xml"
-$v1Snapshot = Join-Path $repoDirectory "v1.0_metadata.xml"
+$snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
 
-$metadataParserTool = Join-Path $repoDirectory "tools/MetadataParser/MetadataParser.csproj"
+$transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 
-$transformedBeta = Join-Path $repoDirectory "transformed_beta_metadata.xml"
-$transformedV1 = Join-Path $repoDirectory "transformed_v1.0_metadata.xml"
+Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
+& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false
 
-Write-Host "Tranforming beta metadata using xslt..." -ForegroundColor Green
-& $transformScript -xslPath $xsltPath -inputPath $betaSnapshot -outputPath $transformedBeta
-
-Write-Host "Validating beta metadata after the transform..." -ForegroundColor Green
-& dotnet run --project $metadataParserTool $transformedBeta
-
-$finalExitCode = 0
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Validation failed for beta metadata"
-    $finalExitCode = 1
-}
-
-Write-Host "Tranforming v1.0 metadata using xslt..." -ForegroundColor Green
-& $transformScript -xslPath $xsltPath -inputPath $v1Snapshot -outputPath $transformedV1
-
-Write-Host "Validating v1.0 metadata after the transform..." -ForegroundColor Green
-& dotnet run --project $metadataParserTool $transformedV1
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Validation failed for v1 metadata"
-    $finalExitCode = 1
-}
-
-exit $finalExitCode
+Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
+& dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
+& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
