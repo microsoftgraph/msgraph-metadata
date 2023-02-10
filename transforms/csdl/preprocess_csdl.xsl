@@ -786,6 +786,25 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
+            
+            <!-- Remove navigability for driveItem/workbook navigation property for DevX API-specific CSDL-->
+            <xsl:choose>
+                <xsl:when test="$remove-capability-annotations='False'">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
+                        <xsl:element name="Annotation">
+                            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                            <xsl:element name="Record" namespace="{namespace-uri()}">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Navigability</xsl:attribute>
+                                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                      </xsl:element>                
+                </xsl:when>            
+            </xsl:choose>
+            
             <xsl:choose>
                 <!-- Add inner error description -->
                 <xsl:when test="$add-innererror-description='True'">
