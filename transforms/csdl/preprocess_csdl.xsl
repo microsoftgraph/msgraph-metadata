@@ -7,7 +7,7 @@
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
 
-    <!-- Flag to signal if we are generating a document for open api generation. -->
+    <!-- Flag to signal if we are generating a document for Kiota-based open api generation. -->
     <xsl:variable name="open-api-generation">
         <xsl:choose>
             <!-- Open API document generation is done with capability annotations and error descriptions -->
@@ -789,7 +789,7 @@
             
             <!-- Remove navigability for driveItem/workbook navigation property for DevX API-specific CSDL-->
             <xsl:choose>
-                <xsl:when test="$remove-capability-annotations='False'">
+                <xsl:when test="$open-api-generation='False'">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
                         <xsl:element name="Annotation">
