@@ -1155,21 +1155,34 @@
         </xsl:copy>
     </xsl:template>
     
-    
-    <!-- If the parent "Annotation" tag already exists, modify it --> 
+    <!-- If the parent "Annotation" tag already exists, modify it -->
     <!-- Update ReadRestrictions for places entity set -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/places']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions']">
         <xsl:copy>
-        <xsl:copy-of select="@*"/>
+            <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
                 <xsl:element name="PropertyValue">
                     <xsl:attribute name="Property">Readable</xsl:attribute>
                     <xsl:attribute name="Bool">false</xsl:attribute>
-                </xsl:element>     
+                </xsl:element>
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+    
+    <!-- Update InsertRestrictions for places entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/places']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Insertable</xsl:attribute>
+                    <xsl:attribute name="Bool">false</xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>    
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->    
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/places']">     
@@ -1211,8 +1224,7 @@
                 </xsl:copy>    
             </xsl:otherwise>
         </xsl:choose>        
-    </xsl:template>    
-    
+    </xsl:template>   
     
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
