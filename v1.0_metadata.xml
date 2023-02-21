@@ -3411,15 +3411,6 @@
         <Member Name="skypeForBusinessVoipPhone" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
-      <EnumType Name="lobbyBypassScope">
-        <Member Name="organizer" Value="0" />
-        <Member Name="organization" Value="1" />
-        <Member Name="organizationAndFederated" Value="2" />
-        <Member Name="everyone" Value="3" />
-        <Member Name="unknownFutureValue" Value="4" />
-        <Member Name="invited" Value="5" />
-        <Member Name="organizationExcludingGuests" Value="6" />
-      </EnumType>
       <EnumType Name="mediaDirection">
         <Member Name="inactive" Value="0" />
         <Member Name="sendOnly" Value="1" />
@@ -3431,25 +3422,12 @@
         <Member Name="inactive" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
-      <EnumType Name="meetingChatMode">
-        <Member Name="enabled" Value="0" />
-        <Member Name="disabled" Value="1" />
-        <Member Name="limited" Value="2" />
-        <Member Name="unknownFutureValue" Value="3" />
-      </EnumType>
       <EnumType Name="modality">
         <Member Name="audio" Value="1" />
         <Member Name="video" Value="2" />
         <Member Name="videoBasedScreenSharing" Value="3" />
         <Member Name="data" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
-      <EnumType Name="onlineMeetingPresenters">
-        <Member Name="everyone" Value="0" />
-        <Member Name="organization" Value="1" />
-        <Member Name="roleIsPresenter" Value="2" />
-        <Member Name="organizer" Value="3" />
-        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="onlineMeetingRole">
         <Member Name="attendee" Value="0" />
@@ -4603,8 +4581,6 @@
       <EntityType Name="onlineMeeting" BaseType="graph.entity" OpenType="true">
         <Property Name="allowAttendeeToEnableCamera" Type="Edm.Boolean" />
         <Property Name="allowAttendeeToEnableMic" Type="Edm.Boolean" />
-        <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
-        <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
         <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
         <Property Name="attendeeReport" Type="Edm.Stream" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
@@ -5986,6 +5962,9 @@
         <Property Name="identityProviderType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
+      <ComplexType Name="lobbyBypassSettings">
+        <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -12415,10 +12394,6 @@
         <Property Name="joinMeetingId" Type="Edm.String" />
         <Property Name="passcode" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="lobbyBypassSettings">
-        <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
-        <Property Name="scope" Type="graph.lobbyBypassScope" />
-      </ComplexType>
       <ComplexType Name="mediaInfo">
         <Property Name="resourceId" Type="Edm.String" />
         <Property Name="uri" Type="Edm.String" Nullable="false" />
@@ -12916,6 +12891,9 @@
         <NavigationProperty Name="team" Type="graph.team" />
       </EntityType>
       <EntityType Name="associatedTeamInfo" BaseType="graph.teamInfo" />
+      <EntityType Name="azureCommunicationServicesUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="azureCommunicationServicesId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="chatMessage" BaseType="graph.entity">
         <Property Name="attachments" Type="Collection(graph.chatMessageAttachment)" />
         <Property Name="body" Type="graph.itemBody" Nullable="false" />
@@ -12967,6 +12945,9 @@
         <Property Name="contentType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
+      <EntityType Name="deletedTeam" BaseType="graph.entity">
+        <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="microsoftAccountUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
@@ -12991,6 +12972,7 @@
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
       <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
+        <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
         <Property Name="apiVersion" Type="Edm.Int32" />
@@ -18217,6 +18199,10 @@
       </Function>
       <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
         <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
+      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/channels/messages">
+        <Parameter Name="bindingParameter" Type="Collection(graph.deletedTeam)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Action Name="approve" IsBound="true">
