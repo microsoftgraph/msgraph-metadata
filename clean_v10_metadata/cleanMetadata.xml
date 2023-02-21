@@ -2063,11 +2063,17 @@
         <Member Name="listItem" Value="7" />
         <Member Name="drive" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="chatMessage" Value="10" />
       </EnumType>
       <EnumType Name="searchAlterationType">
         <Member Name="suggestion" Value="0" />
         <Member Name="modification" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="searchContent" IsFlags="true">
+        <Member Name="sharedContent" Value="1" />
+        <Member Name="privateContent" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="plannerContainerType">
         <Member Name="group" Value="1" />
@@ -3404,15 +3410,6 @@
         <Member Name="skypeForBusinessVoipPhone" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
-      <EnumType Name="lobbyBypassScope">
-        <Member Name="organizer" Value="0" />
-        <Member Name="organization" Value="1" />
-        <Member Name="organizationAndFederated" Value="2" />
-        <Member Name="everyone" Value="3" />
-        <Member Name="unknownFutureValue" Value="4" />
-        <Member Name="invited" Value="5" />
-        <Member Name="organizationExcludingGuests" Value="6" />
-      </EnumType>
       <EnumType Name="mediaDirection">
         <Member Name="inactive" Value="0" />
         <Member Name="sendOnly" Value="1" />
@@ -3424,25 +3421,12 @@
         <Member Name="inactive" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
-      <EnumType Name="meetingChatMode">
-        <Member Name="enabled" Value="0" />
-        <Member Name="disabled" Value="1" />
-        <Member Name="limited" Value="2" />
-        <Member Name="unknownFutureValue" Value="3" />
-      </EnumType>
       <EnumType Name="modality">
         <Member Name="audio" Value="1" />
         <Member Name="video" Value="2" />
         <Member Name="videoBasedScreenSharing" Value="3" />
         <Member Name="data" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
-      <EnumType Name="onlineMeetingPresenters">
-        <Member Name="everyone" Value="0" />
-        <Member Name="organization" Value="1" />
-        <Member Name="roleIsPresenter" Value="2" />
-        <Member Name="organizer" Value="3" />
-        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="onlineMeetingRole">
         <Member Name="attendee" Value="0" />
@@ -4830,8 +4814,6 @@
       <EntityType Name="onlineMeeting" BaseType="graph.entity" OpenType="true">
         <Property Name="allowAttendeeToEnableCamera" Type="Edm.Boolean" />
         <Property Name="allowAttendeeToEnableMic" Type="Edm.Boolean" />
-        <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
-        <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
         <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
         <Property Name="attendeeReport" Type="Edm.Stream" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
@@ -6690,6 +6672,9 @@
         <Property Name="identityProviderType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="userFlowLanguagePage" BaseType="graph.entity" HasStream="true" />
+      <ComplexType Name="lobbyBypassSettings">
+        <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -9294,8 +9279,10 @@
         <Property Name="specificAllowedTargets" Type="Collection(graph.subjectSet)" />
         <NavigationProperty Name="accessPackage" Type="graph.accessPackage" />
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
+        <NavigationProperty Name="questions" Type="Collection(graph.accessPackageQuestion)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageAssignmentRequest" BaseType="graph.entity">
+        <Property Name="answers" Type="Collection(graph.accessPackageAnswer)" />
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="requestType" Type="graph.accessPackageRequestType" />
@@ -9594,6 +9581,29 @@
         <Property Name="initiatedBy" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
+      <ComplexType Name="accessPackageAnswer" Abstract="true">
+        <Property Name="displayValue" Type="Edm.String" />
+        <NavigationProperty Name="answeredQuestion" Type="graph.accessPackageQuestion" ContainsTarget="true" />
+      </ComplexType>
+      <EntityType Name="accessPackageQuestion" BaseType="graph.entity" Abstract="true">
+        <Property Name="isAnswerEditable" Type="Edm.Boolean" />
+        <Property Name="isRequired" Type="Edm.Boolean" />
+        <Property Name="localizations" Type="Collection(graph.accessPackageLocalizedText)" />
+        <Property Name="sequence" Type="Edm.Int32" />
+        <Property Name="text" Type="Edm.String" />
+      </EntityType>
+      <ComplexType Name="accessPackageAnswerChoice">
+        <Property Name="actualValue" Type="Edm.String" />
+        <Property Name="localizations" Type="Collection(graph.accessPackageLocalizedText)" />
+        <Property Name="text" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accessPackageLocalizedText">
+        <Property Name="languageCode" Type="Edm.String" Nullable="false" />
+        <Property Name="text" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accessPackageAnswerString" BaseType="graph.accessPackageAnswer">
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="accessPackageApprovalStage">
         <Property Name="durationBeforeAutomaticDenial" Type="Edm.Duration" />
         <Property Name="durationBeforeEscalation" Type="Edm.Duration" />
@@ -9628,6 +9638,7 @@
         <Property Name="policyDisplayName" Type="Edm.String" />
         <Property Name="policyId" Type="Edm.String" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
+        <NavigationProperty Name="questions" Type="Collection(graph.accessPackageQuestion)" />
       </ComplexType>
       <ComplexType Name="entitlementManagementSchedule">
         <Property Name="expiration" Type="graph.expirationPattern" />
@@ -9694,6 +9705,14 @@
         <Property Name="principalName" Type="Edm.String" />
         <Property Name="subjectType" Type="graph.accessPackageSubjectType" />
         <NavigationProperty Name="connectedOrganization" Type="graph.connectedOrganization" />
+      </EntityType>
+      <EntityType Name="accessPackageMultipleChoiceQuestion" BaseType="graph.accessPackageQuestion">
+        <Property Name="choices" Type="Collection(graph.accessPackageAnswerChoice)" />
+        <Property Name="isMultipleSelectionAllowed" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="accessPackageTextInputQuestion" BaseType="graph.accessPackageQuestion">
+        <Property Name="isSingleLineQuestion" Type="Edm.Boolean" />
+        <Property Name="regexPattern" Type="Edm.String" />
       </EntityType>
       <ComplexType Name="identitySource" Abstract="true" />
       <ComplexType Name="azureActiveDirectoryTenant" BaseType="graph.identitySource">
@@ -12360,9 +12379,14 @@
         <Property Name="from" Type="Edm.Int32" Nullable="false" />
         <Property Name="query" Type="graph.searchQuery" Nullable="false" />
         <Property Name="queryAlterationOptions" Type="graph.searchAlterationOptions" />
+        <Property Name="region" Type="Edm.String" />
         <Property Name="resultTemplateOptions" Type="graph.resultTemplateOption" />
+        <Property Name="sharePointOneDriveOptions" Type="graph.sharePointOneDriveOptions" />
         <Property Name="size" Type="Edm.Int32" Nullable="false" />
         <Property Name="sortProperties" Type="Collection(graph.sortProperty)" />
+      </ComplexType>
+      <ComplexType Name="sharePointOneDriveOptions">
+        <Property Name="includeContent" Type="graph.searchContent" />
       </ComplexType>
       <ComplexType Name="sortProperty">
         <Property Name="isDescending" Type="Edm.Boolean" />
@@ -13570,10 +13594,6 @@
         <Property Name="joinMeetingId" Type="Edm.String" />
         <Property Name="passcode" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="lobbyBypassSettings">
-        <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
-        <Property Name="scope" Type="graph.lobbyBypassScope" />
-      </ComplexType>
       <ComplexType Name="mediaInfo">
         <Property Name="resourceId" Type="Edm.String" />
         <Property Name="uri" Type="Edm.String" Nullable="false" />
@@ -14071,6 +14091,9 @@
         <NavigationProperty Name="team" Type="graph.team" />
       </EntityType>
       <EntityType Name="associatedTeamInfo" BaseType="graph.teamInfo" />
+      <EntityType Name="azureCommunicationServicesUserConversationMember" BaseType="graph.conversationMember">
+        <Property Name="azureCommunicationServicesId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="chatMessage" BaseType="graph.entity">
         <Property Name="attachments" Type="Collection(graph.chatMessageAttachment)" />
         <Property Name="body" Type="graph.itemBody" Nullable="false" />
@@ -14122,6 +14145,9 @@
         <Property Name="contentType" Type="Edm.String" />
       </EntityType>
       <EntityType Name="chatMessageHostedContent" BaseType="graph.teamworkHostedContent" />
+      <EntityType Name="deletedTeam" BaseType="graph.entity">
+        <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="microsoftAccountUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
@@ -14146,6 +14172,7 @@
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
       <EntityType Name="teamwork" BaseType="graph.entity">
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
+        <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
         <Property Name="apiVersion" Type="Edm.Int32" />
@@ -19366,6 +19393,10 @@
       </Function>
       <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
         <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
+      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/channels/messages">
+        <Parameter Name="bindingParameter" Type="Collection(graph.deletedTeam)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Action Name="approve" IsBound="true">
@@ -32200,16 +32231,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.synchronization/secrets">
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="UpdateMethod">
-              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
-            </PropertyValue>
-            <PropertyValue Property="Updatable" Bool="true" />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.educationSchool/administrativeUnit">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
@@ -32222,10 +32243,37 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.synchronization/secrets">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
+            <PropertyValue Property="Updatable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.driveItem/children">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/applicationTemplates">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>

@@ -7,7 +7,7 @@
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
 
-    <!-- Flag to signal if we are generating a document for open api generation. -->
+    <!-- Flag to signal if we are generating a document for Kiota-based open api generation. -->
     <xsl:variable name="open-api-generation">
         <xsl:choose>
             <!-- Open API document generation is done with capability annotations and error descriptions -->
@@ -798,6 +798,25 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
+            
+            <!-- Remove navigability for driveItem/workbook navigation property for DevX API-specific CSDL-->
+            <xsl:choose>
+                <xsl:when test="$open-api-generation='False'">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.driveItem/workbook</xsl:attribute>
+                        <xsl:element name="Annotation">
+                            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                            <xsl:element name="Record" namespace="{namespace-uri()}">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Navigability</xsl:attribute>
+                                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                      </xsl:element>                
+                </xsl:when>            
+            </xsl:choose>
+            
             <xsl:choose>
                 <!-- Add inner error description -->
                 <xsl:when test="$add-innererror-description='True'">
