@@ -16,13 +16,23 @@
 
 .Parameter repoDirectory
     Full path the the root directory of msgraph-metadata checkout.
+
+.Parameter platformName
+    Name of the platform to be tested.
 #>
 
 param(
     [Parameter(Mandatory=$true)][string]$repoDirectory,
-    [Parameter(Mandatory=$true)][string]$version
+    [Parameter(Mandatory=$true)][string]$version,
+    [Parameter(Mandatory=$false)][string]$platformName
 )
-$yaml = Join-Path $repoDirectory "openapi" $version "openapi.yaml"
+
+if([string]::IsNullOrWhiteSpace($aString))
+{
+   $platformName = "openapi"
+}
+
+$yaml = Join-Path $repoDirectory "openapi" $version "$platformName.yaml"
 
 Write-Host "Validating $yaml OpenAPI doc..." -ForegroundColor Green
 
