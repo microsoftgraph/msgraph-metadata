@@ -1133,7 +1133,7 @@
     <!-- Update UpdateRestrictions for synchronization/secrets complex property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
         <xsl:copy>
-        <xsl:copy-of select="@*"/>        
+        <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
             <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
                 <xsl:call-template name="UpdateMethodTemplate">
