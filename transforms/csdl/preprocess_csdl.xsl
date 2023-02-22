@@ -435,7 +435,7 @@
     <!--Remove functions that are blocking beta generation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='additionalAccess'][edm:Parameter[@Name='accessPackageId']][edm:Parameter[@Type='Collection(graph.accessPackageAssignment)']][1]"/>
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='Collection(graph.directoryObject)']]"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='Collection(graph.administrativeUnit)']]"/>
 
     <!-- Reorder action parameters -->
 
