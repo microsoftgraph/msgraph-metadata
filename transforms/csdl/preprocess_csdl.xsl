@@ -6,6 +6,7 @@
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
+    <xsl:param name="csdlVersion">v1_0</xsl:param>
 
     <!-- Flag to signal if we are generating a document for Kiota-based open api generation. -->
     <xsl:variable name="open-api-generation">
