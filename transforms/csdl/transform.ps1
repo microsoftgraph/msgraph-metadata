@@ -13,7 +13,7 @@ param (
     [bool]
     $removeCapabilityAnnotations = $true,
     [bool]
-    $addInnerErrorDescription = $false
+    $addInnerErrorDescription = $false,
     [string]
     $csdlVersion = $v1_0
 )
