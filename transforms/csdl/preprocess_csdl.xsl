@@ -911,7 +911,7 @@
             <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <!-- Add Insertability for driveItem/children navigation property -->
             <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
-            <!-- Remove skip support for users entity set -->            
+            <!-- Remove $skip support for users entity set -->            
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -1126,14 +1126,14 @@
                     <xsl:apply-templates select="@* | node()"/>
                 </xsl:copy>    
             </xsl:otherwise>
-        </xsl:choose>        
+        </xsl:choose>
     </xsl:template>
     
     <!-- If the parent "Annotation" tag already exists, modify it --> 
     <!-- Update UpdateRestrictions for synchronization/secrets complex property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
         <xsl:copy>
-        <xsl:copy-of select="@* | node()"/>        
+        <xsl:copy-of select="@*"/>        
             <xsl:element name="Record" namespace="{namespace-uri()}">
             <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
                 <xsl:call-template name="UpdateMethodTemplate">
@@ -1160,13 +1160,11 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy>
-                    <!--<xsl:apply-templates select="@* | node()"/>-->
-                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:copy-of select="@* | node()"/>
                 </xsl:copy>    
             </xsl:otherwise>
         </xsl:choose> 
     </xsl:template>
-    
     
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
