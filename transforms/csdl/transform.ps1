@@ -42,7 +42,7 @@ $outputFullPath = Get-PathWithPrefix -requestedPath $outputPath
 $xsltargs = [System.Xml.Xsl.XsltArgumentList]::new()
 $xsltargs.AddParam("remove-capability-annotations", "", $removeCapabilityAnnotations.ToString())
 $xsltargs.AddParam("add-innererror-description", "", $addInnerErrorDescription.ToString())
-$xsltargs.AddParam("csdlVersion", "", csdlVersion)
+$xsltargs.AddParam("csdlVersion", "", $csdlVersion)
 
 $xmlWriterSettings = [System.Xml.XmlWriterSettings]::new()
 $xmlWriterSettings.Indent = $true
