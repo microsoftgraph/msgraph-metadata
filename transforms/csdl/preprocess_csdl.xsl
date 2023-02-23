@@ -156,8 +156,26 @@
     <!-- Add odata cast annotation -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='membersWithLicenseErrors']|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='transitiveMembers']|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='transitiveMembers']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.user</String>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.application</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                    <String>microsoft.graph.device</String>
+                    <String>microsoft.graph.orgContact</String>
+                </Collection>
+            </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='transitiveMemberOf']|
@@ -171,12 +189,7 @@
             <xsl:copy-of select="@* | node()" />
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
-                    <String>microsoft.graph.user</String>
                     <String>microsoft.graph.group</String>
-                    <String>microsoft.graph.application</String>
-                    <String>microsoft.graph.servicePrincipal</String>
-                    <String>microsoft.graph.device</String>
-                    <String>microsoft.graph.orgContact</String>
                 </Collection>
             </Annotation>
             <xsl:element name="Annotation">
