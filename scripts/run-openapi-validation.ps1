@@ -27,7 +27,7 @@ param(
     [Parameter(Mandatory=$false)][string]$platformName
 )
 
-if([string]::IsNullOrWhiteSpace($aString))
+if([string]::IsNullOrWhiteSpace($platformName))
 {
    $platformName = "openapi"
 }
