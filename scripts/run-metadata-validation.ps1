@@ -4,28 +4,32 @@
 <#
 .Synopsis
     Runs MetadataParser tool to validate latest XSLT rules don't break downstream parsing of the metadata
-
 .Description
     1. tranforms latests snapshots of beta or v1 metadata
     2. validates that the transformed metadata is parsable as OData EDM model and conversion to OpenAPI document is possible
-
 .Example
     ./scripts/run-metadata-validation.ps1 -repoDirectory C:/github/msgraph-metadata -version "v1.0"
-
 .Example
     ./scripts/run-metadata-validation.ps1 -repoDirectory $GITHUB_WORKSPACE -version "v1.0"
-
 .Parameter repoDirectory
     Full path the the root directory of msgraph-metadata checkout.
 #>
 
 param(
     [Parameter(Mandatory=$true)][string]$repoDirectory,
-    [Parameter(Mandatory=$true)][string]$version
+    [Parameter(Mandatory=$true)][string]$version,
+    [Parameter(Mandatory=$false)][string]$platformName
 )
+
+if([string]::IsNullOrWhiteSpace($platformName))
+{
+   $platformName = "openapi"
+}
+
 $transformCsdlDirectory = Join-Path $repoDirectory "transforms/csdl"
 $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
 $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
+$conversionSettingsDirectory = Join-Path $repoDirectory "conversion-settings"
 
 $snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
 
@@ -36,4 +40,4 @@ Write-Host "Tranforming $snapshot metadata using xslt with parameters used in th
 
 Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
 & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
-& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml
+& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
