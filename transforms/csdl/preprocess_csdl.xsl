@@ -670,7 +670,14 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Capability Annotations Templates -->    
+    <!-- Capability Annotations Templates -->
+    <xsl:template name="SkipSupportTemplate">
+        <xsl:param name="skipSupported" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.SkipSupported</xsl:attribute>
+            <xsl:attribute name="Bool"><xsl:value-of select="$skipSupported"/></xsl:attribute>
+        </xsl:element>           
+    </xsl:template>
     <xsl:template name="ReadRestrictionsTemplate">
         <xsl:param name = "readable" />
         <xsl:element name="Annotation">
@@ -935,6 +942,7 @@
             <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <!-- Add Insertability for driveItem/children navigation property -->
             <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
+            <!-- Remove $skip support for users entity set -->            
             <!-- Remove Readability, Insertability for places entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
@@ -1013,6 +1021,16 @@
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/users'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.GraphService/users</xsl:attribute>                       
+                       <xsl:call-template name="SkipSupportTemplate">
+                           <xsl:with-param name="skipSupported">false</xsl:with-param>
+                       </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
@@ -1138,7 +1156,7 @@
 
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">     
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/secrets']">
         <xsl:choose>
             <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
                 <xsl:copy>
@@ -1154,7 +1172,7 @@
                     <xsl:apply-templates select="@* | node()"/>
                 </xsl:copy>    
             </xsl:otherwise>
-        </xsl:choose> 
+        </xsl:choose>
     </xsl:template>
     
     <!-- If the parent "Annotation" tag already exists, modify it --> 
@@ -1172,6 +1190,26 @@
                 </xsl:call-template>   
             </xsl:element>
         </xsl:copy>
+    </xsl:template>
+    
+     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
+     <!-- Remove skip support for users entity set -->    
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/users']">     
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.SkipSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="SkipSupportTemplate">
+                        <xsl:with-param name="skipSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose> 
     </xsl:template>
     
     <!-- If the parent "Annotation" tag already exists, modify it -->
