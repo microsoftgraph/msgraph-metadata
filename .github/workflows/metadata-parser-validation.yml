@@ -7,7 +7,21 @@ on:
     branches: [ master ]
 
 jobs:
+  list-conversion-settings:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-conversion-settings.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - id: set-conversion-settings
+        run: echo "::set-output name=matrix::$(ls conversion-settings/*.json | sed 's/.*\///' | sed 's/\.[^.]*$//' | jq -R -s -c 'split("\n")[:-1]')"
+
   build:
+    needs: list-conversion-settings
+    strategy:
+      matrix:
+        version: ["v1.0", "beta"]
+        settings: ${{ fromJson(needs.list-conversion-settings.outputs.matrix) }}
 
     runs-on: ubuntu-latest
 
@@ -15,10 +29,18 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
+
     - name: Validate latest XSLT rules
-      run: ./scripts/run-metadata-validation.ps1 -repoDirectory "${{ github.workspace }}"
+      run: ./scripts/run-metadata-validation.ps1 -repoDirectory "${{ github.workspace }}" -version "${{ matrix.version }}" -platformName "${{ matrix.settings }}"
       shell: pwsh
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: openapi
+        path: openapi/*
