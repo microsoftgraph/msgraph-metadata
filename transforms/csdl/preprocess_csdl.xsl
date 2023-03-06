@@ -6,7 +6,7 @@
     <xsl:strip-space elements="*"/> <!-- Remove empty space after deletions. -->
     <xsl:param name="remove-capability-annotations">True</xsl:param>
     <xsl:param name="add-innererror-description">False</xsl:param>
-    <xsl:param name="csdlVersion">v1_0</xsl:param>
+    <xsl:param name="csdlVersion">v1.0</xsl:param>
 
     <!-- Flag to signal if we are generating a document for Kiota-based open api generation. -->
     <xsl:variable name="open-api-generation">
@@ -694,18 +694,6 @@
     </xsl:template>
     <xsl:template name="ReadRestrictionsTemplate">
         <xsl:param name = "readable" />
-        <xsl:element name="Annotation">
-            <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
-            <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Readable</xsl:attribute>
-                    <xsl:attribute name="Bool"><xsl:value-of select = "$readable" /></xsl:attribute>
-                </xsl:element>
-            </xsl:element>
-        </xsl:element>
-    </xsl:template>
-    <xsl:template name="ReadRestrictionsTemplate">
-        <xsl:param name = "readable" />
         <xsl:param name = "readableByKey" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
@@ -716,16 +704,26 @@
                         <xsl:value-of select = "$readable" />
                     </xsl:attribute>
                 </xsl:element>
+                <xsl:choose>
+                    <xsl:when test="not($readableByKey='')">
+                        <xsl:call-template name="ReadByKeyRestrictionsTemplate">
+                            <xsl:with-param name="readableByKey"><xsl:value-of select="$readableByKey" /></xsl:with-param>                
+                        </xsl:call-template>                    
+                    </xsl:when>                
+                </xsl:choose>                
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="ReadByKeyRestrictionsTemplate">
+        <xsl:param name="readableByKey" />
+        <xsl:element name="PropertyValue">
+            <xsl:attribute name="Property">ReadByKeyRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
                 <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">ReadByKeyRestrictions</xsl:attribute>
-                    <xsl:element name="Record" namespace="{namespace-uri()}">
-                        <xsl:element name="PropertyValue">
-                            <xsl:attribute name="Property">Readable</xsl:attribute>
-                            <xsl:attribute name="Bool">
-                                <xsl:value-of select = "$readableByKey" />
-                            </xsl:attribute>
-                        </xsl:element>
-                    </xsl:element>
+                    <xsl:attribute name="Property">Readable</xsl:attribute>
+                    <xsl:attribute name="Bool">
+                        <xsl:value-of select = "$readableByKey" />
+                    </xsl:attribute>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -974,16 +972,9 @@
                 </xsl:call-template>
             </xsl:element>
 
-            <!-- Add the parent "Annotations" tag if it doesn't exist -->
+            <!-- Add the parent "Annotations" tags if they don't exist -->
+            
             <!-- Add UpdateRestrictions for team/schedule navigation property -->
-            <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
-            <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
-            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
-            <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
-            <!-- Add Insertability for driveItem/children navigation property -->
-            <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
-            <!-- Remove $skip support for users entity set -->            
-            <!-- Remove Readability, Insertability for places entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.team/schedule'])">
                     <xsl:element name="Annotations">
@@ -994,6 +985,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add UpdateRestrictions for entitlementManagement/accessPackageAssignmentPolicies navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/accessPackageAssignmentPolicies'])">
                     <xsl:element name="Annotations">
@@ -1004,6 +997,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add UpdateRestrictions for entitlementManagement/assignmentPolicies navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/assignmentPolicies'])">
                     <xsl:element name="Annotations">
@@ -1014,6 +1009,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.educationSchool/administrativeUnit'])">
                     <xsl:element name="Annotations">
@@ -1027,6 +1024,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add UpdateRestrictions for synchronization/secrets complex property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.synchronization/secrets'])">
                     <xsl:element name="Annotations">
@@ -1038,6 +1037,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add Insertability for driveItem/children navigation property -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.driveItem/children'])">
                     <xsl:element name="Annotations">
@@ -1047,7 +1048,9 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose> 
+            </xsl:choose>
+            
+            <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates'])">
                     <xsl:element name="Annotations">
@@ -1064,6 +1067,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Remove $skip support for users entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/users'])">
                     <xsl:element name="Annotations">
@@ -1074,6 +1079,8 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Remove Readability, Insertability for places entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/places'])">
                     <xsl:element name="Annotations">
@@ -1088,9 +1095,9 @@
                 </xsl:when>
             </xsl:choose>
 
-            <!-- Remove readability only for teams entity set -->
+            <!-- Remove readability only for teams entity set v1.0 -->
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams'])">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams']) and $csdlVersion='v1.0'">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.GraphService/teams</xsl:attribute>
                         <xsl:call-template name="ReadRestrictionsTemplate">
@@ -1163,15 +1170,24 @@
     </xsl:template>    
 
     <!-- If the parent "Annotations" tag already exists modify it -->
-    <!-- Remove readability only for teams entity set -->
+    <!-- Remove readability only for teams entity set for v1.0 -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/teams']">
-      <xsl:copy>
-        <xsl:copy-of select="@*|node()"/>
-           <xsl:call-template name="ReadRestrictionsTemplate">
-              <xsl:with-param name="readable">false</xsl:with-param>
-              <xsl:with-param name="readableByKey">true</xsl:with-param>
-           </xsl:call-template>
-      </xsl:copy>
+        <xsl:choose>
+            <xsl:when test="$csdlVersion='v1.0'">
+                 <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                       <xsl:call-template name="ReadRestrictionsTemplate">
+                          <xsl:with-param name="readable">false</xsl:with-param>
+                          <xsl:with-param name="readableByKey">true</xsl:with-param>
+                       </xsl:call-template>
+                  </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>            
+            </xsl:otherwise>        
+        </xsl:choose>     
     </xsl:template>
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
