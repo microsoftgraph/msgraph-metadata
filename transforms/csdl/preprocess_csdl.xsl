@@ -1022,6 +1022,16 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.drive/bundles'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.drive/bundles</xsl:attribute>                       
+                       <xsl:call-template name="InsertRestrictionsTemplate">
+                           <xsl:with-param name="insertable">true</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
             </xsl:choose> 
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates'])">
@@ -1126,7 +1136,9 @@
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add Insertability for driveItem/children navigation property -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']">     
+    <!-- Add Insertability for drive/bundles navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles']">     
         <xsl:choose>
             <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'])">
                 <xsl:copy>
@@ -1146,7 +1158,9 @@
     
     <!-- If the parent "Annotation" tag already exists, modify it -->
     <!-- Update Insertability for driveItem/children navigation property -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
+    <!-- Update Insertability for drive/bundles navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
         <xsl:copy>
         <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
