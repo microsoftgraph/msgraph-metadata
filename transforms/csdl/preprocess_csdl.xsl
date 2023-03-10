@@ -16,6 +16,14 @@
             <xsl:otherwise>False</xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
+    
+    <xsl:variable name="is-version-v1">
+        <xsl:choose>
+            <xsl:when test="$csdlVersion='v1.0'">True</xsl:when>
+            <xsl:otherwise>False</xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    
     <!-- DO NOT FORMAT ON SAVE or else the match templates will become unreadable. -->
     <!-- All element references should include schema namespace as we need to support multiple namespaces. -->
 
@@ -1097,7 +1105,7 @@
 
             <!-- Remove readability only for teams entity set v1.0 -->
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams']) and $csdlVersion='v1.0'">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams']) and $is-version-v1='True'">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.GraphService/teams</xsl:attribute>
                         <xsl:call-template name="ReadRestrictionsTemplate">
@@ -1173,7 +1181,7 @@
     <!-- Remove readability only for teams entity set for v1.0 -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/teams']">
         <xsl:choose>
-            <xsl:when test="$csdlVersion='v1.0'">
+            <xsl:when test="is-version-v1='True'">
                  <xsl:copy>
                     <xsl:copy-of select="@*|node()"/>
                        <xsl:call-template name="ReadRestrictionsTemplate">
