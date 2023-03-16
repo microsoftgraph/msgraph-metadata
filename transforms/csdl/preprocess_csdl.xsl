@@ -200,6 +200,7 @@
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
                     <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.administrativeUnit</String>
                 </Collection>
             </Annotation>
             <xsl:element name="Annotation">
