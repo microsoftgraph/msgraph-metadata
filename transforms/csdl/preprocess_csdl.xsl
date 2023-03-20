@@ -848,6 +848,16 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="ExpandRestrictionsTemplate">
+        <xsl:param name = "expandable" />
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.ExpandRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Expandable</xsl:attribute>
+                    <xsl:attribute name="Bool"><xsl:value-of select="$expandable"/></xsl:attribute>
+                </xsl:element>
+        </xsl:element>
+    </xsl:template>
 
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
@@ -1258,6 +1268,20 @@
                <xsl:with-param name="filterable">false</xsl:with-param>
              </xsl:call-template>
        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add ExpandRestrictions to events,mailfolders and messages entity type -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/mailFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/calendarView']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.calendar/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']| 
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/messages']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']">
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+                <xsl:call-template name="ExpandRestrictionsTemplate">
+                    <xsl:with-param name="expandable">true</xsl:with-param>            
+                </xsl:call-template>       
+        </xsl:copy>
     </xsl:template>
 
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
