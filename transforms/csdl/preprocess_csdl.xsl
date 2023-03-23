@@ -39,6 +39,7 @@
 
     <xsl:template match="
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentPolicy']/edm:NavigationProperty[@Name='customExtensionHandlers']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageAssignmentPolicy']/edm:NavigationProperty[@Name='customExtensionStageSettings']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='androidDeviceOwnerImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='androidDeviceOwnerScepCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='androidForWorkImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
