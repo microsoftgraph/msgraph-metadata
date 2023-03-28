@@ -1030,6 +1030,31 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <!-- Add UpdateRestrictions for group/team navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.group/team'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.group/team</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+
+            <!-- Add UpdateRestrictions for externalConnection/items navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.externalConnectors.externalConnection/items'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.externalConnectors.externalConnection/items</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                            <xsl:with-param name="updatable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
             <!-- Add Insertability and Updatability for educationSchool/administrativeUnit non-containment navigation property -->
             <xsl:choose>
