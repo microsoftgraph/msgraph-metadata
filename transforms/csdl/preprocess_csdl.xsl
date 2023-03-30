@@ -1306,10 +1306,14 @@
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/mailFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/calendarView']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/calendarView']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/calendars']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/calendars']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.calendar/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.calendar/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/contacts']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']| 
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/contacts']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/contactFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']| 
+                        edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/contactFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/messages']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/messages']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']">
         <xsl:copy>
