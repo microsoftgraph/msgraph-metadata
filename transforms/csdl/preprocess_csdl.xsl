@@ -662,7 +662,29 @@
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='bookingBusinesses']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='instances']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">instances</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='bookingBusinesses'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='bookingBusiness']/edm:NavigationProperty[@Name='calendarView']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
             <xsl:element name="Annotation">
