@@ -796,6 +796,25 @@
         <Member Name="fourth" Value="3" />
         <Member Name="last" Value="4" />
       </EnumType>
+      <EnumType Name="imageTaggingChoice">
+        <Member Name="disabled" Value="0" />
+        <Member Name="basic" Value="1" />
+        <Member Name="enhanced" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="sharingCapabilities">
+        <Member Name="disabled" Value="0" />
+        <Member Name="externalUserSharingOnly" Value="1" />
+        <Member Name="externalUserAndGuestSharing" Value="2" />
+        <Member Name="existingExternalUserSharingOnly" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="sharingDomainRestrictionMode">
+        <Member Name="none" Value="0" />
+        <Member Name="allowList" Value="1" />
+        <Member Name="blockList" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="columnTypes">
         <Member Name="note" Value="0" />
         <Member Name="text" Value="1" />
@@ -4702,6 +4721,7 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="videoTeleconferenceId" Type="Edm.String" />
+        <Property Name="watermarkProtection" Type="graph.watermarkProtectionValues" />
         <NavigationProperty Name="attendanceReports" Type="Collection(graph.meetingAttendanceReport)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="presence" BaseType="graph.entity">
@@ -6125,6 +6145,10 @@
         <Property Name="isDialInBypassEnabled" Type="Edm.Boolean" />
         <Property Name="scope" Type="graph.lobbyBypassScope" />
       </ComplexType>
+      <ComplexType Name="watermarkProtectionValues">
+        <Property Name="isEnabledForContentSharing" Type="Edm.Boolean" />
+        <Property Name="isEnabledForVideo" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -6740,10 +6764,14 @@
       </ComplexType>
       <EntityType Name="admin">
         <NavigationProperty Name="edge" Type="graph.edge" ContainsTarget="true" />
+        <NavigationProperty Name="sharepoint" Type="graph.sharepoint" ContainsTarget="true" />
         <NavigationProperty Name="serviceAnnouncement" Type="graph.serviceAnnouncement" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="edge" BaseType="graph.entity">
         <NavigationProperty Name="internetExplorerMode" Type="graph.internetExplorerMode" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="sharepoint" BaseType="graph.entity">
+        <NavigationProperty Name="settings" Type="graph.sharepointSettings" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="serviceAnnouncement" BaseType="graph.entity">
         <NavigationProperty Name="healthOverviews" Type="Collection(graph.serviceHealth)" ContainsTarget="true" />
@@ -8019,6 +8047,42 @@
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="referenceAttachment" BaseType="graph.attachment" />
+      <ComplexType Name="idleSessionSignOut">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="signOutAfterInSeconds" Type="Edm.Int64" />
+        <Property Name="warnAfterInSeconds" Type="Edm.Int64" />
+      </ComplexType>
+      <EntityType Name="sharepointSettings" BaseType="graph.entity">
+        <Property Name="allowedDomainGuidsForSyncApp" Type="Collection(Edm.Guid)" />
+        <Property Name="availableManagedPathsForSiteCreation" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="deletedUserPersonalSiteRetentionPeriodInDays" Type="Edm.Int32" />
+        <Property Name="excludedFileExtensionsForSyncApp" Type="Collection(Edm.String)" />
+        <Property Name="idleSessionSignOut" Type="graph.idleSessionSignOut" />
+        <Property Name="imageTaggingOption" Type="graph.imageTaggingChoice" />
+        <Property Name="isCommentingOnSitePagesEnabled" Type="Edm.Boolean" />
+        <Property Name="isFileActivityNotificationEnabled" Type="Edm.Boolean" />
+        <Property Name="isLegacyAuthProtocolsEnabled" Type="Edm.Boolean" />
+        <Property Name="isLoopEnabled" Type="Edm.Boolean" />
+        <Property Name="isMacSyncAppEnabled" Type="Edm.Boolean" />
+        <Property Name="isRequireAcceptingUserToMatchInvitedUserEnabled" Type="Edm.Boolean" />
+        <Property Name="isResharingByExternalUsersEnabled" Type="Edm.Boolean" />
+        <Property Name="isSharePointMobileNotificationEnabled" Type="Edm.Boolean" />
+        <Property Name="isSharePointNewsfeedEnabled" Type="Edm.Boolean" />
+        <Property Name="isSiteCreationEnabled" Type="Edm.Boolean" />
+        <Property Name="isSiteCreationUIEnabled" Type="Edm.Boolean" />
+        <Property Name="isSitePagesCreationEnabled" Type="Edm.Boolean" />
+        <Property Name="isSitesStorageLimitAutomatic" Type="Edm.Boolean" />
+        <Property Name="isSyncButtonHiddenOnPersonalSite" Type="Edm.Boolean" />
+        <Property Name="isUnmanagedSyncAppForTenantRestricted" Type="Edm.Boolean" />
+        <Property Name="personalSiteDefaultStorageLimitInMB" Type="Edm.Int64" />
+        <Property Name="sharingAllowedDomainList" Type="Collection(Edm.String)" />
+        <Property Name="sharingBlockedDomainList" Type="Collection(Edm.String)" />
+        <Property Name="sharingCapability" Type="graph.sharingCapabilities" />
+        <Property Name="sharingDomainRestrictionMode" Type="graph.sharingDomainRestrictionMode" />
+        <Property Name="siteCreationDefaultManagedPath" Type="Edm.String" Nullable="false" />
+        <Property Name="siteCreationDefaultStorageLimitInMB" Type="Edm.Int32" />
+        <Property Name="tenantDefaultTimezone" Type="Edm.String" />
+      </EntityType>
       <ComplexType Name="accessAction" OpenType="true" />
       <ComplexType Name="album">
         <Property Name="coverImageItemId" Type="Edm.String" />
@@ -8251,9 +8315,9 @@
         <Property Name="status" Type="Edm.String" Nullable="false" />
         <Property Name="targetTypes" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
-      <EntityType Name="cloudCommunications" BaseType="graph.entity">
-        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
+      <EntityType Name="cloudCommunications">
         <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
         <NavigationProperty Name="presences" Type="Collection(graph.presence)" ContainsTarget="true" />
       </EntityType>
