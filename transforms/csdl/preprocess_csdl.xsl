@@ -531,6 +531,42 @@
         </xsl:element>
     </xsl:template>
 
+    <!-- Add custom query options to given navigation property -->
+    <xsl:template name="CustomQueryOptionsTemplate">
+        <xsl:param name = "customQueryOptionName" />
+        <xsl:param name = "description" />
+        <xsl:element name="Record">
+            <xsl:element name="PropertyValue">
+                <xsl:attribute name="Property">ReadRestrictions</xsl:attribute>
+                <xsl:element name="Record">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">CustomQueryOptions</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:element name="Record">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Name</xsl:attribute>
+                                    <xsl:attribute name="String">
+                                        <xsl:value-of select = "$customQueryOptionName" />
+                                    </xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Description</xsl:attribute>
+                                    <xsl:attribute name="String">
+                                        <xsl:value-of select = "$description" />
+                                    </xsl:attribute>
+                                </xsl:element>
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Required</xsl:attribute>
+                                    <xsl:attribute name="Bool">false</xsl:attribute>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+
     <!-- Header templates -->
     <xsl:template name="ConsistencyLevelHeaderTemplate">
         <xsl:element name="Record" namespace="{namespace-uri()}">
@@ -651,6 +687,48 @@
                                 <xsl:with-param name="propertyPath">instances</xsl:with-param>
                                 <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
                                 <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add custom query options - includeHiddenFolders to mailFolders -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='mailFolders']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:call-template name="CustomQueryOptionsTemplate">
+                                <xsl:with-param name="customQueryOptionName">includeHiddenFolders</xsl:with-param>
+                                <xsl:with-param name="description">Include Hidden Folders</xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add custom query options - includeHiddenMessages to messages -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='messages']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                        <xsl:element name="Collection">
+                            <xsl:call-template name="CustomQueryOptionsTemplate">
+                                <xsl:with-param name="customQueryOptionName">includeHiddenMessages</xsl:with-param>
+                                <xsl:with-param name="description">Include Hidden Messages</xsl:with-param>
                             </xsl:call-template>
                         </xsl:element>
                     </xsl:element>
