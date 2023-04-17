@@ -699,24 +699,12 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:Property[@Name='mailboxSettings']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
-                <xsl:element name="Record" namespace="{namespace-uri()}">
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Readable</xsl:attribute>
-                        <xsl:attribute name="Bool">true</xsl:attribute>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
-            <xsl:element name="Annotation">
-                <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
-                <xsl:element name="Record" namespace="{namespace-uri()}">
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Updatable</xsl:attribute>
-                        <xsl:attribute name="Bool">true</xsl:attribute>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="UpdateRestrictionsTemplate">
+                <xsl:with-param name="updatable">true</xsl:with-param>
+            </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
