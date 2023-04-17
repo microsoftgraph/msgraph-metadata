@@ -144,15 +144,15 @@
     </xsl:template>
     
     <!-- Add annotations -->
-    <xsl:attribute-set name="LongDescriptionNavigable">
+    <xsl:attribute-set name="LongDescriptionindexable">
         <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
-        <xsl:attribute name="String">navigable</xsl:attribute>
+        <xsl:attribute name="String">indexable</xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='thumbnail']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:element name="Annotation" use-attribute-sets="LongDescriptionNavigable"/>
+            <xsl:element name="Annotation" use-attribute-sets="LongDescriptionindexable"/>
         </xsl:copy>
     </xsl:template>
 
@@ -878,7 +878,7 @@
               <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
         </xsl:element>
     </xsl:template>
-    <xsl:template name ="UpdatableTemplate">
+    <xsl:template name = "UpdatableTemplate">
        <xsl:param name = "updatable" />
        <xsl:element name="PropertyValue">
          <xsl:attribute name="Property">Updatable</xsl:attribute>
@@ -886,20 +886,32 @@
        </xsl:element>
     </xsl:template>
     <xsl:template name="NavigationRestrictionsTemplate">
-        <xsl:param name = "navigable" />
+        <xsl:param name="indexable" />
+        <xsl:param name="navigability" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
                 <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-                    <xsl:element name="Collection">
-                        <xsl:element name="Record">
-                            <xsl:element name="PropertyValue">
-                                <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                                <xsl:attribute name="Bool"><xsl:value-of select = "$navigable" /></xsl:attribute>
+                    <xsl:choose>
+                        <xsl:when test="$indexable">
+                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                                <xsl:element name="Collection">
+                                    <xsl:element name="Record">
+                                        <xsl:element name="PropertyValue">
+                                            <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                            <xsl:attribute name="Bool"><xsl:value-of select="$indexable" /></xsl:attribute>
+                                        </xsl:element>
+                                    </xsl:element>
+                                </xsl:element>
+                        </xsl:when>
+                    </xsl:choose>
+                    <xsl:choose>
+                        <xsl:when test="$navigability">
+                            <xsl:attribute name="Property">Navigability</xsl:attribute>
+                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/<xsl:value-of select="$navigability" />
                             </xsl:element>
-                        </xsl:element>
-                    </xsl:element>
+                        </xsl:when>
+                    </xsl:choose>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -939,6 +951,44 @@
         </xsl:element>
     </xsl:template>
 
+     <!-- Remove navigability for singleValueExtendedProperties and multiValueExtendedProperties-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='calendar']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contactFolder']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contact']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mailFolder']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='message']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='post']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='note']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTask']/edm:NavigationProperty[@Name='singleValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTaskFolder']/edm:NavigationProperty[@Name='singleValueExtendedProperties']" >
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- Remove navigability for multiValueExtendedProperties navigation property-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='calendar']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contactFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contact']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mailFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='message']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='post']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='note']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTask']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTaskFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']" >
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+       
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
         <xsl:copy>
@@ -960,7 +1010,7 @@
                         </xsl:element>
                       </xsl:element>                
                 </xsl:when>            
-            </xsl:choose>
+            </xsl:choose>    
             
             <xsl:choose>
                 <!-- Add inner error description -->
@@ -1002,7 +1052,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1014,7 +1064,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1026,7 +1076,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.list/activities</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1269,7 +1319,7 @@
         <xsl:copy>
             <xsl:copy-of select="@*|node()"/>
             <xsl:call-template name="NavigationRestrictionsTemplate">
-                <xsl:with-param name="navigable">false</xsl:with-param>
+                <xsl:with-param name="indexable">false</xsl:with-param>
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
@@ -1636,5 +1686,5 @@
                 <xsl:call-template name="IfMatchHeaderTemplate"/>
             </xsl:element>
         </xsl:copy>
-    </xsl:template>
+    </xsl:template> 
 </xsl:stylesheet>
