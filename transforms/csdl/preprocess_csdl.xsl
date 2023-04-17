@@ -144,15 +144,15 @@
     </xsl:template>
     
     <!-- Add annotations -->
-    <xsl:attribute-set name="LongDescriptionindexable">
+    <xsl:attribute-set name="LongDescriptionNavigable">
         <xsl:attribute name="Term">Org.OData.Core.V1.LongDescription</xsl:attribute>
-        <xsl:attribute name="String">indexable</xsl:attribute>
+        <xsl:attribute name="String">navigable</xsl:attribute>
     </xsl:attribute-set>
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='thumbnail']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:element name="Annotation" use-attribute-sets="LongDescriptionindexable"/>
+            <xsl:element name="Annotation" use-attribute-sets="LongDescriptionNavigable"/>
         </xsl:copy>
     </xsl:template>
 
@@ -878,8 +878,8 @@
               <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
         </xsl:element>
     </xsl:template>
-    <xsl:template name = "UpdatableTemplate">
-       <xsl:param name = "updatable" />
+    <xsl:template name="UpdatableTemplate">
+       <xsl:param name="updatable" />
        <xsl:element name="PropertyValue">
          <xsl:attribute name="Property">Updatable</xsl:attribute>
          <xsl:attribute name="Bool"><xsl:value-of select="$updatable"/></xsl:attribute>
@@ -1010,7 +1010,7 @@
                         </xsl:element>
                       </xsl:element>                
                 </xsl:when>            
-            </xsl:choose>    
+            </xsl:choose>
             
             <xsl:choose>
                 <!-- Add inner error description -->
@@ -1686,5 +1686,5 @@
                 <xsl:call-template name="IfMatchHeaderTemplate"/>
             </xsl:element>
         </xsl:copy>
-    </xsl:template> 
+    </xsl:template>
 </xsl:stylesheet>
