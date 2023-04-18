@@ -971,16 +971,7 @@
     </xsl:template>
     
     <!-- Remove navigability for multiValueExtendedProperties navigation property-->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='calendar']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contactFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='contact']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mailFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='message']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='post']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='note']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTask']/edm:NavigationProperty[@Name='multiValueExtendedProperties']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='outlookTaskFolder']/edm:NavigationProperty[@Name='multiValueExtendedProperties']" >
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name]/edm:NavigationProperty[@Name='multiValueExtendedProperties']" >
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
                 <xsl:call-template name="NavigationRestrictionsTemplate">
