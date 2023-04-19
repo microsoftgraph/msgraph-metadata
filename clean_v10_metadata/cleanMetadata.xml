@@ -120,6 +120,25 @@
         <Member Name="disabled" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="authenticationMethodModes" IsFlags="true">
+        <Member Name="password" Value="1" />
+        <Member Name="voice" Value="2" />
+        <Member Name="hardwareOath" Value="4" />
+        <Member Name="softwareOath" Value="8" />
+        <Member Name="sms" Value="16" />
+        <Member Name="fido2" Value="32" />
+        <Member Name="windowsHelloForBusiness" Value="64" />
+        <Member Name="microsoftAuthenticatorPush" Value="128" />
+        <Member Name="deviceBasedPush" Value="256" />
+        <Member Name="temporaryAccessPassOneTime" Value="512" />
+        <Member Name="temporaryAccessPassMultiUse" Value="1024" />
+        <Member Name="email" Value="2048" />
+        <Member Name="x509CertificateSingleFactor" Value="4096" />
+        <Member Name="x509CertificateMultiFactor" Value="8192" />
+        <Member Name="federatedSingleFactor" Value="16384" />
+        <Member Name="federatedMultiFactor" Value="32768" />
+        <Member Name="unknownFutureValue" Value="65536" />
+      </EnumType>
       <EnumType Name="authenticationMethodsPolicyMigrationState">
         <Member Name="preMigration" Value="0" />
         <Member Name="migrationInProgress" Value="1" />
@@ -134,6 +153,31 @@
         <Member Name="user" Value="0" />
         <Member Name="group" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationStrengthPolicyType">
+        <Member Name="builtIn" Value="0" />
+        <Member Name="custom" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationStrengthRequirements" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="mfa" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="baseAuthenticationMethod">
+        <Member Name="password" Value="1" />
+        <Member Name="voice" Value="2" />
+        <Member Name="hardwareOath" Value="3" />
+        <Member Name="softwareOath" Value="4" />
+        <Member Name="sms" Value="5" />
+        <Member Name="fido2" Value="6" />
+        <Member Name="windowsHelloForBusiness" Value="7" />
+        <Member Name="microsoftAuthenticator" Value="8" />
+        <Member Name="temporaryAccessPass" Value="9" />
+        <Member Name="email" Value="10" />
+        <Member Name="x509Certificate" Value="11" />
+        <Member Name="federation" Value="12" />
+        <Member Name="unknownFutureValue" Value="13" />
       </EnumType>
       <EnumType Name="externalEmailOtpState">
         <Member Name="default" Value="0" />
@@ -3661,6 +3705,12 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="shared" Value="3" />
       </EnumType>
+      <EnumType Name="chatMessageActions" IsFlags="true">
+        <Member Name="reactionAdded" Value="1" />
+        <Member Name="reactionRemoved" Value="2" />
+        <Member Name="actionUndefined" Value="4" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="chatMessageImportance">
         <Member Name="normal" Value="0" />
         <Member Name="high" Value="1" />
@@ -4157,7 +4207,18 @@
         <Property Name="usageLocation" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userType" Type="Edm.String" />
-        <Property Name="mailboxSettings" Type="graph.mailboxSettings" />
+        <Property Name="mailboxSettings" Type="graph.mailboxSettings">
+          <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+            <Record>
+              <PropertyValue Property="Readable" Bool="true" />
+            </Record>
+          </Annotation>
+          <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+            <Record>
+              <PropertyValue Property="Updatable" Bool="true" />
+            </Record>
+          </Annotation>
+        </Property>
         <Property Name="deviceEnrollmentLimit" Type="Edm.Int32" Nullable="false" />
         <Property Name="aboutMe" Type="Edm.String" />
         <Property Name="birthday" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -4401,8 +4462,56 @@
         <NavigationProperty Name="contacts" Type="Collection(graph.contact)" ContainsTarget="true" />
         <NavigationProperty Name="events" Type="Collection(graph.event)" ContainsTarget="true" />
         <NavigationProperty Name="inferenceClassification" Type="graph.inferenceClassification" ContainsTarget="true" />
-        <NavigationProperty Name="mailFolders" Type="Collection(graph.mailFolder)" ContainsTarget="true" />
-        <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true" />
+        <NavigationProperty Name="mailFolders" Type="Collection(graph.mailFolder)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="includeHiddenFolders" />
+                              <PropertyValue Property="Description" String="Include Hidden Folders" />
+                              <PropertyValue Property="Required" Bool="false" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
+        </NavigationProperty>
+        <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="RestrictedProperties">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="ReadRestrictions">
+                      <Record>
+                        <PropertyValue Property="CustomQueryOptions">
+                          <Collection>
+                            <Record>
+                              <PropertyValue Property="Name" String="includeHiddenMessages" />
+                              <PropertyValue Property="Description" String="Include Hidden Messages" />
+                              <PropertyValue Property="Required" Bool="false" />
+                            </Record>
+                          </Collection>
+                        </PropertyValue>
+                      </Record>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
+        </NavigationProperty>
         <NavigationProperty Name="outlook" Type="graph.outlookUser" ContainsTarget="true" />
         <NavigationProperty Name="people" Type="Collection(graph.person)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" />
@@ -5600,6 +5709,12 @@
       <ComplexType Name="registrationEnforcement">
         <Property Name="authenticationMethodsRegistrationCampaign" Type="graph.authenticationMethodsRegistrationCampaign" />
       </ComplexType>
+      <ComplexType Name="updateAllowedCombinationsResult">
+        <Property Name="additionalInformation" Type="Edm.String" />
+        <Property Name="conditionalAccessReferences" Type="Collection(Edm.String)" />
+        <Property Name="currentCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <Property Name="previousCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="x509CertificateAuthenticationModeConfiguration">
         <Property Name="rules" Type="Collection(graph.x509CertificateRule)" />
         <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode" />
@@ -5614,9 +5729,16 @@
         <Property Name="userProperty" Type="Edm.String" />
         <Property Name="x509CertificateField" Type="Edm.String" />
       </ComplexType>
+      <EntityType Name="authenticationCombinationConfiguration" BaseType="graph.entity" Abstract="true">
+        <Property Name="appliesToCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+      </EntityType>
       <EntityType Name="authenticationMethodConfiguration" BaseType="graph.entity" Abstract="true">
         <Property Name="excludeTargets" Type="Collection(graph.excludeTarget)" />
         <Property Name="state" Type="graph.authenticationMethodState" />
+      </EntityType>
+      <EntityType Name="authenticationMethodModeDetail" BaseType="graph.entity">
+        <Property Name="authenticationMethod" Type="graph.baseAuthenticationMethod" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="authenticationMethodsPolicy" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
@@ -5632,6 +5754,54 @@
         <Property Name="isRegistrationRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
       </EntityType>
+      <EntityType Name="authenticationStrengthPolicy" BaseType="graph.entity">
+        <Property Name="allowedCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="policyType" Type="graph.authenticationStrengthPolicyType" Nullable="false" />
+        <Property Name="requirementsSatisfied" Type="graph.authenticationStrengthRequirements" Nullable="false" />
+        <NavigationProperty Name="combinationConfigurations" Type="Collection(graph.authenticationCombinationConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationStrengthRoot" BaseType="graph.entity">
+        <Property Name="combinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <NavigationProperty Name="authenticationMethodModes" Type="Collection(graph.authenticationMethodModeDetail)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.authenticationStrengthPolicy)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
+        <NavigationProperty Name="authenticationStrength" Type="graph.authenticationStrengthRoot" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
+        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationContextClassReference" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isAvailable" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="namedLocation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
+        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls" />
+        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
+      </EntityType>
+      <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false" />
+      </EntityType>
       <EntityType Name="emailAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="allowExternalIdToUseEmailOtp" Type="graph.externalEmailOtpState" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
@@ -5641,6 +5811,9 @@
         <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
         <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="fido2CombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
+        <Property Name="allowedAAGUIDs" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="featureSettings" Type="graph.microsoftAuthenticatorFeatureSettings" />
@@ -5652,6 +5825,7 @@
       </EntityType>
       <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="authenticationMethodsPolicy" Type="graph.authenticationMethodsPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationStrengthPolicies" Type="Collection(graph.authenticationStrengthPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="authenticationFlowsPolicy" Type="graph.authenticationFlowsPolicy" ContainsTarget="true" />
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="appManagementPolicies" Type="Collection(graph.appManagementPolicy)" ContainsTarget="true" />
@@ -5721,16 +5895,6 @@
         <Property Name="requestDurationInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
-      </EntityType>
-      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
-        <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="grantControls" Type="graph.conditionalAccessGrantControls" />
-        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls" />
-        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
       </EntityType>
       <EntityType Name="identitySecurityDefaultsEnforcementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -6883,12 +7047,6 @@
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowAttributes" Type="Collection(graph.identityUserFlowAttribute)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccess" Type="graph.conditionalAccessRoot" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
-        <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
-        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
-        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityCustomUserFlowAttribute" BaseType="graph.identityUserFlowAttribute" />
       <EntityType Name="socialIdentityProvider" BaseType="graph.identityProviderBase">
@@ -9779,6 +9937,10 @@
         <Property Name="isEnabled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
+      <ComplexType Name="authenticationStrengthUsage">
+        <NavigationProperty Name="mfa" Type="Collection(graph.conditionalAccessPolicy)" />
+        <NavigationProperty Name="none" Type="Collection(graph.conditionalAccessPolicy)" />
+      </ComplexType>
       <ComplexType Name="cloudAppSecuritySessionControl" BaseType="graph.conditionalAccessSessionControl">
         <Property Name="cloudAppSecurityType" Type="graph.cloudAppSecuritySessionControlType" />
       </ComplexType>
@@ -9841,6 +10003,7 @@
         <Property Name="customAuthenticationFactors" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="operator" Type="Edm.String" />
         <Property Name="termsOfUse" Type="Collection(Edm.String)" Nullable="false" />
+        <NavigationProperty Name="authenticationStrength" Type="graph.authenticationStrengthPolicy" ContainsTarget="true" />
       </ComplexType>
       <ComplexType Name="conditionalAccessGuestsOrExternalUsers">
         <Property Name="externalTenants" Type="graph.conditionalAccessExternalTenants" />
@@ -9882,22 +10045,6 @@
         <Property Name="detail" Type="graph.riskDetail" />
         <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
       </ComplexType>
-      <EntityType Name="authenticationContextClassReference" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="isAvailable" Type="Edm.Boolean" />
-      </EntityType>
-      <EntityType Name="namedLocation" BaseType="graph.entity">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
-      </EntityType>
-      <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" Nullable="false" />
-        <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false" />
-        <Property Name="name" Type="Edm.String" Nullable="false" />
-        <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false" />
-      </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
         <Property Name="countriesAndRegions" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="countryLookupMethod" Type="graph.countryLookupMethodType" />
@@ -14329,6 +14476,16 @@
         <Property Name="thumbnailUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
+      <ComplexType Name="chatMessageHistoryItem">
+        <Property Name="actions" Type="graph.chatMessageActions" Nullable="false" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reaction" Type="graph.chatMessageReaction" />
+      </ComplexType>
+      <ComplexType Name="chatMessageReaction">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reactionType" Type="Edm.String" Nullable="false" />
+        <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="chatMessageMention">
         <Property Name="id" Type="Edm.Int32" />
         <Property Name="mentioned" Type="graph.chatMessageMentionedIdentitySet" />
@@ -14351,11 +14508,6 @@
         <Property Name="complianceUrl" Type="Edm.String" />
         <Property Name="generalText" Type="Edm.String" />
         <Property Name="matchedConditionDescriptions" Type="Collection(Edm.String)" />
-      </ComplexType>
-      <ComplexType Name="chatMessageReaction">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="reactionType" Type="Edm.String" Nullable="false" />
-        <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
       </ComplexType>
       <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatRenamedEventMessageDetail" BaseType="graph.eventMessageDetail">
@@ -14531,6 +14683,7 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="locale" Type="Edm.String" Nullable="false" />
         <Property Name="mentions" Type="Collection(graph.chatMessageMention)" />
+        <Property Name="messageHistory" Type="Collection(graph.chatMessageHistoryItem)" />
         <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
         <Property Name="policyViolation" Type="graph.chatMessagePolicyViolation" />
         <Property Name="reactions" Type="Collection(graph.chatMessageReaction)" />
@@ -14895,6 +15048,15 @@
         <Parameter Name="bindingParameter" Type="graph.servicePrincipal" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
       </Action>
+      <Action Name="updateAllowedCombinations" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationStrengthPolicy" />
+        <Parameter Name="allowedCombinations" Type="Collection(graph.authenticationMethodModes)" />
+        <ReturnType Type="graph.updateAllowedCombinationsResult" />
+      </Action>
+      <Function Name="usage" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationStrengthPolicy" />
+        <ReturnType Type="graph.authenticationStrengthUsage" />
+      </Function>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bookingAppointment" Type="graph.bookingAppointment" Nullable="false" />
         <Parameter Name="cancellationMessage" Type="Edm.String" Unicode="false" />
@@ -23501,10 +23663,29 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.crossTenantAccessPolicy">
+      <Annotations Target="microsoft.graph.authenticationContextClassReference">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
             <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.namedLocation">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -23514,16 +23695,16 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
-            <PropertyValue Property="Filterable" Bool="false" />
+            <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
           <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
+            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.conditionalAccessPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -23548,6 +23729,64 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.conditionalAccessTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.bitlocker">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -25372,83 +25611,6 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.authenticationContextClassReference">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.namedLocation">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.conditionalAccessTemplate">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.riskDetection">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
