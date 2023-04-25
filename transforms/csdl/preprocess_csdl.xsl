@@ -92,7 +92,8 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
                   edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='analytics']|
-                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='analytics']
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='analytics']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organization']/edm:NavigationProperty[@Name='certificateBasedAuthConfiguration']
                          ">
         <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
@@ -1269,7 +1270,18 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
-    
+
+            <!-- Remove Updatability for organization/certificateBasedAuthConfiguration containment navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.organization/certificateBasedAuthConfiguration'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.organization/certificateBasedAuthConfiguration</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="updatable">false</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         </xsl:copy>
     </xsl:template>
 
