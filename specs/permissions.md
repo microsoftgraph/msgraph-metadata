@@ -160,7 +160,7 @@ The "requiresAdminConsent" member is a boolean value with a default value of fal
 The "privilegeLevel" member is an integer value that provides a hint as to the risks of consenting to the permissions. Valid values range from 1 (least privileged) to 5 (most privileged). The value is arrived at by considering the breadth of access that a permission will give access to and the sensitivity of the operations allowed by the permission. The same permission can have different privilege levels when used with different schemes.
 
 ## <a name="pathObject"></a>Path Object
-The path object contains properties that affect how the permission object controls access to resource identified by the key of the path object.
+The path object contains stringified properties and value pairs that affect how the permission object controls access to resource identified by the key of the path object.
 
 ```json
 "paths": {
@@ -321,18 +321,7 @@ classDiagram
                 }
         },
         "path": {
-            "type": "object",
-            "properties": {
-                "alsoRequires": {
-                    "type": "string",
-                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
-                },
-                "implicit": {"type": "boolean"},
-                "leastPrivilegePermission": {
-                    "type": "array",
-                    "items": { "type":"string"}
-                },
-            },
+            "type": "string",
         "scheme": {
             "type": "object",
             "properties": {
