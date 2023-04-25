@@ -51,19 +51,11 @@ The permissions object contains the details about a permission that can be used 
 ### note
 The "note" member is a freeform string that provides additional details about the permission that cannot be determined from the other members of the permission object.
 
-### implicit
-The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
-
-> Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
-
 ### schemes
 The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects](#schemeObject) supported by the permission. The key of each member is an identifier of the scheme and the value is a [Scheme object](#schemeObject) that contains descriptions of the permission within the scheme.   
 
 ### pathSets
 The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [pathSet object](#pathSetObject). 
-
-### privilegeLevel
-The "privilegeLevel" member value provides a hint as to the risks of consenting this permissions. Valid values include: low, medium and high.
 
 ## <a name="provisioningInfo"></a>Provisioning Info Object
 
@@ -113,9 +105,6 @@ The "methods" member is a REQUIRED array of strings that represent the HTTP meth
 ### paths
 The "paths" member is a REQUIRED object whose keys contain a simplified URI template to identify the resources protected by this permission object.
 
-### alsoRequires
-The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
-
 ```
 (User.Read | User.Read.All) & Group.Read
 ```
@@ -137,15 +126,18 @@ The scheme object has members that describe the permission within the context of
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
         "userConsentDisplayName": "Read and write app activity to users'activity feed",
         "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
-        "requiresAdminConsent": true
+        "requiresAdminConsent": true,
+        "privilegeLevel": 3
     },
     "DelegatedPersonal": {
         "userConsentDisplayName": "Read and write app activity to users'activity feed",
-        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app."
+        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
+        "privilegeLevel": 2
     },
     "Application": {
         "adminDisplayName": "Read and write app activity to users' activity feed",
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
+        "privilegeLevel": 5
     }
 ```
 
@@ -164,17 +156,32 @@ The "userConsentDescription" member is a REQUIRED string that describes the perm
 ### requiresAdminConsent
 The "requiresAdminConsent" member is a boolean value with a default value of false. When true, this permission can only be consented by an adminstrator.
 
+### privilegeLevel
+The "privilegeLevel" member is an integer value that provides a hint as to the risks of consenting to the permissions. Valid values range from 1 (least privileged) to 5 (most privileged). The value is arrived at by considering the breadth of access that a permission will give access to and the sensitivity of the operations allowed by the permission. 
+
 ## <a name="pathObject"></a>Path Object
 The path object contains properties that affect how the permission object controls access to resource identified by the key of the path object.
 
 ```json
 "paths": {
-  "/me/activities/{id}": {
-    "leastPrivilegePermission": ["DelegatedWork", "DelegatedPersonal"]
-  }
+  "/me/activities/{id}": "least=DelegatedWork,DelegatedPersonal"
 ```
 
-### leastPrivilegePermission
+```
+"paths": {
+  "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All;least=Delegated"
+}
+```
+
+### alsoRequires
+The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
+
+### implicit
+The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
+
+> Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
+
+### least (least privilege permission)
 The "leastPrivilegePermission" member is an array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
 
 ## Appendix A. Model Diagram
@@ -243,7 +250,6 @@ classDiagram
             "additionalProperties": false,
             "properties": {
                 "note": {"type": "string"},
-                "implicit": {"type": "boolean"},
                 "isHidden": {"type": "boolean"},
                 "ownerEmail": {"type": "string"},
                 "privilegeLevel": {
@@ -255,10 +261,6 @@ classDiagram
                     "items": {
                         "type": "string"
                     }
-                },
-                "alsoRequires": {
-                    "type": "string",
-                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
                 },
                 "schemes": {
                     "type": "object",
@@ -320,10 +322,15 @@ classDiagram
         "path": {
             "type": "object",
             "properties": {
+                "alsoRequires": {
+                    "type": "string",
+                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
+                },
+                "implicit": {"type": "boolean"},
                 "leastPrivilegePermission": {
                     "type": "array",
                     "items": { "type":"string"}
-                }
+                },
             },
         "scheme": {
             "type": "object",
