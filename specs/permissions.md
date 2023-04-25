@@ -30,7 +30,7 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 				"schemes": ["DelegatedWork"],
 				"methods": ["GET"],
 				"paths": {
-					"/print/settings": {}
+					"/print/settings": ""
 				}
 			}]
 		}
@@ -90,7 +90,7 @@ A pathSet object identifies a set of paths that are accessible and have a common
         "schemeKeys": ["Application"],
         "methods": ["GET,POST"],
         "paths": {
-            "/print/settings": {}
+            "/print/settings": ""
         }
     }
 ] 
@@ -157,7 +157,7 @@ The "userConsentDescription" member is a REQUIRED string that describes the perm
 The "requiresAdminConsent" member is a boolean value with a default value of false. When true, this permission can only be consented by an adminstrator.
 
 ### privilegeLevel
-The "privilegeLevel" member is an integer value that provides a hint as to the risks of consenting to the permissions. Valid values range from 1 (least privileged) to 5 (most privileged). The value is arrived at by considering the breadth of access that a permission will give access to and the sensitivity of the operations allowed by the permission. 
+The "privilegeLevel" member is an integer value that provides a hint as to the risks of consenting to the permissions. Valid values range from 1 (least privileged) to 5 (most privileged). The value is arrived at by considering the breadth of access that a permission will give access to and the sensitivity of the operations allowed by the permission. The same permission can have different privilege levels when used with different schemes.
 
 ## <a name="pathObject"></a>Path Object
 The path object contains properties that affect how the permission object controls access to resource identified by the key of the path object.
@@ -167,7 +167,7 @@ The path object contains properties that affect how the permission object contro
   "/me/activities/{id}": "least=DelegatedWork,DelegatedPersonal"
 ```
 
-```
+```json
 "paths": {
   "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All;least=Delegated"
 }
@@ -191,7 +191,6 @@ classDiagram
 
     class Permission{
         note: string
-        implicit: bool
         requiredEnvironments: string[]
         ownerEmail:string
         isHidden: bool
@@ -203,13 +202,14 @@ classDiagram
     class PathSet{
         schemeKeys: string[]     
         methods: string[] 
-        alsoRequires: stringExpression 
         includedProperties: string[]     
         excludedProperties: string[]     
     }
     PathSet "1" --> "*" Path:paths
 
     class Path{
+        alsoRequires: stringExpression
+        implicit: bool
         leastPrivilegePermission: string
     }
 
@@ -219,6 +219,7 @@ classDiagram
         userDisplayName: string
         userDescription: string
         requiresAdminConsent: string
+        privilegeLevel: int
     }
 
 ```
