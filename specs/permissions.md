@@ -57,19 +57,9 @@ The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects
 ### pathSets
 The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [pathSet object](#pathSetObject). 
 
-## <a name="provisioningInfo"></a>Provisioning Info Object
+## <a name="ownerInfo"></a>Owner Info Object
 
-The provisioning info object contains information related to the deployment of the permission into its environment. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
-
-### isHidden
-The "isHidden" member is a boolean value that indicates if a permission should be publicly usable in the API.  
-
-### requiredEnvironments
-The "requiredEnvironments" member is an array of strings that identifies the deployment environments in which the permission SHOULD be supported. When this member is not present, support for all environments is implied.
-
-### resourceAppId
-The "resourceAppId" member value provides an identifier of the resource server that is used to enforce Conditional Access checks for this permission.
-
+The owner info object contains information related to the ownership of the permission. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
 ### ownerSecurityGroup
 The "ownerSecurityGroup" member is a REQUIRED string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
 
@@ -114,7 +104,6 @@ The "includedProperties" member is an array of strings that identify properties 
 
 ### excludedProperties
 The "excludedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
-
 
 ## <a name="schemeObject"></a>Scheme Object
 The scheme object has members that describe the permission within the context of the scheme. Additional members provide behavioral constraints of the permission when used with the scheme.  
@@ -252,11 +241,6 @@ classDiagram
             "properties": {
                 "note": {"type": "string"},
                 "isHidden": {"type": "boolean"},
-                "ownerEmail": {"type": "string"},
-                "privilegeLevel": {
-                    "type":"string",
-                    "enum":["low","medium","high"]
-                }
                 "requiredEnvironments": {
                     "type": "array",
                     "items": {
@@ -322,6 +306,7 @@ classDiagram
         },
         "path": {
             "type": "string",
+        },
         "scheme": {
             "type": "object",
             "properties": {
@@ -339,6 +324,10 @@ classDiagram
                 },
                 "userConsentDescription": {
                     "type": "string"
+                },
+                "privilegeLevel": {
+                    "type": "int",
+                    "enum": [1, 2, 3, 4, 5]
                 }
             }
     }
