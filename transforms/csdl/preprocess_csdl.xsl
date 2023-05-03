@@ -893,28 +893,40 @@
               <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/<xsl:value-of select="$httpMethod"/></xsl:element>
         </xsl:element>
     </xsl:template>
-    <xsl:template name ="UpdatableTemplate">
-       <xsl:param name = "updatable" />
+    <xsl:template name="UpdatableTemplate">
+       <xsl:param name="updatable" />
        <xsl:element name="PropertyValue">
          <xsl:attribute name="Property">Updatable</xsl:attribute>
          <xsl:attribute name="Bool"><xsl:value-of select="$updatable"/></xsl:attribute>
        </xsl:element>
     </xsl:template>
     <xsl:template name="NavigationRestrictionsTemplate">
-        <xsl:param name = "navigable" />
+        <xsl:param name="indexable" />
+        <xsl:param name="navigability" />
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
                 <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
-                    <xsl:element name="Collection">
-                        <xsl:element name="Record">
-                            <xsl:element name="PropertyValue">
-                                <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
-                                <xsl:attribute name="Bool"><xsl:value-of select = "$navigable" /></xsl:attribute>
+                    <xsl:choose>
+                        <xsl:when test="$indexable">
+                            <xsl:attribute name="Property">RestrictedProperties</xsl:attribute>
+                                <xsl:element name="Collection">
+                                    <xsl:element name="Record">
+                                        <xsl:element name="PropertyValue">
+                                            <xsl:attribute name="Property">IndexableByKey</xsl:attribute>
+                                            <xsl:attribute name="Bool"><xsl:value-of select="$indexable" /></xsl:attribute>
+                                        </xsl:element>
+                                    </xsl:element>
+                                </xsl:element>
+                        </xsl:when>
+                    </xsl:choose>
+                    <xsl:choose>
+                        <xsl:when test="$navigability">
+                            <xsl:attribute name="Property">Navigability</xsl:attribute>
+                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/<xsl:value-of select="$navigability" />
                             </xsl:element>
-                        </xsl:element>
-                    </xsl:element>
+                        </xsl:when>
+                    </xsl:choose>
                 </xsl:element>
             </xsl:element>
         </xsl:element>
@@ -954,6 +966,26 @@
         </xsl:element>
     </xsl:template>
 
+     <!-- Remove navigability for singleValueExtendedProperties and multiValueExtendedProperties-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name]/edm:NavigationProperty[@Name='singleValueExtendedProperties']" >
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- Remove navigability for multiValueExtendedProperties navigation property-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name]/edm:NavigationProperty[@Name='multiValueExtendedProperties']" >
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+       
     <!-- Add Navigation Restrictions Annotations -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
         <xsl:copy>
@@ -1017,7 +1049,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.user/joinedGroups</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1029,7 +1061,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.managedDevice/users</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1041,7 +1073,7 @@
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.list/activities</xsl:attribute>
                         <xsl:call-template name="NavigationRestrictionsTemplate">
-                            <xsl:with-param name="navigable">false</xsl:with-param>
+                            <xsl:with-param name="indexable">false</xsl:with-param>
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
@@ -1295,7 +1327,7 @@
         <xsl:copy>
             <xsl:copy-of select="@*|node()"/>
             <xsl:call-template name="NavigationRestrictionsTemplate">
-                <xsl:with-param name="navigable">false</xsl:with-param>
+                <xsl:with-param name="indexable">false</xsl:with-param>
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
