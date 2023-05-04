@@ -319,6 +319,8 @@
                     <String>microsoft.graph.user</String>
                     <String>microsoft.graph.group</String>
                     <String>microsoft.graph.application</String>
+                    <String>microsoft.graph.servicePrincipal</String>
+                    <String>microsoft.graph.administrativeUnit</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
