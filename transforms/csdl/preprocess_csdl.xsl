@@ -379,7 +379,7 @@
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
-    <!-- Remove ContainsTarget attribute for both Kiota-based and PowerShell based CSDL  -->
+    <!-- Remove ContainsTarget attribute for both Kiota-based and PowerShell-based CSDL  -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageCatalog']/edm:NavigationProperty[@Name='accessPackages']/@ContainsTarget">
