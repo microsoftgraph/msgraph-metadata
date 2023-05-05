@@ -321,6 +321,7 @@
                     <String>microsoft.graph.application</String>
                     <String>microsoft.graph.servicePrincipal</String>
                     <String>microsoft.graph.administrativeUnit</String>
+                    <String>microsoft.graph.device</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
