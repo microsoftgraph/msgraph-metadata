@@ -788,7 +788,7 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- Capability Annotations Templates -->
     <xsl:template name="CountRestrictionsTemplate">
         <xsl:param name="countable" />
