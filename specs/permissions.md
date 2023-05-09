@@ -183,7 +183,6 @@ classDiagram
         requiredEnvironments: string[]
         ownerEmail:string
         isHidden: bool
-        privilegeLevel: string
     }
     Permission "1" --> "*" PathSet:pathSets
     Permission "1" --> "*" Scheme:schemes
