@@ -165,6 +165,24 @@ The path object contains stringified properties and value pairs that affect how 
 ### alsoRequires
 The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
 
+The value `alsoRequires` member can express complex logical expressions using boolean operators.
+
+```json
+"paths": {
+  "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All||ChatMessages.Read;least=Delegated"
+}
+```
+The example above shows that any one of a list of additional permissions are required.
+
+We can also express more complex scenarios using parenthesis.
+
+```json
+"paths": {
+  "/foo/bar": "implicit=true;alsoRequires=(PermissionA.Read.All||PermissionB.Read)&&(PermissionC.Read.All&&PermissionD.Read.All);least=Delegated",
+  "/foo/barz": "implicit=true;alsoRequires=(PermissionA.Read.All&&PermissionB.Read)||(PermissionC.Read.All&&PermissionD.Read.All);least=Delegated"
+}
+```
+
 ### implicit
 The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
 
