@@ -3692,6 +3692,10 @@
         <Member Name="subscriptionRemoved" Value="1" />
         <Member Name="reauthorizationRequired" Value="2" />
       </EnumType>
+      <EnumType Name="binaryOperator">
+        <Member Name="or" Value="0" />
+        <Member Name="and" Value="1" />
+      </EnumType>
       <EnumType Name="callRecordingStatus">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
@@ -7454,10 +7458,13 @@
         <Property Name="alternativeSecurityIds" Type="Collection(graph.alternativeSecurityId)" Nullable="false" />
         <Property Name="approximateLastSignInDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deviceCategory" Type="Edm.String" />
         <Property Name="deviceId" Type="Edm.String" />
         <Property Name="deviceMetadata" Type="Edm.String" />
+        <Property Name="deviceOwnership" Type="Edm.String" />
         <Property Name="deviceVersion" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="enrollmentProfileName" Type="Edm.String" />
         <Property Name="isCompliant" Type="Edm.Boolean" />
         <Property Name="isManaged" Type="Edm.Boolean" />
         <Property Name="mdmAppId" Type="Edm.String" />
@@ -7467,6 +7474,7 @@
         <Property Name="operatingSystemVersion" Type="Edm.String" />
         <Property Name="physicalIds" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="profileType" Type="Edm.String" />
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="trustType" Type="Edm.String" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
@@ -7629,6 +7637,9 @@
               <String>microsoft.graph.user</String>
               <String>microsoft.graph.group</String>
               <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.administrativeUnit</String>
+              <String>microsoft.graph.device</String>
             </Collection>
           </Annotation>
         </NavigationProperty>
@@ -10012,7 +10023,7 @@
         <Property Name="isExternallyVisible" Type="Edm.Boolean" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="state" Type="graph.accessPackageCatalogState" />
-        <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true" />
+        <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" />
       </EntityType>
       <EntityType Name="connectedOrganization" BaseType="graph.entity">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -34737,17 +34748,54 @@
         <Member Name="dateTimeCollection" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
       </EnumType>
+      <EnumType Name="ruleOperation">
+        <Member Name="null" Value="0" />
+        <Member Name="equals" Value="1" />
+        <Member Name="notEquals" Value="2" />
+        <Member Name="contains" Value="3" />
+        <Member Name="notContains" Value="4" />
+        <Member Name="lessThan" Value="5" />
+        <Member Name="greaterThan" Value="6" />
+        <Member Name="startsWith" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <ComplexType Name="acl">
         <Property Name="accessType" Type="microsoft.graph.externalConnectors.accessType" Nullable="false" />
         <Property Name="type" Type="microsoft.graph.externalConnectors.aclType" Nullable="false" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="activitySettings">
+        <Property Name="urlToItemResolvers" Type="Collection(microsoft.graph.externalConnectors.urlToItemResolverBase)" />
+      </ComplexType>
+      <ComplexType Name="urlToItemResolverBase" Abstract="true">
+        <Property Name="priority" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="configuration" OpenType="true">
         <Property Name="authorizedAppIds" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="displayTemplate">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="layout" Type="graph.Json" Nullable="false" />
+        <Property Name="priority" Type="Edm.Int32" Nullable="false" />
+        <Property Name="rules" Type="Collection(microsoft.graph.externalConnectors.propertyRule)" />
+      </ComplexType>
+      <ComplexType Name="propertyRule">
+        <Property Name="operation" Type="microsoft.graph.externalConnectors.ruleOperation" Nullable="false" />
+        <Property Name="property" Type="Edm.String" Nullable="false" />
+        <Property Name="values" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="valuesJoinedBy" Type="graph.binaryOperator" Nullable="false" />
       </ComplexType>
       <ComplexType Name="externalItemContent">
         <Property Name="type" Type="microsoft.graph.externalConnectors.externalItemContentType" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="itemIdResolver" BaseType="microsoft.graph.externalConnectors.urlToItemResolverBase">
+        <Property Name="itemId" Type="Edm.String" Nullable="false" />
+        <Property Name="urlMatchInfo" Type="microsoft.graph.externalConnectors.urlMatchInfo" />
+      </ComplexType>
+      <ComplexType Name="urlMatchInfo">
+        <Property Name="baseUrls" Type="Collection(Edm.String)" />
+        <Property Name="urlPattern" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="properties" OpenType="true" />
       <ComplexType Name="property">
@@ -34760,6 +34808,9 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="type" Type="microsoft.graph.externalConnectors.propertyType" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="searchSettings">
+        <Property Name="searchResultTemplates" Type="Collection(microsoft.graph.externalConnectors.displayTemplate)" />
+      </ComplexType>
       <EntityType Name="connectionOperation" BaseType="graph.entity">
         <Property Name="error" Type="graph.publicError" />
         <Property Name="status" Type="microsoft.graph.externalConnectors.connectionOperationStatus" />
@@ -34768,9 +34819,11 @@
         <NavigationProperty Name="connections" Type="Collection(microsoft.graph.externalConnectors.externalConnection)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="externalConnection" BaseType="graph.entity">
+        <Property Name="activitySettings" Type="microsoft.graph.externalConnectors.activitySettings" />
         <Property Name="configuration" Type="microsoft.graph.externalConnectors.configuration" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
+        <Property Name="searchSettings" Type="microsoft.graph.externalConnectors.searchSettings" />
         <Property Name="state" Type="microsoft.graph.externalConnectors.connectionState" />
         <NavigationProperty Name="groups" Type="Collection(microsoft.graph.externalConnectors.externalGroup)" ContainsTarget="true" />
         <NavigationProperty Name="items" Type="Collection(microsoft.graph.externalConnectors.externalItem)" ContainsTarget="true" />

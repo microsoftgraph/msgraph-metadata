@@ -3693,6 +3693,10 @@
         <Member Name="subscriptionRemoved" Value="1" />
         <Member Name="reauthorizationRequired" Value="2" />
       </EnumType>
+      <EnumType Name="binaryOperator">
+        <Member Name="or" Value="0" />
+        <Member Name="and" Value="1" />
+      </EnumType>
       <EnumType Name="callRecordingStatus">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
@@ -9062,17 +9066,26 @@
         <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="The timestamp when the device is no longer deemed compliant. The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
+        <Property Name="deviceCategory" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="User-defined property set by Intune to automatically add devices to groups and simplify managing devices." />
+        </Property>
         <Property Name="deviceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier set by Azure Device Registration Service at the time of registration. This is an alternate key that can be used to reference the device object. Supports $filter (eq, ne, not, startsWith)." />
         </Property>
         <Property Name="deviceMetadata" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only. Set to null." />
         </Property>
+        <Property Name="deviceOwnership" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Ownership of the device. This property is set by Intune. Possible values are: unknown, company, personal." />
+        </Property>
         <Property Name="deviceVersion" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="For internal use only." />
         </Property>
         <Property Name="displayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the device. Required. Supports $filter (eq, ne, not, ge, le, in, startsWith, and eq on null values), $search, and $orderBy." />
+        </Property>
+        <Property Name="enrollmentProfileName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Enrollment profile applied to the device. For example, Apple Device Enrollment Profile, Device enrollment - Corporate device identifiers, or Windows Autopilot profile name. This property is set by Intune." />
         </Property>
         <Property Name="isCompliant" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if the device complies with Mobile Device Management (MDM) policies; otherwise, false. Read-only. This can only be updated by Intune for any device OS type or by an approved MDM app for Windows OS devices. Supports $filter (eq, ne, not)." />
@@ -9100,6 +9113,9 @@
         </Property>
         <Property Name="profileType" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The profile type of the device. Possible values: RegisteredDevice (default), SecureVM, Printer, Shared, IoT." />
+        </Property>
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Date and time of when the device was registered. The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only." />
         </Property>
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of labels applied to the device by the system. Supports $filter (/$count eq 0, /$count ne 0)." />
@@ -9275,6 +9291,9 @@
               <String>microsoft.graph.user</String>
               <String>microsoft.graph.group</String>
               <String>microsoft.graph.application</String>
+              <String>microsoft.graph.servicePrincipal</String>
+              <String>microsoft.graph.administrativeUnit</String>
+              <String>microsoft.graph.device</String>
             </Collection>
           </Annotation>
           <Annotation Term="Org.OData.Core.V1.Description" String="Recently deleted items. Read-only. Nullable." />
@@ -12641,7 +12660,7 @@
         <Property Name="state" Type="graph.accessPackageCatalogState">
           <Annotation Term="Org.OData.Core.V1.Description" String="Has the value published if the access packages are available for management. The possible values are: unpublished, published, unknownFutureValue." />
         </Property>
-        <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true">
+        <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The access packages in this catalog. Read-only. Nullable." />
         </NavigationProperty>
       </EntityType>
@@ -19142,10 +19161,10 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="List of time periods between joining and leaving a meeting." />
         </Property>
         <Property Name="emailAddress" Type="Edm.String">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the user associated with this atttendance record." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Email address of the user associated with this attendance record." />
         </Property>
         <Property Name="identity" Type="graph.identity">
-          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user associated with this atttendance record." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="Identity of the user associated with this attendance record." />
         </Property>
         <Property Name="role" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Role of the attendee. Possible values are: None, Attendee, Presenter, and Organizer." />
@@ -33363,15 +33382,6 @@
       <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team" />
       <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItemUploadableProperties" />
-      <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the team is in migration state and is currently being used for migration purposes. It accepts one value: migration. Note: In the future, Microsoft may require you or your customers to pay additional fees based on the amount of data imported." />
-      </Term>
-      <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItemVersion">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="A URL that can be used to download this version of the file's content. Authentication is not required with this URL. Read-only." />
-      </Term>
-      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
-        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
-      </Term>
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="The conflict resolution behavior for actions that create a new item. You can use the values fail, replace, or rename. The default for PUT is replace. An item will never be returned with this annotation. Write-only." />
       </Term>
@@ -33383,6 +33393,15 @@
       </Term>
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel">
         <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the channel is in migration state and is currently being used for migration purposes. It accepts one value: migration." />
+      </Term>
+      <Term Name="teamCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.team">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Indicates that the team is in migration state and is currently being used for migration purposes. It accepts one value: migration. Note: In the future, Microsoft may require you or your customers to pay additional fees based on the amount of data imported." />
+      </Term>
+      <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItemVersion">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="A URL that can be used to download this version of the file's content. Authentication is not required with this URL. Read-only." />
+      </Term>
+      <Term Name="temporaryId" Type="Edm.String" AppliesTo="microsoft.graph.chatMessageHostedContent">
+        <Annotation Term="Org.OData.Core.V1.LongDescription" String="Write-only. Represents the temporaryId for the hosted content while posting a message to refer to the hosted content in chatMessage resource being sent." />
       </Term>
       <Annotations Target="microsoft.graph.bookingPriceType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents the type of pricing of a booking service." />
@@ -44131,16 +44150,16 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-post-users?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-update?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-delete?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-get?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-update?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -44150,16 +44169,16 @@
             <PropertyValue Property="LongDescription" String="Create a new user.&#xA;The request body contains the user to create. At a minimum, you must specify the required properties for the user. You can optionally specify any other writable properties." />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Update user" />
-            <PropertyValue Property="LongDescription" String="Update the properties of a user object. Not all properties can be updated by Member or Guest users with their default permissions without Administrator roles. Compare member and guest default permissions to see properties they can manage." />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Delete a user" />
             <PropertyValue Property="LongDescription" String="Delete user.   When deleted, user resources are moved to a temporary container and can be restored within 30 days.  After that time, they are permanently deleted.  To learn more, see deletedItems." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Update user" />
+            <PropertyValue Property="LongDescription" String="Update the properties of a user object. Not all properties can be updated by Member or Guest users with their default permissions without Administrator roles. Compare member and guest default permissions to see properties they can manage." />
           </Record>
         </Annotation>
       </Annotations>
@@ -44289,16 +44308,16 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityprovider-list?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityprovider-get?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityprovider-delete?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityprovider-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/identityprovider-get?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -44363,29 +44382,29 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-list?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-get?view=graph-rest-1.0" />
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-update?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-delete?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-update?view=graph-rest-1.0" />
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/application-get?view=graph-rest-1.0" />
             </Record>
           </Collection>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Delete application" />
-            <PropertyValue Property="LongDescription" String="Delete an application object. When deleted, apps are moved to a temporary container and can be restored within 30 days. After that time, they are permanently deleted." />
-          </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Update application" />
             <PropertyValue Property="LongDescription" String="Update the properties of an application object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete application" />
+            <PropertyValue Property="LongDescription" String="Delete an application object. When deleted, apps are moved to a temporary container and can be restored within 30 days. After that time, they are permanently deleted." />
           </Record>
         </Annotation>
       </Annotations>
@@ -44501,12 +44520,12 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/device-post-devices?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/device-delete?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/device-get?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/device-delete?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
@@ -44582,6 +44601,28 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/directoryRoles">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Activate directoryRole" />
+            <PropertyValue Property="LongDescription" String="Activate a directory role. To read a directory role or update its members, it must first be activated in the tenant. The Company Administrators and the implicit user directory roles (**User**, **Guest User**, and **Restricted Guest User** roles) are activated by default. To access and assign members to other directory roles, you must first activate it with its corresponding directory role template ID." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-post-directoryroles?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-list?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List directoryRoles" />
@@ -44592,28 +44633,6 @@
                 <PropertyValue Property="LongDescription" String="Retrieve the properties of a directoryRole object. The role must be activated in tenant for a successful response. You can use both the object ID and template ID of the **directoryRole** with this API. The template ID of a built-in role is immutable and can be seen in the role description on the Azure portal. For details, see Role template IDs." />
               </Record>
             </PropertyValue>
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-list?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-post-directoryroles?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/directoryrole-get?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Activate directoryRole" />
-            <PropertyValue Property="LongDescription" String="Activate a directory role. To read a directory role or update its members, it must first be activated in the tenant. The Company Administrators and the implicit user directory roles (**User**, **Guest User**, and **Restricted Guest User** roles) are activated by default. To access and assign members to other directory roles, you must first activate it with its corresponding directory role template ID." />
           </Record>
         </Annotation>
       </Annotations>
@@ -44644,21 +44663,27 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/domains">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Create domain" />
-            <PropertyValue Property="LongDescription" String="Adds a domain to the tenant. **Important**: You cannot use an associated domain with your Azure AD tenant until ownership is verified. See List verificationDnsRecords for details. Root domains require verification. For example, contoso.com requires verification. If a root domain is verified, subdomains of the root domain are automatically verified. For example, subdomain.contoso.com is automatically be verified if contoso.com has been verified." />
+            <PropertyValue Property="Description" String="List domains" />
+            <PropertyValue Property="LongDescription" String="Retrieve a list of domain objects." />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Get domain" />
+                <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of domain object." />
+              </Record>
+            </PropertyValue>
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
           <Collection>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/domain-post-domains?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/domain-list?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/domain-post-domains?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
@@ -44674,16 +44699,10 @@
             </Record>
           </Collection>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="List domains" />
-            <PropertyValue Property="LongDescription" String="Retrieve a list of domain objects." />
-            <PropertyValue Property="ReadByKeyRestrictions">
-              <Record>
-                <PropertyValue Property="Description" String="Get domain" />
-                <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of domain object." />
-              </Record>
-            </PropertyValue>
+            <PropertyValue Property="Description" String="Create domain" />
+            <PropertyValue Property="LongDescription" String="Adds a domain to the tenant. **Important**: You cannot use an associated domain with your Azure AD tenant until ownership is verified. See List verificationDnsRecords for details. Root domains require verification. For example, contoso.com requires verification. If a root domain is verified, subdomains of the root domain are automatically verified. For example, subdomain.contoso.com is automatically be verified if contoso.com has been verified." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -44818,16 +44837,16 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-post-groups?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-post-members?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-get?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-delete?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-post-members?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -44837,50 +44856,20 @@
             <PropertyValue Property="LongDescription" String="Create a new group as specified in the request body. You can create the following types of groups: This operation returns by default only a subset of the properties for each group. These default properties are noted in the Properties section. To get properties that are _not_ returned by default, do a GET operation and specify the properties in a `$select` OData query option." />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Add members" />
-            <PropertyValue Property="LongDescription" String="Add a member to a security or Microsoft 365 group through the **members** navigation property. The following table shows the types of members that can be added to either security groups or Microsoft 365 groups." />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Delete group" />
             <PropertyValue Property="LongDescription" String="Delete group. When deleted, Microsoft 365 groups are moved to a temporary container and can be restored within 30 days. After that time, they're permanently deleted. This isn't applicable to Security groups and Distribution groups which are permanently deleted immediately. To learn more, see deletedItems." />
           </Record>
         </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/groupSettings">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Create settings" />
-            <PropertyValue Property="LongDescription" String="Create a new setting based on the templates available in groupSettingTemplates. These settings can be at the tenant-level or at the group level. Group settings apply to only Microsoft 365 groups. The template named `Group.Unified` can be used to configure tenant-wide Microsoft 365 group settings, while the template named `Group.Unified.Guest` can be used to configure group-specific settings." />
+            <PropertyValue Property="Description" String="Add members" />
+            <PropertyValue Property="LongDescription" String="Add a member to a security or Microsoft 365 group through the **members** navigation property. The following table shows the types of members that can be added to either security groups or Microsoft 365 groups." />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-post-settings?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-list-settings?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-delete?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-update?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-get?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/groupSettings">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List settings" />
@@ -44893,16 +44882,46 @@
             </PropertyValue>
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-list-settings?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/group-post-settings?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-delete?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/groupsetting-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Delete a group setting" />
-            <PropertyValue Property="LongDescription" String="Delete a tenant-level or group-specific groupSetting object." />
+            <PropertyValue Property="Description" String="Create settings" />
+            <PropertyValue Property="LongDescription" String="Create a new setting based on the templates available in groupSettingTemplates. These settings can be at the tenant-level or at the group level. Group settings apply to only Microsoft 365 groups. The template named `Group.Unified` can be used to configure tenant-wide Microsoft 365 group settings, while the template named `Group.Unified.Guest` can be used to configure group-specific settings." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Update groupSetting" />
             <PropertyValue Property="LongDescription" String="Update the properties of a groupSetting object for tenant-wide group settings or a specific group setting." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete a group setting" />
+            <PropertyValue Property="LongDescription" String="Delete a tenant-level or group-specific groupSetting object." />
           </Record>
         </Annotation>
       </Annotations>
@@ -45235,16 +45254,16 @@
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/grouplifecyclepolicy-list?view=graph-rest-1.0" />
             </Record>
             <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/grouplifecyclepolicy-delete?view=graph-rest-1.0" />
-            </Record>
-            <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/grouplifecyclepolicy-get?view=graph-rest-1.0" />
             </Record>
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
               <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/grouplifecyclepolicy-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/grouplifecyclepolicy-delete?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -45260,16 +45279,16 @@
             </PropertyValue>
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Delete groupLifecyclePolicy" />
-            <PropertyValue Property="LongDescription" String="Delete a groupLifecyclePolicy." />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Update groupLifecyclePolicy" />
             <PropertyValue Property="LongDescription" String="Update the properties of a groupLifecyclePolicygroupLifecyclePolicy resource type object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete groupLifecyclePolicy" />
+            <PropertyValue Property="LongDescription" String="Delete a groupLifecyclePolicy." />
           </Record>
         </Annotation>
       </Annotations>
@@ -45296,6 +45315,36 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/subscriptions">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create subscription" />
+            <PropertyValue Property="LongDescription" String="Subscribes a listener application to receive change notifications when the requested type of changes occur to the specified resource in Microsoft Graph. See the table in the Permissions section for the list of resources that support subscribing to change notifications.  Some resources support the option to include encrypted resource data in change notifications. These resources include chatMessage, contact, event, message, and presence. For more information, see Set up change notifications that include resource data and Change notifications for Outlook resources in Microsoft Graph." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-post-subscriptions?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-list?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-update?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-delete?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List subscriptions" />
@@ -45308,46 +45357,16 @@
             </PropertyValue>
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-list?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-post-subscriptions?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-delete?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-update?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/subscription-get?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
-            <PropertyValue Property="Description" String="Create subscription" />
-            <PropertyValue Property="LongDescription" String="Subscribes a listener application to receive change notifications when the requested type of changes occur to the specified resource in Microsoft Graph. See the table in the Permissions section for the list of resources that support subscribing to change notifications.  Some resources support the option to include encrypted resource data in change notifications. These resources include chatMessage, contact, event, message, and presence. For more information, see Set up change notifications that include resource data and Change notifications for Outlook resources in Microsoft Graph." />
+            <PropertyValue Property="Description" String="Update subscription" />
+            <PropertyValue Property="LongDescription" String="Renew a subscription by extending its expiry time. The table in the Permissions section lists the resources that support subscribing to change notifications. Subscriptions expire after a length of time that varies by resource type. In order to avoid missing change notifications, an app should renew its subscriptions well in advance of their expiry date. See subscription for maximum length of a subscription for each resource type." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Delete subscription" />
             <PropertyValue Property="LongDescription" String="Delete a subscription. For the list of resources that support subscribing to change notifications, see the table in the Permissions section." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="Update subscription" />
-            <PropertyValue Property="LongDescription" String="Renew a subscription by extending its expiry time. The table in the Permissions section lists the resources that support subscribing to change notifications. Subscriptions expire after a length of time that varies by resource type. In order to avoid missing change notifications, an app should renew its subscriptions well in advance of their expiry date. See subscription for maximum length of a subscription for each resource type." />
           </Record>
         </Annotation>
       </Annotations>
@@ -45495,27 +45514,27 @@
                 </Record>
               </Collection>
             </PropertyValue>
-            <PropertyValue Property="Description" String="List manager" />
-            <PropertyValue Property="LongDescription" String="Returns the user or organizational contact assigned as the user's manager. Optionally, you can expand the manager's chain up to the root node." />
+            <PropertyValue Property="Description" String="Get a user" />
+            <PropertyValue Property="LongDescription" String="Retrieve the properties and relationships of user object." />
           </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-get?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
+              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-update?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Update user" />
             <PropertyValue Property="LongDescription" String="Update the properties of a user object. Not all properties can be updated by Member or Guest users with their default permissions without Administrator roles. Compare member and guest default permissions to see properties they can manage." />
           </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/update" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-update?view=graph-rest-1.0" />
-            </Record>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
-              <PropertyValue Property="href" String="https://docs.microsoft.com/graph/api/user-list-manager?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
     </Schema>
@@ -47648,6 +47667,17 @@
         <Member Name="dateTimeCollection" Value="8" />
         <Member Name="unknownFutureValue" Value="9" />
       </EnumType>
+      <EnumType Name="ruleOperation">
+        <Member Name="null" Value="0" />
+        <Member Name="equals" Value="1" />
+        <Member Name="notEquals" Value="2" />
+        <Member Name="contains" Value="3" />
+        <Member Name="notContains" Value="4" />
+        <Member Name="lessThan" Value="5" />
+        <Member Name="greaterThan" Value="6" />
+        <Member Name="startsWith" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EntityType Name="connectionOperation" BaseType="graph.entity">
         <Property Name="error" Type="graph.publicError">
           <Annotation Term="Org.OData.Core.V1.Description" String="If status is failed, provides more information about the error that caused the failure." />
@@ -47660,6 +47690,9 @@
         <NavigationProperty Name="connections" Type="Collection(microsoft.graph.externalConnectors.externalConnection)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="externalConnection" BaseType="graph.entity">
+        <Property Name="activitySettings" Type="microsoft.graph.externalConnectors.activitySettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Collects configurable settings related to activities involving connector content." />
+        </Property>
         <Property Name="configuration" Type="microsoft.graph.externalConnectors.configuration">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies additional application IDs that are allowed to manage the connection and to index content in the connection. Optional." />
         </Property>
@@ -47668,6 +47701,9 @@
         </Property>
         <Property Name="name" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the connection to be displayed in the Microsoft 365 admin center. Maximum length of 128 characters. Required." />
+        </Property>
+        <Property Name="searchSettings" Type="microsoft.graph.externalConnectors.searchSettings">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The settings configuring the search experience for content in this connection, such as the display templates for search results." />
         </Property>
         <Property Name="state" Type="microsoft.graph.externalConnectors.connectionState">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the current state of the connection. Possible values are: draft, ready, obsolete, limitExceeded, unknownFutureValue." />
@@ -47723,9 +47759,47 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifer of the identity. In case of Azure Active Directory identities, value is set to the object identifier of the user, group or tenant for types user, group and everyone (and everyoneExceptGuests) respectively. In case of external groups value is set to the ID of the externalGroup" />
         </Property>
       </ComplexType>
+      <ComplexType Name="activitySettings">
+        <Property Name="urlToItemResolvers" Type="Collection(microsoft.graph.externalConnectors.urlToItemResolverBase)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies configurations to identify an externalItem based on a shared URL." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="urlToItemResolverBase" Abstract="true">
+        <Property Name="priority" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The priority which defines the sequence in which the urlToItemResolverBase instances are evaluated." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="configuration" OpenType="true">
         <Property Name="authorizedAppIds" Type="Collection(Edm.String)">
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of application IDs for registered Azure Active Directory apps that are allowed to manage the externalConnection and to index content in the externalConnection." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="displayTemplate">
+        <Property Name="id" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The text identifier for the display template; for example, contosoTickets. Maximum 16 characters. Only alphanumeric characters allowed." />
+        </Property>
+        <Property Name="layout" Type="graph.Json" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The definition of the content's appearance, represented by an Adaptive Card, which is a JSON-serialized card object model." />
+        </Property>
+        <Property Name="priority" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Defines the priority of a display template. A display template with priority 1 is evaluated before a template with priority 4. Gaps in priority values are supported. Must be positive value." />
+        </Property>
+        <Property Name="rules" Type="Collection(microsoft.graph.externalConnectors.propertyRule)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies additional rules for selecting this display template based on the item schema. Optional." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="propertyRule">
+        <Property Name="operation" Type="microsoft.graph.externalConnectors.ruleOperation" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the operations to be performed during evaluation of a single propertyRule, where property and a string from the values collection are the respective operands. Possible values are: null, equals, notEquals, contains, notContains, lessThan, greaterThan, startsWith. Required." />
+        </Property>
+        <Property Name="property" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The property from the externalItem schema. Required." />
+        </Property>
+        <Property Name="values" Type="Collection(Edm.String)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection with one or many strings. The specified string(s) will be matched with the specified property using the specified operation. Required." />
+        </Property>
+        <Property Name="valuesJoinedBy" Type="graph.binaryOperator" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The join operator for evaluating multiple propertyRules. For example, if and is specified, then all propertyRules must be true for the propertyRule to be true. Possible values are: or, and. Required." />
         </Property>
       </ComplexType>
       <ComplexType Name="externalItemContent">
@@ -47734,6 +47808,22 @@
         </Property>
         <Property Name="value" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The content for the externalItem. Required." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="itemIdResolver" BaseType="microsoft.graph.externalConnectors.urlToItemResolverBase">
+        <Property Name="itemId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Pattern that specifies how to form the ID of the external item that the URL represents. The named groups from the regular expression in urlPattern within the urlMatchInfo can be referenced by inserting the group name inside curly brackets." />
+        </Property>
+        <Property Name="urlMatchInfo" Type="microsoft.graph.externalConnectors.urlMatchInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Configurations to match and resolve URL." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="urlMatchInfo">
+        <Property Name="baseUrls" Type="Collection(Edm.String)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A list of the URL prefixes that must match URLs to be processed by this URL-to-item-resolver." />
+        </Property>
+        <Property Name="urlPattern" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A regular expression that will be matched towards the URL that is processed by this URL-to-item-resolver. The ECMAScript specification for regular expressions (ECMA-262) is used for the evaluation. The named groups defined by the regular expression will be used later to extract values from the URL." />
         </Property>
       </ComplexType>
       <ComplexType Name="properties" OpenType="true" />
@@ -47761,6 +47851,11 @@
         </Property>
         <Property Name="type" Type="microsoft.graph.externalConnectors.propertyType" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The data type of the property. Possible values are: string, int64, double, dateTime, boolean, stringCollection, int64Collection, doubleCollection, dateTimeCollection, unknownFutureValue." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="searchSettings">
+        <Property Name="searchResultTemplates" Type="Collection(microsoft.graph.externalConnectors.displayTemplate)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Enables the developer to define the appearance of the content and configure conditions that dictate when the template should be displayed. Maximum of 2 search result templates per connection." />
         </Property>
       </ComplexType>
     </Schema>
