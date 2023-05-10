@@ -480,6 +480,11 @@
        <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
     </xsl:template>
 
+    <!--Replace single-valued with collection-valued return types for complex type appliedConditionalAccessPolicy-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='appliedConditionalAccessPolicy']/edm:Property[@Name='conditionsNotSatisfied' or @Name='conditionsSatisfied']/@Type">
+        <xsl:attribute name="Type">Collection(graph.conditionalAccessConditions)</xsl:attribute>
+    </xsl:template>
+    
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
         <xsl:param name = "propertyPath" />
