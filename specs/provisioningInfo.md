@@ -17,6 +17,7 @@ This is the top level object in the provisioning info file. It contains a list o
 ```json
 "permissions": {
   “Foo.Read.All”: {
+    "resourceAppId": "00000003-0000-0000-c000-000000000000",
     "environments": {
         "global": {
           "versions": {
