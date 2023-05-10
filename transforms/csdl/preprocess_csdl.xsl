@@ -799,6 +799,20 @@
     </xsl:template>
 
     <!-- Capability Annotations Templates -->
+    <xsl:template name="CountRestrictionsTemplate">
+        <xsl:param name="countable" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.CountRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Countable</xsl:attribute>
+                    <xsl:attribute name="Bool">
+                        <xsl:value-of select="$countable" />
+                    </xsl:attribute>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="SkipSupportTemplate">
         <xsl:param name="skipSupported" />
         <xsl:element name="Annotation">
@@ -1286,6 +1300,30 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Remove countability for drives entity set -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/drives'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.GraphService/drives</xsl:attribute>
+                        <xsl:call-template name="CountRestrictionsTemplate">
+                            <xsl:with-param name="countable">false</xsl:with-param>
+                        </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+            
+            <!-- Remove countability for list/items navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.list/items'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.list/items</xsl:attribute>
+                        <xsl:call-template name="CountRestrictionsTemplate">
+                            <xsl:with-param name="countable">false</xsl:with-param>
+                        </xsl:call-template>                        
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
 
             <!-- Remove readability only for teams entity set v1.0 -->
             <xsl:choose>
@@ -1391,6 +1429,17 @@
                 </xsl:copy>            
             </xsl:otherwise>        
         </xsl:choose>     
+    </xsl:template>
+    
+    <!-- If the parent "Annotations" tag already exists, modify it -->
+    <!-- Remove countability for list/items navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/items']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+         <xsl:call-template name="CountRestrictionsTemplate">
+            <xsl:with-param name="countable">false</xsl:with-param>
+          </xsl:call-template>
+       </xsl:copy>
     </xsl:template>
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
@@ -1596,6 +1645,27 @@
         </xsl:choose>        
     </xsl:template>   
     
+    <!-- Remove countability -->    
+    <!-- If the grand-parent "Annotations" tag already exists, modify it -->
+    <!-- Add CountRestrictions annotation and remove countability for drives entity set -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/drives']">     
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.CountRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="CountRestrictionsTemplate">
+                        <xsl:with-param name="countable">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose> 
+    </xsl:template>    
+        
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
