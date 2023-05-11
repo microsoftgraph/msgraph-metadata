@@ -4930,6 +4930,9 @@
         <Property Name="accessType" Type="graph.crossTenantAccessPolicyTargetConfigurationAccessType" />
         <Property Name="targets" Type="Collection(graph.crossTenantAccessPolicyTarget)" />
       </ComplexType>
+      <ComplexType Name="crossTenantUserSyncInbound">
+        <Property Name="isSyncAllowed" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="currencyColumn">
         <Property Name="locale" Type="Edm.String" />
       </ComplexType>
@@ -5432,6 +5435,10 @@
         <Property Name="deviceErrorName" Type="Edm.String" />
         <Property Name="deviceImportStatus" Type="graph.importedWindowsAutopilotDeviceIdentityImportStatus" Nullable="false" />
         <Property Name="deviceRegistrationId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="inboundOutboundPolicyConfiguration">
+        <Property Name="inboundAllowed" Type="Edm.Boolean" />
+        <Property Name="outboundAllowed" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="incomingCallOptions" BaseType="graph.callOptions" />
       <ComplexType Name="incomingContext">
@@ -7989,6 +7996,9 @@
         <Property Name="vendorInformation" Type="graph.securityVendorInformation" />
         <Property Name="vulnerabilityStates" Type="Collection(graph.vulnerabilityState)" />
       </EntityType>
+      <EntityType Name="allowedValue" BaseType="graph.entity">
+        <Property Name="isActive" Type="Edm.Boolean" />
+      </EntityType>
       <EntityType Name="androidCompliancePolicy" BaseType="graph.deviceCompliancePolicy">
         <Property Name="deviceThreatProtectionEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="deviceThreatProtectionRequiredSecurityLevel" Type="graph.deviceThreatProtectionLevel" Nullable="false" />
@@ -8311,6 +8321,10 @@
         <Property Name="identity" Type="graph.identity" />
         <Property Name="role" Type="Edm.String" />
         <Property Name="totalAttendanceInSeconds" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="attributeSet" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="maxAttributesPerSet" Type="Edm.Int32" />
       </EntityType>
       <EntityType Name="audioRoutingGroup" BaseType="graph.entity">
         <Property Name="receivers" Type="Collection(Edm.String)" />
@@ -8938,6 +8952,7 @@
         <NavigationProperty Name="partners" Type="Collection(graph.crossTenantAccessPolicyConfigurationPartner)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="crossTenantAccessPolicyConfigurationDefault" BaseType="graph.entity">
+        <Property Name="automaticUserConsentSettings" Type="graph.inboundOutboundPolicyConfiguration" />
         <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
         <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
         <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
@@ -8949,6 +8964,7 @@
         <Key>
           <PropertyRef Name="tenantId" />
         </Key>
+        <Property Name="automaticUserConsentSettings" Type="graph.inboundOutboundPolicyConfiguration" />
         <Property Name="b2bCollaborationInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
         <Property Name="b2bCollaborationOutbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
         <Property Name="b2bDirectConnectInbound" Type="graph.crossTenantAccessPolicyB2BSetting" />
@@ -8956,6 +8972,26 @@
         <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust" />
         <Property Name="isServiceProvider" Type="Edm.Boolean" />
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="identitySynchronization" Type="graph.crossTenantIdentitySyncPolicyPartner" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="crossTenantIdentitySyncPolicyPartner">
+        <Key>
+          <PropertyRef Name="tenantId" />
+        </Key>
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="userSyncInbound" Type="graph.crossTenantUserSyncInbound" />
+      </EntityType>
+      <EntityType Name="customSecurityAttributeDefinition" BaseType="graph.entity">
+        <Property Name="attributeSet" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="isCollection" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSearchable" Type="Edm.Boolean" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="Edm.String" Nullable="false" />
+        <Property Name="type" Type="Edm.String" Nullable="false" />
+        <Property Name="usePreDefinedValuesOnly" Type="Edm.Boolean" />
+        <NavigationProperty Name="allowedValues" Type="Collection(graph.allowedValue)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="dataPolicyOperation" BaseType="graph.entity">
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
@@ -9404,6 +9440,8 @@
       </EntityType>
       <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
+        <NavigationProperty Name="attributeSets" Type="Collection(graph.attributeSet)" ContainsTarget="true" />
+        <NavigationProperty Name="customSecurityAttributeDefinitions" Type="Collection(graph.customSecurityAttributeDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
         <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="onPremisesSynchronization" Type="Collection(graph.onPremisesDirectorySynchronization)" ContainsTarget="true" />
@@ -18384,6 +18422,31 @@
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
       </Function>
+      <Function Name="getTeamsTeamActivityCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsTeamActivityDetail" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="date" Type="Edm.Date" Nullable="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsTeamActivityDetail" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsTeamActivityDistributionCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsTeamCounts" IsBound="true">
+        <Parameter Name="reportRoot" Type="graph.reportRoot" />
+        <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
       <Function Name="getTeamsUserActivityCounts" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -21153,6 +21216,30 @@
         <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
           <Record>
             <PropertyValue Property="Selectable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantIdentitySyncPolicyPartner">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
