@@ -30,7 +30,7 @@ The canonical model for a permissions document is a JSON [JSON] object. When ser
 				"schemes": ["DelegatedWork"],
 				"methods": ["GET"],
 				"paths": {
-					"/print/settings": {}
+					"/print/settings": ""
 				}
 			}]
 		}
@@ -51,35 +51,17 @@ The permissions object contains the details about a permission that can be used 
 ### note
 The "note" member is a freeform string that provides additional details about the permission that cannot be determined from the other members of the permission object.
 
-### implicit
-The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
-
-> Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
-
 ### schemes
 The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects](#schemeObject) supported by the permission. The key of each member is an identifier of the scheme and the value is a [Scheme object](#schemeObject) that contains descriptions of the permission within the scheme.   
 
 ### pathSets
 The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [pathSet object](#pathSetObject). 
 
-### privilegeLevel
-The "privilegeLevel" member value provides a hint as to the risks of consenting this permissions. Valid values include: low, medium and high.
+## <a name="ownerInfo"></a>OwnerInfo Object
 
-## <a name="provisioningInfo"></a>Provisioning Info Object
-
-The provisioning info object contains information related to the deployment of the permission into its environment. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
-
-### isHidden
-The "isHidden" member is a boolean value that indicates if a permission should be publicly usable in the API.  
-
-### requiredEnvironments
-The "requiredEnvironments" member is an array of strings that identifies the deployment environments in which the permission SHOULD be supported. When this member is not present, support for all environments is implied.
-
-### resourceAppId
-The "resourceAppId" member value provides an identifier of the resource server that is used to enforce Conditional Access checks for this permission.
-
+The owner info object contains information related to the ownership of the permission. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
 ### ownerSecurityGroup
-The "ownerSecurityGroup" member is a REQUIRED string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
+The "ownerSecurityGroup" member is a string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission. This member is REQUIRED when `ownerInfo` is present.
 
 ## <a name="pathSetObject"></a>PathSet Object
 A pathSet object identifies a set of paths that are accessible and have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
@@ -98,7 +80,7 @@ A pathSet object identifies a set of paths that are accessible and have a common
         "schemeKeys": ["Application"],
         "methods": ["GET,POST"],
         "paths": {
-            "/print/settings": {}
+            "/print/settings": ""
         }
     }
 ] 
@@ -114,9 +96,9 @@ The "methods" member is a REQUIRED array of strings that represent the HTTP meth
 The "paths" member is a REQUIRED object whose keys contain a simplified URI template to identify the resources protected by this permission object.
 
 ### alsoRequires
-The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
+The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission.
 
-```
+```json
 (User.Read | User.Read.All) & Group.Read
 ```
 
@@ -125,7 +107,6 @@ The "includedProperties" member is an array of strings that identify properties 
 
 ### excludedProperties
 The "excludedProperties" member is an array of strings that identify properties of the resource representation returned by the path, that are not accessible with the permission.
-
 
 ## <a name="schemeObject"></a>Scheme Object
 The scheme object has members that describe the permission within the context of the scheme. Additional members provide behavioral constraints of the permission when used with the scheme.  
@@ -137,15 +118,18 @@ The scheme object has members that describe the permission within the context of
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
         "userConsentDisplayName": "Read and write app activity to users'activity feed",
         "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
-        "requiresAdminConsent": true
+        "requiresAdminConsent": true,
+        "privilegeLevel": 3
     },
     "DelegatedPersonal": {
         "userConsentDisplayName": "Read and write app activity to users'activity feed",
-        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app."
+        "userConsentDescription": "Allows the app to read and report the signed-in user's activity in the app.",
+        "privilegeLevel": 2
     },
     "Application": {
         "adminDisplayName": "Read and write app activity to users' activity feed",
         "adminDescription": "Allows the app to read and report the signed-in user's activity in the app.",
+        "privilegeLevel": 5
     }
 ```
 
@@ -164,17 +148,24 @@ The "userConsentDescription" member is a REQUIRED string that describes the perm
 ### requiresAdminConsent
 The "requiresAdminConsent" member is a boolean value with a default value of false. When true, this permission can only be consented by an adminstrator.
 
+### privilegeLevel
+The "privilegeLevel" member is an integer value that provides a hint as to the risks of consenting to the permissions. Valid values range from 1 (least privileged) to 5 (most privileged). The value is arrived at by considering the breadth of access that a permission will give access to and the sensitivity of the operations allowed by the permission. The same permission can have different privilege levels when used with different schemes.
+
 ## <a name="pathObject"></a>Path Object
-The path object contains properties that affect how the permission object controls access to resource identified by the key of the path object.
+The path object contains stringified properties and value pairs that affect how the permission object controls access to resource identified by the key of the path object.
 
 ```json
 "paths": {
-  "/me/activities/{id}": {
-    "leastPrivilegePermission": ["DelegatedWork", "DelegatedPersonal"]
-  }
+  "/me/activities/{id}": "least=DelegatedWork,DelegatedPersonal"
 ```
 
-### leastPrivilegePermission
+```json
+"paths": {
+  "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All;least=Delegated"
+}
+```
+
+### least (least privilege permission)
 The "leastPrivilegePermission" member is an array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
 
 ## Appendix A. Model Diagram
@@ -184,11 +175,9 @@ classDiagram
 
     class Permission{
         note: string
-        implicit: bool
         requiredEnvironments: string[]
         ownerEmail:string
         isHidden: bool
-        privilegeLevel: string
     }
     Permission "1" --> "*" PathSet:pathSets
     Permission "1" --> "*" Scheme:schemes
@@ -196,13 +185,14 @@ classDiagram
     class PathSet{
         schemeKeys: string[]     
         methods: string[] 
-        alsoRequires: stringExpression 
         includedProperties: string[]     
         excludedProperties: string[]     
     }
     PathSet "1" --> "*" Path:paths
 
     class Path{
+        alsoRequires: stringExpression
+        implicit: bool
         leastPrivilegePermission: string
     }
 
@@ -212,6 +202,7 @@ classDiagram
         userDisplayName: string
         userDescription: string
         requiresAdminConsent: string
+        privilegeLevel: int
     }
 
 ```
@@ -243,22 +234,12 @@ classDiagram
             "additionalProperties": false,
             "properties": {
                 "note": {"type": "string"},
-                "implicit": {"type": "boolean"},
                 "isHidden": {"type": "boolean"},
-                "ownerEmail": {"type": "string"},
-                "privilegeLevel": {
-                    "type":"string",
-                    "enum":["low","medium","high"]
-                }
                 "requiredEnvironments": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
-                },
-                "alsoRequires": {
-                    "type": "string",
-                    "pattern": "[\\w]+\\.[\\w]+[\\.[\\w]+]?"
                 },
                 "schemes": {
                     "type": "object",
@@ -318,13 +299,8 @@ classDiagram
                 }
         },
         "path": {
-            "type": "object",
-            "properties": {
-                "leastPrivilegePermission": {
-                    "type": "array",
-                    "items": { "type":"string"}
-                }
-            },
+            "type": "string",
+        },
         "scheme": {
             "type": "object",
             "properties": {
@@ -342,6 +318,10 @@ classDiagram
                 },
                 "userConsentDescription": {
                     "type": "string"
+                },
+                "privilegeLevel": {
+                    "type": "int",
+                    "enum": [1, 2, 3, 4, 5]
                 }
             }
     }
