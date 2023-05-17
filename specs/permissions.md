@@ -57,11 +57,11 @@ The "schemes" member is a REQUIRED JSON object whose members are [Scheme objects
 ### pathSets
 The "pathSets" member is a REQUIRED JSON Array. Each element of the array is a [pathSet object](#pathSetObject). 
 
-## <a name="ownerInfo"></a>Owner Info Object
+## <a name="ownerInfo"></a>OwnerInfo Object
 
 The owner info object contains information related to the ownership of the permission. This object should only contain information that is not required by a consumer of the API and can safely be removed in any public projection of the permissions information.
 ### ownerSecurityGroup
-The "ownerSecurityGroup" member is a REQUIRED string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission.
+The "ownerSecurityGroup" member is a string that provides a contact mechanism for communicating with the owners of the permission. It is important that owners of permissions are aware when new paths are added to an existing permission. This member is only required when `ownerInfo` is present.
 
 ## <a name="pathSetObject"></a>PathSet Object
 A pathSet object identifies a set of paths that are accessible and have a common set of security characteristics, such as HTTP methods and schemes. Ideally, a permission object contains a single pathSet object. This indicates that all paths protected by the permission support the same characteristics. In practice there are cases where support is not uniform. Distinct pathSet objects can be created to separate the paths with varying characteristics.  
@@ -95,7 +95,10 @@ The "methods" member is a REQUIRED array of strings that represent the HTTP meth
 ### paths
 The "paths" member is a REQUIRED object whose keys contain a simplified URI template to identify the resources protected by this permission object.
 
-```
+### alsoRequires
+The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission.
+
+```json
 (User.Read | User.Read.All) & Group.Read
 ```
 
@@ -161,32 +164,6 @@ The path object contains stringified properties and value pairs that affect how 
   "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All;least=Delegated"
 }
 ```
-
-### alsoRequires
-The "alsoRequires" member is logical expression of permissions that must be presented as claims alongside the current permission. 
-
-The value `alsoRequires` member can express complex logical expressions using boolean operators.
-
-```json
-"paths": {
-  "/search/query": "implicit=true;alsoRequires=Bookmark.Read.All||ChatMessages.Read;least=Delegated"
-}
-```
-The example above shows that any one of a list of additional permissions are required.
-
-We can also express more complex scenarios using parenthesis.
-
-```json
-"paths": {
-  "/foo/bar": "implicit=true;alsoRequires=(PermissionA.Read.All||PermissionB.Read)&&(PermissionC.Read.All&&PermissionD.Read.All);least=Delegated",
-  "/foo/barz": "implicit=true;alsoRequires=(PermissionA.Read.All&&PermissionB.Read)||(PermissionC.Read.All&&PermissionD.Read.All);least=Delegated"
-}
-```
-
-### implicit
-The "implicit" member is a boolean value that indicates that the current permission object is implied.  The default value is "false". This member is usually set to "true" in combination with a "alsoRequires" expression.
-
-> Note: This member enables support for legacy paths that have been created that do not require any permission. Also, when used in combination with the "alsoRequires" member it enables support for the Microsoft Graph "create subscription" endpoint and the "Search query" endpoint. 
 
 ### least (least privilege permission)
 The "leastPrivilegePermission" member is an array of strings that identify the schemes for which the current permission is the least privilege permission for accessing the path. Each string value in the array MUST match one of the schemes defined in the [pathSet Object](#pathsetObject) 
