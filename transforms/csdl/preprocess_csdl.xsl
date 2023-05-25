@@ -1244,6 +1244,17 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.administrativeUnit/members'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.administrativeUnit/members</xsl:attribute>                       
+                       <xsl:call-template name="InsertRestrictionsTemplate">
+                           <xsl:with-param name="insertable">true</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.drive/bundles'])">
