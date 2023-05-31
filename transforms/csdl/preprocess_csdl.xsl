@@ -820,6 +820,13 @@
             <xsl:attribute name="Bool"><xsl:value-of select="$skipSupported"/></xsl:attribute>
         </xsl:element>           
     </xsl:template>
+    <xsl:template name="TopSupportTemplate">
+        <xsl:param name="topSupported" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.TopSupported</xsl:attribute>
+            <xsl:attribute name="Bool"><xsl:value-of select="$topSupported"/></xsl:attribute>
+        </xsl:element>           
+    </xsl:template>
     <xsl:template name="ReadRestrictionsTemplate">
         <xsl:param name = "readable" />
         <xsl:param name = "readableByKey" />
@@ -1361,13 +1368,28 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <!-- Remove $top and $skip support for message/attachments navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.message/attachments'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.message/attachments</xsl:attribute>
+                        <xsl:call-template name="SkipSupportTemplate">
+                            <xsl:with-param name="skipSupported">false</xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:call-template name="TopSupportTemplate">
+                            <xsl:with-param name="topSupported">false</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>      
         </xsl:copy>
     </xsl:template>
 
     <!-- If the parent "Annotations" tag already exists modify it -->
     <!-- Remove indexability for joinedGroups navigation property -->
-    <!-- Remove indexability for activities navigation property -->
     <!-- Remove indexability for users navigation property -->
+    <!-- Remove indexability for activities navigation property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/joinedGroups'] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice/users'] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/activities'] ">
@@ -1479,6 +1501,48 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+
+    <!-- If the parent "Annotations" tag exists, modify it -->
+    <!-- Remove $top and $skip support for message/attachments navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.message/attachments']">
+        <xsl:choose>
+            <!-- Both $top and $skip not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.SkipSupported']) and not(edm:Annotation[@Term='Org.OData.Capabilities.V1.TopSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="SkipSupportTemplate">
+                        <xsl:with-param name="skipSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                    <xsl:call-template name="TopSupportTemplate">
+                        <xsl:with-param name="topSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!-- $skip not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.SkipSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="SkipSupportTemplate">
+                        <xsl:with-param name="skipSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!-- $top not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.TopSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="TopSupportTemplate">
+                        <xsl:with-param name="topSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>           
+    </xsl:template>    
     
     <!-- Add FilterRestrictions to directorySetting entity type -->
      <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">
