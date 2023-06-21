@@ -1169,6 +1169,12 @@
         <Member Name="private" Value="2" />
         <Member Name="confidential" Value="3" />
       </EnumType>
+      <EnumType Name="sensitivityLabelAssignmentMethod">
+        <Member Name="standard" Value="0" />
+        <Member Name="privileged" Value="1" />
+        <Member Name="auto" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="sensitivityLabelTarget" IsFlags="true">
         <Member Name="email" Value="1" />
         <Member Name="site" Value="2" />
@@ -2402,6 +2408,9 @@
         <Property Name="issuerUri" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="externalSponsors" BaseType="graph.subjectSet" />
+      <ComplexType Name="extractSensitivityLabelsResult">
+        <Property Name="labels" Type="Collection(graph.sensitivityLabelAssignment)" />
+      </ComplexType>
       <ComplexType Name="featureTarget">
         <Property Name="id" Type="Edm.String" />
         <Property Name="targetType" Type="graph.featureTargetType" />
@@ -3309,6 +3318,11 @@
         <Property Name="idMatch" Type="Edm.String" />
         <Property Name="length" Type="Edm.Int32" />
         <Property Name="offset" Type="Edm.Int32" />
+      </ComplexType>
+      <ComplexType Name="sensitivityLabelAssignment">
+        <Property Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" Nullable="false" />
+        <Property Name="sensitivityLabelId" Type="Edm.String" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="servicePlanInfo">
         <Property Name="appliesTo" Type="Edm.String" />
@@ -6490,6 +6504,12 @@
         <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false" />
         <ReturnType Type="graph.user" />
       </Action>
+      <Action Name="assignSensitivityLabel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="sensitivityLabelId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" />
+        <Parameter Name="justificationText" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="associateWithHubSites" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
         <Parameter Name="hubSiteUrls" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
@@ -6697,6 +6717,10 @@
         <Parameter Name="evaluateDataLossPreventionPolicies" Type="graph.dlpEvaluatePoliciesRequest" />
         <Parameter Name="classifyText" Type="graph.textClassificationRequest" />
         <ReturnType Type="graph.evaluateLabelsAndPoliciesJobResponse" />
+      </Action>
+      <Action Name="extractSensitivityLabels" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.driveItem" />
+        <ReturnType Type="graph.extractSensitivityLabelsResult" />
       </Action>
       <Action Name="follow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -8440,6 +8464,30 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/applications">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/chats">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
@@ -8449,6 +8497,102 @@
                 <NavigationPropertyPath>installedApps</NavigationPropertyPath>
                 <NavigationPropertyPath>messages</NavigationPropertyPath>
                 <NavigationPropertyPath>tabs</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/devices">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/groups">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/servicePrincipals">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
               </Collection>
             </PropertyValue>
           </Record>
@@ -8478,6 +8622,28 @@
                 <NavigationPropertyPath>chats</NavigationPropertyPath>
                 <NavigationPropertyPath>joinedTeams</NavigationPropertyPath>
                 <NavigationPropertyPath>teamwork</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="CustomHeaders">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                  <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/en-us/graph/api/orgcontact-list?view=graph-rest-beta" />
+                  <PropertyValue Property="ExampleValues">
+                    <Collection>
+                      <Record>
+                        <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        <PropertyValue Property="Value" String="eventual" />
+                      </Record>
+                    </Collection>
+                  </PropertyValue>
+                  <PropertyValue Property="Name" String="ConsistencyLevel" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
               </Collection>
             </PropertyValue>
           </Record>
