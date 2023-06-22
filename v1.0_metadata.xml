@@ -892,6 +892,12 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="sensitivityLabelAssignmentMethod">
+        <Member Name="standard" Value="0" />
+        <Member Name="privileged" Value="1" />
+        <Member Name="auto" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="stagedFeatureName">
         <Member Name="passthroughAuthentication" Value="0" />
         <Member Name="seamlessSso" Value="1" />
@@ -4426,6 +4432,7 @@
         <Property Name="userType" Type="Edm.String" />
         <Property Name="mailboxSettings" Type="graph.mailboxSettings" />
         <Property Name="deviceEnrollmentLimit" Type="Edm.Int32" Nullable="false" />
+        <Property Name="print" Type="graph.userPrint" />
         <Property Name="aboutMe" Type="Edm.String" />
         <Property Name="birthday" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="hireDate" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -4947,6 +4954,9 @@
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
       </EntityType>
+      <ComplexType Name="userPrint">
+        <NavigationProperty Name="recentPrinterShares" Type="Collection(graph.printerShare)" ContainsTarget="true" />
+      </ComplexType>
       <EntityType Name="userActivity" BaseType="graph.entity">
         <Property Name="activationUrl" Type="Edm.String" Nullable="false" />
         <Property Name="activitySourceHost" Type="Edm.String" Nullable="false" />
@@ -8558,6 +8568,14 @@
         <Property Name="alias" Type="Edm.String" />
         <Property Name="email" Type="Edm.String" />
         <Property Name="objectId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="extractSensitivityLabelsResult">
+        <Property Name="labels" Type="Collection(graph.sensitivityLabelAssignment)" />
+      </ComplexType>
+      <ComplexType Name="sensitivityLabelAssignment">
+        <Property Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" Nullable="false" />
+        <Property Name="sensitivityLabelId" Type="Edm.String" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="hashes">
         <Property Name="crc32Hash" Type="Edm.String" />
@@ -12896,6 +12914,9 @@
         <Property Name="subdivision" Type="Collection(Edm.String)" />
         <Property Name="subunit" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="printerShareViewpoint">
+        <Property Name="lastUsedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="printerStatus">
         <Property Name="description" Type="Edm.String" />
         <Property Name="details" Type="Collection(graph.printerProcessingStateDetail)" Nullable="false" />
@@ -12945,6 +12966,25 @@
         <Property Name="description" Type="Edm.String" Nullable="false" />
         <Property Name="state" Type="graph.printTaskProcessingState" Nullable="false" />
       </ComplexType>
+      <EntityType Name="printerBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="capabilities" Type="graph.printerCapabilities" />
+        <Property Name="defaults" Type="graph.printerDefaults" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="isAcceptingJobs" Type="Edm.Boolean" />
+        <Property Name="location" Type="graph.printerLocation" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="status" Type="graph.printerStatus" Nullable="false" />
+        <NavigationProperty Name="jobs" Type="Collection(graph.printJob)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="printerShare" BaseType="graph.printerBase">
+        <Property Name="allowAllUsers" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="viewPoint" Type="graph.printerShareViewpoint" />
+        <NavigationProperty Name="allowedGroups" Type="Collection(graph.group)" />
+        <NavigationProperty Name="allowedUsers" Type="Collection(graph.user)" />
+        <NavigationProperty Name="printer" Type="graph.printer" />
+      </EntityType>
       <EntityType Name="print">
         <Property Name="settings" Type="graph.printSettings" />
         <NavigationProperty Name="connectors" Type="Collection(graph.printConnector)" ContainsTarget="true" />
@@ -12966,17 +13006,6 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="status" Type="graph.printOperationStatus" Nullable="false" />
       </EntityType>
-      <EntityType Name="printerBase" BaseType="graph.entity" Abstract="true">
-        <Property Name="capabilities" Type="graph.printerCapabilities" />
-        <Property Name="defaults" Type="graph.printerDefaults" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="isAcceptingJobs" Type="Edm.Boolean" />
-        <Property Name="location" Type="graph.printerLocation" />
-        <Property Name="manufacturer" Type="Edm.String" />
-        <Property Name="model" Type="Edm.String" />
-        <Property Name="status" Type="graph.printerStatus" Nullable="false" />
-        <NavigationProperty Name="jobs" Type="Collection(graph.printJob)" ContainsTarget="true" />
-      </EntityType>
       <EntityType Name="printer" BaseType="graph.printerBase">
         <Property Name="hasPhysicalDevice" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
@@ -12988,13 +13017,6 @@
       </EntityType>
       <EntityType Name="printService" BaseType="graph.entity">
         <NavigationProperty Name="endpoints" Type="Collection(graph.printServiceEndpoint)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="printerShare" BaseType="graph.printerBase">
-        <Property Name="allowAllUsers" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <NavigationProperty Name="allowedGroups" Type="Collection(graph.group)" />
-        <NavigationProperty Name="allowedUsers" Type="Collection(graph.user)" />
-        <NavigationProperty Name="printer" Type="graph.printer" />
       </EntityType>
       <EntityType Name="printTaskDefinition" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.appIdentity" Nullable="false" />
@@ -17686,20 +17708,12 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
         <ReturnType Type="Collection(graph.contentType)" />
       </Function>
-      <Action Name="associateWithHubSites" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="graph.contentType" />
-        <Parameter Name="hubSiteUrls" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
-        <Parameter Name="propagateToExistingLists" Type="Edm.Boolean" />
+      <Action Name="assignSensitivityLabel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
+        <Parameter Name="sensitivityLabelId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" />
+        <Parameter Name="justificationText" Type="Edm.String" Unicode="false" />
       </Action>
-      <Action Name="copyToDefaultContentLocation" IsBound="true" EntitySetPath="bindingParameter">
-        <Parameter Name="bindingParameter" Type="graph.contentType" />
-        <Parameter Name="sourceFile" Type="graph.itemReference" Nullable="false" />
-        <Parameter Name="destinationFileName" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Function Name="isPublished" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.contentType" />
-        <ReturnType Type="Edm.Boolean" Nullable="false" />
-      </Function>
       <Action Name="checkin" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="checkInAs" Type="Edm.String" Unicode="false" />
@@ -17717,6 +17731,10 @@
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <Parameter Name="retainInheritedPermissions" Type="Edm.Boolean" />
         <ReturnType Type="graph.permission" />
+      </Action>
+      <Action Name="extractSensitivityLabels" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.driveItem" />
+        <ReturnType Type="graph.extractSensitivityLabelsResult" />
       </Action>
       <Action Name="follow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -17800,6 +17818,20 @@
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Action Name="associateWithHubSites" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="graph.contentType" />
+        <Parameter Name="hubSiteUrls" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="propagateToExistingLists" Type="Edm.Boolean" />
+      </Action>
+      <Action Name="copyToDefaultContentLocation" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="graph.contentType" />
+        <Parameter Name="sourceFile" Type="graph.itemReference" Nullable="false" />
+        <Parameter Name="destinationFileName" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Function Name="isPublished" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.contentType" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Function>
       <Action Name="grant" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.permission" />
