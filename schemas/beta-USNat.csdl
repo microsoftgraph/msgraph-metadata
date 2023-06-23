@@ -6362,6 +6362,7 @@
         <Property Name="permissionId" Type="Edm.String" />
         <Property Name="permissionName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="deletedChat" BaseType="graph.entity" />
       <EntityType Name="deletedTeam" BaseType="graph.entity">
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
       </EntityType>
@@ -8514,6 +8515,7 @@
       <EntityType Name="teamsAppSettings" BaseType="graph.entity">
         <Property Name="allowUserRequestsForAppAccess" Type="Edm.Boolean" />
         <Property Name="isChatResourceSpecificConsentEnabled" Type="Edm.Boolean" />
+        <Property Name="isUserPersonalScopeResourceSpecificConsentEnabled" Type="Edm.Boolean" />
       </EntityType>
       <EntityType Name="teamsAsyncOperation" BaseType="graph.entity" OpenType="true">
         <Property Name="attemptsCount" Type="Edm.Int32" Nullable="false" />
@@ -8553,6 +8555,7 @@
         <NavigationProperty Name="teamDefinition" Type="graph.team" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamwork" BaseType="graph.entity">
+        <NavigationProperty Name="deletedChats" Type="Collection(graph.deletedChat)" ContainsTarget="true" />
         <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
         <NavigationProperty Name="devices" Type="Collection(graph.teamworkDevice)" ContainsTarget="true" />
         <NavigationProperty Name="teamTemplates" Type="Collection(graph.teamTemplate)" ContainsTarget="true" />
@@ -9006,6 +9009,7 @@
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="pendingAccessReviewInstances" Type="Collection(graph.accessReviewInstance)" ContainsTarget="true" />
         <NavigationProperty Name="people" Type="Collection(graph.person)" ContainsTarget="true" />
+        <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
         <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="planner" Type="graph.plannerUser" ContainsTarget="true" />
@@ -9861,6 +9865,9 @@
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
+      </Action>
+      <Action Name="undoDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deletedChat" />
       </Action>
       <Action Name="undoSoftDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chatMessage" />
@@ -10776,10 +10783,10 @@
         <EntitySet Name="settings" EntityType="microsoft.graph.directorySetting" />
         <EntitySet Name="shares" EntityType="microsoft.graph.sharedDriveItem" />
         <EntitySet Name="sites" EntityType="microsoft.graph.site">
-          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/parentTerm" Target="sites/termStore/sets/terms" />
-          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/termSet" Target="sites/termStore/sets" />
-          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/sharedColumns" Target="sites/contentTypes/columns" />
-          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/welcomePageColumns" Target="sites/contentTypes/columns" />
+          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/parentTerm" Target="sites/microsoft.graph.termStore.set/termStore/sets/terms" />
+          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/termSet" Target="sites/microsoft.graph.termStore.store/termStore/sets" />
+          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/sharedColumns" Target="sites/microsoft.graph.contentType/contentTypes/columns" />
+          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/welcomePageColumns" Target="sites/microsoft.graph.contentType/contentTypes/columns" />
         </EntitySet>
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
@@ -10837,8 +10844,8 @@
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
         <Singleton Name="reports" Type="microsoft.graph.reportRoot" />
         <Singleton Name="roleManagement" Type="microsoft.graph.roleManagement">
-          <NavigationPropertyBinding Path="directory/resourceNamespaces/resourceActions/authenticationContext" Target="identity/conditionalAccess/authenticationContextClassReferences" />
-          <NavigationPropertyBinding Path="enterpriseApps/resourceNamespaces/resourceActions/authenticationContext" Target="identity/conditionalAccess/authenticationContextClassReferences" />
+          <NavigationPropertyBinding Path="directory/resourceNamespaces/resourceActions/authenticationContext" Target="identity/microsoft.graph.conditionalAccessRoot/conditionalAccess/authenticationContextClassReferences" />
+          <NavigationPropertyBinding Path="enterpriseApps/resourceNamespaces/resourceActions/authenticationContext" Target="identity/microsoft.graph.conditionalAccessRoot/conditionalAccess/authenticationContextClassReferences" />
         </Singleton>
         <Singleton Name="Security" Type="microsoft.graph.security" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
@@ -12297,6 +12304,7 @@
               <Collection>
                 <NavigationPropertyPath>chats</NavigationPropertyPath>
                 <NavigationPropertyPath>joinedTeams</NavigationPropertyPath>
+                <NavigationPropertyPath>permissionGrants</NavigationPropertyPath>
                 <NavigationPropertyPath>teamwork</NavigationPropertyPath>
               </Collection>
             </PropertyValue>

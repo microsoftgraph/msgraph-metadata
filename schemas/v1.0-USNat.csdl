@@ -1442,6 +1442,11 @@
         <Member Name="administrator" Value="3" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="userSignInRecommendationScope">
+        <Member Name="tenant" Value="0" />
+        <Member Name="application" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="volumeType">
         <Member Name="operatingSystemVolume" Value="1" />
         <Member Name="fixedDataVolume" Value="2" />
@@ -1593,6 +1598,7 @@
         <Property Name="queryRoot" Type="Edm.String" />
         <Property Name="queryType" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="accessReviewRecommendationInsightSetting" Abstract="true" />
       <ComplexType Name="accessReviewReviewerScope">
         <Property Name="query" Type="Edm.String" />
         <Property Name="queryRoot" Type="Edm.String" />
@@ -1607,6 +1613,8 @@
         <Property Name="instanceDurationInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="justificationRequiredOnApproval" Type="Edm.Boolean" Nullable="false" />
         <Property Name="mailNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="recommendationInsightSettings" Type="Collection(graph.accessReviewRecommendationInsightSetting)" />
+        <Property Name="recommendationLookBackDuration" Type="Edm.Duration" />
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="recurrence" Type="graph.patternedRecurrence" />
         <Property Name="reminderNotificationsEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -1617,6 +1625,7 @@
         <Property Name="dependsOn" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="durationInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="fallbackReviewers" Type="Collection(graph.accessReviewReviewerScope)" />
+        <Property Name="recommendationInsightSettings" Type="Collection(graph.accessReviewRecommendationInsightSetting)" />
         <Property Name="recommendationsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="reviewers" Type="Collection(graph.accessReviewReviewerScope)" />
         <Property Name="stageId" Type="Edm.String" Nullable="false" />
@@ -2493,6 +2502,7 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="groupId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="groupPeerOutlierRecommendationInsightSettings" BaseType="graph.accessReviewRecommendationInsightSetting" />
       <ComplexType Name="hashes">
         <Property Name="crc32Hash" Type="Edm.String" />
         <Property Name="quickXorHash" Type="Edm.String" />
@@ -3724,6 +3734,10 @@
       <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="userLastSignInRecommendationInsightSetting" BaseType="graph.accessReviewRecommendationInsightSetting">
+        <Property Name="recommendationLookBackDuration" Type="Edm.Duration" />
+        <Property Name="signInScope" Type="graph.userSignInRecommendationScope" />
       </ComplexType>
       <ComplexType Name="userSecurityState">
         <Property Name="aadUserId" Type="Edm.String" />
@@ -5037,6 +5051,9 @@
         <Property Name="arity" Type="graph.scopeOperatorType" Nullable="false" />
         <Property Name="multivaluedComparisonType" Type="graph.scopeOperatorMultiValuedComparisonType" Nullable="false" />
         <Property Name="supportedAttributeTypes" Type="Collection(graph.attributeType)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="governanceInsight" BaseType="graph.entity" Abstract="true">
+        <Property Name="insightCreatedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="group" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="allowExternalSenders" Type="Edm.Boolean" />
@@ -6402,6 +6419,9 @@
       <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
         <NavigationProperty Name="chat" Type="graph.chat" />
       </EntityType>
+      <EntityType Name="userSignInInsight" BaseType="graph.governanceInsight">
+        <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
@@ -7479,10 +7499,10 @@
         </EntitySet>
         <EntitySet Name="shares" EntityType="microsoft.graph.sharedDriveItem" />
         <EntitySet Name="sites" EntityType="microsoft.graph.site">
-          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/parentTerm" Target="sites/termStore/sets/terms" />
-          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/termSet" Target="sites/termStore/sets" />
-          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/sharedColumns" Target="sites/contentTypes/columns" />
-          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/welcomePageColumns" Target="sites/contentTypes/columns" />
+          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/parentTerm" Target="sites/microsoft.graph.termStore.set/termStore/sets/terms" />
+          <NavigationPropertyBinding Path="sites/contentTypes/columns/term/termSet" Target="sites/microsoft.graph.termStore.store/termStore/sets" />
+          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/sharedColumns" Target="sites/microsoft.graph.contentType/contentTypes/columns" />
+          <NavigationPropertyBinding Path="sites/contentTypes/documentSet/welcomePageColumns" Target="sites/microsoft.graph.contentType/contentTypes/columns" />
         </EntitySet>
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
         <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
