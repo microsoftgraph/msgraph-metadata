@@ -487,6 +487,31 @@
         <xsl:attribute name="Type">Collection(graph.conditionalAccessConditions)</xsl:attribute>
     </xsl:template>
     
+    <!--Delta function for events need the start and end date parameters-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.event)']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+            <Record>
+                <PropertyValue Property="CustomQueryOptions">
+                    <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="startDateTime" />
+                            <PropertyValue Property="Description" String="The start date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                            <PropertyValue Property="Required" Bool="true" />
+                        </Record>
+                        <Record>
+                            <PropertyValue Property="Name" String="endDateTime" />
+                            <PropertyValue Property="Description" String="The end date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                            <PropertyValue Property="Required" Bool="true" />
+                        </Record>
+                    </Collection>
+                </PropertyValue>
+            </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
         <xsl:param name = "propertyPath" />
