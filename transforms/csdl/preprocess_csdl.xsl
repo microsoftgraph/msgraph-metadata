@@ -457,6 +457,26 @@
         </xsl:if>
     </xsl:template>
 
+    <!--Delta function for events need the start and end date parameters-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='getAllMessages']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+                <Record>
+                    <PropertyValue Property="CustomQueryOptions">
+                        <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="model" />
+                            <PropertyValue Property="Description" String="The payment model for the API" />
+                            <PropertyValue Property="Required" Bool="false" />
+                        </Record>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+
     <!--Remove functions that are blocking beta generation only for CSDL based generation -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls'] |
                          edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']">
