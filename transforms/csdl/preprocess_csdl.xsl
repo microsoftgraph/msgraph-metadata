@@ -362,7 +362,7 @@
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
                     <String>microsoft.graph.room</String>
-                    <String>microsoft.graph.roomlist</String>
+                    <String>microsoft.graph.roomList</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
