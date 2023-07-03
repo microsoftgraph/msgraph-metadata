@@ -501,6 +501,24 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[starts-with(@Name, 'get')][edm:ReturnType[@Type='graph.report']]/edm:ReturnType/@Type">
        <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
     </xsl:template>
+    <!-- Add custom query option to select format for report functions that start with 'get' -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[starts-with(@Name, 'get')][edm:ReturnType[@Type='graph.report']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+            <Record>
+                <PropertyValue Property="CustomQueryOptions">
+                    <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="$format" />
+                            <PropertyValue Property="Description" String="Returns the results in the specified media format." />
+                        </Record>
+                    </Collection>
+                </PropertyValue>
+            </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
 
     <!--Replace single-valued with collection-valued return types for complex type appliedConditionalAccessPolicy-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='appliedConditionalAccessPolicy']/edm:Property[@Name='conditionsNotSatisfied' or @Name='conditionsSatisfied']/@Type">
