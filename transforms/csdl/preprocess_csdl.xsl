@@ -195,7 +195,22 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='transitiveMemberOf']|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='memberOf']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.administrativeUnit</String>
+                </Collection>
+            </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='memberOf']|
@@ -206,6 +221,7 @@
                 <Collection>
                     <String>microsoft.graph.group</String>
                     <String>microsoft.graph.administrativeUnit</String>
+                    <String>microsoft.graph.directoryRole</String>
                 </Collection>
             </Annotation>
             <xsl:element name="Annotation">
