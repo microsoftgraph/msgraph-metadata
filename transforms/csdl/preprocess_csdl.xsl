@@ -83,6 +83,8 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='publishedResource']/edm:NavigationProperty[@Name='agentGroups']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='securityConfigurationTask']/edm:NavigationProperty[@Name='managedDevices']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='teamTemplate']/edm:NavigationProperty[@Name='definitions']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='virtualEventRegistration']/edm:NavigationProperty[@Name='questions']|
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='virtualEventRegistration']/edm:NavigationProperty[@Name='registrants']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows10ImportedPFXCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows10PkcsCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windows81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
@@ -90,10 +92,10 @@
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsPhone81SCEPCertificateProfile']/edm:NavigationProperty[@Name='managedDeviceCertificateStates']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsUniversalAppX']/edm:NavigationProperty[@Name='committedContainedApps']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='windowsWifiEnterpriseEAPConfiguration']/edm:NavigationProperty[@Name='rootCertificatesForServerValidation']|
-                  edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:NavigationProperty[@Name='analytics']|
                   edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='analytics']|
-                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organization']/edm:NavigationProperty[@Name='certificateBasedAuthConfiguration']
+                  edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organization']/edm:NavigationProperty[@Name='certificateBasedAuthConfiguration']|
+                  edm:Schema[@Namespace='microsoft.graph.managedTenants']/edm:EntityType[@Name='managementTemplateStepVersion']/edm:NavigationProperty[@Name='deployments']
                          ">
         <!-- Didn't add the rule for teamsAppDefinition and unifiedRoleDefinition since it doesn't
            look like we applied it, and I don't see any issues because of it.
@@ -193,7 +195,22 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='device']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='transitiveMemberOf']|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='memberOf']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='orgContact']/edm:NavigationProperty[@Name='memberOf']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.group</String>
+                    <String>microsoft.graph.administrativeUnit</String>
+                </Collection>
+            </Annotation>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='memberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='transitiveMemberOf']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='memberOf']|
@@ -204,6 +221,7 @@
                 <Collection>
                     <String>microsoft.graph.group</String>
                     <String>microsoft.graph.administrativeUnit</String>
+                    <String>microsoft.graph.directoryRole</String>
                 </Collection>
             </Annotation>
             <xsl:element name="Annotation">
@@ -360,7 +378,7 @@
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
                     <String>microsoft.graph.room</String>
-                    <String>microsoft.graph.roomlist</String>
+                    <String>microsoft.graph.roomList</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
@@ -455,6 +473,26 @@
         </xsl:if>
     </xsl:template>
 
+    <!--Delta function for events need the start and end date parameters-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='getAllMessages']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+                <Record>
+                    <PropertyValue Property="CustomQueryOptions">
+                        <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="model" />
+                            <PropertyValue Property="Description" String="The payment model for the API" />
+                            <PropertyValue Property="Required" Bool="false" />
+                        </Record>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+
     <!--Remove functions that are blocking beta generation only for CSDL based generation -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getPstnCalls'] |
                          edm:Schema[@Namespace='microsoft.graph.callRecords']/edm:Function[@Name='getDirectRoutingCalls']">
@@ -485,6 +523,31 @@
         <xsl:attribute name="Type">Collection(graph.conditionalAccessConditions)</xsl:attribute>
     </xsl:template>
     
+    <!--Delta function for events need the start and end date parameters-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.event)']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+            <Record>
+                <PropertyValue Property="CustomQueryOptions">
+                    <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="startDateTime" />
+                            <PropertyValue Property="Description" String="The start date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                            <PropertyValue Property="Required" Bool="true" />
+                        </Record>
+                        <Record>
+                            <PropertyValue Property="Name" String="endDateTime" />
+                            <PropertyValue Property="Description" String="The end date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                            <PropertyValue Property="Required" Bool="true" />
+                        </Record>
+                    </Collection>
+                </PropertyValue>
+            </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
         <xsl:param name = "propertyPath" />
@@ -818,6 +881,13 @@
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.SkipSupported</xsl:attribute>
             <xsl:attribute name="Bool"><xsl:value-of select="$skipSupported"/></xsl:attribute>
+        </xsl:element>           
+    </xsl:template>
+    <xsl:template name="TopSupportTemplate">
+        <xsl:param name="topSupported" />
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.TopSupported</xsl:attribute>
+            <xsl:attribute name="Bool"><xsl:value-of select="$topSupported"/></xsl:attribute>
         </xsl:element>           
     </xsl:template>
     <xsl:template name="ReadRestrictionsTemplate">
@@ -1243,8 +1313,7 @@
                        </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>
-            
+            </xsl:choose>            
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.drive/bundles'])">
                     <xsl:element name="Annotations">
@@ -1255,7 +1324,19 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose> 
-            
+
+            <!-- Add Insertability for the administratvieUnit/members navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.administrativeUnit/members'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.administrativeUnit/members</xsl:attribute>                       
+                       <xsl:call-template name="InsertRestrictionsTemplate">
+                           <xsl:with-param name="insertable">true</xsl:with-param>
+                       </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+
             <!-- Remove Insertability, Updatability and Deletability for applicationTemplates entity set -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/applicationTemplates'])">
@@ -1325,19 +1406,6 @@
                 </xsl:when>
             </xsl:choose>
 
-            <!-- Remove readability only for teams entity set v1.0 -->
-            <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.GraphService/teams']) and $is-version-v1='True'">
-                    <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.GraphService/teams</xsl:attribute>
-                        <xsl:call-template name="ReadRestrictionsTemplate">
-                            <xsl:with-param name="readable">false</xsl:with-param>
-                            <xsl:with-param name="readableByKey">true</xsl:with-param>
-                        </xsl:call-template>                        
-                    </xsl:element>
-                </xsl:when>
-            </xsl:choose>
-
             <!-- Add FilterRestrictions to directorySetting entity type -->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directorySetting'])">
@@ -1361,13 +1429,28 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <!-- Remove $top and $skip support for message/attachments navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.message/attachments'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.message/attachments</xsl:attribute>
+                        <xsl:call-template name="SkipSupportTemplate">
+                            <xsl:with-param name="skipSupported">false</xsl:with-param>
+                        </xsl:call-template>
+                        <xsl:call-template name="TopSupportTemplate">
+                            <xsl:with-param name="topSupported">false</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>      
         </xsl:copy>
     </xsl:template>
 
     <!-- If the parent "Annotations" tag already exists modify it -->
     <!-- Remove indexability for joinedGroups navigation property -->
-    <!-- Remove indexability for activities navigation property -->
     <!-- Remove indexability for users navigation property -->
+    <!-- Remove indexability for activities navigation property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/joinedGroups'] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice/users'] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.list/activities'] ">
@@ -1409,27 +1492,6 @@
           </xsl:call-template>
       </xsl:copy>
     </xsl:template>    
-
-    <!-- If the parent "Annotations" tag already exists modify it -->
-    <!-- Remove readability only for teams entity set for v1.0 -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/teams']">
-        <xsl:choose>
-            <xsl:when test="is-version-v1='True'">
-                 <xsl:copy>
-                    <xsl:copy-of select="@*|node()"/>
-                       <xsl:call-template name="ReadRestrictionsTemplate">
-                          <xsl:with-param name="readable">false</xsl:with-param>
-                          <xsl:with-param name="readableByKey">true</xsl:with-param>
-                       </xsl:call-template>
-                  </xsl:copy>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy>
-                    <xsl:apply-templates select="@* | node()"/>
-                </xsl:copy>            
-            </xsl:otherwise>        
-        </xsl:choose>     
-    </xsl:template>
     
     <!-- If the parent "Annotations" tag already exists, modify it -->
     <!-- Remove countability for list/items navigation property -->
@@ -1445,8 +1507,10 @@
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add Insertability for driveItem/children navigation property -->
     <!-- Add Insertability for drive/bundles navigation property -->
+    <!-- Add Insertability for administrativeUnit/members navigation property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children'] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles']">     
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles'] | 
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.administrativeUnit/members']">     
         <xsl:choose>
             <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'])">
                 <xsl:copy>
@@ -1467,8 +1531,10 @@
     <!-- If the parent "Annotation" tag already exists, modify it -->
     <!-- Update Insertability for driveItem/children navigation property -->
     <!-- Update Insertability for drive/bundles navigation property -->
+    <!-- Update Insertability for administrativeUnit/members navigation property -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.driveItem/children']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.drive/bundles']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.administrativeUnit/members']/edm:Annotation[@Term='Org.OData.Capabilities.V1.InsertRestrictions']">
         <xsl:copy>
         <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
@@ -1479,6 +1545,48 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+
+    <!-- If the parent "Annotations" tag exists, modify it -->
+    <!-- Remove $top and $skip support for message/attachments navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.message/attachments']">
+        <xsl:choose>
+            <!-- Both $top and $skip not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.SkipSupported']) and not(edm:Annotation[@Term='Org.OData.Capabilities.V1.TopSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="SkipSupportTemplate">
+                        <xsl:with-param name="skipSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                    <xsl:call-template name="TopSupportTemplate">
+                        <xsl:with-param name="topSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!-- $skip not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.SkipSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="SkipSupportTemplate">
+                        <xsl:with-param name="skipSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <!-- $top not supported -->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.TopSupported'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="TopSupportTemplate">
+                        <xsl:with-param name="topSupported">false</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:copy-of select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>           
+    </xsl:template>    
     
     <!-- Add FilterRestrictions to directorySetting entity type -->
      <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directorySetting']">

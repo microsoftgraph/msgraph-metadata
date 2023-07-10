@@ -38,6 +38,7 @@
                 </NavigationProperty>
                 <NavigationProperty Name="acceptedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true"/>
                 <NavigationProperty Name="rejectedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true"/>
+                <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
             </EntityType>
             <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
                 <Property Name="appId" Type="Edm.String"/>
@@ -51,6 +52,7 @@
                 <Property Name="mailboxSettings" Type="graph.mailboxSettings"/>
                 <NavigationProperty Name="planner" Type="graph.plannerUser" ContainsTarget="true" />
                 <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true" />
+                <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
             </EntityType>
             <EntityType Name="site" BaseType="graph.baseItem">
                 <NavigationProperty Name="analytics" Type="graph.itemAnalytics" ContainsTarget="true">
@@ -75,6 +77,9 @@
             </EntityType>
             <EntityType Name="accessPackageCatalog" BaseType="graph.entity">                
                 <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true"/>
+            </EntityType>
+            <EntityType Name="message" BaseType="graph.outlookItem" OpenType="true">                
+                <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true" />                
             </EntityType>
             <Annotations Target="microsoft.graph.user/joinedGroups">
                 <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -258,6 +263,12 @@
             <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
                 <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false" />
             </EntityType>
+            <EntityType Name="virtualEventRegistration" BaseType="graph.entity">
+                <Property Name="capacity" Type="Edm.Int32" />
+                <Property Name="registrationWebUrl" Type="Edm.String" />
+                <NavigationProperty Name="questions" Type="Collection(graph.virtualEventRegistrationQuestion)" />
+                <NavigationProperty Name="registrants" Type="Collection(graph.virtualEventRegistrant)" />
+            </EntityType>
             <ComplexType Name="certificateAuthority">
                 <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
                 <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
@@ -279,6 +290,10 @@
               <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject" />
               <EntitySet Name="places" EntityType="microsoft.graph.place" />
             </EntityContainer>
+            <Function Name="delta" IsBound="true">
+                <Parameter Name="bindingparameter" Type="Collection(graph.event)" Nullable="false" />
+                <ReturnType Type="Collection(graph.event)" Nullable="false" />
+            </Function>
             <Action Name="accept" IsBound="true">
                 <Parameter Name="bindingParameter" Type="graph.event" />
                 <Parameter Name="SendResponse" Type="Edm.Boolean" />
@@ -346,6 +361,14 @@
             <Function Name="getOffice365ActivationsUserDetail" IsBound="true" IsComposable="true">
                 <Parameter Name="bindingParameter" Type="graph.reportRoot" />
                 <ReturnType Type="graph.report" Nullable="false" />
+            </Function>
+            <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/channels/messages">
+                <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
+                <ReturnType Type="Collection(graph.chatMessage)" />
+            </Function>
+            <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
+                <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
+                <ReturnType Type="Collection(graph.chatMessage)" />
             </Function>
         </Schema>
         <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">

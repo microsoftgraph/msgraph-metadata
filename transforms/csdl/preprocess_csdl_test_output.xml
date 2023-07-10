@@ -131,6 +131,36 @@
             </Record>
           </Annotation>
         </NavigationProperty>
+        <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+            <Collection>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.administrativeUnit</String>
+            </Collection>
+          </Annotation>
+          <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+            <Record>
+              <PropertyValue Property="CustomHeaders">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="Name" String="ConsistencyLevel" />
+                    <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                    <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/graph/aad-advanced-queries" />
+                    <PropertyValue Property="Required" Bool="false" />
+                    <PropertyValue Property="ExampleValues">
+                      <Collection>
+                        <Record>
+                          <PropertyValue Property="Value" String="eventual" />
+                          <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        </Record>
+                      </Collection>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="appId" Type="Edm.String" />
@@ -229,6 +259,37 @@
             </Record>
           </Annotation>
         </NavigationProperty>
+        <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+            <Collection>
+              <String>microsoft.graph.group</String>
+              <String>microsoft.graph.administrativeUnit</String>
+              <String>microsoft.graph.directoryRole</String>
+            </Collection>
+          </Annotation>
+          <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+            <Record>
+              <PropertyValue Property="CustomHeaders">
+                <Collection>
+                  <Record>
+                    <PropertyValue Property="Name" String="ConsistencyLevel" />
+                    <PropertyValue Property="Description" String="Indicates the requested consistency level." />
+                    <PropertyValue Property="DocumentationURL" String="https://docs.microsoft.com/graph/aad-advanced-queries" />
+                    <PropertyValue Property="Required" Bool="false" />
+                    <PropertyValue Property="ExampleValues">
+                      <Collection>
+                        <Record>
+                          <PropertyValue Property="Value" String="eventual" />
+                          <PropertyValue Property="Description" String="$search and $count queries require the client to set the ConsistencyLevel HTTP header to 'eventual'." />
+                        </Record>
+                      </Collection>
+                    </PropertyValue>
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Annotation>
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="site" BaseType="graph.baseItem">
         <NavigationProperty Name="analytics" Type="graph.itemAnalytics" ContainsTarget="true">
@@ -278,6 +339,9 @@
       </EntityType>
       <EntityType Name="accessPackageCatalog" BaseType="graph.entity">
         <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" />
+      </EntityType>
+      <EntityType HasStream="true" Name="message" BaseType="graph.outlookItem" OpenType="true">
+        <NavigationProperty Name="attachments" Type="Collection(graph.attachment)" ContainsTarget="true" />
       </EntityType>
       <Annotations Target="microsoft.graph.user/joinedGroups">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -502,6 +566,12 @@
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
         <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false" />
       </EntityType>
+      <EntityType Name="virtualEventRegistration" BaseType="graph.entity">
+        <Property Name="capacity" Type="Edm.Int32" />
+        <Property Name="registrationWebUrl" Type="Edm.String" />
+        <NavigationProperty Name="questions" Type="Collection(graph.virtualEventRegistrationQuestion)" ContainsTarget="true" />
+        <NavigationProperty Name="registrants" Type="Collection(graph.virtualEventRegistrant)" ContainsTarget="true" />
+      </EntityType>
       <ComplexType Name="certificateAuthority">
         <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
         <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
@@ -702,11 +772,33 @@
           <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
             <Collection>
               <String>microsoft.graph.room</String>
-              <String>microsoft.graph.roomlist</String>
+              <String>microsoft.graph.roomList</String>
             </Collection>
           </Annotation>
         </EntitySet>
       </EntityContainer>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.event)" Nullable="false" />
+        <ReturnType Type="Collection(graph.event)" Nullable="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+          <Record>
+            <PropertyValue Property="CustomQueryOptions">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Name" String="startDateTime" />
+                  <PropertyValue Property="Description" String="The start date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                  <PropertyValue Property="Required" Bool="true" />
+                </Record>
+                <Record>
+                  <PropertyValue Property="Name" String="endDateTime" />
+                  <PropertyValue Property="Description" String="The end date and time of the time range in the function, represented in ISO 8601 format. For example, 2019-11-08T20:00:00-08:00" />
+                  <PropertyValue Property="Required" Bool="true" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Function>
       <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
@@ -763,6 +855,40 @@
       <Function Name="getOffice365ActivationsUserDetail" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="graph.reportRoot" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/channels/messages">
+        <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+        <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+          <Record>
+            <PropertyValue Property="CustomQueryOptions">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Name" String="model" />
+                  <PropertyValue Property="Description" String="The payment model for the API" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Function>
+      <Function Name="getAllMessages" IsBound="true" EntitySetPath="bindingParameter/messages">
+        <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+        <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm">
+          <Record>
+            <PropertyValue Property="CustomQueryOptions">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Name" String="model" />
+                  <PropertyValue Property="Description" String="The payment model for the API" />
+                  <PropertyValue Property="Required" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
       </Function>
       <Annotations Target="microsoft.graph.driveItem/workbook">
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
@@ -866,6 +992,13 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.administrativeUnit/members">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/applicationTemplates">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -905,18 +1038,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/teams">
-        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
-          <Record>
-            <PropertyValue Property="Readable" Bool="false" />
-            <PropertyValue Property="ReadByKeyRestrictions">
-              <Record>
-                <PropertyValue Property="Readable" Bool="true" />
-              </Record>
-            </PropertyValue>
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.directorySetting">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
@@ -930,6 +1051,10 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.message/attachments">
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.callRecords" xmlns="http://docs.oasis-open.org/odata/ns/edm">
