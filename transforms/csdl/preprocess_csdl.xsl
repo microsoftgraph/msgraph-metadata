@@ -900,12 +900,9 @@
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Readable</xsl:attribute>
-                    <xsl:attribute name="Bool">
-                        <xsl:value-of select = "$readable" />
-                    </xsl:attribute>
-                </xsl:element>
+               <xsl:call-template name="ReadableTemplate">
+                    <xsl:with-param name="readable"><xsl:value-of select="$readable" /></xsl:with-param>            
+                </xsl:call-template>
                 <xsl:choose>
                     <xsl:when test="not($readableByKey='')">
                         <xsl:call-template name="ReadByKeyRestrictionsTemplate">
@@ -928,6 +925,13 @@
                     </xsl:attribute>
                 </xsl:element>
             </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="ReadableTemplate">
+        <xsl:param name = "readable" />
+        <xsl:element name="PropertyValue">
+            <xsl:attribute name="Property">Readable</xsl:attribute>
+            <xsl:attribute name="Bool"><xsl:value-of select="$readable" /></xsl:attribute>
         </xsl:element>
     </xsl:template>
     <xsl:template name="DeleteRestrictionsTemplate">
