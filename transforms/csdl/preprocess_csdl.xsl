@@ -786,7 +786,8 @@
     </xsl:template>
 
     <!-- Add custom query options - includeHiddenFolders to mailFolders -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='mailFolders']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='mailFolders'] |
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='mailFolder']/edm:NavigationProperty[@Name='childFolders']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
             <xsl:element name="Annotation">
