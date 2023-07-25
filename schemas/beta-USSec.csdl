@@ -3012,6 +3012,12 @@
         <Property Name="keyMaterial" Type="Edm.Binary" />
         <Property Name="keyType" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="deviceLocalCredential">
+        <Property Name="accountName" Type="Edm.String" Nullable="false" />
+        <Property Name="accountSid" Type="Edm.String" Nullable="false" />
+        <Property Name="backupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="passwordBase64" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deviceRestrictionAction" BaseType="graph.dlpActionInfo">
         <Property Name="message" Type="Edm.String" />
         <Property Name="restrictionAction" Type="graph.restrictionAction" />
@@ -3500,6 +3506,9 @@
         <Property Name="contentTypesEnabled" Type="Edm.Boolean" />
         <Property Name="hidden" Type="Edm.Boolean" />
         <Property Name="template" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="localAdminPasswordSettings">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="localeInfo">
         <Property Name="displayName" Type="Edm.String" />
@@ -5956,6 +5965,11 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="publication" Type="graph.publicationFacet" />
       </EntityType>
+      <EntityType Name="baseSitePage" BaseType="graph.baseItem">
+        <Property Name="pageLayout" Type="graph.pageLayoutType" />
+        <Property Name="publishingState" Type="graph.publicationFacet" />
+        <Property Name="title" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="bitlocker" BaseType="graph.entity">
         <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true" />
       </EntityType>
@@ -6442,11 +6456,18 @@
           </Collection>
         </Annotation>
       </EntityType>
+      <EntityType Name="deviceLocalCredentialInfo" BaseType="graph.entity">
+        <Property Name="credentials" Type="Collection(graph.deviceLocalCredential)" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" Nullable="false" />
+        <Property Name="lastBackupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="refreshDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
       <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity">
         <Property Name="azureADJoin" Type="graph.azureAdJoinPolicy" />
         <Property Name="azureADRegistration" Type="graph.azureADRegistrationPolicy" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="localAdminPassword" Type="graph.localAdminPasswordSettings" />
         <Property Name="multiFactorAuthConfiguration" Type="graph.multiFactorAuthConfiguration" Nullable="false" />
         <Property Name="userDeviceQuota" Type="Edm.Int32" Nullable="false" />
       </EntityType>
@@ -8368,21 +8389,17 @@
         <NavigationProperty Name="items" Type="Collection(graph.baseItem)" ContainsTarget="true" />
         <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.richLongRunningOperation)" ContainsTarget="true" />
-        <NavigationProperty Name="pages" Type="Collection(graph.sitePage)" ContainsTarget="true" />
+        <NavigationProperty Name="pages" Type="Collection(graph.baseSitePage)" ContainsTarget="true" />
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
         <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true" />
         <NavigationProperty Name="termStore" Type="microsoft.graph.termStore.store" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="sitePage" BaseType="graph.baseItem" OpenType="true">
-        <Property Name="contentType" Type="graph.contentTypeInfo" />
-        <Property Name="pageLayout" Type="graph.pageLayoutType" />
+      <EntityType Name="sitePage" BaseType="graph.baseSitePage" OpenType="true">
         <Property Name="promotionKind" Type="graph.pagePromotionType" />
-        <Property Name="publishingState" Type="graph.publicationFacet" />
         <Property Name="reactions" Type="graph.reactionsFacet" />
         <Property Name="showComments" Type="Edm.Boolean" />
         <Property Name="showRecommendedPages" Type="Edm.Boolean" />
         <Property Name="thumbnailWebUrl" Type="Edm.String" />
-        <Property Name="title" Type="Edm.String" />
         <Property Name="titleArea" Type="graph.titleArea" />
         <NavigationProperty Name="canvasLayout" Type="graph.canvasLayout" ContainsTarget="true" />
         <NavigationProperty Name="webParts" Type="Collection(graph.webPart)" ContainsTarget="true" />
@@ -8414,6 +8431,7 @@
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="standardWebPart" BaseType="graph.webPart">
+        <Property Name="containerTextWebPartId" Type="Edm.String" />
         <Property Name="data" Type="graph.webPartData" />
         <Property Name="webPartType" Type="Edm.String" />
       </EntityType>
@@ -10761,6 +10779,7 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
+        <EntitySet Name="deviceLocalCredentials" EntityType="microsoft.graph.deviceLocalCredentialInfo" />
         <EntitySet Name="devices" EntityType="microsoft.graph.device">
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
@@ -11829,6 +11848,20 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceLocalCredentialInfo">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceRegistrationPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
