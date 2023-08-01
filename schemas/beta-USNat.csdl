@@ -2924,6 +2924,7 @@
         <Property Name="applicationMode" Type="graph.applicationMode" />
         <Property Name="id" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="customAppScopeAttributesDictionary" BaseType="graph.Dictionary" OpenType="true" />
       <ComplexType Name="customSecurityAttributeValue" OpenType="true" />
       <ComplexType Name="customTimeZone" BaseType="graph.timeZoneBase">
         <Property Name="bias" Type="Edm.Int32" />
@@ -3010,6 +3011,7 @@
         <Property Name="restrictionAction" Type="graph.restrictionAction" />
         <Property Name="triggers" Type="Collection(graph.restrictionTrigger)" />
       </ComplexType>
+      <ComplexType Name="Dictionary" OpenType="true" />
       <ComplexType Name="directorySizeQuota">
         <Property Name="total" Type="Edm.Int32" />
         <Property Name="used" Type="Edm.Int32" />
@@ -4575,6 +4577,8 @@
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="signInActivity">
+        <Property Name="lastNonInteractiveSignInDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastNonInteractiveSignInRequestId" Type="Edm.String" />
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSignInRequestId" Type="Edm.String" />
       </ComplexType>
@@ -6335,6 +6339,9 @@
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <Property Name="userSyncInbound" Type="graph.crossTenantUserSyncInbound" />
       </EntityType>
+      <EntityType Name="customAppScope" BaseType="graph.appScope">
+        <Property Name="customAttributes" Type="graph.customAppScopeAttributesDictionary" Nullable="false" />
+      </EntityType>
       <EntityType Name="customSecurityAttributeAudit" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="activityDisplayName" Type="Edm.String" Nullable="false" />
@@ -8062,6 +8069,7 @@
       <EntityType Name="roleManagement">
         <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
         <NavigationProperty Name="enterpriseApps" Type="Collection(graph.rbacApplication)" ContainsTarget="true" />
+        <NavigationProperty Name="exchange" Type="graph.unifiedRbacApplication" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
         <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true" />
@@ -8741,6 +8749,13 @@
       </EntityType>
       <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="tokenLifetimePolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="unifiedRbacApplication" BaseType="graph.entity">
+        <NavigationProperty Name="customAppScopes" Type="Collection(graph.customAppScope)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="transitiveRoleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="unifiedRbacResourceAction" BaseType="graph.entity">
         <Property Name="actionVerb" Type="Edm.String" />
         <Property Name="authenticationContextId" Type="Edm.String" />
@@ -9840,6 +9855,10 @@
       <Action Name="sendReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
       </Action>
+      <Action Name="setReaction" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chatMessage" />
+        <Parameter Name="reactionType" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="snoozeReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="NewReminderTime" Type="graph.dateTimeTimeZone" Nullable="false" />
@@ -9906,6 +9925,10 @@
       </Action>
       <Action Name="unpublish" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
+      </Action>
+      <Action Name="unsetReaction" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chatMessage" />
+        <Parameter Name="reactionType" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="unsubscribe" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
