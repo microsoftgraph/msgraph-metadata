@@ -1534,6 +1534,19 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add PUT UpdateMethod for crossTenantAccessPolicyConfigurationPartner/identitySynchronization navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.crossTenantAccessPolicyConfigurationPartner/identitySynchronization'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.crossTenantAccessPolicyConfigurationPartner/identitySynchronization</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                           <xsl:with-param name="updatable">true</xsl:with-param>
+                           <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                        </xsl:call-template>                   
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         
         </xsl:copy>
     </xsl:template>
@@ -1753,6 +1766,41 @@
         </xsl:copy>
     </xsl:template>
     
+    <!-- If only the grand-parent "Annotations" tag exists, modify it -->
+    <!-- Add UpdateRestrictions for crossTenantAccessPolicyConfigurationPartner/identitySynchronization navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.crossTenantAccessPolicyConfigurationPartner/identitySynchronization']">
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="UpdateRestrictionsTemplate">
+                        <xsl:with-param name="updatable">true</xsl:with-param>
+                        <xsl:with-param name="httpMethod">PUT</xsl:with-param>                        
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>    
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- If the parent "Annotation" tag already exists, modify it --> 
+    <!-- Update UpdateRestrictions for crossTenantAccessPolicyConfigurationPartner/identitySynchronization navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.crossTenantAccessPolicyConfigurationPartner/identitySynchronization']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="UpdateMethodTemplate">
+                    <xsl:with-param name="httpMethod">PUT</xsl:with-param>            
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+        
      <!-- If only the grand-parent "Annotations" tag exists, modify it -->
      <!-- Remove skip support for users entity set -->    
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.GraphService/users']">     
