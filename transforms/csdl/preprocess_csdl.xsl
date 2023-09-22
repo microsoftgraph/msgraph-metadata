@@ -332,7 +332,6 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
-    
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directory']/edm:NavigationProperty[@Name='deletedItems']">
         <xsl:copy>
             <xsl:copy-of select="@*[not(name()='ContainsTarget')]" />
