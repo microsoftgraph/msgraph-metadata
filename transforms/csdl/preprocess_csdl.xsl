@@ -332,9 +332,11 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='directory']/edm:NavigationProperty[@Name='deletedItems']">
         <xsl:copy>
-            <xsl:copy-of select="@* | node()" />
+            <xsl:copy-of select="@*[not(name()='ContainsTarget')]" />
+            <xsl:copy-of select="node()" />
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
                     <String>microsoft.graph.user</String>
