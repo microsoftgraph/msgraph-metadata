@@ -1986,7 +1986,8 @@
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']">
-        <xsl:element name="Annotation">
+        <xsl:element name="Annotations">
+          <xsl:attribute name="Target">microsoft.graph.directoryObject</xsl:attribute>    
           <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
             <Collection>
                 <String>microsoft.graph.getByIds</String>
