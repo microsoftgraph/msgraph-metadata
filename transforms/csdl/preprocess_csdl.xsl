@@ -346,6 +346,18 @@
                     <String>microsoft.graph.device</String>
                 </Collection>
             </Annotation>
+            <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
+                <Collection>
+                    <String>microsoft.graph.getByIds</String>
+                    <String>microsoft.graph.getAvailableExtensionProperties</String>
+                    <String>microsoft.graph.validateProperties</String>
+                    <String>microsoft.graph.restore</String>
+                    <String>microsoft.graph.getMemberObjects</String>
+                    <String>microsoft.graph.getMemberGroups</String>
+                    <String>microsoft.graph.checkMemberObjects</String>
+                    <String>microsoft.graph.checkMemberGroups</String>
+                </Collection>
+          </Annotation>
         </xsl:copy>
     </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='ownedDevices']|
@@ -426,6 +438,8 @@
     <!-- Remove ContainsTarget attribute for both Kiota-based and PowerShell-based CSDL  -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='acceptedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='externalSponsors']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='internalSponsors']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageCatalog']/edm:NavigationProperty[@Name='accessPackages']/@ContainsTarget">
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
@@ -539,6 +553,17 @@
     <!-- Replace graph.report return type with Edm.Stream return type for report functions that start with 'get' -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[starts-with(@Name, 'get')][edm:ReturnType[@Type='graph.report']]/edm:ReturnType/@Type">
        <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
+    </xsl:template>
+
+    <!-- Actions/Functions bound to  directoryObject should have the 'RequiresExplicitBinding' annotation-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']]">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
+        </xsl:copy>
     </xsl:template>
 
     <!--Replace single-valued with collection-valued return types for complex type appliedConditionalAccessPolicy-->
@@ -1958,6 +1983,25 @@
 
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
+
+    <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']">
+        <xsl:element name="Annotations">
+          <xsl:attribute name="Target">microsoft.graph.directoryObject</xsl:attribute>    
+          <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
+            <Collection>
+                <String>microsoft.graph.getByIds</String>
+                <String>microsoft.graph.delta</String>
+                <String>microsoft.graph.getAvailableExtensionProperties</String>
+                <String>microsoft.graph.validateProperties</String>
+                <String>microsoft.graph.restore</String>
+                <String>microsoft.graph.getMemberObjects</String>
+                <String>microsoft.graph.getMemberGroups</String>
+                <String>microsoft.graph.checkMemberObjects</String>
+                <String>microsoft.graph.checkMemberGroups</String>
+            </Collection>
+          </Annotation>
+        </xsl:element>
+    </xsl:template>
 
     <!-- Add Referenceable Annotations (for /$ref paths) -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectorGroup']/edm:NavigationProperty[@Name='members']|
