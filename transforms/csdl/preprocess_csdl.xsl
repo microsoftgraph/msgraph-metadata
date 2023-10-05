@@ -1314,14 +1314,11 @@
                 </xsl:when>
             </xsl:choose>
             
-            <!-- Add Insertability and remove Deletability for enternalConnection/schema navigation property-->
+            <!-- Remove Deletability for enternalConnection/schema navigation property-->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.externalConnectors.externalConnection/schema'])">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.externalConnectors.externalConnection/schema</xsl:attribute>
-                        <xsl:call-template name="InsertRestrictionsTemplate">
-                            <xsl:with-param name="insertable">true</xsl:with-param>
-                        </xsl:call-template>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>
