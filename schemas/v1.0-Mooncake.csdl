@@ -232,6 +232,14 @@
         <Member Name="optional" Value="1" />
         <Member Name="resource" Value="2" />
       </EnumType>
+      <EnumType Name="authenticationMethodFeature">
+        <Member Name="ssprRegistered" Value="0" />
+        <Member Name="ssprEnabled" Value="1" />
+        <Member Name="ssprCapable" Value="2" />
+        <Member Name="passwordlessCapable" Value="3" />
+        <Member Name="mfaCapable" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="authenticationProtocol">
         <Member Name="wsFed" Value="0" />
         <Member Name="saml" Value="1" />
@@ -818,6 +826,19 @@
         <Member Name="pending" Value="1" />
         <Member Name="complete" Value="2" />
         <Member Name="error" Value="3" />
+      </EnumType>
+      <EnumType Name="includedUserRoles">
+        <Member Name="all" Value="0" />
+        <Member Name="privilegedAdmin" Value="1" />
+        <Member Name="admin" Value="2" />
+        <Member Name="user" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="includedUserTypes">
+        <Member Name="all" Value="0" />
+        <Member Name="member" Value="1" />
+        <Member Name="guest" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="inferenceClassificationType">
         <Member Name="focused" Value="0" />
@@ -1474,6 +1495,11 @@
         <Member Name="days" Value="0" />
         <Member Name="hours" Value="1" />
       </EnumType>
+      <EnumType Name="signInUserType">
+        <Member Name="member" Value="0" />
+        <Member Name="guest" Value="1" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="siteSecurityLevel">
         <Member Name="userDefined" Value="0" />
         <Member Name="low" Value="1" />
@@ -1618,6 +1644,16 @@
         <Member Name="selfExtend" Value="8" />
         <Member Name="selfRenew" Value="9" />
         <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
+      <EnumType Name="userDefaultAuthenticationMethod">
+        <Member Name="push" Value="0" />
+        <Member Name="oath" Value="1" />
+        <Member Name="voiceMobile" Value="2" />
+        <Member Name="voiceAlternateMobile" Value="3" />
+        <Member Name="voiceOffice" Value="4" />
+        <Member Name="sms" Value="5" />
+        <Member Name="none" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
       <EnumType Name="userExperienceAnalyticsHealthState">
         <Member Name="unknown" Value="0" />
@@ -4172,6 +4208,26 @@
         <Property Name="recommendationLookBackDuration" Type="Edm.Duration" />
         <Property Name="signInScope" Type="graph.userSignInRecommendationScope" />
       </ComplexType>
+      <ComplexType Name="userRegistrationFeatureCount">
+        <Property Name="feature" Type="graph.authenticationMethodFeature" Nullable="false" />
+        <Property Name="userCount" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationFeatureSummary">
+        <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="userRegistrationFeatureCounts" Type="Collection(graph.userRegistrationFeatureCount)" Nullable="false" />
+        <Property Name="userRoles" Type="graph.includedUserRoles" />
+        <Property Name="userTypes" Type="graph.includedUserTypes" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationMethodCount">
+        <Property Name="authenticationMethod" Type="Edm.String" Nullable="false" />
+        <Property Name="userCount" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userRegistrationMethodSummary">
+        <Property Name="totalUserCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="userRegistrationMethodCounts" Type="Collection(graph.userRegistrationMethodCount)" Nullable="false" />
+        <Property Name="userRoles" Type="graph.includedUserRoles" />
+        <Property Name="userTypes" Type="graph.includedUserTypes" />
+      </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
@@ -4936,6 +4992,9 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isAvailable" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="authenticationMethodsRoot" BaseType="graph.entity">
+        <NavigationProperty Name="userRegistrationDetails" Type="Collection(graph.userRegistrationDetails)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
         <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false" />
@@ -7094,7 +7153,9 @@
         <Property Name="onboardingStatus" Type="graph.remoteAssistanceOnboardingStatus" Nullable="false" />
         <Property Name="onboardingUrl" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="reportRoot" />
+      <EntityType Name="reportRoot">
+        <NavigationProperty Name="authenticationMethods" Type="graph.authenticationMethodsRoot" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="request" BaseType="graph.entity">
         <Property Name="approvalId" Type="Edm.String" />
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
@@ -8072,6 +8133,23 @@
         <Property Name="notInstalledDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="userName" Type="Edm.String" />
         <NavigationProperty Name="deviceStates" Type="Collection(graph.deviceInstallState)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="userRegistrationDetails" BaseType="graph.entity">
+        <Property Name="isAdmin" Type="Edm.Boolean" />
+        <Property Name="isMfaCapable" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isMfaRegistered" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isPasswordlessCapable" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSsprCapable" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSsprEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSsprRegistered" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSystemPreferredAuthenticationMethodEnabled" Type="Edm.Boolean" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="methodsRegistered" Type="Collection(Edm.String)" />
+        <Property Name="systemPreferredAuthenticationMethods" Type="Collection(Edm.String)" />
+        <Property Name="userDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="userPreferredMethodForSecondaryAuthentication" Type="graph.userDefaultAuthenticationMethod" />
+        <Property Name="userPrincipalName" Type="Edm.String" Nullable="false" />
+        <Property Name="userType" Type="graph.signInUserType" />
       </EntityType>
       <EntityType Name="userScopeTeamsAppInstallation" BaseType="graph.teamsAppInstallation">
         <NavigationProperty Name="chat" Type="graph.chat" />
@@ -10049,6 +10127,26 @@
       <Function Name="userExperienceAnalyticsSummarizeWorkFromAnywhereDevices" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagement" />
         <ReturnType Type="graph.userExperienceAnalyticsWorkFromAnywhereDevicesSummary" />
+      </Function>
+      <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="includedUserTypes" Type="graph.includedUserTypes" />
+        <Parameter Name="includedUserRoles" Type="graph.includedUserRoles" />
+        <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByMethod" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <ReturnType Type="graph.userRegistrationMethodSummary" Nullable="false" />
+      </Function>
+      <Function Name="usersRegisteredByMethod" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="includedUserTypes" Type="graph.includedUserTypes" />
+        <Parameter Name="includedUserRoles" Type="graph.includedUserRoles" />
+        <ReturnType Type="graph.userRegistrationMethodSummary" Nullable="false" />
       </Function>
       <Function Name="verifyWindowsEnrollmentAutoDiscovery" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagement" />
@@ -20145,6 +20243,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.userInstallStateSummary/userName">
         <Annotation Term="Org.OData.Core.V1.Description" String="User name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userRegistrationDetails">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.visibilitySetting">
         <Annotation Term="Org.OData.Core.V1.Description" String="Generic visibility state." />
