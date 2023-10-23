@@ -2219,18 +2219,4 @@
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.organizationalBrandingProperties/bannerLogo']/edm:Annotation[@Term='Org.OData.Core.V1.AcceptableMediaTypes']">
-        <xsl:copy>
-        <xsl:copy-of select="@*"/>
-            <xsl:element name="Record" namespace="{namespace-uri()}">
-            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
-                <xsl:call-template name="ReadRestrictionsTemplate">
-                    <xsl:with-param name="readable">true</xsl:with-param>    
-                </xsl:call-template>       
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
-    
-    
-    
 </xsl:stylesheet>
