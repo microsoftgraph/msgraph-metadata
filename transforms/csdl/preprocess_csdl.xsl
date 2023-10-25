@@ -171,6 +171,30 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- Add Acceptable Media Types -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='backgroundImage']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='bannerLogo']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='customCSS']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='favicon']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='headerLogo']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='squareLogo']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='organizationalBrandingProperties']/edm:Property[@Name='squareLogoDark']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Core.V1.AcceptableMediaTypes">
+                <Collection>
+                    <String>image/bmp</String>
+                    <String>image/jpg</String>
+	                <String>image/jpeg</String>
+                    <String>image/gif</String>
+	                <String>image/vnd.microsoft.icon</String>
+                    <String>image/png</String>
+                    <String>image/tiff</String>
+                </Collection>
+            </Annotation>            
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- Add odata cast annotation -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='members']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='membersWithLicenseErrors']|
