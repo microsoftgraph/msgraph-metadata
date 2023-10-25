@@ -578,6 +578,13 @@
         <Member Name="time" Value="128" />
         <Member Name="deviceState" Value="256" />
         <Member Name="client" Value="512" />
+        <Member Name="ipAddressSeenByAzureAD" Value="1024" />
+        <Member Name="ipAddressSeenByResourceProvider" Value="2048" />
+        <Member Name="unknownFutureValue" Value="4096" />
+        <Member Name="servicePrincipals" Value="8192" />
+        <Member Name="servicePrincipalRisk" Value="16384" />
+        <Member Name="authenticationFlows" Value="32768" />
+        <Member Name="insiderRisk" Value="65536" />
       </EnumType>
       <EnumType Name="conditionalAccessDevicePlatform">
         <Member Name="android" Value="0" />
@@ -654,6 +661,9 @@
         <Member Name="otherExternalUser" Value="31" />
         <Member Name="serviceProvider" Value="32" />
         <Member Name="microsoftAdminPortals" Value="33" />
+        <Member Name="deviceCodeFlow" Value="34" />
+        <Member Name="authenticationTransfer" Value="35" />
+        <Member Name="insiderRisk" Value="36" />
       </EnumType>
       <EnumType Name="conditionalAccessStatus">
         <Member Name="success" Value="0" />
@@ -1190,6 +1200,12 @@
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
         <Member Name="timeout" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="originalTransferMethods">
+        <Member Name="none" Value="0" />
+        <Member Name="deviceCodeFlow" Value="1" />
+        <Member Name="authenticationTransfer" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="outlierContainerType">
@@ -1735,6 +1751,15 @@
         <Member Name="blockList" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="signInAccessType" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="b2bCollaboration" Value="1" />
+        <Member Name="b2bDirectConnect" Value="2" />
+        <Member Name="microsoftSupport" Value="4" />
+        <Member Name="serviceProvider" Value="8" />
+        <Member Name="unknownFutureValue" Value="16" />
+        <Member Name="passthrough" Value="32" />
+      </EnumType>
       <EnumType Name="signInFrequencyAuthenticationType">
         <Member Name="primaryAndSecondaryAuthentication" Value="0" />
         <Member Name="secondaryAuthentication" Value="1" />
@@ -2088,6 +2113,12 @@
         <Member Name="AzureAD" Value="0" />
         <Member Name="ADFederationServices" Value="1" />
         <Member Name="UnknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="tokenProtectionStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="bound" Value="1" />
+        <Member Name="unbound" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="translationBehavior">
         <Member Name="Ask" Value="0" />
@@ -6722,6 +6753,7 @@
         <NavigationProperty Name="attributeSets" Type="Collection(graph.attributeSet)" ContainsTarget="true" />
         <NavigationProperty Name="customSecurityAttributeDefinitions" Type="Collection(graph.customSecurityAttributeDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+        <NavigationProperty Name="deviceLocalCredentials" Type="Collection(graph.deviceLocalCredentialInfo)" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
       </EntityType>
@@ -8710,6 +8742,7 @@
         <Property Name="appDisplayName" Type="Edm.String" />
         <Property Name="appId" Type="Edm.String" />
         <Property Name="appliedConditionalAccessPolicies" Type="Collection(graph.appliedConditionalAccessPolicy)" />
+        <Property Name="appTokenProtectionStatus" Type="graph.tokenProtectionStatus" />
         <Property Name="authenticationAppDeviceDetails" Type="graph.authenticationAppDeviceDetails" />
         <Property Name="authenticationAppPolicyEvaluationDetails" Type="Collection(graph.authenticationAppPolicyDetails)" />
         <Property Name="authenticationDetails" Type="Collection(graph.authenticationDetail)" />
@@ -8721,6 +8754,7 @@
         <Property Name="conditionalAccessStatus" Type="graph.conditionalAccessStatus" />
         <Property Name="correlationId" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="crossTenantAccessType" Type="graph.signInAccessType" />
         <Property Name="deviceDetail" Type="graph.deviceDetail" />
         <Property Name="flaggedForReview" Type="Edm.Boolean" />
         <Property Name="homeTenantId" Type="Edm.String" />
@@ -8732,6 +8766,7 @@
         <Property Name="mfaDetail" Type="graph.mfaDetail" />
         <Property Name="networkLocationDetails" Type="Collection(graph.networkLocationDetail)" />
         <Property Name="originalRequestId" Type="Edm.String" />
+        <Property Name="originalTransferMethod" Type="graph.originalTransferMethods" />
         <Property Name="processingTimeInMilliseconds" Type="Edm.Int32" />
         <Property Name="resourceDisplayName" Type="Edm.String" />
         <Property Name="resourceId" Type="Edm.String" />
@@ -8747,6 +8782,7 @@
         <Property Name="signInEventTypes" Type="Collection(Edm.String)" />
         <Property Name="signInIdentifier" Type="Edm.String" />
         <Property Name="signInIdentifierType" Type="graph.signInIdentifierType" />
+        <Property Name="signInTokenProtectionStatus" Type="graph.tokenProtectionStatus" />
         <Property Name="status" Type="graph.signInStatus" />
         <Property Name="tokenIssuerName" Type="Edm.String" />
         <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
@@ -12367,20 +12403,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
-      <Annotations Target="microsoft.graph.deviceLocalCredentialInfo">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-      </Annotations>
       <Annotations Target="microsoft.graph.deviceRegistrationPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -12419,6 +12441,19 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/deviceLocalCredentials">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.directory/featureRolloutPolicies">
         <Annotation Term="Org.OData.Core.V1.Revisions">
@@ -12780,6 +12815,19 @@
             </PropertyValue>
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/deviceLocalCredentials">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/devices">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
