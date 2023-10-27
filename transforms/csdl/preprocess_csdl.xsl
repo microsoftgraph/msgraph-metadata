@@ -345,6 +345,16 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='onAuthenticationMethodLoadStartExternalUsersSelfServiceSignUp']/edm:NavigationProperty[@Name='identityProviders']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                <xsl:with-param name="referenceable">true</xsl:with-param>
+            </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+    
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='createdObjects']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='createdObjects']">
         <xsl:copy>
@@ -448,6 +458,36 @@
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
                 <Collection>
                     <String>microsoft.graph.ediscovery.caseExportOperation</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='identityContainer']/edm:NavigationProperty[@Name='authenticationEventsFlows']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.externalUsersSelfServiceSignUpEventsFlow</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='externalUsersSelfServiceSignUpEventsFlow']/edm:Property[@Name='onAttributeCollection']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.onAttributeCollectionExternalUsersSelfServiceSignUp</String>
+                </Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='externalUsersSelfServiceSignUpEventsFlow']/edm:Property[@Name='onAuthenticationMethodLoadStart']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+                    <String>microsoft.graph.onAuthenticationMethodLoadStartExternalUsersSelfServiceSignUp</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
@@ -1639,6 +1679,30 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection</xsl:attribute>
+                        <xsl:call-template name="ReadRestrictionsTemplate">
+                            <xsl:with-param name="readable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+
+            <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart</xsl:attribute>
+                        <xsl:call-template name="ReadRestrictionsTemplate">
+                            <xsl:with-param name="readable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         
         </xsl:copy>
     </xsl:template>
@@ -2005,6 +2069,76 @@
         </xsl:choose>
     </xsl:template>
 
+    <!-- If the parent "Annotation" tag already exists, modify it -->
+    
+    <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions']">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="ReadableTemplate">
+                    <xsl:with-param name="readable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions']">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="ReadableTemplate">
+                    <xsl:with-param name="readable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- If the grand-parent "Annotations" tag already exists, modify it -->
+    
+    <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAttributeCollection']">
+        <xsl:choose>
+            <!--ReadRestrictions not present-->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="ReadableTemplate">
+                        <xsl:with-param name="readable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- Add readability for complex property externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.externalUsersSelfServiceSignUpEventsFlow/onAuthenticationMethodLoadStart']">
+        <xsl:choose>
+            <!--ReadRestrictions not present-->
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.ReadRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="ReadableTemplate">
+                        <xsl:with-param name="readable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
