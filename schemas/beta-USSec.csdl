@@ -3155,7 +3155,7 @@
       </ComplexType>
       <ComplexType Name="customAppScopeAttributesDictionary" BaseType="graph.Dictionary" OpenType="true" />
       <ComplexType Name="customExtensionAuthenticationConfiguration" Abstract="true" />
-      <ComplexType Name="customExtensionCallbackConfiguration">
+      <ComplexType Name="customExtensionCallbackConfiguration" Abstract="true">
         <Property Name="timeoutDuration" Type="Edm.Duration" />
       </ComplexType>
       <ComplexType Name="customExtensionCalloutInstance">
@@ -3164,6 +3164,16 @@
         <Property Name="externalCorrelationId" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
         <Property Name="status" Type="graph.customExtensionCalloutInstanceStatus" />
+      </ComplexType>
+      <ComplexType Name="customExtensionCalloutRequest">
+        <Property Name="data" Type="graph.customExtensionData" />
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="customExtensionCalloutResponse">
+        <Property Name="data" Type="graph.customExtensionData" />
+        <Property Name="source" Type="Edm.String" />
+        <Property Name="type" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="customExtensionClientConfiguration">
         <Property Name="maximumRetries" Type="Edm.Int32" />
@@ -3363,6 +3373,10 @@
       <ComplexType Name="emailAddress">
         <Property Name="address" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="emailSettings">
+        <Property Name="senderDomain" Type="Edm.String" Nullable="false" />
+        <Property Name="useCompanyBranding" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="encryptContent" BaseType="graph.labelActionBase" Abstract="true">
         <Property Name="encryptWith" Type="graph.encryptWith" />
@@ -4963,6 +4977,7 @@
         <Property Name="key" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="subjectSet" Abstract="true" />
       <ComplexType Name="supportedClaimConfiguration">
         <Property Name="nameIdPolicyFormat" Type="Edm.String" />
       </ComplexType>
@@ -6785,6 +6800,9 @@
         <Property Name="permissionName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="deletedChat" BaseType="graph.entity" />
+      <EntityType Name="deletedItemContainer" BaseType="graph.entity">
+        <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="deletedTeam" BaseType="graph.entity">
         <NavigationProperty Name="channels" Type="Collection(graph.channel)" ContainsTarget="true" />
       </EntityType>
@@ -6811,6 +6829,7 @@
         <Property Name="operatingSystemVersion" Type="Edm.String" />
         <Property Name="physicalIds" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="profileType" Type="Edm.String" />
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="systemLabels" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="trustType" Type="Edm.String" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
@@ -7226,7 +7245,6 @@
         <Property Name="isAttestationEnforced" Type="Edm.Boolean" />
         <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
         <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
-        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fido2CombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
         <Property Name="allowedAAGUIDs" Type="Collection(Edm.String)" Nullable="false" />
@@ -7430,6 +7448,7 @@
         <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
+        <NavigationProperty Name="lifecycleWorkflows" Type="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer" ContainsTarget="true" />
         <NavigationProperty Name="privilegedAccess" Type="graph.privilegedAccessRoot" ContainsTarget="true" />
         <NavigationProperty Name="roleManagementAlerts" Type="graph.roleManagementAlert" ContainsTarget="true" />
         <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
@@ -11557,6 +11576,278 @@
         <Singleton Name="tenantRelationships" Type="microsoft.graph.tenantRelationship" />
         <Singleton Name="termStore" Type="microsoft.graph.termStore.store" />
       </EntityContainer>
+    </Schema>
+    <Schema Namespace="microsoft.graph.identityGovernance" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="customTaskExtensionOperationStatus">
+        <Member Name="completed" Value="0" />
+        <Member Name="failed" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="lifecycleTaskCategory" IsFlags="true">
+        <Member Name="joiner" Value="1" />
+        <Member Name="leaver" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="mover" Value="8" />
+      </EnumType>
+      <EnumType Name="lifecycleWorkflowCategory">
+        <Member Name="joiner" Value="0" />
+        <Member Name="leaver" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="mover" Value="3" />
+      </EnumType>
+      <EnumType Name="lifecycleWorkflowProcessingStatus">
+        <Member Name="queued" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="completedWithErrors" Value="3" />
+        <Member Name="canceled" Value="4" />
+        <Member Name="failed" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="valueType">
+        <Member Name="enum" Value="0" />
+        <Member Name="string" Value="1" />
+        <Member Name="int" Value="2" />
+        <Member Name="bool" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="workflowExecutionType">
+        <Member Name="scheduled" Value="0" />
+        <Member Name="onDemand" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="workflowTriggerTimeBasedAttribute">
+        <Member Name="employeeHireDate" Value="0" />
+        <Member Name="employeeLeaveDateTime" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="createdDateTime" Value="3" />
+      </EnumType>
+      <ComplexType Name="customTaskExtensionCallbackConfiguration" BaseType="graph.customExtensionCallbackConfiguration">
+        <NavigationProperty Name="authorizedApps" Type="Collection(graph.application)" />
+      </ComplexType>
+      <ComplexType Name="customTaskExtensionCallbackData" BaseType="graph.customExtensionData">
+        <Property Name="operationStatus" Type="microsoft.graph.identityGovernance.customTaskExtensionOperationStatus" />
+      </ComplexType>
+      <ComplexType Name="customTaskExtensionCalloutData" BaseType="graph.customExtensionData">
+        <NavigationProperty Name="subject" Type="graph.user" />
+        <NavigationProperty Name="task" Type="microsoft.graph.identityGovernance.task" />
+        <NavigationProperty Name="taskProcessingresult" Type="microsoft.graph.identityGovernance.taskProcessingResult" />
+        <NavigationProperty Name="workflow" Type="microsoft.graph.identityGovernance.workflow" />
+      </ComplexType>
+      <ComplexType Name="onDemandExecutionOnly" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+      <ComplexType Name="parameter">
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="values" Type="Collection(Edm.String)" />
+        <Property Name="valueType" Type="microsoft.graph.identityGovernance.valueType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="ruleBasedSubjectSet" BaseType="graph.subjectSet">
+        <Property Name="rule" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="runSummary">
+        <Property Name="failedRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="taskReportSummary">
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="unprocessedTasks" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="timeBasedAttributeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="triggerAndScopeBasedConditions" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions">
+        <Property Name="scope" Type="graph.subjectSet" />
+        <Property Name="trigger" Type="microsoft.graph.identityGovernance.workflowExecutionTrigger" />
+      </ComplexType>
+      <ComplexType Name="usersProcessingSummary">
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userSummary">
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workflowExecutionConditions" Abstract="true" />
+      <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
+        <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="createdBy" Type="graph.user" />
+        <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
+      </EntityType>
+      <EntityType Name="lifecycleManagementSettings" BaseType="graph.entity">
+        <Property Name="emailSettings" Type="graph.emailSettings" Nullable="false" />
+        <Property Name="workflowScheduleIntervalInHours" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="lifecycleWorkflowsContainer" BaseType="graph.entity">
+        <NavigationProperty Name="customTaskExtensions" Type="Collection(microsoft.graph.identityGovernance.customTaskExtension)" ContainsTarget="true" />
+        <NavigationProperty Name="deletedItems" Type="graph.deletedItemContainer" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="microsoft.graph.identityGovernance.lifecycleManagementSettings" ContainsTarget="true" Nullable="false" />
+        <NavigationProperty Name="taskDefinitions" Type="Collection(microsoft.graph.identityGovernance.taskDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
+        <NavigationProperty Name="workflowTemplates" Type="Collection(microsoft.graph.identityGovernance.workflowTemplate)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="run" BaseType="graph.entity">
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="failedTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="processingStatus" Type="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus" Nullable="false" />
+        <Property Name="scheduledDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="successfulUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
+        <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
+        <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="task" BaseType="graph.entity">
+        <Property Name="arguments" Type="Collection(graph.keyValuePair)" Nullable="false" />
+        <Property Name="category" Type="microsoft.graph.identityGovernance.lifecycleTaskCategory" Nullable="false" />
+        <Property Name="continueOnError" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="executionSequence" Type="Edm.Int32" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="taskDefinitionId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="taskDefinition" BaseType="graph.entity">
+        <Property Name="category" Type="microsoft.graph.identityGovernance.lifecycleTaskCategory" Nullable="false" />
+        <Property Name="continueOnError" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="parameters" Type="Collection(microsoft.graph.identityGovernance.parameter)" Nullable="false" />
+        <Property Name="version" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="taskProcessingResult" BaseType="graph.entity">
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="failureReason" Type="Edm.String" />
+        <Property Name="processingStatus" Type="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus" Nullable="false" />
+        <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="subject" Type="graph.user" Nullable="false" />
+        <NavigationProperty Name="task" Type="microsoft.graph.identityGovernance.task" Nullable="false" />
+      </EntityType>
+      <EntityType Name="taskReport" BaseType="graph.entity">
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="failedUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="processingStatus" Type="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus" Nullable="false" />
+        <Property Name="runId" Type="Edm.String" />
+        <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="successfulUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsersCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="unprocessedUsersCount" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="task" Type="microsoft.graph.identityGovernance.task" Nullable="false" />
+        <NavigationProperty Name="taskDefinition" Type="microsoft.graph.identityGovernance.taskDefinition" Nullable="false" />
+        <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="userProcessingResult" BaseType="graph.entity">
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="failedTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="processingStatus" Type="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus" Nullable="false" />
+        <Property Name="scheduledDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="totalTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
+        <Property Name="workflowVersion" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="subject" Type="graph.user" Nullable="false" />
+        <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workflow" BaseType="microsoft.graph.identityGovernance.workflowBase">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="nextScheduleRunDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="version" Type="Edm.Int32" />
+        <NavigationProperty Name="executionScope" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
+        <NavigationProperty Name="runs" Type="Collection(microsoft.graph.identityGovernance.run)" ContainsTarget="true" />
+        <NavigationProperty Name="taskReports" Type="Collection(microsoft.graph.identityGovernance.taskReport)" ContainsTarget="true" />
+        <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
+        <NavigationProperty Name="versions" Type="Collection(microsoft.graph.identityGovernance.workflowVersion)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workflowBase" Abstract="true">
+        <Property Name="category" Type="microsoft.graph.identityGovernance.lifecycleWorkflowCategory" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="executionConditions" Type="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isSchedulingEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="createdBy" Type="graph.user" />
+        <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
+        <NavigationProperty Name="tasks" Type="Collection(microsoft.graph.identityGovernance.task)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workflowTemplate" BaseType="graph.entity">
+        <Property Name="category" Type="microsoft.graph.identityGovernance.lifecycleWorkflowCategory" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="executionConditions" Type="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+        <NavigationProperty Name="tasks" Type="Collection(microsoft.graph.identityGovernance.task)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workflowVersion" BaseType="microsoft.graph.identityGovernance.workflowBase">
+        <Key>
+          <PropertyRef Name="versionNumber" />
+        </Key>
+        <Property Name="versionNumber" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <Action Name="activate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="subjects" Type="Collection(graph.user)" />
+      </Action>
+      <Action Name="createNewVersion" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="workflow" Type="microsoft.graph.identityGovernance.workflow" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflow" />
+      </Action>
+      <Action Name="restore" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflow" />
+      </Action>
+      <Action Name="resume" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.taskProcessingResult" />
+        <Parameter Name="source" Type="Edm.String" Unicode="false" />
+        <Parameter Name="type" Type="Edm.String" Unicode="false" />
+        <Parameter Name="data" Type="microsoft.graph.identityGovernance.customTaskExtensionCallbackData" Nullable="false" />
+      </Action>
+      <Function Name="summary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.identityGovernance.run)" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.runSummary" />
+      </Function>
+      <Function Name="summary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.identityGovernance.taskReport)" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.taskReportSummary" />
+      </Function>
+      <Function Name="summary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.userSummary" />
+      </Function>
       <Annotations Target="microsoft.graph.accessPackageAssignmentPolicy">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -12608,6 +12899,18 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deletedItemContainer/workflows">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceRegistrationPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -13401,6 +13704,549 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.customTaskExtension">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/deletedItems">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/settings">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/taskDefinitions">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/workflowTemplates">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.run">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.run/taskProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.run/userProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.task">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.task/taskProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.taskDefinition">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.taskProcessingResult">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.taskReport">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.taskReport/taskDefinition">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.taskReport/taskProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.userProcessingResult">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.userProcessingResult/taskProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow/runs">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow/taskReports">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow/userProcessingResults">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow/versions">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowBase">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowTemplate/tasks">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
