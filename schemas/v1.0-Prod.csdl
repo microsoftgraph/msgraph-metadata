@@ -1777,6 +1777,11 @@
         <Member Name="inactive" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="meetingAudience">
+        <Member Name="everyone" Value="0" />
+        <Member Name="organization" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="meetingChatHistoryDefaultMode">
         <Member Name="none" Value="0" />
         <Member Name="all" Value="1" />
@@ -4338,6 +4343,20 @@
         <Member Name="tenant" Value="0" />
         <Member Name="application" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="virtualEventAttendeeRegistrationStatus">
+        <Member Name="registered" Value="0" />
+        <Member Name="canceled" Value="1" />
+        <Member Name="waitlisted" Value="2" />
+        <Member Name="pendingApproval" Value="3" />
+        <Member Name="rejectedByOrganizer" Value="4" />
+        <Member Name="unknownFutureValue" Value="11" />
+      </EnumType>
+      <EnumType Name="virtualEventStatus">
+        <Member Name="draft" Value="0" />
+        <Member Name="published" Value="1" />
+        <Member Name="canceled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="visibilitySetting">
         <Member Name="notConfigured" Value="0" />
@@ -8843,6 +8862,13 @@
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="virtualEventRegistrationQuestionAnswer">
+        <Property Name="booleanValue" Type="Edm.Boolean" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="multiChoiceValues" Type="Collection(Edm.String)" />
+        <Property Name="questionId" Type="Edm.String" />
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="visualInfo">
         <Property Name="attribution" Type="graph.imageInfo" />
         <Property Name="backgroundColor" Type="Edm.String" />
@@ -12859,36 +12885,38 @@
         <NavigationProperty Name="parentNotebook" Type="graph.notebook" ContainsTarget="true" />
         <NavigationProperty Name="parentSectionGroup" Type="graph.sectionGroup" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="onlineMeeting" BaseType="graph.entity" OpenType="true">
+      <EntityType Name="onlineMeeting" BaseType="graph.onlineMeetingBase" OpenType="true">
+        <Property Name="attendeeReport" Type="Edm.Stream" />
+        <Property Name="broadcastSettings" Type="graph.broadcastMeetingSettings" />
+        <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="isBroadcast" Type="Edm.Boolean" />
+        <Property Name="participants" Type="graph.meetingParticipants" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="recordings" Type="Collection(graph.callRecording)" ContainsTarget="true" />
+        <NavigationProperty Name="transcripts" Type="Collection(graph.callTranscript)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="onlineMeetingBase" BaseType="graph.entity" Abstract="true" OpenType="true">
         <Property Name="allowAttendeeToEnableCamera" Type="Edm.Boolean" />
         <Property Name="allowAttendeeToEnableMic" Type="Edm.Boolean" />
         <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
         <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
         <Property Name="allowParticipantsToChangeName" Type="Edm.Boolean" />
         <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
-        <Property Name="attendeeReport" Type="Edm.Stream" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
-        <Property Name="broadcastSettings" Type="graph.broadcastMeetingSettings" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
-        <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="externalId" Type="Edm.String" />
-        <Property Name="isBroadcast" Type="Edm.Boolean" />
         <Property Name="isEntryExitAnnounced" Type="Edm.Boolean" />
         <Property Name="joinInformation" Type="graph.itemBody" />
         <Property Name="joinMeetingIdSettings" Type="graph.joinMeetingIdSettings" />
         <Property Name="joinWebUrl" Type="Edm.String" />
         <Property Name="lobbyBypassSettings" Type="graph.lobbyBypassSettings" />
-        <Property Name="participants" Type="graph.meetingParticipants" />
         <Property Name="recordAutomatically" Type="Edm.Boolean" />
         <Property Name="shareMeetingChatHistoryDefault" Type="graph.meetingChatHistoryDefaultMode" />
-        <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="subject" Type="Edm.String" />
         <Property Name="videoTeleconferenceId" Type="Edm.String" />
         <Property Name="watermarkProtection" Type="graph.watermarkProtectionValues" />
         <NavigationProperty Name="attendanceReports" Type="Collection(graph.meetingAttendanceReport)" ContainsTarget="true" />
-        <NavigationProperty Name="recordings" Type="Collection(graph.callRecording)" ContainsTarget="true" />
-        <NavigationProperty Name="transcripts" Type="Collection(graph.callTranscript)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="onPremisesConditionalAccessSettings" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" Nullable="false" />
@@ -14105,6 +14133,7 @@
       <EntityType Name="solutionsRoot">
         <NavigationProperty Name="bookingBusinesses" Type="Collection(graph.bookingBusiness)" ContainsTarget="true" />
         <NavigationProperty Name="bookingCurrencies" Type="Collection(graph.bookingCurrency)" ContainsTarget="true" />
+        <NavigationProperty Name="virtualEvents" Type="graph.virtualEventsRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="startHoldMusicOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="stopHoldMusicOperation" BaseType="graph.commsOperation" OpenType="true" />
@@ -15098,6 +15127,38 @@
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="virtualEvent" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.communicationsIdentitySet" />
+        <Property Name="description" Type="graph.itemBody" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="endDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="status" Type="graph.virtualEventStatus" />
+        <NavigationProperty Name="sessions" Type="Collection(graph.virtualEventSession)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="virtualEventRegistration" BaseType="graph.entity">
+        <Property Name="cancelationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="email" Type="Edm.String" />
+        <Property Name="firstName" Type="Edm.String" />
+        <Property Name="lastName" Type="Edm.String" />
+        <Property Name="registrationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="registrationQuestionAnswers" Type="Collection(graph.virtualEventRegistrationQuestionAnswer)" />
+        <Property Name="status" Type="graph.virtualEventAttendeeRegistrationStatus" />
+        <Property Name="userId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="virtualEventSession" BaseType="graph.onlineMeetingBase">
+        <Property Name="endDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
+      </EntityType>
+      <EntityType Name="virtualEventsRoot" BaseType="graph.entity">
+        <NavigationProperty Name="events" Type="Collection(graph.virtualEvent)" ContainsTarget="true" />
+        <NavigationProperty Name="webinars" Type="Collection(graph.virtualEventWebinar)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="virtualEventWebinar" BaseType="graph.virtualEvent">
+        <Property Name="audience" Type="graph.meetingAudience" />
+        <Property Name="coOrganizers" Type="Collection(graph.communicationsUserIdentity)" />
+        <NavigationProperty Name="registrations" Type="Collection(graph.virtualEventRegistration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="voiceAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="isOfficePhoneAllowed" Type="Edm.Boolean" />
@@ -20478,6 +20539,17 @@
         <Parameter Name="bindingParameter" Type="graph.site" />
         <Parameter Name="path" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.site" />
+      </Function>
+      <Function Name="getByUserIdAndRole" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventWebinar)" />
+        <Parameter Name="userId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="role" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.virtualEventWebinar)" />
+      </Function>
+      <Function Name="getByUserRole" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventWebinar)" />
+        <Parameter Name="role" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.virtualEventWebinar)" />
       </Function>
       <Function Name="getCompatibleHubContentTypes" EntitySetPath="bindingParameter" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
