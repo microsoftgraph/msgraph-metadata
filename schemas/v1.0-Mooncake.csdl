@@ -185,6 +185,18 @@
         <Member Name="atLeastAlphanumeric" Value="6" />
         <Member Name="alphanumericWithSymbols" Value="7" />
       </EnumType>
+      <EnumType Name="appCredentialRestrictionType">
+        <Member Name="passwordAddition" Value="0" />
+        <Member Name="passwordLifetime" Value="1" />
+        <Member Name="symmetricKeyAddition" Value="2" />
+        <Member Name="symmetricKeyLifetime" Value="3" />
+        <Member Name="customPasswordAddition" Value="4" />
+        <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
+      <EnumType Name="appKeyCredentialRestrictionType">
+        <Member Name="asymmetricKeyLifetime" Value="0" />
+        <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
       <EnumType Name="applicationGuardBlockClipboardSharingType">
         <Member Name="notConfigured" Value="0" />
         <Member Name="blockBoth" Value="1" />
@@ -2311,6 +2323,10 @@
         <Property Name="decryptionKey" Type="Edm.String" />
         <Property Name="downloadUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="appManagementConfiguration">
+        <Property Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" />
+        <Property Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" />
+      </ComplexType>
       <ComplexType Name="appRole">
         <Property Name="allowedMemberTypes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -3255,6 +3271,11 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="usage" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="keyCredentialConfiguration">
+        <Property Name="maxLifetime" Type="Edm.Duration" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
+      </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
@@ -3559,6 +3580,11 @@
         <Property Name="keyId" Type="Edm.Guid" />
         <Property Name="secretText" Type="Edm.String" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="passwordCredentialConfiguration">
+        <Property Name="maxLifetime" Type="Edm.Duration" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" />
       </ComplexType>
       <ComplexType Name="passwordProfile">
         <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean" />
@@ -4994,6 +5020,7 @@
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
         <Property Name="web" Type="graph.webApplication" />
+        <NavigationProperty Name="appManagementPolicies" Type="Collection(graph.appManagementPolicy)" />
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="extensionProperties" Type="Collection(graph.extensionProperty)" ContainsTarget="true" />
         <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
@@ -5021,6 +5048,11 @@
         <Property Name="customLogFolders" Type="Collection(Edm.String)" />
         <Property Name="errorMessage" Type="Edm.String" />
         <Property Name="status" Type="graph.appLogUploadState" Nullable="false" />
+      </EntityType>
+      <EntityType Name="appManagementPolicy" BaseType="graph.policyBase">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="restrictions" Type="graph.appManagementConfiguration" />
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="appRoleAssignment" BaseType="graph.directoryObject">
         <Property Name="appRoleId" Type="Edm.Guid" Nullable="false" />
@@ -7221,10 +7253,12 @@
       <EntityType Name="policyRoot">
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="appManagementPolicies" Type="Collection(graph.appManagementPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="defaultAppManagementPolicy" Type="graph.tenantAppManagementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
@@ -7408,6 +7442,7 @@
         <Property Name="signInAudience" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
+        <NavigationProperty Name="appManagementPolicies" Type="Collection(graph.appManagementPolicy)" />
         <NavigationProperty Name="appRoleAssignedTo" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="appRoleAssignments" Type="Collection(graph.appRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" />
@@ -7688,6 +7723,11 @@
         <Property Name="enabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastConnectionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="url" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="tenantAppManagementPolicy" BaseType="graph.policyBase">
+        <Property Name="applicationRestrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="servicePrincipalRestrictions" Type="graph.appManagementConfiguration" />
       </EntityType>
       <EntityType Name="termsAndConditions" BaseType="graph.entity">
         <Property Name="acceptanceStatement" Type="Edm.String" />
@@ -10288,6 +10328,7 @@
         <EntitySet Name="agreementAcceptances" EntityType="microsoft.graph.agreementAcceptance" />
         <EntitySet Name="agreements" EntityType="microsoft.graph.agreement" />
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
+          <NavigationPropertyBinding Path="appManagementPolicies" Target="policies/appManagementPolicies" />
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
         </EntitySet>
@@ -10336,6 +10377,7 @@
         <EntitySet Name="permissionGrants" EntityType="microsoft.graph.resourceSpecificPermissionGrant" />
         <EntitySet Name="schemaExtensions" EntityType="microsoft.graph.schemaExtension" />
         <EntitySet Name="servicePrincipals" EntityType="microsoft.graph.servicePrincipal">
+          <NavigationPropertyBinding Path="appManagementPolicies" Target="policies/appManagementPolicies" />
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="oauth2PermissionGrants" Target="oauth2PermissionGrants" />
