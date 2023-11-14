@@ -354,6 +354,15 @@
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='onAttributeCollectionExternalUsersSelfServiceSignUp']/edm:NavigationProperty[@Name='attributes']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                <xsl:with-param name="referenceable">true</xsl:with-param>
+            </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
     
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='createdObjects']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='createdObjects']">
