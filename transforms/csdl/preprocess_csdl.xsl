@@ -669,7 +669,7 @@
         </xsl:copy>
     </xsl:template>
     
-    <!--Delta function for messages need the changeType parameter-->
+    <!--Delta function for messages needs the changeType parameter-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.message)']]">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
