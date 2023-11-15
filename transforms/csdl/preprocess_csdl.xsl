@@ -668,6 +668,26 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    
+    <!--Delta function for messages needs the changeType parameter-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.message)']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <Annotation Term="Org.OData.Capabilities.V1.OperationRestrictions">
+            <Record>
+                <PropertyValue Property="CustomQueryOptions">
+                    <Collection>
+                        <Record>
+                            <PropertyValue Property="Name" String="changeType" />
+                            <PropertyValue Property="Description" String="A custom query option to filter the delta response based on the type of change. Supported values are created, updated or deleted." />
+                            <PropertyValue Property="Required" Bool="true" />
+                        </Record>                        
+                    </Collection>
+                </PropertyValue>
+            </Record>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
 
     <!-- Add custom query options to calendarView navigation property -->
     <xsl:template name="CalendarViewRestrictedPopertyTemplate">
