@@ -1434,7 +1434,7 @@
 
             <!-- Add UpdateRestrictions for accessReviews/definitions navigation property -->
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.identityGovernance/accessReviews/definitions'])">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.accessReviewSet/definitions'])">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.identityGovernance/accessReviews/definitions</xsl:attribute>
                         <xsl:call-template name="UpdateRestrictionsTemplate">
