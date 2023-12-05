@@ -1431,6 +1431,19 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <!-- Add UpdateRestrictions for accessReviews/definitions navigation property -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.identityGovernance/accessReviews/definitions'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.identityGovernance/accessReviews/definitions</xsl:attribute>
+                        <xsl:call-template name="UpdateRestrictionsTemplate">
+                            <xsl:with-param name="httpMethod">PUT</xsl:with-param>
+                            <xsl:with-param name="updatable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
             
             <!-- Remove Deletability for enternalConnection/schema navigation property-->
             <xsl:choose>
