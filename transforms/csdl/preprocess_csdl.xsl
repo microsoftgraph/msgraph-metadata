@@ -1436,7 +1436,7 @@
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.accessReviewSet/definitions'])">
                     <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.identityGovernance/accessReviews/definitions</xsl:attribute>
+                        <xsl:attribute name="Target">microsoft.graph.accessReviewSet/definitions</xsl:attribute>
                         <xsl:call-template name="UpdateRestrictionsTemplate">
                             <xsl:with-param name="httpMethod">PUT</xsl:with-param>
                             <xsl:with-param name="updatable">true</xsl:with-param>
