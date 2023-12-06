@@ -1678,6 +1678,15 @@
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="rootDomains">
+        <Member Name="none" Value="0" />
+        <Member Name="all" Value="1" />
+        <Member Name="allFederated" Value="2" />
+        <Member Name="allManaged" Value="3" />
+        <Member Name="enumerated" Value="4" />
+        <Member Name="allManagedAndEnumeratedFederated" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="ruleMode">
         <Member Name="audit" Value="1" />
         <Member Name="auditAndNotify" Value="2" />
@@ -2413,6 +2422,7 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="allDomains" BaseType="graph.validatingDomains" />
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
@@ -2707,7 +2717,7 @@
         <Property Name="averageScore" Type="Edm.Double" />
         <Property Name="basis" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="azureAdJoinPolicy" OpenType="true">
+      <ComplexType Name="azureADJoinPolicy" OpenType="true">
         <Property Name="allowedGroups" Type="Collection(Edm.String)" />
         <Property Name="allowedUsers" Type="Collection(Edm.String)" />
         <Property Name="appliesTo" Type="graph.policyScope" />
@@ -2840,6 +2850,12 @@
       <ComplexType Name="channelSetAsFavoriteByDefaultEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="channelId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
+      </ComplexType>
+      <ComplexType Name="channelSharingUpdatedEventMessageDetail" BaseType="graph.eventMessageDetail">
+        <Property Name="initiator" Type="graph.identitySet" />
+        <Property Name="ownerTeamId" Type="Edm.String" />
+        <Property Name="ownerTenantId" Type="Edm.String" />
+        <Property Name="sharedChannelId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="channelSummary">
         <Property Name="guestsCount" Type="Edm.Int32" />
@@ -3389,6 +3405,9 @@
         <Property Name="allowAdHocPermissions" Type="Edm.Boolean" />
         <Property Name="allowMailForwarding" Type="Edm.Boolean" />
         <Property Name="decryptionRightsManagementTemplateId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="enumeratedDomains" BaseType="graph.validatingDomains">
+        <Property Name="domainNames" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="evaluateDynamicMembershipResult">
         <Property Name="membershipRule" Type="Edm.String" />
@@ -4903,6 +4922,8 @@
         <Property Name="lastNonInteractiveSignInRequestId" Type="Edm.String" />
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSignInRequestId" Type="Edm.String" />
+        <Property Name="lastSuccessfulSignInDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastSuccessfulSignInRequestId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="signInFrequencySessionControl" BaseType="graph.conditionalAccessSessionControl">
         <Property Name="authenticationType" Type="graph.signInFrequencyAuthenticationType" />
@@ -5525,6 +5546,9 @@
       </ComplexType>
       <ComplexType Name="userSet" Abstract="true">
         <Property Name="isBackup" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="validatingDomains" Abstract="true">
+        <Property Name="rootDomains" Type="graph.rootDomains" Nullable="false" />
       </ComplexType>
       <ComplexType Name="verifiableCredentialRequired" BaseType="graph.verifiableCredentialRequirementStatus">
         <Property Name="expiryDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -6860,7 +6884,7 @@
         <Property Name="refreshDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </EntityType>
       <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity">
-        <Property Name="azureADJoin" Type="graph.azureAdJoinPolicy" />
+        <Property Name="azureADJoin" Type="graph.azureADJoinPolicy" />
         <Property Name="azureADRegistration" Type="graph.azureADRegistrationPolicy" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -7233,6 +7257,9 @@
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="subject" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="federatedTokenValidationPolicy" BaseType="graph.directoryObject">
+        <Property Name="validatingDomains" Type="graph.validatingDomains" Nullable="false" />
       </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
@@ -8001,6 +8028,7 @@
       </EntityType>
       <EntityType Name="peopleAdminSettings" BaseType="graph.entity">
         <NavigationProperty Name="profileCardProperties" Type="Collection(graph.profileCardProperty)" ContainsTarget="true" />
+        <NavigationProperty Name="pronouns" Type="graph.pronounsSettings" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="permission" BaseType="graph.entity">
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
@@ -8232,7 +8260,7 @@
         <Property Name="description" Type="Edm.String" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
       </EntityType>
-      <EntityType Name="policyRoot">
+      <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="accessReviewPolicy" Type="graph.accessReviewPolicy" ContainsTarget="true" />
         <NavigationProperty Name="activityBasedTimeoutPolicies" Type="Collection(graph.activityBasedTimeoutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
@@ -8246,6 +8274,7 @@
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="directoryRoleAccessReviewPolicy" Type="graph.directoryRoleAccessReviewPolicy" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedTokenValidationPolicy" Type="graph.federatedTokenValidationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
@@ -8423,6 +8452,9 @@
         <Property Name="detail" Type="graph.positionDetail" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="sponsors" Type="Collection(graph.relatedPerson)" />
+      </EntityType>
+      <EntityType Name="pronounsSettings" BaseType="graph.entity">
+        <Property Name="isEnabledInOrganization" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="provisioningObjectSummary" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -9780,6 +9812,10 @@
         <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="x509CertificateCombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
+        <Property Name="allowedIssuerSkis" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="allowedPolicyOIDs" Type="Collection(Edm.String)" Nullable="false" />
+      </EntityType>
       <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
         <ReturnType Type="graph.calendar" Nullable="false" />
@@ -10987,6 +11023,14 @@
       </Function>
       <Function Name="getAllMessages" EntitySetPath="bindingParameter/channels/messages" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.team)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
+      <Function Name="getAllRetainedMessages" EntitySetPath="bindingParameter/messages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.channel)" />
+        <ReturnType Type="Collection(graph.chatMessage)" />
+      </Function>
+      <Function Name="getAllRetainedMessages" EntitySetPath="bindingParameter/messages" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.chat)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
       <Function Name="getAllSites" IsBound="true">
@@ -12926,45 +12970,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.deviceRegistrationPolicy">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.directory/deviceLocalCredentials">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
@@ -14781,6 +14786,50 @@
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.policyRoot/deviceRegistrationPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
