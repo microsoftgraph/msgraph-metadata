@@ -638,11 +638,6 @@
             <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
         </xsl:copy>
     </xsl:template>
-
-    <!--Replace single-valued with collection-valued return types for complex type appliedConditionalAccessPolicy-->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='appliedConditionalAccessPolicy']/edm:Property[@Name='conditionsNotSatisfied' or @Name='conditionsSatisfied']/@Type">
-        <xsl:attribute name="Type">Collection(graph.conditionalAccessConditions)</xsl:attribute>
-    </xsl:template>
     
     <!--Delta function for events need the start and end date parameters-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.event)']]">
