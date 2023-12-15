@@ -1368,12 +1368,7 @@
         <Member Name="none" Value="0" />
         <Member Name="checklistCompletion" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
-      </EnumType>
-      <EnumType Name="policyScope">
-        <Member Name="none" Value="0" />
-        <Member Name="all" Value="1" />
-        <Member Name="selected" Value="2" />
-        <Member Name="unknownFutureValue" Value="3" />
+        <Member Name="formCompletion" Value="4" />
       </EnumType>
       <EnumType Name="privateNetworkDestinationType">
         <Member Name="ipAddress" Value="0" />
@@ -1987,6 +1982,8 @@
         <Member Name="teamifyGroup" Value="6" />
         <Member Name="createChannel" Value="7" />
         <Member Name="createChat" Value="8" />
+        <Member Name="archiveChannel" Value="9" />
+        <Member Name="unarchiveChannel" Value="10" />
       </EnumType>
       <EnumType Name="teamSpecialization">
         <Member Name="none" Value="0" />
@@ -2410,6 +2407,7 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="allDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
       <ComplexType Name="allDomains" BaseType="graph.validatingDomains" />
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
       <ComplexType Name="alternativeSecurityId">
@@ -2704,17 +2702,13 @@
         <Property Name="averageScore" Type="Edm.Double" />
         <Property Name="basis" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="azureADJoinPolicy" OpenType="true">
-        <Property Name="allowedGroups" Type="Collection(Edm.String)" />
-        <Property Name="allowedUsers" Type="Collection(Edm.String)" />
-        <Property Name="appliesTo" Type="graph.policyScope" />
+      <ComplexType Name="azureADJoinPolicy">
+        <Property Name="allowedToJoin" Type="graph.deviceRegistrationMembership" />
         <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="azureAdPopTokenAuthentication" BaseType="graph.customExtensionAuthenticationConfiguration" />
-      <ComplexType Name="azureADRegistrationPolicy" OpenType="true">
-        <Property Name="allowedGroups" Type="Collection(Edm.String)" />
-        <Property Name="allowedUsers" Type="Collection(Edm.String)" />
-        <Property Name="appliesTo" Type="graph.policyScope" />
+      <ComplexType Name="azureADRegistrationPolicy">
+        <Property Name="allowedToRegister" Type="graph.deviceRegistrationMembership" />
         <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="azureAdTokenAuthentication" BaseType="graph.customExtensionAuthenticationConfiguration">
@@ -3275,6 +3269,7 @@
         <Property Name="backupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="passwordBase64" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="deviceRegistrationMembership" />
       <ComplexType Name="deviceRestrictionAction" BaseType="graph.dlpActionInfo">
         <Property Name="message" Type="Edm.String" />
         <Property Name="restrictionAction" Type="graph.restrictionAction" />
@@ -3392,6 +3387,10 @@
         <Property Name="allowAdHocPermissions" Type="Edm.Boolean" />
         <Property Name="allowMailForwarding" Type="Edm.Boolean" />
         <Property Name="decryptionRightsManagementTemplateId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="enumeratedDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership">
+        <Property Name="groups" Type="Collection(Edm.String)" />
+        <Property Name="users" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="enumeratedDomains" BaseType="graph.validatingDomains">
         <Property Name="domainNames" Type="Collection(Edm.String)" Nullable="false" />
@@ -4046,6 +4045,7 @@
         <Property Name="networkNames" Type="Collection(Edm.String)" />
         <Property Name="networkType" Type="graph.networkType" />
       </ComplexType>
+      <ComplexType Name="noDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
       <ComplexType Name="notifyUserAction" BaseType="graph.dlpActionInfo">
         <Property Name="actionLastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="emailText" Type="Edm.String" />
@@ -4310,6 +4310,11 @@
         <Property Name="street" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerAppliedCategories" OpenType="true" />
+      <ComplexType Name="plannerArchivalInfo">
+        <Property Name="justification" Type="Edm.String" />
+        <Property Name="statusChangedBy" Type="graph.identitySet" />
+        <Property Name="statusChangedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
       <ComplexType Name="plannerAssignment">
         <Property Name="assignedBy" Type="graph.identitySet" />
         <Property Name="assignedDateTime" Type="Edm.DateTimeOffset" />
@@ -4389,6 +4394,15 @@
         <Property Name="planTitle" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="plannerFavoritePlanReferenceCollection" OpenType="true" />
+      <ComplexType Name="plannerFormReference">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="formResponse" Type="Edm.String" />
+        <Property Name="formWebUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="plannerFormsDictionary" BaseType="graph.Dictionary" OpenType="true" />
+      <ComplexType Name="plannerFormsRequirement">
+        <Property Name="requiredForms" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="plannerOrderHintsByAssignee" OpenType="true" />
       <ComplexType Name="plannerPlanContainer">
         <Property Name="containerId" Type="Edm.String" />
@@ -4428,6 +4442,7 @@
       </ComplexType>
       <ComplexType Name="plannerTaskCompletionRequirementDetails">
         <Property Name="checklistRequirement" Type="graph.plannerChecklistRequirement" />
+        <Property Name="formsRequirement" Type="graph.plannerFormsRequirement" />
       </ComplexType>
       <ComplexType Name="plannerTaskCreation">
         <Property Name="creationSourceKind" Type="graph.plannerCreationSourceKind" />
@@ -5170,6 +5185,9 @@
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="teamsAppDisplayName" Type="Edm.String" />
         <Property Name="teamsAppId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="teamsLicensingDetails">
+        <Property Name="hasTeamsLicense" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="teamsTabConfiguration" OpenType="true">
         <Property Name="contentUrl" Type="Edm.String" />
@@ -6411,6 +6429,7 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="email" Type="Edm.String" />
+        <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isFavoriteByDefault" Type="Edm.Boolean" />
         <Property Name="membershipType" Type="graph.channelMembershipType" />
         <Property Name="moderationSettings" Type="graph.channelModerationSettings" />
@@ -7923,6 +7942,7 @@
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveReports" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="outlookCategory" BaseType="graph.entity">
         <Property Name="color" Type="graph.categoryColor" />
@@ -8131,7 +8151,9 @@
         <Property Name="unassignedOrderHint" Type="Edm.String" />
       </EntityType>
       <EntityType Name="plannerBucket" BaseType="graph.plannerDelta">
+        <Property Name="archivalInfo" Type="graph.plannerArchivalInfo" />
         <Property Name="creationSource" Type="graph.plannerBucketCreation" />
+        <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="orderHint" Type="Edm.String" />
         <Property Name="planId" Type="Edm.String" />
@@ -8145,11 +8167,13 @@
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" />
       </EntityType>
       <EntityType Name="plannerPlan" BaseType="graph.plannerDelta">
+        <Property Name="archivalInfo" Type="graph.plannerArchivalInfo" />
         <Property Name="container" Type="graph.plannerPlanContainer" />
         <Property Name="contexts" Type="graph.plannerPlanContextCollection" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="creationSource" Type="graph.plannerPlanCreation" />
+        <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="owner" Type="Edm.String" />
         <Property Name="sharedWithContainers" Type="Collection(graph.plannerSharedWithContainer)" />
         <Property Name="title" Type="Edm.String" Nullable="false" />
@@ -8177,6 +8201,7 @@
       <EntityType Name="plannerTask" BaseType="graph.plannerDelta">
         <Property Name="activeChecklistItemCount" Type="Edm.Int32" />
         <Property Name="appliedCategories" Type="graph.plannerAppliedCategories" />
+        <Property Name="archivalInfo" Type="graph.plannerArchivalInfo" />
         <Property Name="assigneePriority" Type="Edm.String" />
         <Property Name="assignments" Type="graph.plannerAssignments" />
         <Property Name="bucketId" Type="Edm.String" />
@@ -8189,6 +8214,9 @@
         <Property Name="creationSource" Type="graph.plannerTaskCreation" />
         <Property Name="dueDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="hasDescription" Type="Edm.Boolean" />
+        <Property Name="isArchived" Type="Edm.Boolean" />
+        <Property Name="isOnMyDay" Type="Edm.Boolean" />
+        <Property Name="isOnMyDayLastModifiedDate" Type="Edm.Date" />
         <Property Name="orderHint" Type="Edm.String" />
         <Property Name="percentComplete" Type="Edm.Int32" />
         <Property Name="planId" Type="Edm.String" />
@@ -8208,6 +8236,7 @@
         <Property Name="checklist" Type="graph.plannerChecklistItems" />
         <Property Name="completionRequirements" Type="graph.plannerTaskCompletionRequirementDetails" />
         <Property Name="description" Type="Edm.String" />
+        <Property Name="forms" Type="graph.plannerFormsDictionary" />
         <Property Name="notes" Type="graph.itemBody" />
         <Property Name="previewType" Type="graph.plannerPreviewType" />
         <Property Name="references" Type="graph.plannerExternalReferences" />
@@ -8513,6 +8542,10 @@
         <Property Name="totalSignInCount" Type="Edm.Int64" Nullable="false" />
         <Property Name="uniqueUserCount" Type="Edm.Int64" Nullable="false" />
       </EntityType>
+      <EntityType Name="remoteDesktopSecurityConfiguration" BaseType="graph.entity">
+        <Property Name="isRemoteDesktopProtocolEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="targetDeviceGroups" Type="Collection(graph.targetDeviceGroup)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="reportRoot">
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
         <NavigationProperty Name="authenticationMethods" Type="graph.authenticationMethodsRoot" ContainsTarget="true" />
@@ -8774,6 +8807,7 @@
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="remoteDesktopSecurityConfiguration" Type="graph.remoteDesktopSecurityConfiguration" ContainsTarget="true" />
         <NavigationProperty Name="synchronization" Type="graph.synchronization" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" />
         <NavigationProperty Name="tokenLifetimePolicies" Type="Collection(graph.tokenLifetimePolicy)" />
@@ -9057,6 +9091,9 @@
         <Property Name="metadata" Type="Collection(graph.synchronizationMetadataEntry)" />
         <NavigationProperty Name="schema" Type="graph.synchronizationSchema" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="targetDeviceGroup" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="taskFileAttachment" BaseType="graph.attachmentBase">
         <Property Name="contentBytes" Type="Edm.Binary" Nullable="false" />
       </EntityType>
@@ -9172,6 +9209,8 @@
         <NavigationProperty Name="teamDefinition" Type="graph.team" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamwork" BaseType="graph.entity">
+        <Property Name="isTeamsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="region" Type="Edm.String" />
         <NavigationProperty Name="deletedChats" Type="Collection(graph.deletedChat)" ContainsTarget="true" />
         <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
         <NavigationProperty Name="devices" Type="Collection(graph.teamworkDevice)" ContainsTarget="true" />
@@ -9687,6 +9726,7 @@
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
         <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="transitiveReports" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="userAccountInformation" BaseType="graph.itemFacet">
         <Property Name="ageGroup" Type="Edm.String" Nullable="false" />
@@ -9742,6 +9782,8 @@
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <Property Name="locale" Type="Edm.String" />
+        <Property Name="region" Type="Edm.String" />
         <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
       </EntityType>
@@ -9858,6 +9900,14 @@
       </Action>
       <Action Name="applyDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="archive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+        <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" />
+      </Action>
+      <Action Name="archive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.plannerPlan" />
+        <Parameter Name="justification" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
@@ -10019,12 +10069,27 @@
       </Action>
       <Action Name="createLink" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
-        <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="type" Type="Edm.String" Unicode="false" />
         <Parameter Name="scope" Type="Edm.String" Unicode="false" />
         <Parameter Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <Parameter Name="message" Type="Edm.String" Unicode="false" />
         <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" />
+        <Parameter Name="retainInheritedPermissions" Type="Edm.Boolean" />
+        <Parameter Name="sendNotification" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="graph.permission" />
+      </Action>
+      <Action Name="createLink" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.listItem" />
+        <Parameter Name="type" Type="Edm.String" Unicode="false" />
+        <Parameter Name="scope" Type="Edm.String" Unicode="false" />
+        <Parameter Name="expirationDateTime" Type="Edm.DateTimeOffset" />
+        <Parameter Name="password" Type="Edm.String" Unicode="false" />
+        <Parameter Name="message" Type="Edm.String" Unicode="false" />
+        <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" />
+        <Parameter Name="retainInheritedPermissions" Type="Edm.Boolean" />
         <Parameter Name="sendNotification" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
@@ -10575,6 +10640,13 @@
         <Parameter Name="TargetIdType" Type="graph.exchangeIdFormat" Nullable="false" />
         <Parameter Name="SourceIdType" Type="graph.exchangeIdFormat" Nullable="false" />
         <ReturnType Type="Collection(graph.convertIdResult)" Nullable="false" />
+      </Action>
+      <Action Name="unarchive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.channel" />
+      </Action>
+      <Action Name="unarchive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.plannerPlan" />
+        <Parameter Name="justification" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
@@ -11230,6 +11302,10 @@
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
       </Function>
+      <Function Name="getTeamsLicensingDetails" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.licenseDetails)" />
+        <ReturnType Type="graph.teamsLicensingDetails" />
+      </Function>
       <Function Name="getTeamsTeamActivityCounts" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -11466,6 +11542,7 @@
           <NavigationPropertyBinding Path="manager" Target="directoryObjects" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveReports" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
         <EntitySet Name="deviceLocalCredentials" EntityType="microsoft.graph.deviceLocalCredentialInfo" />
@@ -11556,6 +11633,7 @@
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveReports" Target="directoryObjects" />
         </EntitySet>
         <Singleton Name="admin" Type="microsoft.graph.admin" />
         <Singleton Name="appCatalogs" Type="microsoft.graph.appCatalogs" />
@@ -11582,6 +11660,7 @@
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="transitiveReports" Target="directoryObjects" />
         </Singleton>
         <Singleton Name="planner" Type="microsoft.graph.planner">
           <NavigationPropertyBinding Path="buckets/tasks" Target="planner/tasks" />
