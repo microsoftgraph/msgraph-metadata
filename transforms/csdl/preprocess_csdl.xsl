@@ -1276,7 +1276,7 @@
                             </xsl:element>
                         </xsl:element>
                         <xsl:element name="Property">
-                            <xsl:attribute name="Name">Date</xsl:attribute>
+                            <xsl:attribute name="Name">date</xsl:attribute>
                             <xsl:attribute name="Type">Edm.DateTimeOffset</xsl:attribute>
                             <xsl:element name="Annotation">
                                 <xsl:attribute name="Term">Org.OData.Core.V1.Description</xsl:attribute>
