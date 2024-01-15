@@ -883,6 +883,11 @@
                                 <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
                                 <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
                             </xsl:call-template>
+                            <xsl:call-template name="CalendarViewRestrictedPopertyTemplate">
+                                <xsl:with-param name="propertyPath">calendarGroups/calendars/calendarView</xsl:with-param>
+                                <xsl:with-param name="startDateTimeName">startDateTime</xsl:with-param>
+                                <xsl:with-param name="endDateTimeName">endDateTime</xsl:with-param>
+                            </xsl:call-template>
                         </xsl:element>
                     </xsl:element>
                 </xsl:element>
