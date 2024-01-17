@@ -1937,6 +1937,7 @@
 
     <!-- Add ExpandRestrictions to events,mailfolders and messages entity type -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.group/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/events']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.user/mailFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
                         edm:Schema[@Namespace='microsoft.graph.identityGovernance']/edm:Annotations[@Target='microsoft.graph.user/mailFolders']/edm:Annotation[@Term='Org.OData.Capabilities.V1.ExpandRestrictions']|
