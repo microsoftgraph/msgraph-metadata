@@ -31,13 +31,21 @@ $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
 $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
 $conversionSettingsDirectory = Join-Path $repoDirectory "conversion-settings"
 
-$snapshot = Join-Path $repoDirectory "$($version)_metadata.xml"
+$snapshot = Join-Path $repoDirectory "schemas" "annotated-$($version)-Prod.csdl"
 
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 
-Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
-& $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false -csdlVersion $version
+try {
+    Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
+    & $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false -csdlVersion $version
 
-Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
-& dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
-& hidi transform --cs $transformed -o "$transformed.yaml" --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
+    Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
+    & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
+    $yamlFilePath = "$transformed.yaml"
+    & hidi transform --cs $transformed -o $yamlFilePath --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
+
+} catch {
+    Remove-Item $yamlFilePath -Force -ErrorAction SilentlyContinue -Verbose
+    Remove-Item $transformed -Force -ErrorAction SilentlyContinue -Verbose
+    throw
+}
