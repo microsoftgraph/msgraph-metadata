@@ -984,6 +984,27 @@
         </xsl:copy>
     </xsl:template>
 
+    <!-- Add custom query options - $format to driveItem/content -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='driveItem']/edm:Property[@Name='content']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:element name="Record" namespace="{namespace-uri()}">
+                    <PropertyValue Property="CustomQueryOptions">
+                      <Collection>
+                        <Record>
+                          <PropertyValue Property="Name" String="$format" />
+                          <PropertyValue Property="Description" String="Format of the content" />
+                          <PropertyValue Property="Required" Bool="false" />
+                        </Record>
+                      </Collection>
+                    </PropertyValue>
+                </xsl:element>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
     <!-- Add custom query options - includeHiddenMessages to messages -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='messages']">
         <xsl:copy>
