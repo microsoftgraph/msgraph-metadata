@@ -4026,6 +4026,17 @@
         <Property Name="languageCode" Type="Edm.String" Nullable="false" />
         <Property Name="text" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="accessPackageResourceAttribute">
+        <Property Name="destination" Type="graph.accessPackageResourceAttributeDestination" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="source" Type="graph.accessPackageResourceAttributeSource" />
+      </ComplexType>
+      <ComplexType Name="accessPackageResourceAttributeDestination" Abstract="true" />
+      <ComplexType Name="accessPackageResourceAttributeQuestion" BaseType="graph.accessPackageResourceAttributeSource">
+        <NavigationProperty Name="question" Type="graph.accessPackageQuestion" />
+      </ComplexType>
+      <ComplexType Name="accessPackageResourceAttributeSource" Abstract="true" />
+      <ComplexType Name="accessPackageUserDirectoryAttributeStore" BaseType="graph.accessPackageResourceAttributeDestination" />
       <ComplexType Name="accessReviewApplyAction" Abstract="true" />
       <ComplexType Name="accessReviewHistoryScheduleSettings">
         <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
@@ -7538,6 +7549,7 @@
         <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" />
         <NavigationProperty Name="incompatibleAccessPackages" Type="Collection(graph.accessPackage)" />
         <NavigationProperty Name="incompatibleGroups" Type="Collection(graph.group)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceRoleScopes" Type="Collection(graph.accessPackageResourceRoleScope)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageAssignment" BaseType="graph.entity">
         <Property Name="customExtensionCalloutInstances" Type="Collection(graph.customExtensionCalloutInstance)" />
@@ -7603,6 +7615,9 @@
         <Property Name="state" Type="graph.accessPackageCatalogState" />
         <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true" />
         <NavigationProperty Name="customWorkflowExtensions" Type="Collection(graph.customCalloutExtension)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceRoles" Type="Collection(graph.accessPackageResourceRole)" />
+        <NavigationProperty Name="resources" Type="Collection(graph.accessPackageResource)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceScopes" Type="Collection(graph.accessPackageResourceScope)" />
       </EntityType>
       <EntityType Name="accessPackageMultipleChoiceQuestion" BaseType="graph.accessPackageQuestion">
         <Property Name="choices" Type="Collection(graph.accessPackageAnswerChoice)" />
@@ -7614,6 +7629,55 @@
         <Property Name="localizations" Type="Collection(graph.accessPackageLocalizedText)" />
         <Property Name="sequence" Type="Edm.Int32" />
         <Property Name="text" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="accessPackageResource" BaseType="graph.entity">
+        <Property Name="attributes" Type="Collection(graph.accessPackageResourceAttribute)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="originId" Type="Edm.String" />
+        <Property Name="originSystem" Type="Edm.String" />
+        <NavigationProperty Name="environment" Type="graph.accessPackageResourceEnvironment" />
+        <NavigationProperty Name="roles" Type="Collection(graph.accessPackageResourceRole)" ContainsTarget="true" />
+        <NavigationProperty Name="scopes" Type="Collection(graph.accessPackageResourceScope)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessPackageResourceEnvironment" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isDefaultEnvironment" Type="Edm.Boolean" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="originId" Type="Edm.String" />
+        <Property Name="originSystem" Type="Edm.String" />
+        <NavigationProperty Name="resources" Type="Collection(graph.accessPackageResource)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessPackageResourceRequest" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="requestType" Type="graph.accessPackageRequestType" />
+        <Property Name="state" Type="graph.accessPackageRequestState" />
+        <NavigationProperty Name="catalog" Type="graph.accessPackageCatalog" ContainsTarget="true" />
+        <NavigationProperty Name="resource" Type="graph.accessPackageResource" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessPackageResourceRole" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="originId" Type="Edm.String" />
+        <Property Name="originSystem" Type="Edm.String" />
+        <NavigationProperty Name="resource" Type="graph.accessPackageResource" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessPackageResourceRoleScope" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="role" Type="graph.accessPackageResourceRole" ContainsTarget="true" />
+        <NavigationProperty Name="scope" Type="graph.accessPackageResourceScope" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="accessPackageResourceScope" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isRootScope" Type="Edm.Boolean" />
+        <Property Name="originId" Type="Edm.String" />
+        <Property Name="originSystem" Type="Edm.String" />
+        <NavigationProperty Name="resource" Type="graph.accessPackageResource" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageSubject" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -9313,6 +9377,10 @@
         <NavigationProperty Name="assignments" Type="Collection(graph.accessPackageAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="catalogs" Type="Collection(graph.accessPackageCatalog)" ContainsTarget="true" />
         <NavigationProperty Name="connectedOrganizations" Type="Collection(graph.connectedOrganization)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceEnvironments" Type="Collection(graph.accessPackageResourceEnvironment)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceRequests" Type="Collection(graph.accessPackageResourceRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceRoleScopes" Type="Collection(graph.accessPackageResourceRoleScope)" ContainsTarget="true" />
+        <NavigationProperty Name="resources" Type="Collection(graph.accessPackageResource)" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="graph.entitlementManagementSettings" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="entitlementManagementSettings" BaseType="graph.entity">
