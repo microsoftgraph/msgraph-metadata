@@ -1137,11 +1137,21 @@
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.DeleteRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Deletable</xsl:attribute>
-                    <xsl:attribute name="Bool"><xsl:value-of select = "$deletable" /></xsl:attribute>
-                </xsl:element>
+                <xsl:call-template name="DeletableTemplate">
+                    <xsl:with-param name="deletable">
+                        <xsl:value-of select="$deletable" />
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="DeletableTemplate">
+        <xsl:param name = "deletable" />
+        <xsl:element name="PropertyValue">
+            <xsl:attribute name="Property">Deletable</xsl:attribute>
+            <xsl:attribute name="Bool">
+                <xsl:value-of select="$deletable" />
+            </xsl:attribute>
         </xsl:element>
     </xsl:template>
     <xsl:template name="InsertRestrictionsTemplate">
@@ -1840,13 +1850,13 @@
             <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
                 <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
-                <xsl:call-template name="DeleteRestrictionsTemplate">
+                <xsl:call-template name="DeletableTemplate">
                     <xsl:with-param name="deletable">true</xsl:with-param>
                 </xsl:call-template>
             </xsl:element>
         </xsl:copy>
     </xsl:template>
-
+    
     <!-- If the parent "Annotations" tag already exists modify it -->
     <!-- Remove indexability for joinedGroups navigation property -->
     <!-- Remove indexability for users navigation property -->
