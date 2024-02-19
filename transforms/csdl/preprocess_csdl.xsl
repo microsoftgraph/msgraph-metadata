@@ -1137,11 +1137,21 @@
         <xsl:element name="Annotation">
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.DeleteRestrictions</xsl:attribute>
             <xsl:element name="Record" namespace="{namespace-uri()}">
-                <xsl:element name="PropertyValue">
-                    <xsl:attribute name="Property">Deletable</xsl:attribute>
-                    <xsl:attribute name="Bool"><xsl:value-of select = "$deletable" /></xsl:attribute>
-                </xsl:element>
+                <xsl:call-template name="DeletableTemplate">
+                    <xsl:with-param name="deletable">
+                        <xsl:value-of select="$deletable" />
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:element>
+        </xsl:element>
+    </xsl:template>
+    <xsl:template name="DeletableTemplate">
+        <xsl:param name = "deletable" />
+        <xsl:element name="PropertyValue">
+            <xsl:attribute name="Property">Deletable</xsl:attribute>
+            <xsl:attribute name="Bool">
+                <xsl:value-of select="$deletable" />
+            </xsl:attribute>
         </xsl:element>
     </xsl:template>
     <xsl:template name="InsertRestrictionsTemplate">
@@ -1806,10 +1816,56 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+            
+            <!-- Add deletability for directory/deletedItems -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.directory/deletedItems'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.directory/deletedItems</xsl:attribute>
+                        <xsl:call-template name="DeleteRestrictionsTemplate">
+                            <xsl:with-param name="deletable">true</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         
         </xsl:copy>
     </xsl:template>
 
+    <!-- If the grand-parent "Annotations" tag already exists modify it -->
+    <!-- Add deletability for directory/deletedItems -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directory/deletedItems'] ">
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.DeleteRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="DeleteRestrictionsTemplate">
+                        <xsl:with-param name="deletable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>        
+    </xsl:template>
+
+    <!-- If the parent "Annotation" tag already exists, modify it -->
+    <!-- Add deletability for directory/deletedItems -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directory/deletedItems']/edm:Annotation[@Term='Org.OData.Capabilities.V1.DeleteRestrictions']">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="DeletableTemplate">
+                    <xsl:with-param name="deletable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- If the parent "Annotations" tag already exists modify it -->
     <!-- Remove indexability for joinedGroups navigation property -->
     <!-- Remove indexability for users navigation property -->
