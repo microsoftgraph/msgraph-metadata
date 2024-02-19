@@ -1835,12 +1835,21 @@
     <!-- If the grand-parent "Annotations" tag already exists modify it -->
     <!-- Add deletability for directory/deletedItems -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.directory/deletedItems'] ">
-        <xsl:copy>
-            <xsl:copy-of select="@*|node()"/>
-            <xsl:call-template name="DeleteRestrictionsTemplate">
-                <xsl:with-param name="deletable">true</xsl:with-param>
-            </xsl:call-template>
-        </xsl:copy>
+        <xsl:choose>
+            <xsl:when test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.DeleteRestrictions'])">
+                <xsl:copy>
+                    <xsl:copy-of select="@*|node()"/>
+                    <xsl:call-template name="DeleteRestrictionsTemplate">
+                        <xsl:with-param name="deletable">true</xsl:with-param>
+                    </xsl:call-template>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>        
     </xsl:template>
 
     <!-- If the parent "Annotation" tag already exists, modify it -->
