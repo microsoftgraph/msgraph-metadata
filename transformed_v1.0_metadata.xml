@@ -4747,6 +4747,11 @@
         <Member Name="allowed" Value="9" />
         <Member Name="noStatusCleared" Value="10" />
       </EnumType>
+      <EnumType Name="windowsSettingType">
+        <Member Name="roaming" Value="0" />
+        <Member Name="backup" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="windowsSpotlightEnablementSettings">
         <Member Name="notConfigured" Value="0" />
         <Member Name="disabled" Value="1" />
@@ -5698,6 +5703,10 @@
         <Property Name="destinationServiceIp" Type="Edm.String" />
         <Property Name="destinationServiceName" Type="Edm.String" />
         <Property Name="riskScore" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="cloudClipboardItemPayload">
+        <Property Name="content" Type="Edm.String" Nullable="false" />
+        <Property Name="formatName" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="coachmarkLocation">
         <Property Name="length" Type="Edm.Int32" />
@@ -10621,6 +10630,15 @@
         <Property Name="isChecked" Type="Edm.Boolean" />
       </EntityType>
       <EntityType Name="claimsMappingPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="cloudClipboardItem" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="payloads" Type="Collection(graph.cloudClipboardItemPayload)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="cloudClipboardRoot" BaseType="graph.entity">
+        <NavigationProperty Name="items" Type="Collection(graph.cloudClipboardItem)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="cloudCommunications">
         <NavigationProperty Name="callRecords" Type="Collection(microsoft.graph.callRecords.callRecord)" ContainsTarget="true" />
         <NavigationProperty Name="calls" Type="Collection(graph.call)" ContainsTarget="true" />
@@ -10992,6 +11010,7 @@
         <Property Name="permissionId" Type="Edm.String" />
         <Property Name="permissionName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="deletedChat" BaseType="graph.entity" />
       <EntityType Name="deletedItemContainer" BaseType="graph.entity">
         <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
       </EntityType>
@@ -11025,7 +11044,9 @@
         <Property Name="enrollmentProfileName" Type="Edm.String" />
         <Property Name="isCompliant" Type="Edm.Boolean" />
         <Property Name="isManaged" Type="Edm.Boolean" />
+        <Property Name="manufacturer" Type="Edm.String" />
         <Property Name="mdmAppId" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onPremisesSecurityIdentifier" Type="Edm.String" />
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
@@ -15838,6 +15859,7 @@
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="teamwork" BaseType="graph.entity">
+        <NavigationProperty Name="deletedChats" Type="Collection(graph.deletedChat)" ContainsTarget="true" />
         <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
         <NavigationProperty Name="teamsAppSettings" Type="graph.teamsAppSettings" ContainsTarget="true" />
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
@@ -16322,6 +16344,7 @@
         <NavigationProperty Name="calendars" Type="Collection(graph.calendar)" ContainsTarget="true" />
         <NavigationProperty Name="calendarView" Type="Collection(graph.event)" ContainsTarget="true" />
         <NavigationProperty Name="chats" Type="Collection(graph.chat)" ContainsTarget="true" />
+        <NavigationProperty Name="cloudClipboard" Type="graph.cloudClipboardRoot" ContainsTarget="true" />
         <NavigationProperty Name="contactFolders" Type="Collection(graph.contactFolder)" ContainsTarget="true" />
         <NavigationProperty Name="contacts" Type="Collection(graph.contact)" ContainsTarget="true" />
         <NavigationProperty Name="createdObjects" Type="Collection(graph.directoryObject)">
@@ -16923,6 +16946,7 @@
         <Property Name="contributionToContentDiscoveryAsOrganizationDisabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="contributionToContentDiscoveryDisabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="shiftPreferences" Type="graph.shiftPreferences" ContainsTarget="true" />
+        <NavigationProperty Name="windows" Type="Collection(graph.windowsSetting)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="userSignInInsight" BaseType="graph.governanceInsight">
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
@@ -17555,6 +17579,18 @@
         <Property Name="signatureVersion" Type="Edm.String" />
         <Property Name="tamperProtectionEnabled" Type="Edm.Boolean" />
         <NavigationProperty Name="detectedMalwareState" Type="Collection(graph.windowsDeviceMalwareState)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="windowsSetting" BaseType="graph.entity">
+        <Property Name="payloadType" Type="Edm.String" />
+        <Property Name="settingType" Type="graph.windowsSettingType" Nullable="false" />
+        <Property Name="windowsDeviceId" Type="Edm.String" />
+        <NavigationProperty Name="instances" Type="Collection(graph.windowsSettingInstance)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="windowsSettingInstance" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="payload" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="windowsUniversalAppX" BaseType="graph.mobileLobApp">
         <Property Name="applicableArchitectures" Type="graph.windowsArchitecture" Nullable="false" />
@@ -21630,6 +21666,9 @@
       </Action>
       <Action Name="unassignUserFromDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.windowsAutopilotDeviceIdentity" />
+      </Action>
+      <Action Name="undoDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.deletedChat" />
       </Action>
       <Action Name="undoSoftDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chatMessage" />
@@ -40543,6 +40582,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsProtectionState/tamperProtectionEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE indicates the Windows Defender tamper protection feature is enabled, when FALSE indicates the Windows Defender tamper protection feature is not enabled. Defaults to setting on client device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsSetting/instances">
+        <Annotation Term="Org.OData.Core.V1.AutoExpand" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsSpotlightEnablementSettings">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allows IT admind to set a predefined default search engine for MDM-Controlled devices" />
