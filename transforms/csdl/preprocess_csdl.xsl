@@ -644,7 +644,7 @@
         <xsl:attribute name="IsComposable">false</xsl:attribute>
     </xsl:template>
 
-    <!-- Actions/Functions bound to  directoryObject should have the 'RequiresExplicitBinding' annotation-->
+    <!-- Actions/Functions bound to directoryObject should have the 'RequiresExplicitBinding' annotation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Function[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
@@ -653,6 +653,15 @@
             <xsl:copy-of select="@* | node()" />
             <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
         </xsl:copy>
+    </xsl:template>
+
+     <!-- Actions bound to Collection(graph.site) should have the 'RequiresExplicitBinding' annotation -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='add'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='Collection(graph.site)']] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='remove'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='Collection(graph.site)']]">
+    <xsl:copy>
+        <xsl:copy-of select="@* | node()" />
+        <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
+    </xsl:copy>
     </xsl:template>
     
     <!--Delta function for events need the start and end date parameters-->
@@ -2335,6 +2344,7 @@
     <!-- Remove directoryObject Capability Annotations -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']/*[starts-with(@Term, 'Org.OData.Capabilities')]"/>
 
+    <!-- Add ExplicitOperationBindings for directoryObject entity type -->
     <xsl:template match="edm:Schema[starts-with(@Namespace, 'microsoft.graph')]/edm:Annotations[@Target='microsoft.graph.directoryObject']">
         <xsl:element name="Annotations">
           <xsl:attribute name="Target">microsoft.graph.directoryObject</xsl:attribute>    
@@ -2352,6 +2362,20 @@
             </Collection>
           </Annotation>
         </xsl:element>
+    </xsl:template>
+
+     <!-- Add ExplicitOperationBindings for followedSites and sites navigation props --> 
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='followedSites']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='sites']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+                <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
+                    <Collection>
+                        <String>microsoft.graph.add</String>
+                        <String>microsoft.graph.remove</String>
+                    </Collection>
+                </Annotation>
+        </xsl:copy>
     </xsl:template>
 
     <!-- Add Referenceable Annotations (for /$ref paths) -->
