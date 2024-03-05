@@ -2366,6 +2366,7 @@
 
      <!-- Add ExplicitOperationBindings for followedSites and sites navigation props --> 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='followedSites']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='sites']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='site']/edm:NavigationProperty[@Name='sites']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
