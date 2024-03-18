@@ -644,31 +644,6 @@
         <xsl:attribute name="IsComposable">false</xsl:attribute>
     </xsl:template>
 
-    <!-- Set IsComposable to true for all functions with a bindparameter (NOT bindingparameter: possible CSDL error) of:
-         workbookRange/workbookNamedItem/workbookTable/workbookTableColumn/workbookTableRow/workbookWorksheet -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookRange']] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookNamedItem']] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookTable']] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookTableColumn']] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookTableRow']] |
-                         edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:Parameter[@Name='bindparameter'][@Type='graph.workbookWorksheet']]">
-        <xsl:choose>
-            <!-- Enable only for Kiota-based OpenAPI generation because of the increase in number of paths this will cause -->
-            <xsl:when test="$open-api-generation='True'">
-                <xsl:copy>
-                    <xsl:apply-templates select="@*"/>
-                    <xsl:attribute name="IsComposable">true</xsl:attribute>
-                    <xsl:apply-templates select="node()"/>
-                </xsl:copy>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:copy>
-                    <xsl:copy-of select="@* | node()"/>
-                </xsl:copy>
-            </xsl:otherwise>
-        </xsl:choose>        
-    </xsl:template>
-
     <!-- Actions/Functions bound to directoryObject should have the 'RequiresExplicitBinding' annotation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']] |
