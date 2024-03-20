@@ -1695,7 +1695,7 @@
                 </xsl:when>
             </xsl:choose>
         
-            <!-- Remove Deletability for photo navigation properties of type profilePhoto; except user and group -->            
+            <!-- Remove Deletability for photo navigation properties of type profilePhoto; except user/photo and group/photo -->            
             
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.contact/photo'])">
@@ -2463,7 +2463,7 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Remove Deletability for photo navigation properties of type profilePhoto; except user and group -->
+    <!-- Remove Deletability for photo navigation properties of type profilePhoto; user/photo and group/photo -->
 <!-- If the grand-parent "Annotations" tag already exists, add the DeleteRestrictions annotation -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.contact/photo']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.team/photo']">
@@ -2484,7 +2484,7 @@
         </xsl:choose>
     </xsl:template>
     
-    <!-- Remove Deletability for photo navigation properties of type profilePhoto; except user and group -->    
+    <!-- Remove Deletability for photo navigation properties of type profilePhoto; user/photo and group/photo -->    
     <!--If the DeleteRestrictions exists, update the Bool attribute value to false-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.contact/photo']/edm:Annotation[@Term='Org.OData.Capabilities.V1.DeleteRestrictions']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.team/photo']/edm:Annotation[@Term='Org.OData.Capabilities.V1.DeleteRestrictions']">
