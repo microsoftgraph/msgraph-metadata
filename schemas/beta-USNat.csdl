@@ -691,6 +691,29 @@
         <Member Name="authenticationTransfer" Value="2" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="conditionalAccessWhatIfReasons">
+        <Member Name="notSet" Value="0" />
+        <Member Name="notEnoughInformation" Value="1" />
+        <Member Name="invalidCondition" Value="2" />
+        <Member Name="users" Value="3" />
+        <Member Name="workloadIdentities" Value="4" />
+        <Member Name="application" Value="5" />
+        <Member Name="userActions" Value="6" />
+        <Member Name="authenticationContext" Value="7" />
+        <Member Name="devicePlatform" Value="8" />
+        <Member Name="devices" Value="9" />
+        <Member Name="clientApps" Value="10" />
+        <Member Name="location" Value="11" />
+        <Member Name="signInRisk" Value="12" />
+        <Member Name="emptyPolicy" Value="13" />
+        <Member Name="invalidPolicy" Value="14" />
+        <Member Name="policyNotEnabled" Value="15" />
+        <Member Name="userRisk" Value="16" />
+        <Member Name="time" Value="17" />
+        <Member Name="insiderRisk" Value="18" />
+        <Member Name="authenticationFlow" Value="19" />
+        <Member Name="unknownFutureValue" Value="20" />
+      </EnumType>
       <EnumType Name="connectionDirection">
         <Member Name="unknown" Value="0" />
         <Member Name="inbound" Value="1" />
@@ -2219,6 +2242,11 @@
         <Member Name="administrator" Value="3" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="userAction">
+        <Member Name="registerSecurityInformation" Value="0" />
+        <Member Name="registerOrJoinDevices" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="userDefaultAuthenticationMethod">
         <Member Name="push" Value="0" />
         <Member Name="oath" Value="1" />
@@ -2734,6 +2762,9 @@
         <Property Name="authenticationStepResultDetail" Type="Edm.String" />
         <Property Name="succeeded" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="authenticationFlow">
+        <Property Name="transferMethod" Type="graph.conditionalAccessTransferMethods" />
+      </ComplexType>
       <ComplexType Name="authenticationMethodFeatureConfiguration">
         <Property Name="excludeTarget" Type="graph.featureTarget" />
         <Property Name="includeTarget" Type="graph.featureTarget" />
@@ -3079,6 +3110,7 @@
         <Property Name="userRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="users" Type="graph.conditionalAccessUsers" />
       </ComplexType>
+      <ComplexType Name="conditionalAccessContext" Abstract="true" />
       <ComplexType Name="conditionalAccessDevices">
         <Property Name="deviceFilter" Type="graph.conditionalAccessFilter" />
         <Property Name="excludeDevices" Type="Collection(Edm.String)" Nullable="false" />
@@ -3150,6 +3182,17 @@
         <Property Name="includeRoles" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeUsers" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="conditionalAccessWhatIfConditions">
+        <Property Name="authenticationFlow" Type="graph.authenticationFlow" />
+        <Property Name="clientAppType" Type="graph.conditionalAccessClientApp" />
+        <Property Name="country" Type="Edm.String" />
+        <Property Name="devicePlatform" Type="graph.conditionalAccessDevicePlatform" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="servicePrincipalRiskLevel" Type="graph.riskLevel" />
+        <Property Name="signInRiskLevel" Type="graph.riskLevel" />
+        <Property Name="userRiskLevel" Type="graph.riskLevel" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessWhatIfSubject" Abstract="true" />
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.userSet">
         <Property Name="description" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
@@ -4983,6 +5026,9 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="servicePrincipalSubject" BaseType="graph.conditionalAccessWhatIfSubject">
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="settingTemplateValue">
         <Property Name="defaultValue" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
@@ -5667,6 +5713,11 @@
       <ComplexType Name="userSet" Abstract="true">
         <Property Name="isBackup" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="userSubject" BaseType="graph.conditionalAccessWhatIfSubject">
+        <Property Name="externalTenantId" Type="Edm.String" />
+        <Property Name="externalUserType" Type="graph.conditionalAccessGuestOrExternalUserTypes" Nullable="false" />
+        <Property Name="userId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="validatingDomains" Abstract="true">
         <Property Name="rootDomains" Type="graph.rootDomains" Nullable="false" />
       </ComplexType>
@@ -5754,6 +5805,15 @@
         <Property Name="address" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="graph.websiteType" />
+      </ComplexType>
+      <ComplexType Name="whatIfApplicationContext" BaseType="graph.conditionalAccessContext">
+        <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="whatIfAuthenticationContext" BaseType="graph.conditionalAccessContext">
+        <Property Name="authenticationContext" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="whatIfUserActionContext" BaseType="graph.conditionalAccessContext">
+        <Property Name="userAction" Type="graph.userAction" />
       </ComplexType>
       <ComplexType Name="workingHours">
         <Property Name="daysOfWeek" Type="Collection(graph.dayOfWeek)" />
@@ -6713,6 +6773,10 @@
         <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false" />
+      </EntityType>
+      <EntityType Name="conditionalAccessWhatIfPolicy" BaseType="graph.conditionalAccessPolicy">
+        <Property Name="policyApplies" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="reasons" Type="Collection(graph.conditionalAccessWhatIfReasons)" Nullable="false" />
       </EntityType>
       <EntityType Name="connector" BaseType="graph.entity">
         <Property Name="externalIp" Type="Edm.String" Nullable="false" />
@@ -10336,6 +10400,14 @@
         <Parameter Name="discoveredSensitiveTypes" Type="Collection(graph.discoveredSensitiveType)" />
         <Parameter Name="currentLabel" Type="graph.currentLabel" />
         <ReturnType Type="graph.evaluateLabelJobResponse" />
+      </Action>
+      <Action Name="evaluate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.conditionalAccessRoot" />
+        <Parameter Name="conditionalAccessWhatIfSubject" Type="graph.conditionalAccessWhatIfSubject" />
+        <Parameter Name="conditionalAccessContext" Type="graph.conditionalAccessContext" />
+        <Parameter Name="conditionalAccessWhatIfConditions" Type="graph.conditionalAccessWhatIfConditions" />
+        <Parameter Name="appliedPoliciesOnly" Type="Edm.Boolean" />
+        <ReturnType Type="Collection(graph.conditionalAccessWhatIfPolicy)" />
       </Action>
       <Action Name="evaluateDynamicMembership" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.group)" />
