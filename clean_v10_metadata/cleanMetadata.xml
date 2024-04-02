@@ -5161,6 +5161,8 @@
       </ComplexType>
       <ComplexType Name="accessPackageResourceAttribute">
         <Property Name="destination" Type="graph.accessPackageResourceAttributeDestination" />
+        <Property Name="isEditable" Type="Edm.Boolean" />
+        <Property Name="isPersistedOnAssignmentRemoval" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="source" Type="graph.accessPackageResourceAttributeSource" />
       </ComplexType>
@@ -8880,6 +8882,7 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="targetUserSponsors" BaseType="graph.subjectSet" />
       <ComplexType Name="teamArchivedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="teamId" Type="Edm.String" />
@@ -13361,6 +13364,7 @@
         <Property Name="sendInvitationMessage" Type="Edm.Boolean" />
         <Property Name="status" Type="Edm.String" />
         <NavigationProperty Name="invitedUser" Type="graph.user" />
+        <NavigationProperty Name="invitedUserSponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="inviteParticipantsOperation" BaseType="graph.commsOperation" OpenType="true">
         <Property Name="participants" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
@@ -15657,6 +15661,7 @@
         <NavigationProperty Name="attackSimulation" Type="graph.attackSimulationRoot" ContainsTarget="true" />
         <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
         <NavigationProperty Name="incidents" Type="Collection(microsoft.graph.security.incident)" ContainsTarget="true" />
+        <NavigationProperty Name="labels" Type="microsoft.graph.security.labelsRoot" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
         <NavigationProperty Name="subjectRightsRequests" Type="Collection(graph.subjectRightsRequest)" ContainsTarget="true" />
@@ -24265,6 +24270,7 @@
         <EntitySet Name="identityProviders" EntityType="microsoft.graph.identityProvider" />
         <EntitySet Name="invitations" EntityType="microsoft.graph.invitation">
           <NavigationPropertyBinding Path="invitedUser" Target="users" />
+          <NavigationPropertyBinding Path="invitedUserSponsors" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="oauth2PermissionGrants" EntityType="microsoft.graph.oAuth2PermissionGrant" />
         <EntitySet Name="organization" EntityType="microsoft.graph.organization">
@@ -41805,6 +41811,13 @@
       </EntityType>
     </Schema>
     <Schema Namespace="microsoft.graph.security" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="actionAfterRetentionPeriod">
+        <Member Name="none" Value="0" />
+        <Member Name="delete" Value="1" />
+        <Member Name="startDispositionReview" Value="2" />
+        <Member Name="relabel" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="additionalDataOptions" IsFlags="true">
         <Member Name="allVersions" Value="1" />
         <Member Name="linkedFiles" Value="2" />
@@ -41923,6 +41936,11 @@
         <Member Name="allCaseCustodians" Value="4" />
         <Member Name="allCaseNoncustodialDataSources" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
+      </EnumType>
+      <EnumType Name="defaultRecordBehavior">
+        <Member Name="startLocked" Value="0" />
+        <Member Name="startUnlocked" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="defenderAvStatus">
         <Member Name="notReporting" Value="0" />
@@ -42386,6 +42404,20 @@
         <Property Name="algorithm" Type="microsoft.graph.security.fileHashAlgorithm" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="filePlanAppliedCategory" BaseType="microsoft.graph.security.filePlanDescriptorBase">
+        <Property Name="subcategory" Type="microsoft.graph.security.filePlanSubcategory" />
+      </ComplexType>
+      <ComplexType Name="filePlanAuthority" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanCitation" BaseType="microsoft.graph.security.filePlanDescriptorBase">
+        <Property Name="citationJurisdiction" Type="Edm.String" />
+        <Property Name="citationUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="filePlanDepartment" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanDescriptorBase">
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="filePlanReference" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanSubcategory" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
       <ComplexType Name="formattedContent">
         <Property Name="content" Type="Edm.String" />
         <Property Name="format" Type="microsoft.graph.security.contentFormat" />
@@ -42638,6 +42670,11 @@
         <Property Name="registryValueName" Type="Edm.String" />
         <Property Name="registryValueType" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="retentionDuration" Abstract="true" />
+      <ComplexType Name="retentionDurationForever" BaseType="microsoft.graph.security.retentionDuration" />
+      <ComplexType Name="retentionDurationInDays" BaseType="microsoft.graph.security.retentionDuration">
+        <Property Name="days" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="retentionEventStatus">
         <Property Name="error" Type="graph.publicError" />
         <Property Name="status" Type="microsoft.graph.security.eventStatusType" />
@@ -42783,6 +42820,7 @@
       </EntityType>
       <EntityType Name="articleIndicator" BaseType="microsoft.graph.security.indicator" />
       <EntityType Name="artifact" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="authorityTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
       <EntityType Name="case" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
@@ -42803,6 +42841,13 @@
       <EntityType Name="casesRoot" BaseType="graph.entity">
         <NavigationProperty Name="ediscoveryCases" Type="Collection(microsoft.graph.security.ediscoveryCase)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="categoryTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate">
+        <NavigationProperty Name="subcategories" Type="Collection(microsoft.graph.security.subcategoryTemplate)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="citationTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate">
+        <Property Name="citationJurisdiction" Type="Edm.String" />
+        <Property Name="citationUrl" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="dataSet" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -42821,6 +42866,15 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="releasedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="microsoft.graph.security.dataSourceContainerStatus" />
+      </EntityType>
+      <EntityType Name="departmentTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
+      <EntityType Name="dispositionReviewStage">
+        <Key>
+          <PropertyRef Name="stageNumber" />
+        </Key>
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="reviewersEmailAddresses" Type="Collection(Edm.String)" />
+        <Property Name="stageNumber" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="ediscoveryAddToReviewSetOperation" BaseType="microsoft.graph.security.caseOperation">
         <NavigationProperty Name="reviewSet" Type="microsoft.graph.security.ediscoveryReviewSet" />
@@ -42894,6 +42948,24 @@
         <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
       </EntityType>
       <EntityType Name="ediscoveryTagOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <EntityType Name="filePlanDescriptor" BaseType="graph.entity">
+        <Property Name="authority" Type="microsoft.graph.security.filePlanAuthority" />
+        <Property Name="category" Type="microsoft.graph.security.filePlanAppliedCategory" />
+        <Property Name="citation" Type="microsoft.graph.security.filePlanCitation" />
+        <Property Name="department" Type="microsoft.graph.security.filePlanDepartment" />
+        <Property Name="filePlanReference" Type="microsoft.graph.security.filePlanReference" />
+        <NavigationProperty Name="authorityTemplate" Type="microsoft.graph.security.authorityTemplate" />
+        <NavigationProperty Name="categoryTemplate" Type="microsoft.graph.security.categoryTemplate" />
+        <NavigationProperty Name="citationTemplate" Type="microsoft.graph.security.citationTemplate" />
+        <NavigationProperty Name="departmentTemplate" Type="microsoft.graph.security.departmentTemplate" />
+        <NavigationProperty Name="filePlanReferenceTemplate" Type="microsoft.graph.security.filePlanReferenceTemplate" />
+      </EntityType>
+      <EntityType Name="filePlanDescriptorTemplate" BaseType="graph.entity">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="filePlanReferenceTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
       <EntityType Name="host" BaseType="microsoft.graph.security.artifact" Abstract="true">
         <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
@@ -43015,6 +43087,14 @@
         <Property Name="hostingProvider" Type="Edm.String" />
         <Property Name="netblock" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="labelsRoot" BaseType="graph.entity">
+        <NavigationProperty Name="authorities" Type="Collection(microsoft.graph.security.authorityTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="categories" Type="Collection(microsoft.graph.security.categoryTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="citations" Type="Collection(microsoft.graph.security.citationTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="departments" Type="Collection(microsoft.graph.security.departmentTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="filePlanReferences" Type="Collection(microsoft.graph.security.filePlanReferenceTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionLabels" Type="Collection(microsoft.graph.security.retentionLabel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="passiveDnsRecord" BaseType="microsoft.graph.security.artifact">
         <Property Name="collectedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -43045,6 +43125,25 @@
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
+      <EntityType Name="retentionLabel" BaseType="graph.entity">
+        <Property Name="actionAfterRetentionPeriod" Type="microsoft.graph.security.actionAfterRetentionPeriod" />
+        <Property Name="behaviorDuringRetentionPeriod" Type="microsoft.graph.security.behaviorDuringRetentionPeriod" />
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="defaultRecordBehavior" Type="microsoft.graph.security.defaultRecordBehavior" />
+        <Property Name="descriptionForAdmins" Type="Edm.String" />
+        <Property Name="descriptionForUsers" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isInUse" Type="Edm.Boolean" />
+        <Property Name="labelToBeApplied" Type="Edm.String" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="retentionDuration" Type="microsoft.graph.security.retentionDuration" />
+        <Property Name="retentionTrigger" Type="microsoft.graph.security.retentionTrigger" />
+        <NavigationProperty Name="descriptors" Type="microsoft.graph.security.filePlanDescriptor" ContainsTarget="true" />
+        <NavigationProperty Name="dispositionReviewStages" Type="Collection(microsoft.graph.security.dispositionReviewStage)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionEventType" Type="microsoft.graph.security.retentionEventType" />
+      </EntityType>
       <EntityType Name="search" BaseType="graph.entity" Abstract="true">
         <Property Name="contentQuery" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -43069,6 +43168,7 @@
         <Property Name="subject" Type="microsoft.graph.security.sslCertificateEntity" />
         <NavigationProperty Name="relatedHosts" Type="Collection(microsoft.graph.security.host)" />
       </EntityType>
+      <EntityType Name="subcategoryTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
       <EntityType Name="subdomain" BaseType="graph.entity">
         <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
         <NavigationProperty Name="host" Type="microsoft.graph.security.host" Nullable="false" />
