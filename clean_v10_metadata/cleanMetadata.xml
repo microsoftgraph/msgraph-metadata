@@ -1843,6 +1843,12 @@
         <Member Name="verticalSplit" Value="1" />
         <Member Name="unknownFutureValue" Value="10" />
       </EnumType>
+      <EnumType Name="level">
+        <Member Name="beginner" Value="0" />
+        <Member Name="intermediate" Value="1" />
+        <Member Name="advanced" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="lifecycleEventType">
         <Member Name="missed" Value="0" />
         <Member Name="subscriptionRemoved" Value="1" />
@@ -8278,6 +8284,7 @@
         <Property Name="resourceAppId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="resetPasscodeActionResult" BaseType="graph.deviceActionResult">
+        <Property Name="errorCode" Type="Edm.Int32" Nullable="false" />
         <Property Name="passcode" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="resourceAccess">
@@ -8981,6 +8988,9 @@
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="teamsAppDisplayName" Type="Edm.String" />
         <Property Name="teamsAppId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="teamsLicensingDetails">
+        <Property Name="hasTeamsLicense" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="teamsTabConfiguration" OpenType="true">
         <Property Name="contentUrl" Type="Edm.String" />
@@ -12873,6 +12883,20 @@
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="subject" Type="Edm.String" Nullable="false" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="name" />
+                    <PropertyValue Property="Name" PropertyPath="name" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
@@ -13700,6 +13724,7 @@
         <Property Name="isSearchable" Type="Edm.Boolean" />
         <Property Name="languageTag" Type="Edm.String" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="level" Type="graph.level" />
         <Property Name="numberOfPages" Type="Edm.Int32" />
         <Property Name="skillTags" Type="Collection(Edm.String)" />
         <Property Name="sourceName" Type="Edm.String" />
@@ -14067,6 +14092,7 @@
         <Property Name="easDeviceId" Type="Edm.String" />
         <Property Name="emailAddress" Type="Edm.String" />
         <Property Name="enrolledDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="enrollmentProfileName" Type="Edm.String" />
         <Property Name="ethernetMacAddress" Type="Edm.String" />
         <Property Name="exchangeAccessState" Type="graph.deviceManagementExchangeAccessState" Nullable="false" />
         <Property Name="exchangeAccessStateReason" Type="graph.deviceManagementExchangeAccessStateReason" Nullable="false" />
@@ -14343,6 +14369,7 @@
         <Property Name="azureStorageUriExpirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="isCommitted" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isDependency" Type="Edm.Boolean" Nullable="false" />
         <Property Name="manifest" Type="Edm.Binary" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="size" Type="Edm.Int64" Nullable="false" />
@@ -16422,6 +16449,8 @@
       </EntityType>
       <EntityType Name="teamsTemplate" BaseType="graph.entity" />
       <EntityType Name="teamwork" BaseType="graph.entity">
+        <Property Name="isTeamsEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="region" Type="Edm.String" />
         <NavigationProperty Name="deletedChats" Type="Collection(graph.deletedChat)" ContainsTarget="true" />
         <NavigationProperty Name="deletedTeams" Type="Collection(graph.deletedTeam)" ContainsTarget="true" />
         <NavigationProperty Name="teamsAppSettings" Type="graph.teamsAppSettings" ContainsTarget="true" />
@@ -17526,6 +17555,8 @@
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
+        <Property Name="locale" Type="Edm.String" />
+        <Property Name="region" Type="Edm.String" />
         <NavigationProperty Name="associatedTeams" Type="Collection(graph.associatedTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="installedApps" Type="Collection(graph.userScopeTeamsAppInstallation)" ContainsTarget="true" />
       </EntityType>
@@ -22797,6 +22828,15 @@
         <ReturnType Type="Collection(graph.group)" />
       </Function>
       <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.listItem)" />
+        <ReturnType Type="Collection(graph.listItem)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.listItem)" />
+        <Parameter Name="token" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.listItem)" />
+      </Function>
+      <Function Name="delta" IsBound="true">
         <Parameter Name="bindingparameter" Type="Collection(graph.mailFolder)" Nullable="false" />
         <ReturnType Type="Collection(graph.mailFolder)" Nullable="false" />
       </Function>
@@ -23593,6 +23633,10 @@
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
+      </Function>
+      <Function Name="getTeamsLicensingDetails" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.licenseDetails)" />
+        <ReturnType Type="graph.teamsLicensingDetails" />
       </Function>
       <Function Name="getTeamsTeamActivityCounts" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
@@ -26736,6 +26780,13 @@
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.application/federatedIdentityCredentials">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
           </Record>
         </Annotation>
       </Annotations>
@@ -32904,6 +32955,13 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.list/items">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.localizedNotificationMessage">
         <Annotation Term="Org.OData.Core.V1.Description" String="The text content of a Notification Message Template for the specified locale." />
       </Annotations>
@@ -33713,6 +33771,13 @@
       <Annotations Target="microsoft.graph.managedDevice/enrolledDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Enrollment time of the device. Supports $filter operator 'lt' and 'gt'. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/enrollmentProfileName">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the enrollment profile assigned to the device. Default value is empty string, indicating no enrollment profile was assgined. This property is read-only." />
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
@@ -34670,6 +34735,9 @@
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentFile/isDependency">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this content file is a dependency for the main content file. TRUE means that the content file is a dependency, FALSE means that the content file is not a dependency and is the main content file. Defaults to FALSE." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFile/manifest">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the manifest information, containing file metadata." />
@@ -35817,6 +35885,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.resetPasscodeActionResult">
         <Annotation Term="Org.OData.Core.V1.Description" String="Reset passcode action result" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.resetPasscodeActionResult/errorCode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="RotateBitLockerKeys action error code. Valid values 0 to 2147483647" />
       </Annotations>
       <Annotations Target="microsoft.graph.resetPasscodeActionResult/passcode">
         <Annotation Term="Org.OData.Core.V1.Description" String="Newly generated passcode for the device " />
@@ -42366,6 +42437,8 @@
         <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="healthStatus" Type="microsoft.graph.security.deviceHealthStatus" />
         <Property Name="ipInterfaces" Type="Collection(Edm.String)" />
+        <Property Name="lastExternalIpAddress" Type="Edm.String" />
+        <Property Name="lastIpAddress" Type="Edm.String" />
         <Property Name="loggedOnUsers" Type="Collection(microsoft.graph.security.loggedOnUser)" />
         <Property Name="mdeDeviceId" Type="Edm.String" />
         <Property Name="onboardingStatus" Type="microsoft.graph.security.onboardingStatus" />
@@ -42445,6 +42518,13 @@
       <ComplexType Name="formattedContent">
         <Property Name="content" Type="Edm.String" />
         <Property Name="format" Type="microsoft.graph.security.contentFormat" />
+      </ComplexType>
+      <ComplexType Name="geoLocation">
+        <Property Name="city" Type="Edm.String" />
+        <Property Name="countryName" Type="Edm.String" />
+        <Property Name="latitude" Type="Edm.Double" />
+        <Property Name="longitude" Type="Edm.Double" />
+        <Property Name="state" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="gitHubOrganizationEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="company" Type="Edm.String" />
@@ -42552,6 +42632,7 @@
       <ComplexType Name="ipEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="countryLetterCode" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="location" Type="microsoft.graph.security.geoLocation" />
         <Property Name="stream" Type="microsoft.graph.security.stream" />
       </ComplexType>
       <ComplexType Name="kubernetesClusterEvidence" BaseType="microsoft.graph.security.alertEvidence">
@@ -43372,6 +43453,9 @@
       <Action Name="runHuntingQuery" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.security" />
         <Parameter Name="query" Type="Edm.String" Unicode="false" />
+        <Parameter Name="timespan" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="microsoft.graph.security.huntingQueryResults" />
       </Action>
       <Action Name="updateIndex" IsBound="true">
