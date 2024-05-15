@@ -2347,6 +2347,11 @@
         <Member Name="flaggedEmails" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="x509CertificateAffinityLevel">
+        <Member Name="low" Value="0" />
+        <Member Name="high" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="x509CertificateAuthenticationMode">
         <Member Name="x509CertificateSingleFactor" Value="0" />
         <Member Name="x509CertificateMultiFactor" Value="1" />
@@ -2356,6 +2361,7 @@
         <Member Name="issuerSubject" Value="0" />
         <Member Name="policyOID" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="issuerSubjectAndPolicyOID" Value="3" />
       </EnumType>
       <ComplexType Name="aadUserConversationMemberResult" BaseType="graph.actionResultPart">
         <Property Name="userId" Type="Edm.String" />
@@ -5892,15 +5898,20 @@
       <ComplexType Name="x509CertificateAuthenticationModeConfiguration">
         <Property Name="rules" Type="Collection(graph.x509CertificateRule)" />
         <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode" />
+        <Property Name="x509CertificateDefaultRequiredAffinityLevel" Type="graph.x509CertificateAffinityLevel" />
       </ComplexType>
       <ComplexType Name="x509CertificateIssuerHintsConfiguration" />
       <ComplexType Name="x509CertificateRule">
         <Property Name="identifier" Type="Edm.String" />
+        <Property Name="issuerSubjectIdentifier" Type="Edm.String" />
+        <Property Name="policyOidIdentifier" Type="Edm.String" />
         <Property Name="x509CertificateAuthenticationMode" Type="graph.x509CertificateAuthenticationMode" />
+        <Property Name="x509CertificateRequiredAffinityLevel" Type="graph.x509CertificateAffinityLevel" />
         <Property Name="x509CertificateRuleType" Type="graph.x509CertificateRuleType" />
       </ComplexType>
       <ComplexType Name="x509CertificateUserBinding">
         <Property Name="priority" Type="Edm.Int32" Nullable="false" />
+        <Property Name="trustAffinityLevel" Type="graph.x509CertificateAffinityLevel" />
         <Property Name="userProperty" Type="Edm.String" />
         <Property Name="x509CertificateField" Type="Edm.String" />
       </ComplexType>
@@ -6720,6 +6731,7 @@
       <EntityType Name="chat" BaseType="graph.entity">
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="isHiddenForAllMembers" Type="Edm.Boolean" />
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onlineMeetingInfo" Type="graph.teamworkOnlineMeetingInfo" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -7576,6 +7588,7 @@
         <Property Name="isAttestationEnforced" Type="Edm.Boolean" />
         <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
         <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.passkeyAuthenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fido2CombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
         <Property Name="allowedAAGUIDs" Type="Collection(Edm.String)" Nullable="false" />
@@ -7852,6 +7865,7 @@
         <Property Name="port" Type="Edm.Int32" />
         <Property Name="ports" Type="Collection(Edm.String)" />
         <Property Name="protocol" Type="graph.privateNetworkProtocol" />
+        <NavigationProperty Name="application" Type="graph.application" />
       </EntityType>
       <EntityType Name="ipNamedLocation" BaseType="graph.namedLocation">
         <Property Name="ipRanges" Type="Collection(graph.ipRange)" Nullable="false" />
@@ -8139,6 +8153,7 @@
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <NavigationProperty Name="agentGroups" Type="Collection(graph.onPremisesAgentGroup)" ContainsTarget="true" />
         <NavigationProperty Name="agents" Type="Collection(graph.onPremisesAgent)" ContainsTarget="true" />
+        <NavigationProperty Name="applicationSegments" Type="Collection(graph.ipApplicationSegment)" />
         <NavigationProperty Name="connectorGroups" Type="Collection(graph.connectorGroup)" ContainsTarget="true" />
         <NavigationProperty Name="connectors" Type="Collection(graph.connector)" ContainsTarget="true" />
         <NavigationProperty Name="publishedResources" Type="Collection(graph.publishedResource)" ContainsTarget="true" />
@@ -8321,6 +8336,7 @@
         <Property Name="supportTelephones" Type="Collection(Edm.String)" />
         <Property Name="supportUrl" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="passkeyAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget" />
       <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="password" Type="Edm.String" />
@@ -8503,6 +8519,7 @@
         <Property Name="orderHint" Type="Edm.String" />
       </EntityType>
       <EntityType Name="plannerRoster" BaseType="graph.entity">
+        <Property Name="assignedSensitivityLabel" Type="graph.sensitivityLabelAssignment" />
         <NavigationProperty Name="members" Type="Collection(graph.plannerRosterMember)" ContainsTarget="true" />
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" />
       </EntityType>
@@ -10256,6 +10273,12 @@
         <Parameter Name="sensitivityLabelId" Type="Edm.String" Unicode="false" />
         <Parameter Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" />
         <Parameter Name="justificationText" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="assignSensitivityLabel" IsBound="true">
+        <Parameter Name="bindingparameter" Type="graph.plannerRoster" />
+        <Parameter Name="sensitivityLabelId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="assignmentMethod" Type="graph.sensitivityLabelAssignmentMethod" />
+        <ReturnType Type="graph.plannerRoster" />
       </Action>
       <Action Name="associateWithHubSites" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
