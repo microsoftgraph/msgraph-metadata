@@ -275,9 +275,38 @@
         <Member Name="mfaCapable" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
+      <EnumType Name="authenticationMethodModes" IsFlags="true">
+        <Member Name="password" Value="1" />
+        <Member Name="voice" Value="2" />
+        <Member Name="hardwareOath" Value="4" />
+        <Member Name="softwareOath" Value="8" />
+        <Member Name="sms" Value="16" />
+        <Member Name="fido2" Value="32" />
+        <Member Name="windowsHelloForBusiness" Value="64" />
+        <Member Name="microsoftAuthenticatorPush" Value="128" />
+        <Member Name="deviceBasedPush" Value="256" />
+        <Member Name="temporaryAccessPassOneTime" Value="512" />
+        <Member Name="temporaryAccessPassMultiUse" Value="1024" />
+        <Member Name="email" Value="2048" />
+        <Member Name="x509CertificateSingleFactor" Value="4096" />
+        <Member Name="x509CertificateMultiFactor" Value="8192" />
+        <Member Name="federatedSingleFactor" Value="16384" />
+        <Member Name="federatedMultiFactor" Value="32768" />
+        <Member Name="unknownFutureValue" Value="65536" />
+      </EnumType>
       <EnumType Name="authenticationProtocol">
         <Member Name="wsFed" Value="0" />
         <Member Name="saml" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationStrengthPolicyType">
+        <Member Name="builtIn" Value="0" />
+        <Member Name="custom" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="authenticationStrengthRequirements" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="mfa" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="automaticRepliesStatus">
@@ -307,6 +336,21 @@
         <Member Name="microsoftAccount" Value="5" />
         <Member Name="defaultConfiguredIdp" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="baseAuthenticationMethod">
+        <Member Name="password" Value="1" />
+        <Member Name="voice" Value="2" />
+        <Member Name="hardwareOath" Value="3" />
+        <Member Name="softwareOath" Value="4" />
+        <Member Name="sms" Value="5" />
+        <Member Name="fido2" Value="6" />
+        <Member Name="windowsHelloForBusiness" Value="7" />
+        <Member Name="microsoftAuthenticator" Value="8" />
+        <Member Name="temporaryAccessPass" Value="9" />
+        <Member Name="email" Value="10" />
+        <Member Name="x509Certificate" Value="11" />
+        <Member Name="federation" Value="12" />
+        <Member Name="unknownFutureValue" Value="13" />
       </EnumType>
       <EnumType Name="bitLockerEncryptionMethod">
         <Member Name="aesCbc128" Value="3" />
@@ -1673,6 +1717,12 @@
       <EnumType Name="signInUserType">
         <Member Name="member" Value="0" />
         <Member Name="guest" Value="1" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="siteArchiveStatus">
+        <Member Name="recentlyArchived" Value="0" />
+        <Member Name="fullyArchived" Value="1" />
+        <Member Name="reactivating" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="siteSecurityLevel">
@@ -4297,7 +4347,11 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="siteArchivalDetails">
+        <Property Name="archiveStatus" Type="graph.siteArchiveStatus" />
+      </ComplexType>
       <ComplexType Name="siteCollection">
+        <Property Name="archivalDetails" Type="graph.siteArchivalDetails" />
         <Property Name="dataLocationCode" Type="Edm.String" />
         <Property Name="hostname" Type="Edm.String" />
         <Property Name="root" Type="graph.root" />
@@ -4522,6 +4576,12 @@
         <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="condition" Type="Edm.String" />
         <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="updateAllowedCombinationsResult">
+        <Property Name="additionalInformation" Type="Edm.String" />
+        <Property Name="conditionalAccessReferences" Type="Collection(Edm.String)" />
+        <Property Name="currentCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <Property Name="previousCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="updateWindowsDeviceAccountActionParameter">
         <Property Name="calendarSyncEnabled" Type="Edm.Boolean" />
@@ -5474,6 +5534,9 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="resources" Type="Collection(graph.auditResource)" />
       </EntityType>
+      <EntityType Name="authenticationCombinationConfiguration" BaseType="graph.entity" Abstract="true">
+        <Property Name="appliesToCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+      </EntityType>
       <EntityType Name="authenticationContextClassReference" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -5484,8 +5547,27 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="selfServiceSignUp" Type="graph.selfServiceSignUpAuthenticationFlowConfiguration" />
       </EntityType>
+      <EntityType Name="authenticationMethodModeDetail" BaseType="graph.entity">
+        <Property Name="authenticationMethod" Type="graph.baseAuthenticationMethod" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="authenticationMethodsRoot" BaseType="graph.entity">
         <NavigationProperty Name="userRegistrationDetails" Type="Collection(graph.userRegistrationDetails)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationStrengthPolicy" BaseType="graph.entity">
+        <Property Name="allowedCombinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="policyType" Type="graph.authenticationStrengthPolicyType" Nullable="false" />
+        <Property Name="requirementsSatisfied" Type="graph.authenticationStrengthRequirements" Nullable="false" />
+        <NavigationProperty Name="combinationConfigurations" Type="Collection(graph.authenticationCombinationConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="authenticationStrengthRoot" BaseType="graph.entity">
+        <Property Name="combinations" Type="Collection(graph.authenticationMethodModes)" Nullable="false" />
+        <NavigationProperty Name="authenticationMethodModes" Type="Collection(graph.authenticationMethodModeDetail)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.authenticationStrengthPolicy)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authorizationPolicy" BaseType="graph.policyBase">
         <Property Name="allowedToSignUpEmailBasedSubscriptions" Type="Edm.Boolean" Nullable="false" />
@@ -5740,6 +5822,7 @@
       </EntityType>
       <EntityType Name="conditionalAccessRoot" BaseType="graph.entity">
         <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationStrength" Type="graph.authenticationStrengthRoot" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
@@ -6664,6 +6747,9 @@
             </Record>
           </Collection>
         </Annotation>
+      </EntityType>
+      <EntityType Name="fido2CombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
+        <Property Name="allowedAAGUIDs" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="fieldValueSet" BaseType="graph.entity" OpenType="true" />
       <EntityType Name="fileAttachment" BaseType="graph.attachment">
@@ -7767,6 +7853,7 @@
         <NavigationProperty Name="adminConsentRequestPolicy" Type="graph.adminConsentRequestPolicy" ContainsTarget="true" />
         <NavigationProperty Name="appManagementPolicies" Type="Collection(graph.appManagementPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="authenticationFlowsPolicy" Type="graph.authenticationFlowsPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="authenticationStrengthPolicies" Type="Collection(graph.authenticationStrengthPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="authorizationPolicy" Type="graph.authorizationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="conditionalAccessPolicies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
@@ -10628,6 +10715,11 @@
       </Action>
       <Action Name="unsubscribeByMail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
+      </Action>
+      <Action Name="updateAllowedCombinations" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationStrengthPolicy" />
+        <Parameter Name="allowedCombinations" Type="Collection(graph.authenticationMethodModes)" />
+        <ReturnType Type="graph.updateAllowedCombinationsResult" />
       </Action>
       <Action Name="updateDeviceProperties" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.windowsAutopilotDeviceIdentity" />
