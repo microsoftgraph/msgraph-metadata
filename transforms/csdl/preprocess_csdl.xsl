@@ -33,6 +33,14 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
+	
+	<!-- Changes Type attribute for properties and action/functions parameters from 'graph.Json' to 'Edm.UnTyped'-->
+	<xsl:template match="edm:Property[@Type='graph.Json'] | edm:Parameter[@Type='graph.Json']">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:attribute name="Type">Edm.Untyped</xsl:attribute>
+        </xsl:copy>
+    </xsl:template>
 
     <!-- Adds ContainsTarget attribute to navigation properties. These typically represent scenarios where we need to provide an improvement
          to the generator. Specifically, scenarios that represent non-contained navigation to a collection. -->
