@@ -4957,6 +4957,11 @@
         <Member Name="arm" Value="4" />
         <Member Name="neutral" Value="8" />
       </EnumType>
+      <EnumType Name="windowsAutopilotDeviceType">
+        <Member Name="windowsPc" Value="0" />
+        <Member Name="holoLens" Value="1" />
+        <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
       <EnumType Name="windowsDefenderProductStatus" IsFlags="true">
         <Member Name="noStatus" Value="0" />
         <Member Name="serviceNotRunning" Value="1" />
@@ -5009,6 +5014,11 @@
         <Member Name="holographic" Value="4" />
         <Member Name="team" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
+      </EnumType>
+      <EnumType Name="windowsDeviceUsageType">
+        <Member Name="singleUser" Value="0" />
+        <Member Name="shared" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="windowsHelloForBusinessPinUsage">
         <Member Name="allowed" Value="0" />
@@ -5171,6 +5181,11 @@
         <Member Name="notifyOnAppChanges" Value="2" />
         <Member Name="notifyOnAppChangesWithoutDimming" Value="3" />
         <Member Name="neverNotify" Value="4" />
+      </EnumType>
+      <EnumType Name="windowsUserType">
+        <Member Name="administrator" Value="0" />
+        <Member Name="standard" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="workbookOperationStatus">
         <Member Name="notStarted" Value="0" />
@@ -7918,6 +7933,14 @@
         <Property Name="altitudeAccuracy" Type="Edm.Double" />
         <Property Name="latitude" Type="Edm.Double" />
         <Property Name="longitude" Type="Edm.Double" />
+      </ComplexType>
+      <ComplexType Name="outOfBoxExperienceSetting">
+        <Property Name="deviceUsageType" Type="graph.windowsDeviceUsageType" Nullable="false" />
+        <Property Name="escapeLinkHidden" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="eulaHidden" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="keyboardSelectionPageSkipped" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="privacySettingsHidden" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="userType" Type="graph.windowsUserType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="package">
         <Property Name="type" Type="Edm.String" />
@@ -16772,6 +16795,22 @@
         <Property Name="isBundle" Type="Edm.Boolean" Nullable="false" />
         <Property Name="minimumSupportedOperatingSystem" Type="graph.windowsMinimumOperatingSystem" Nullable="false" />
       </EntityType>
+      <EntityType Name="windowsAutopilotDeploymentProfile" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="deviceNameTemplate" Type="Edm.String" />
+        <Property Name="deviceType" Type="graph.windowsAutopilotDeviceType" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="hardwareHashExtractionEnabled" Type="Edm.Boolean" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="locale" Type="Edm.String" />
+        <Property Name="managementServiceAppId" Type="Edm.String" />
+        <Property Name="outOfBoxExperienceSetting" Type="graph.outOfBoxExperienceSetting" />
+        <Property Name="preprovisioningAllowed" Type="Edm.Boolean" />
+        <Property Name="roleScopeTagIds" Type="Collection(Edm.String)" />
+        <NavigationProperty Name="assignedDevices" Type="Collection(graph.windowsAutopilotDeviceIdentity)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="windowsAutopilotDeploymentProfileAssignment" BaseType="graph.entity" />
       <EntityType Name="windowsAutopilotDeviceIdentity" BaseType="graph.entity">
         <Property Name="addressableUserName" Type="Edm.String" />
         <Property Name="azureActiveDirectoryDeviceId" Type="Edm.String" />
@@ -23216,6 +23255,7 @@
         <Property Name="wifiVendorDriverVersion" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="participantEndpoint" BaseType="microsoft.graph.callRecords.endpoint">
+        <Property Name="associatedIdentity" Type="graph.identity" />
         <Property Name="cpuCoresCount" Type="Edm.Int32" />
         <Property Name="cpuName" Type="Edm.String" />
         <Property Name="cpuProcessorSpeedInMhz" Type="Edm.Int32" />
@@ -23266,6 +23306,9 @@
         <Property Name="text" Type="Edm.String" />
         <Property Name="tokens" Type="microsoft.graph.callRecords.feedbackTokenSet" />
       </ComplexType>
+      <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="callRecord" BaseType="graph.entity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="joinWebUrl" Type="Edm.String" />
@@ -23276,7 +23319,14 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="type" Type="microsoft.graph.callRecords.callType" Nullable="false" />
         <Property Name="version" Type="Edm.Int64" Nullable="false" />
+        <NavigationProperty Name="organizer_v2" Type="microsoft.graph.callRecords.organizer" ContainsTarget="true" />
+        <NavigationProperty Name="participants_v2" Type="Collection(microsoft.graph.callRecords.participant)" ContainsTarget="true" />
         <NavigationProperty Name="sessions" Type="Collection(microsoft.graph.callRecords.session)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="organizer" BaseType="microsoft.graph.callRecords.participantBase" />
+      <EntityType Name="participant" BaseType="microsoft.graph.callRecords.participantBase" />
+      <EntityType Name="participantBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="identity" Type="graph.communicationsIdentitySet" />
       </EntityType>
       <EntityType Name="segment" BaseType="graph.entity">
         <Property Name="callee" Type="microsoft.graph.callRecords.endpoint" />
@@ -25818,6 +25868,54 @@
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/organizer">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-11-06" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use organizer_v2 instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-06/New_Properties_Added" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/organizer_v2">
+        <Annotation Term="Org.OData.Core.V1.AutoExpand" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/participants">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-11-06" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use participants_v2 instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-06/New_Properties_Added" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.participantEndpoint/identity">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-11-06" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use associatedIdentity instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-11/New_Properties_Added" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.cancel(microsoft.graph.bookingAppointment, Edm.String)">
@@ -33452,6 +33550,27 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Windows Autopilot Deployment Profile settings used by the device for the out-of-box experience. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/deviceUsageType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Entra join authentication type. Possible values are singleUser and shared. The default is singleUser." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/escapeLinkHidden">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, the link that allows user to start over with a different account on company sign-in is hidden. When false, the link that allows user to start over with a different account on company sign-in is available. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/eulaHidden">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, EULA is hidden to the end user during OOBE. When FALSE, EULA is shown to the end user during OOBE. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/keyboardSelectionPageSkipped">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, the keyboard selection page is hidden to the end user during OOBE if Language and Region are set. When FALSE, the keyboard selection page is skipped during OOBE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/privacySettingsHidden">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, privacy settings is hidden to the end user during OOBE. When FALSE, privacy settings is shown to the end user during OOBE. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.outOfBoxExperienceSetting/userType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The type of user. Possible values are administrator and standard. Default value is administrator. Yes No&#xD;&#xA;" />
+      </Annotations>
       <Annotations Target="microsoft.graph.peopleAdminSettings/pronouns">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
@@ -38793,6 +38912,51 @@
       <Annotations Target="microsoft.graph.windowsArchitecture/x86">
         <Annotation Term="Org.OData.Core.V1.Description" String="Whether or not the X86 Windows architecture type is supported." />
       </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Windows Autopilot Deployment Profile" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/assignedDevices">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The list of assigned devices for the profile." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The date and time of when the deployment profile was created. The value cannot be modified and is automatically populated when the profile was created. The timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported. Read-Only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/description">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A description of the deployment profile. Max allowed length is 1500 chars. Supports: $select, $top, $skip, $orderBy. $Search and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/deviceNameTemplate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The template used to name the Autopilot device. This can be a custom text and can also contain either the serial number of the device, or a randomly generated number. The total length of the text generated by the template can be no more than 15 characters. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/deviceType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Windows device type that this profile is applicable to. Possible values include windowsPc, holoLens, and virtualMachine. The default is windowsPc. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the deployment profile. Max allowed length is 200 chars. Returned by default. Supports: $select, $top, $skip, $orderby. $Search and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/hardwareHashExtractionEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the profile supports the extraction of hardware hash values and registration of the device into Windows Autopilot. When TRUE, indicates if hardware extraction and Windows Autopilot registration will happen on the next successful check-in. When FALSE, hardware hash extraction and Windows Autopilot registration will not happen. Default value is FALSE. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The date and time of when the deployment profile was last modified. The value cannot be updated manually and is automatically populated when any changes are made to the profile. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported Read-Only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/locale">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The locale (language) to be used when configuring the device. E.g. en-US. The default value is os-default. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/managementServiceAppId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Entra management service App ID which gets used during client device-based enrollment discovery. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/outOfBoxExperienceSetting">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Windows Autopilot Deployment Profile settings used by the device for the out-of-box experience. Supports: $select, $top, $skip. $Search, $orderBy and $filter are not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/preprovisioningAllowed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the user is allowed to use Windows Autopilot for pre-provisioned deployment mode during Out of Box experience (OOBE). When TRUE, indicates that Windows Autopilot for pre-provisioned deployment mode for OOBE is allowed to be used. When false, Windows Autopilot for pre-provisioned deployment mode for OOBE is not allowed. The default is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfile/roleScopeTagIds">
+        <Annotation Term="Org.OData.Core.V1.Description" String="List of role scope tags for the deployment profile. " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeploymentProfileAssignment">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An assignment of a Windows Autopilot deployment profile to an AAD group." />
+      </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity">
         <Annotation Term="Org.OData.Core.V1.Description" String="The windowsAutopilotDeviceIdentity resource represents a Windows Autopilot Device." />
       </Annotations>
@@ -38843,6 +39007,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsAutopilotDeviceIdentity/userPrincipalName">
         <Annotation Term="Org.OData.Core.V1.Description" String="User Principal Name." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeviceType/holoLens">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the device type is a HoloLens." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeviceType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsAutopilotDeviceType/windowsPc">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Default. Indicates that the device type  is a Windows PC." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsDefenderAdvancedThreatProtectionConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows Defender AdvancedThreatProtection Configuration." />
@@ -39037,6 +39210,15 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates support for Team Windows device type." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsDeviceType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsDeviceUsageType/shared">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that a device is a multi-user device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsDeviceUsageType/singleUser">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Default. Indicates that a device is a single-user device." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsDeviceUsageType/unknownFutureValue">
         <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsFirewallNetworkProfile">
@@ -40278,6 +40460,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.windowsUserAccountControlSettings/userDefined">
         <Annotation Term="Org.OData.Core.V1.Description" String="User Defined, default value, no intent." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsUserType/administrator">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the user has administrator privileges." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsUserType/standard">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the user is a low-rights user without administrator privileges." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.windowsUserType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.windowsWebApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for Windows web apps." />
