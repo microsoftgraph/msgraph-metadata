@@ -531,7 +531,8 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='rejectedSenders']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='externalSponsors']/@ContainsTarget|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='connectedOrganization']/edm:NavigationProperty[@Name='internalSponsors']/@ContainsTarget|
-                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageCatalog']/edm:NavigationProperty[@Name='accessPackages']/@ContainsTarget">
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='accessPackageCatalog']/edm:NavigationProperty[@Name='accessPackages']/@ContainsTarget|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='fileStorageContainer']/edm:NavigationProperty[@Name='drive']/@ContainsTarget">
         <xsl:apply-templates select="@* | node()"/>
     </xsl:template>
 
