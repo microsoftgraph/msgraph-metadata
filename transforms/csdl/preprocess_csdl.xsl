@@ -647,12 +647,6 @@
        <xsl:attribute name="Type">Edm.Stream</xsl:attribute>
     </xsl:template>
 
-    <!-- Set IsComposable to false for all functions with a ReturnType of graph.workbookRange. -->
-    <!-- This is to prevent overgeneration of composable functions in the OpenAPI. -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[edm:ReturnType[@Type='graph.workbookRange']]/@IsComposable">
-        <xsl:attribute name="IsComposable">false</xsl:attribute>
-    </xsl:template>
-
     <!-- Actions/Functions bound to directoryObject should have the 'RequiresExplicitBinding' annotation-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Action[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']] |
