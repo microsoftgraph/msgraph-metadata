@@ -144,6 +144,7 @@
       </EnumType>
       <EnumType Name="appKeyCredentialRestrictionType">
         <Member Name="asymmetricKeyLifetime" Value="0" />
+        <Member Name="trustedCertificateAuthority" Value="1" />
         <Member Name="unknownFutureValue" Value="99" />
       </EnumType>
       <EnumType Name="applicationMode">
@@ -3091,6 +3092,7 @@
       </ComplexType>
       <ComplexType Name="chatMessageReaction">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
         <Property Name="reactionContentUrl" Type="Edm.String" />
         <Property Name="reactionType" Type="Edm.String" Nullable="false" />
         <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
@@ -3984,6 +3986,7 @@
         <Property Name="usage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="keyCredentialConfiguration">
+        <Property Name="certificateBasedApplicationConfigurationIds" Type="Collection(Edm.String)" />
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
@@ -6397,6 +6400,9 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isMemberManagementRestricted" Type="Edm.Boolean" />
+        <Property Name="membershipRule" Type="Edm.String" />
+        <Property Name="membershipRuleProcessingState" Type="Edm.String" />
+        <Property Name="membershipType" Type="Edm.String" />
         <Property Name="visibility" Type="Edm.String" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
@@ -6556,6 +6562,16 @@
                   <Record Type="Org.OData.Core.V1.PropertyRef">
                     <PropertyValue Property="Alias" String="appId" />
                     <PropertyValue Property="Name" PropertyPath="appId" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="uniqueName" />
+                    <PropertyValue Property="Name" PropertyPath="uniqueName" />
                   </Record>
                 </Collection>
               </PropertyValue>
@@ -6862,6 +6878,19 @@
       <EntityType Name="canvasLayout" BaseType="graph.entity">
         <NavigationProperty Name="horizontalSections" Type="Collection(graph.horizontalSection)" ContainsTarget="true" />
         <NavigationProperty Name="verticalSection" Type="graph.verticalSection" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="certificateAuthorityAsEntity" BaseType="graph.entity">
+        <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
+        <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="issuer" Type="Edm.String" Nullable="false" />
+        <Property Name="issuerSubjectKeyIdentifier" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="certificateAuthorityPath" BaseType="graph.entity">
+        <NavigationProperty Name="certificateBasedApplicationConfigurations" Type="Collection(graph.certificateBasedApplicationConfiguration)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="certificateBasedApplicationConfiguration" BaseType="graph.trustedCertificateAuthorityAsEntityBase">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
         <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false" />
@@ -7365,6 +7394,7 @@
       <EntityType Name="directory" BaseType="graph.entity">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="attributeSets" Type="Collection(graph.attributeSet)" ContainsTarget="true" />
+        <NavigationProperty Name="certificateAuthorities" Type="graph.certificateAuthorityPath" ContainsTarget="true" />
         <NavigationProperty Name="customSecurityAttributeDefinitions" Type="Collection(graph.customSecurityAttributeDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
         <NavigationProperty Name="deviceLocalCredentials" Type="Collection(graph.deviceLocalCredentialInfo)" ContainsTarget="true" />
@@ -7730,6 +7760,20 @@
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="subject" Type="Edm.String" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="name" />
+                    <PropertyValue Property="Name" PropertyPath="name" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="federatedTokenValidationPolicy" BaseType="graph.directoryObject">
         <Property Name="validatingDomains" Type="graph.validatingDomains" Nullable="false" />
@@ -7889,6 +7933,7 @@
         <Property Name="securityEnabled" Type="Edm.Boolean" />
         <Property Name="securityIdentifier" Type="Edm.String" />
         <Property Name="theme" Type="Edm.String" />
+        <Property Name="uniqueName" Type="Edm.String" />
         <Property Name="unseenConversationsCount" Type="Edm.Int32" />
         <Property Name="unseenCount" Type="Edm.Int32" />
         <Property Name="unseenMessagesCount" Type="Edm.Int32" />
@@ -7920,6 +7965,20 @@
         <NavigationProperty Name="threads" Type="Collection(graph.conversationThread)" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveMembers" Type="Collection(graph.directoryObject)" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="uniqueName" />
+                    <PropertyValue Property="Name" PropertyPath="uniqueName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="groupLifecyclePolicy" BaseType="graph.entity">
         <Property Name="alternateNotificationEmails" Type="Edm.String" />
@@ -9931,6 +9990,9 @@
         <Property Name="assigneeDisplayName" Type="Edm.String" />
         <Property Name="assigneeId" Type="Edm.String" />
         <Property Name="assigneeUserPrincipalName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="trustedCertificateAuthorityAsEntityBase" BaseType="graph.directoryObject" Abstract="true">
+        <NavigationProperty Name="trustedCertificateAuthorities" Type="Collection(graph.certificateAuthorityAsEntity)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="unifiedRbacApplication" BaseType="graph.entity">
         <NavigationProperty Name="customAppScopes" Type="Collection(graph.customAppScope)" ContainsTarget="true" />
@@ -12852,6 +12914,13 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.application/federatedIdentityCredentials">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.applicationSignInDetailedSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -13978,6 +14047,11 @@
             </PropertyValue>
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/approvalWorkflowProviders">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -14092,6 +14166,11 @@
             </PropertyValue>
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/programs">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -14126,6 +14205,11 @@
                 </Record>
               </Collection>
             </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
           </Record>
         </Annotation>
       </Annotations>
