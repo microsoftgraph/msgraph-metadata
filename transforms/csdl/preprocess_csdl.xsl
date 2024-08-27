@@ -1194,6 +1194,17 @@
             <xsl:attribute name="Bool"><xsl:value-of select="$insertable" /></xsl:attribute>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="PatchPutRestrictionsTemplate">
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.UpdateRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                    <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/PATCH Org.OData.Capabilities.V1.HttpMethod/PUT</xsl:element>
+                </xsl:element>                
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="UpdateRestrictionsTemplate">
         <xsl:param name = "httpMethod" />
         <xsl:param name = "updatable" />
@@ -1840,7 +1851,45 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
+
+            <!-- Set PATCH and PUT for servicePrincipal/claimsPolicy -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.servicePrincipal/claimsPolicy'])">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.servicePrincipal/claimsPolicy</xsl:attribute>
+                        <xsl:call-template name="PatchPutRestrictionsTemplate">                            
+                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
         
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- If the grand-parent "Annotations" tag already exists modify it -->
+    <!-- Set PATCH and PUT for servicePrincipal/claimsPolicy -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.servicePrincipal/claimsPolicy']">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:if test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions'])">
+                <xsl:call-template name="PatchPutRestrictionsTemplate">
+                </xsl:call-template>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- If the parent "Annotation" tag already exists, modify it -->
+    <!-- Set PATCH and PUT for servicePrincipal/claimsPolicy -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.servicePrincipal/claimsPolicy']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">UpdateMethod</xsl:attribute>
+                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.HttpMethod/PATCH Org.OData.Capabilities.V1.HttpMethod/PUT</xsl:element>
+                    </xsl:element>                
+            </xsl:element>
         </xsl:copy>
     </xsl:template>
 
