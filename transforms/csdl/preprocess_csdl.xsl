@@ -1871,11 +1871,11 @@
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
-            <!-- Remove Deletability for identityGovernance/entitlementManagement/accessPackageAssignments navigation property-->
+            <!-- Remove Deletability for entitlementManagement/accessPackageAssignments navigation property-->
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.identityGovernance.entitlementManagement.acessPackageAssignment'])">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement.acessPackageAssignment'])">
                     <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.identityGovernance.entitlementManagement.acessPackageAssignment</xsl:attribute>
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement.acessPackageAssignment</xsl:attribute>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>
