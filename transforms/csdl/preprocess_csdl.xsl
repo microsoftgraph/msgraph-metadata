@@ -1873,7 +1873,7 @@
             </xsl:choose>
             <!-- Remove Deletability for entitlementManagement/accessPackageAssignments navigation property-->
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement.acessPackageAssignment'])">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement.accessPackageAssignment'])">
                     <xsl:element name="Annotations">
                         <xsl:attribute name="Target">microsoft.graph.entitlementManagement.accessPackageAssignment</xsl:attribute>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
