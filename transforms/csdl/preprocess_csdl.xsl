@@ -1875,7 +1875,7 @@
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement.acessPackageAssignment'])">
                     <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement.acessPackageAssignment</xsl:attribute>
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement.accessPackageAssignment</xsl:attribute>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>
