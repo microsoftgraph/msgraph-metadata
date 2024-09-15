@@ -1559,9 +1559,9 @@
             </xsl:choose>
 
             <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.user/manger'])">
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement'])">
                     <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.user/manager</xsl:attribute>
+                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement</xsl:attribute>
                         <xsl:call-template name="DeleteRestrictionsTemplate">
                             <xsl:with-param name="deletable">false</xsl:with-param>
                         </xsl:call-template>
