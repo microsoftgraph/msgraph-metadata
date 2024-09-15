@@ -1870,18 +1870,7 @@
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>   
-            <!-- Remove Deletability for entitlementManagement/accessPackageAssignments navigation property-->
-            <xsl:choose>
-                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/accessPackageAssignments'])">
-                    <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.entitlementManagement/accessPackageAssignments</xsl:attribute>
-                        <xsl:call-template name="DeleteRestrictionsTemplate">
-                            <xsl:with-param name="deletable">false</xsl:with-param>
-                        </xsl:call-template>
-                    </xsl:element>
-                </xsl:when>
-            </xsl:choose>    
+            </xsl:choose>     
         </xsl:copy>
     </xsl:template>
 
