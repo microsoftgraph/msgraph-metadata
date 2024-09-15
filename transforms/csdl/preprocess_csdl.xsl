@@ -1870,7 +1870,7 @@
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>
+            </xsl:choose>   
             <!-- Remove Deletability for entitlementManagement/accessPackageAssignments navigation property-->
             <xsl:choose>
                 <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.entitlementManagement/accessPackageAssignments'])">
@@ -1881,7 +1881,7 @@
                         </xsl:call-template>
                     </xsl:element>
                 </xsl:when>
-            </xsl:choose>        
+            </xsl:choose>    
         </xsl:copy>
     </xsl:template>
 
