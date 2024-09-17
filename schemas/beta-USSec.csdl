@@ -2306,6 +2306,13 @@
         <Member Name="Yes" Value="1" />
         <Member Name="No" Value="2" />
       </EnumType>
+      <EnumType Name="uriUsageType">
+        <Member Name="redirectUri" Value="0" />
+        <Member Name="identifierUri" Value="1" />
+        <Member Name="loginUrl" Value="2" />
+        <Member Name="logoutUrl" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="usageAuthMethod">
         <Member Name="email" Value="0" />
         <Member Name="mobileSMS" Value="1" />
@@ -3304,6 +3311,13 @@
         <Property Name="userRiskLevel" Type="graph.riskLevel" />
       </ComplexType>
       <ComplexType Name="conditionalAccessWhatIfSubject" Abstract="true" />
+      <ComplexType Name="configurationUri">
+        <Property Name="appliesToSingleSignOnMode" Type="Edm.String" Nullable="false" />
+        <Property Name="examples" Type="Collection(Edm.String)" />
+        <Property Name="isRequired" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="usage" Type="graph.uriUsageType" Nullable="false" />
+        <Property Name="values" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="connectedOrganizationMembers" BaseType="graph.userSet">
         <Property Name="description" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
@@ -6626,6 +6640,7 @@
       </EntityType>
       <EntityType Name="applicationTemplate" BaseType="graph.entity">
         <Property Name="categories" Type="Collection(Edm.String)" />
+        <Property Name="configurationUris" Type="Collection(graph.configurationUri)" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="homePageUrl" Type="Edm.String" />
@@ -7527,6 +7542,7 @@
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true" />
+        <NavigationProperty Name="rootDomain" Type="graph.domain" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
       </EntityType>
@@ -8579,6 +8595,11 @@
         <NavigationProperty Name="taskGroups" Type="Collection(graph.outlookTaskGroup)" ContainsTarget="true" />
         <NavigationProperty Name="tasks" Type="Collection(graph.outlookTask)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="pageTemplate" BaseType="graph.baseSitePage">
+        <Property Name="titleArea" Type="graph.titleArea" />
+        <NavigationProperty Name="canvasLayout" Type="graph.canvasLayout" ContainsTarget="true" />
+        <NavigationProperty Name="webParts" Type="Collection(graph.webPart)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="partnerInformation">
         <Key>
           <PropertyRef Name="partnerTenantId" />
@@ -9611,6 +9632,7 @@
         <NavigationProperty Name="lists" Type="Collection(graph.list)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.richLongRunningOperation)" ContainsTarget="true" />
         <NavigationProperty Name="pages" Type="Collection(graph.baseSitePage)" ContainsTarget="true" />
+        <NavigationProperty Name="pageTemplates" Type="Collection(graph.pageTemplate)" ContainsTarget="true" />
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
         <NavigationProperty Name="sites" Type="Collection(graph.site)" ContainsTarget="true" />
         <NavigationProperty Name="termStore" Type="microsoft.graph.termStore.store" ContainsTarget="true" />
@@ -10747,6 +10769,13 @@
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.message" />
       </Action>
+      <Action Name="createFromTemplate" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.sitePage)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="title" Type="Edm.String" Unicode="false" />
+        <Parameter Name="templateId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.sitePage" />
+      </Action>
       <Action Name="createLink" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="type" Type="Edm.String" Unicode="false" />
@@ -11244,6 +11273,11 @@
       </Action>
       <Action Name="runDiagnostics" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.teamworkDevice" />
+      </Action>
+      <Action Name="saveAsTemplate" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.sitePage" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.pageTemplate" />
       </Action>
       <Action Name="send" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
@@ -12279,6 +12313,7 @@
         <EntitySet Name="domainDnsRecords" EntityType="microsoft.graph.domainDnsRecord" />
         <EntitySet Name="domains" EntityType="microsoft.graph.domain">
           <NavigationPropertyBinding Path="domainNameReferences" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="rootDomain" Target="domains" />
         </EntitySet>
         <EntitySet Name="drives" EntityType="microsoft.graph.drive" />
         <EntitySet Name="filterOperators" EntityType="microsoft.graph.filterOperatorSchema" />
