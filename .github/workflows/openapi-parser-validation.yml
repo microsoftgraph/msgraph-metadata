@@ -33,7 +33,13 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4.0.1
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
     - name: Validate latest OpenAPI docs
       run: ./scripts/run-openapi-validation.ps1 -repoDirectory "${{ github.workspace }}" -version "${{ matrix.version }}" -platformName "${{ matrix.settings }}"
       shell: pwsh
+
+    - name: Validate description with redocly
+      uses: fluximus-prime/redocly-cli-github-action@v1
+      continue-on-error: true # temporary workaround since our descriptions are invalid at the moment
+      with:
+        args: 'lint openapi/${{ matrix.version }}/${{ matrix.settings }}.yaml --skip-rule operation-4xx-response --skip-rule no-server-trailing-slash --skip-rule no-unused-components --skip-rule security-defined --skip-rule info-license-url --skip-rule info-license --skip-rule no-empty-servers --skip-rule operation-summary --skip-rule tag-description --max-problems 1000'
