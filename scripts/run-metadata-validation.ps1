@@ -34,6 +34,7 @@ $conversionSettingsDirectory = Join-Path $repoDirectory "conversion-settings"
 $snapshot = Join-Path $repoDirectory "schemas" "annotated-$($version)-Prod.csdl"
 
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
+$yamlFilePath = Join-Path $repoDirectory "transformed_$($version)_$($platformName)_metadata.yml"
 
 try {
     Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
@@ -41,7 +42,6 @@ try {
 
     Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
     & dotnet tool install Microsoft.OpenApi.Hidi -g --prerelease
-    $yamlFilePath = "$transformed.yaml"
     & hidi transform --cs $transformed -o $yamlFilePath --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
 
 } catch {
