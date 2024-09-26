@@ -646,6 +646,10 @@
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='token']][edm:Parameter[@Type='Collection(graph.site)']]"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='additionalAccess'][edm:Parameter[@Name='accessPackageId']][edm:Parameter[@Type='Collection(graph.accessPackageAssignment)']][1]"/>
 
+    <!-- Remove action parameter -->
+    <!-- This should be a temp fix, tracking: https://github.com/microsoft/OpenAPI.NET.OData/issues/582 -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='restore']/edm:Parameter[@Name='autoReconcileProxyConflict']"/>
+
     <!-- Remove action parameters -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
@@ -662,7 +666,7 @@
                          edm:Schema[@Namespace='microsoft.graph']/edm:Function[@IsBound='true'][edm:Parameter[@Type='graph.directoryObject']] |
                          edm:Schema[@Namespace='microsoft.graph']/edm:Function[@IsBound='true'][edm:Parameter[@Type='Collection(graph.directoryObject)']]">
         <xsl:copy>
-            <xsl:copy-of select="@* | node()" />
+            <xsl:apply-templates select="@* | node()" />
             <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
         </xsl:copy>
     </xsl:template>
