@@ -2481,6 +2481,7 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='claimsMappingPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='homeRealmDiscoveryPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='managedDevice']/edm:NavigationProperty[@Name='deviceCategory']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postAttributeCollection']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postFederationSignup']">
         <xsl:copy>
