@@ -975,6 +975,18 @@
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
+    <!-- Add paths for user authentication requirements by adding annotations to read and update the complex property-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='authentication']/edm:Property[@Name='requirements']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="UpdateRestrictionsTemplate">
+                <xsl:with-param name="updatable">true</xsl:with-param>
+            </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
     <!-- Add paths for user serviceProvisioningErrors by adding annotations to read complex property-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:Property[@Name='serviceProvisioningErrors']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:Property[@Name='serviceProvisioningErrors']|
