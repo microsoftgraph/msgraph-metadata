@@ -1166,6 +1166,12 @@
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
       </EnumType>
+      <EnumType Name="postType">
+        <Member Name="regular" Value="0" />
+        <Member Name="quick" Value="1" />
+        <Member Name="strategic" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="privilegedAccessGroupAssignmentType">
         <Member Name="assigned" Value="1" />
         <Member Name="activated" Value="2" />
@@ -1494,6 +1500,49 @@
         <Member Name="privileged" Value="1" />
         <Member Name="auto" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="serviceHealthClassificationType">
+        <Member Name="advisory" Value="1" />
+        <Member Name="incident" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="serviceHealthOrigin">
+        <Member Name="microsoft" Value="1" />
+        <Member Name="thirdParty" Value="2" />
+        <Member Name="customer" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="serviceHealthStatus">
+        <Member Name="serviceOperational" Value="0" />
+        <Member Name="investigating" Value="1" />
+        <Member Name="restoringService" Value="2" />
+        <Member Name="verifyingService" Value="3" />
+        <Member Name="serviceRestored" Value="4" />
+        <Member Name="postIncidentReviewPublished" Value="5" />
+        <Member Name="serviceDegradation" Value="6" />
+        <Member Name="serviceInterruption" Value="7" />
+        <Member Name="extendedRecovery" Value="8" />
+        <Member Name="falsePositive" Value="9" />
+        <Member Name="investigationSuspended" Value="10" />
+        <Member Name="resolved" Value="11" />
+        <Member Name="mitigatedExternal" Value="12" />
+        <Member Name="mitigated" Value="13" />
+        <Member Name="resolvedExternal" Value="14" />
+        <Member Name="confirmed" Value="15" />
+        <Member Name="reported" Value="16" />
+        <Member Name="unknownFutureValue" Value="17" />
+      </EnumType>
+      <EnumType Name="serviceUpdateCategory">
+        <Member Name="preventOrFixIssue" Value="1" />
+        <Member Name="planForChange" Value="2" />
+        <Member Name="stayInformed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="serviceUpdateSeverity">
+        <Member Name="normal" Value="1" />
+        <Member Name="high" Value="2" />
+        <Member Name="critical" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="sharingCapabilities">
         <Member Name="disabled" Value="0" />
@@ -2474,6 +2523,8 @@
       </ComplexType>
       <ComplexType Name="chatMessageReaction">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="reactionContentUrl" Type="Edm.String" />
         <Property Name="reactionType" Type="Edm.String" Nullable="false" />
         <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
       </ComplexType>
@@ -4036,6 +4087,11 @@
         <Property Name="links" Type="Collection(graph.metaDataKeyStringPair)" />
         <Property Name="searchablePlainTexts" Type="Collection(graph.metaDataKeyStringPair)" />
       </ComplexType>
+      <ComplexType Name="serviceHealthIssuePost">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="graph.itemBody" />
+        <Property Name="postType" Type="graph.postType" />
+      </ComplexType>
       <ComplexType Name="serviceHostedMediaConfig" BaseType="graph.mediaConfig">
         <Property Name="preFetchMedia" Type="Collection(graph.mediaInfo)" />
       </ComplexType>
@@ -4054,6 +4110,11 @@
         <Property Name="credentialsWithUsageVerify" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="serviceUpdateMessageViewpoint">
+        <Property Name="isArchived" Type="Edm.Boolean" />
+        <Property Name="isFavorited" Type="Edm.Boolean" />
+        <Property Name="isRead" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="settingTemplateValue">
         <Property Name="defaultValue" Type="Edm.String" />
@@ -4900,6 +4961,7 @@
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="admin">
         <NavigationProperty Name="people" Type="graph.peopleAdminSettings" ContainsTarget="true" />
+        <NavigationProperty Name="serviceAnnouncement" Type="graph.serviceAnnouncement" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="adminConsentRequestPolicy" BaseType="graph.entity">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -7106,6 +7168,41 @@
         <Property Name="helpWebUrl" Type="Edm.String" />
         <Property Name="isMandatory" Type="Edm.Boolean" />
       </EntityType>
+      <EntityType Name="serviceAnnouncement" BaseType="graph.entity">
+        <NavigationProperty Name="healthOverviews" Type="Collection(graph.serviceHealth)" ContainsTarget="true" />
+        <NavigationProperty Name="issues" Type="Collection(graph.serviceHealthIssue)" ContainsTarget="true" />
+        <NavigationProperty Name="messages" Type="Collection(graph.serviceUpdateMessage)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="serviceAnnouncementAttachment" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.Stream" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="serviceAnnouncementBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="details" Type="Collection(graph.keyValuePair)" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="title" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="serviceHealth" BaseType="graph.entity">
+        <Property Name="service" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.serviceHealthStatus" Nullable="false" />
+        <NavigationProperty Name="issues" Type="Collection(graph.serviceHealthIssue)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="serviceHealthIssue" BaseType="graph.serviceAnnouncementBase">
+        <Property Name="classification" Type="graph.serviceHealthClassificationType" Nullable="false" />
+        <Property Name="feature" Type="Edm.String" />
+        <Property Name="featureGroup" Type="Edm.String" />
+        <Property Name="impactDescription" Type="Edm.String" Nullable="false" />
+        <Property Name="isResolved" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="origin" Type="graph.serviceHealthOrigin" Nullable="false" />
+        <Property Name="posts" Type="Collection(graph.serviceHealthIssuePost)" Nullable="false" />
+        <Property Name="service" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.serviceHealthStatus" Nullable="false" />
+      </EntityType>
       <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false" />
@@ -7191,6 +7288,19 @@
         <Property Name="servicePrincipalId" Type="Edm.String" />
         <Property Name="source" Type="Edm.String" />
         <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
+      </EntityType>
+      <EntityType Name="serviceUpdateMessage" BaseType="graph.serviceAnnouncementBase">
+        <Property Name="actionRequiredByDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="attachmentsArchive" Type="Edm.Stream" />
+        <Property Name="body" Type="graph.itemBody" Nullable="false" />
+        <Property Name="category" Type="graph.serviceUpdateCategory" Nullable="false" />
+        <Property Name="hasAttachments" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isMajorChange" Type="Edm.Boolean" />
+        <Property Name="services" Type="Collection(Edm.String)" />
+        <Property Name="severity" Type="graph.serviceUpdateSeverity" Nullable="false" />
+        <Property Name="tags" Type="Collection(Edm.String)" />
+        <Property Name="viewPoint" Type="graph.serviceUpdateMessageViewpoint" />
+        <NavigationProperty Name="attachments" Type="Collection(graph.serviceAnnouncementAttachment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="sharedDriveItem" BaseType="graph.baseItem">
         <Property Name="owner" Type="graph.identitySet" />
@@ -7816,6 +7926,20 @@
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
         <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="userPrincipalName" />
+                    <PropertyValue Property="Name" PropertyPath="userPrincipalName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="userConsentRequest" BaseType="graph.request">
         <Property Name="reason" Type="Edm.String" />
@@ -7952,6 +8076,11 @@
       </Action>
       <Action Name="applyDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="archive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
@@ -8242,6 +8371,11 @@
         <Parameter Name="bindparameter" Type="graph.driveItem" />
         <ReturnType Type="graph.extractSensitivityLabelsResult" />
       </Action>
+      <Action Name="favorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
       <Action Name="follow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <ReturnType Type="graph.driveItem" />
@@ -8380,6 +8514,16 @@
         <Parameter Name="bindingParameter" Type="graph.chat" />
         <Parameter Name="user" Type="graph.teamworkUserIdentity" />
         <Parameter Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
+      </Action>
+      <Action Name="markRead" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="markUnread" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="move" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
@@ -8689,6 +8833,11 @@
         <ReturnType Type="Collection(graph.convertIdResult)" Nullable="false" />
       </Action>
       <Action Name="unarchive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
       </Action>
       <Action Name="unarchive" IsBound="true">
@@ -8699,6 +8848,11 @@
       </Action>
       <Action Name="undoSoftDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chatMessage" />
+      </Action>
+      <Action Name="unfavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="unfollow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -9063,6 +9217,10 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.licenseDetails)" />
         <ReturnType Type="graph.teamsLicensingDetails" />
       </Function>
+      <Function Name="incidentReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceHealthIssue" />
+        <ReturnType Type="Edm.Stream" />
+      </Function>
       <Function Name="isPublished" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
@@ -9349,6 +9507,28 @@
         <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="topTasksInsightsSummary">
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="taskDefinitionDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="taskDefinitionId" Type="Edm.String" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="topWorkflowsInsightsSummary">
+        <Property Name="failedRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="workflowCategory" Type="microsoft.graph.identityGovernance.lifecycleWorkflowCategory" Nullable="false" />
+        <Property Name="workflowDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="workflowId" Type="Edm.String" Nullable="false" />
+        <Property Name="workflowVersion" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="triggerAndScopeBasedConditions" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions">
         <Property Name="scope" Type="graph.subjectSet" />
         <Property Name="trigger" Type="microsoft.graph.identityGovernance.workflowExecutionTrigger" />
@@ -9372,6 +9552,28 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowsInsightsByCategory">
+        <Property Name="failedJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedMoverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulMoverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalMoverRuns" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workflowsInsightsSummary">
+        <Property Name="failedRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
         <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -9379,6 +9581,7 @@
         <NavigationProperty Name="createdBy" Type="graph.user" />
         <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
       </EntityType>
+      <EntityType Name="insights" BaseType="graph.entity" />
       <EntityType Name="lifecycleManagementSettings" BaseType="graph.entity">
         <Property Name="emailSettings" Type="graph.emailSettings" Nullable="false" />
         <Property Name="workflowScheduleIntervalInHours" Type="Edm.Int32" Nullable="false" />
@@ -9386,6 +9589,7 @@
       <EntityType Name="lifecycleWorkflowsContainer" BaseType="graph.entity">
         <NavigationProperty Name="customTaskExtensions" Type="Collection(microsoft.graph.identityGovernance.customTaskExtension)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="graph.deletedItemContainer" ContainsTarget="true" />
+        <NavigationProperty Name="insights" Type="microsoft.graph.identityGovernance.insights" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="microsoft.graph.identityGovernance.lifecycleManagementSettings" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="taskDefinitions" Type="Collection(microsoft.graph.identityGovernance.taskDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
@@ -9538,6 +9742,30 @@
         <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <ReturnType Type="microsoft.graph.identityGovernance.userSummary" />
+      </Function>
+      <Function Name="topTasksProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.topTasksInsightsSummary)" />
+      </Function>
+      <Function Name="topWorkflowsProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.topWorkflowsInsightsSummary)" />
+      </Function>
+      <Function Name="workflowsProcessedByCategory" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflowsInsightsByCategory" />
+      </Function>
+      <Function Name="workflowsProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflowsInsightsSummary" />
       </Function>
       <Annotations Target="microsoft.graph.administrativeUnit">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -9836,6 +10064,11 @@
             <PropertyValue Property="Insertable" Bool="false" />
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
           <Record>
             <PropertyValue Property="Selectable" Bool="false" />
@@ -9885,6 +10118,11 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />

@@ -164,6 +164,11 @@
         <Member Name="reportOnlyNotApplied" Value="8" />
         <Member Name="reportOnlyInterrupted" Value="9" />
       </EnumType>
+      <EnumType Name="appManagementRestrictionState">
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="approvalFilterByCurrentUserOptions">
         <Member Name="target" Value="0" />
         <Member Name="createdBy" Value="1" />
@@ -808,6 +813,10 @@
         <Member Name="callbackTimedOut" Value="4" />
         <Member Name="waitingForCallback" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="customSecurityAttributeComparisonOperator">
+        <Member Name="equals" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
@@ -2719,10 +2728,17 @@
         <Property Name="result" Type="graph.appliedConditionalAccessPolicyResult" />
         <Property Name="sessionControlsNotSatisfied" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="appManagementApplicationConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
       <ComplexType Name="appManagementConfiguration">
         <Property Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" />
         <Property Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" />
       </ComplexType>
+      <ComplexType Name="appManagementPolicyActorExemptions">
+        <NavigationProperty Name="customSecurityAttributes" Type="Collection(graph.customSecurityAttributeExemption)" ContainsTarget="true" />
+      </ComplexType>
+      <ComplexType Name="appManagementServicePrincipalConfiguration" BaseType="graph.appManagementConfiguration" />
       <ComplexType Name="appMetadata">
         <Property Name="data" Type="Collection(graph.appMetadataEntry)" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
@@ -3470,6 +3486,12 @@
         <Property Name="applicationMode" Type="graph.applicationMode" />
         <Property Name="id" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="customAppManagementApplicationConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
+      <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="applicationRestrictions" Type="graph.customAppManagementApplicationConfiguration" />
+      </ComplexType>
       <ComplexType Name="customAppScopeAttributesDictionary" BaseType="graph.Dictionary" OpenType="true" />
       <ComplexType Name="customExtensionAuthenticationConfiguration" Abstract="true" />
       <ComplexType Name="customExtensionCallbackConfiguration" Abstract="true">
@@ -3936,6 +3958,16 @@
       <ComplexType Name="hyperlinkOrPictureColumn">
         <Property Name="isPicture" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="identifierUriConfiguration">
+        <Property Name="nonDefaultUriAddition" Type="graph.identifierUriRestriction" />
+      </ComplexType>
+      <ComplexType Name="identifierUriRestriction">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
+        <Property Name="excludeAppsReceivingV2Tokens" Type="Edm.Boolean" />
+        <Property Name="excludeSaml" Type="Edm.Boolean" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="identity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
@@ -4075,6 +4107,7 @@
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" />
       </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String" />
@@ -4559,6 +4592,10 @@
         <Property Name="userTypeToCreate" Type="graph.userType" />
       </ComplexType>
       <ComplexType Name="onUserCreateStartHandler" Abstract="true" />
+      <ComplexType Name="openIdConnectSetting">
+        <Property Name="clientId" Type="Edm.String" Nullable="false" />
+        <Property Name="discoveryUrl" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="operationError">
         <Property Name="code" Type="Edm.String" />
         <Property Name="message" Type="Edm.String" />
@@ -4608,6 +4645,7 @@
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" />
       </ComplexType>
       <ComplexType Name="passwordProfile">
         <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean" />
@@ -7410,6 +7448,12 @@
         <Property Name="usePreDefinedValuesOnly" Type="Edm.Boolean" />
         <NavigationProperty Name="allowedValues" Type="Collection(graph.allowedValue)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="customSecurityAttributeExemption" BaseType="graph.entity" Abstract="true">
+        <Property Name="operator" Type="graph.customSecurityAttributeComparisonOperator" />
+      </EntityType>
+      <EntityType Name="customSecurityAttributeStringValueExemption" BaseType="graph.customSecurityAttributeExemption">
+        <Property Name="value" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="dataClassificationService" BaseType="graph.entity">
         <NavigationProperty Name="classifyFileJobs" Type="Collection(graph.jobResponseBase)" ContainsTarget="true" />
         <NavigationProperty Name="classifyTextJobs" Type="Collection(graph.jobResponseBase)" ContainsTarget="true" />
@@ -7723,6 +7767,11 @@
         <NavigationProperty Name="accessPackageResourceRoleScopes" Type="Collection(graph.accessPackageResourceRoleScope)" ContainsTarget="true" />
         <NavigationProperty Name="accessPackageResources" Type="Collection(graph.accessPackageResource)" ContainsTarget="true" />
         <NavigationProperty Name="accessPackages" Type="Collection(graph.accessPackage)" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="graph.entitlementManagementSettings" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="entitlementManagementSettings" BaseType="graph.entity">
+        <Property Name="daysUntilExternalUserDeletedAfterBlocked" Type="Edm.Int32" />
+        <Property Name="externalUserLifecycleAction" Type="Edm.String" />
       </EntityType>
       <EntityType Name="entity" Abstract="true">
         <Key>
@@ -7849,6 +7898,12 @@
         <Property Name="isSyncedFromOnPremises" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="externalAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="openIdConnectSetting" Type="graph.openIdConnectSetting" Nullable="false" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="externalUsersSelfServiceSignUpEventsFlow" BaseType="graph.authenticationEventsFlow">
@@ -9713,6 +9768,7 @@
         <Property Name="riskState" Type="graph.riskState" />
         <Property Name="servicePrincipalId" Type="Edm.String" Nullable="false" />
         <Property Name="servicePrincipalName" Type="Edm.String" />
+        <Property Name="sessionId" Type="Edm.String" />
         <Property Name="signInEventTypes" Type="Collection(Edm.String)" />
         <Property Name="signInIdentifier" Type="Edm.String" />
         <Property Name="signInIdentifierType" Type="graph.signInIdentifierType" />
@@ -10093,9 +10149,9 @@
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="tenantAppManagementPolicy" BaseType="graph.policyBase">
-        <Property Name="applicationRestrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="applicationRestrictions" Type="graph.appManagementApplicationConfiguration" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="servicePrincipalRestrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="servicePrincipalRestrictions" Type="graph.appManagementServicePrincipalConfiguration" />
       </EntityType>
       <EntityType Name="tenantRelationship" />
       <EntityType Name="tenantRelationshipAccessPolicyBase" BaseType="graph.policyBase" Abstract="true">
@@ -10512,6 +10568,20 @@
         <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveReports" Type="Collection(graph.directoryObject)" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="userPrincipalName" />
+                    <PropertyValue Property="Name" PropertyPath="userPrincipalName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="userAccountInformation" BaseType="graph.itemFacet">
         <Property Name="ageGroup" Type="Edm.String" Nullable="false" />
@@ -11382,6 +11452,9 @@
       </Action>
       <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.directoryObject" Nullable="false" />
+        <Parameter Name="autoReconcileProxyConflict" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="graph.directoryObject" />
       </Action>
       <Action Name="restore" IsBound="true">
@@ -12686,6 +12759,28 @@
         <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="topTasksInsightsSummary">
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="taskDefinitionDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="taskDefinitionId" Type="Edm.String" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="topWorkflowsInsightsSummary">
+        <Property Name="failedRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="workflowCategory" Type="microsoft.graph.identityGovernance.lifecycleWorkflowCategory" Nullable="false" />
+        <Property Name="workflowDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="workflowId" Type="Edm.String" Nullable="false" />
+        <Property Name="workflowVersion" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="triggerAndScopeBasedConditions" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions">
         <Property Name="scope" Type="graph.subjectSet" />
         <Property Name="trigger" Type="microsoft.graph.identityGovernance.workflowExecutionTrigger" />
@@ -12709,6 +12804,28 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowsInsightsByCategory">
+        <Property Name="failedJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedMoverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulMoverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalJoinerRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalLeaverRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalMoverRuns" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workflowsInsightsSummary">
+        <Property Name="failedRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulUsers" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
         <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -12716,6 +12833,7 @@
         <NavigationProperty Name="createdBy" Type="graph.user" />
         <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
       </EntityType>
+      <EntityType Name="insights" BaseType="graph.entity" />
       <EntityType Name="lifecycleManagementSettings" BaseType="graph.entity">
         <Property Name="emailSettings" Type="graph.emailSettings" Nullable="false" />
         <Property Name="workflowScheduleIntervalInHours" Type="Edm.Int32" Nullable="false" />
@@ -12723,6 +12841,7 @@
       <EntityType Name="lifecycleWorkflowsContainer" BaseType="graph.entity">
         <NavigationProperty Name="customTaskExtensions" Type="Collection(microsoft.graph.identityGovernance.customTaskExtension)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="graph.deletedItemContainer" ContainsTarget="true" />
+        <NavigationProperty Name="insights" Type="microsoft.graph.identityGovernance.insights" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="microsoft.graph.identityGovernance.lifecycleManagementSettings" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="taskDefinitions" Type="Collection(microsoft.graph.identityGovernance.taskDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
@@ -12875,6 +12994,30 @@
         <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <ReturnType Type="microsoft.graph.identityGovernance.userSummary" />
+      </Function>
+      <Function Name="topTasksProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.topTasksInsightsSummary)" />
+      </Function>
+      <Function Name="topWorkflowsProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.topWorkflowsInsightsSummary)" />
+      </Function>
+      <Function Name="workflowsProcessedByCategory" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflowsInsightsByCategory" />
+      </Function>
+      <Function Name="workflowsProcessedSummary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.insights" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflowsInsightsSummary" />
       </Function>
       <Annotations Target="microsoft.graph.accessPackageAssignmentPolicy">
         <Annotation Term="Org.OData.Core.V1.Revisions">
