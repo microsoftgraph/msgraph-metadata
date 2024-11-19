@@ -562,6 +562,12 @@
         <Member Name="disabled" Value="1" />
         <Member Name="enabledForReportingButNotEnforced" Value="2" />
       </EnumType>
+      <EnumType Name="conditionalAccessTransferMethods" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="deviceCodeFlow" Value="1" />
+        <Member Name="authenticationTransfer" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="connectedOrganizationState">
         <Member Name="configured" Value="0" />
         <Member Name="proposed" Value="1" />
@@ -2946,6 +2952,9 @@
         <Property Name="includeAuthenticationContextClassReferences" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeUserActions" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="conditionalAccessAuthenticationFlows">
+        <Property Name="transferMethods" Type="graph.conditionalAccessTransferMethods" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="conditionalAccessClientApplications">
         <Property Name="excludeServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
@@ -2953,6 +2962,7 @@
       </ComplexType>
       <ComplexType Name="conditionalAccessConditionSet">
         <Property Name="applications" Type="graph.conditionalAccessApplications" />
+        <Property Name="authenticationFlows" Type="graph.conditionalAccessAuthenticationFlows" />
         <Property Name="clientApplications" Type="graph.conditionalAccessClientApplications" />
         <Property Name="clientAppTypes" Type="Collection(graph.conditionalAccessClientApp)" Nullable="false" />
         <Property Name="devices" Type="graph.conditionalAccessDevices" />
@@ -6674,6 +6684,7 @@
         <Property Name="supportedServices" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="domainNameReferences" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="federationConfiguration" Type="Collection(graph.internalDomainFederation)" ContainsTarget="true" />
+        <NavigationProperty Name="rootDomain" Type="graph.domain" />
         <NavigationProperty Name="serviceConfigurationRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
         <NavigationProperty Name="verificationDnsRecords" Type="Collection(graph.domainDnsRecord)" ContainsTarget="true" />
       </EntityType>
@@ -11355,6 +11366,9 @@
       </Action>
       <Action Name="verify" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
+        <Parameter Name="forceTakeover" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="graph.domain" />
       </Action>
       <Action Name="windowsDefenderScan" IsBound="true">
@@ -11827,6 +11841,7 @@
         <EntitySet Name="domainDnsRecords" EntityType="microsoft.graph.domainDnsRecord" />
         <EntitySet Name="domains" EntityType="microsoft.graph.domain">
           <NavigationPropertyBinding Path="domainNameReferences" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="rootDomain" Target="domains" />
         </EntitySet>
         <EntitySet Name="drives" EntityType="microsoft.graph.drive" />
         <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
