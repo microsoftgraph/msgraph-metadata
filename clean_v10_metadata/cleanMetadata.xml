@@ -1602,6 +1602,13 @@
         <Member Name="none" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="eligibilityFilteringEnabledEntities" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="swapRequest" Value="1" />
+        <Member Name="offerShiftRequest" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="timeOffReason" Value="8" />
+      </EnumType>
       <EnumType Name="eligibilityScheduleFilterByCurrentUserOptions">
         <Member Name="principal" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
@@ -4389,6 +4396,13 @@
         <Member Name="reactivating" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="siteLockState">
+        <Member Name="unlocked" Value="0" />
+        <Member Name="lockedReadOnly" Value="1" />
+        <Member Name="lockedNoAccess" Value="2" />
+        <Member Name="lockedNoAdditions" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="siteSecurityLevel">
         <Member Name="userDefined" Value="0" />
         <Member Name="low" Value="1" />
@@ -5365,6 +5379,9 @@
         <Member Name="openShiftRequest" Value="32" />
         <Member Name="offerShiftRequest" Value="64" />
         <Member Name="unknownFutureValue" Value="1024" />
+        <Member Name="timeOffReason" Value="4096" />
+        <Member Name="timeOff" Value="8192" />
+        <Member Name="timeOffRequest" Value="16384" />
       </EnumType>
       <EnumType Name="x509CertificateAffinityLevel">
         <Member Name="low" Value="0" />
@@ -5374,6 +5391,11 @@
       <EnumType Name="x509CertificateAuthenticationMode">
         <Member Name="x509CertificateSingleFactor" Value="0" />
         <Member Name="x509CertificateMultiFactor" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="x509CertificateCRLValidationConfigurationState">
+        <Member Name="disabled" Value="0" />
+        <Member Name="enabled" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="x509CertificateRuleType">
@@ -8643,6 +8665,9 @@
         <Property Name="startDate" Type="Edm.Date" />
         <Property Name="type" Type="graph.recurrenceRangeType" />
       </ComplexType>
+      <ComplexType Name="recycleBinSettings">
+        <Property Name="retentionPeriodOverrideDays" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="redirectUriSettings">
         <Property Name="index" Type="Edm.Int32" />
         <Property Name="uri" Type="Edm.String" />
@@ -10203,6 +10228,10 @@
         <Property Name="rules" Type="Collection(graph.x509CertificateRule)" />
         <Property Name="x509CertificateAuthenticationDefaultMode" Type="graph.x509CertificateAuthenticationMode" />
         <Property Name="x509CertificateDefaultRequiredAffinityLevel" Type="graph.x509CertificateAffinityLevel" />
+      </ComplexType>
+      <ComplexType Name="x509CertificateCRLValidationConfiguration">
+        <Property Name="exemptedCertificateAuthoritiesSubjectKeyIdentifiers" Type="Collection(Edm.String)" />
+        <Property Name="state" Type="graph.x509CertificateCRLValidationConfigurationState" Nullable="false" />
       </ComplexType>
       <ComplexType Name="x509CertificateRule">
         <Property Name="identifier" Type="Edm.String" />
@@ -13602,6 +13631,7 @@
       </EntityType>
       <EntityType Name="fileStorage" BaseType="graph.entity">
         <NavigationProperty Name="containers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
+        <NavigationProperty Name="deletedContainers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fileStorageContainer" BaseType="graph.entity">
         <Property Name="containerTypeId" Type="Edm.Guid" Nullable="false" />
@@ -13609,11 +13639,13 @@
         <Property Name="customProperties" Type="graph.fileStorageContainerCustomPropertyDictionary" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="lockState" Type="graph.siteLockState" />
         <Property Name="settings" Type="graph.fileStorageContainerSettings" Nullable="false" />
         <Property Name="status" Type="graph.fileStorageContainerStatus" />
         <Property Name="viewpoint" Type="graph.fileStorageContainerViewpoint" />
         <NavigationProperty Name="drive" Type="graph.drive" />
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
+        <NavigationProperty Name="recycleBin" Type="graph.recycleBin" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="filterOperatorSchema" BaseType="graph.entity">
         <Property Name="arity" Type="graph.scopeOperatorType" Nullable="false" />
@@ -14094,6 +14126,7 @@
         <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
         <Property Name="isSignedAuthenticationRequestRequired" Type="Edm.Boolean" />
         <Property Name="nextSigningCertificate" Type="Edm.String" />
+        <Property Name="passwordResetUri" Type="Edm.String" />
         <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior" />
         <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus" />
         <Property Name="signOutUri" Type="Edm.String" />
@@ -15333,6 +15366,7 @@
       </EntityType>
       <EntityType Name="openShift" BaseType="graph.changeTrackedEntity">
         <Property Name="draftOpenShift" Type="graph.openShiftItem" />
+        <Property Name="isStagedForDeletion" Type="Edm.Boolean" />
         <Property Name="schedulingGroupId" Type="Edm.String" />
         <Property Name="sharedOpenShift" Type="graph.openShiftItem" />
       </EntityType>
@@ -16264,6 +16298,15 @@
         <Property Name="recordingAccessToken" Type="Edm.String" />
         <Property Name="recordingLocation" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="recycleBin" BaseType="graph.baseItem" OpenType="true">
+        <Property Name="settings" Type="graph.recycleBinSettings" />
+        <NavigationProperty Name="items" Type="Collection(graph.recycleBinItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="recycleBinItem" BaseType="graph.baseItem" OpenType="true">
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deletedFromLocation" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int64" />
+      </EntityType>
       <EntityType Name="referenceAttachment" BaseType="graph.attachment" />
       <EntityType Name="relyingPartyDetailedSummary" BaseType="graph.entity">
         <Property Name="failedSignInCount" Type="Edm.Int64" Nullable="false" />
@@ -16946,6 +16989,7 @@
       </EntityType>
       <EntityType Name="shift" BaseType="graph.changeTrackedEntity">
         <Property Name="draftShift" Type="graph.shiftItem" />
+        <Property Name="isStagedForDeletion" Type="Edm.Boolean" />
         <Property Name="schedulingGroupId" Type="Edm.String" />
         <Property Name="sharedShift" Type="graph.shiftItem" />
         <Property Name="userId" Type="Edm.String" />
@@ -17448,6 +17492,7 @@
       </EntityType>
       <EntityType Name="timeOff" BaseType="graph.changeTrackedEntity">
         <Property Name="draftTimeOff" Type="graph.timeOffItem" />
+        <Property Name="isStagedForDeletion" Type="Edm.Boolean" />
         <Property Name="sharedTimeOff" Type="graph.timeOffItem" />
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
@@ -19550,6 +19595,7 @@
       <EntityType Name="workforceIntegration" BaseType="graph.changeTrackedEntity">
         <Property Name="apiVersion" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="eligibilityFilteringEnabledEntities" Type="graph.eligibilityFilteringEnabledEntities" />
         <Property Name="encryption" Type="graph.workforceIntegrationEncryption" />
         <Property Name="isActive" Type="Edm.Boolean" />
         <Property Name="supportedEntities" Type="graph.workforceIntegrationSupportedEntities" />
@@ -19559,6 +19605,7 @@
       <EntityType Name="x509CertificateAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="authenticationModeConfiguration" Type="graph.x509CertificateAuthenticationModeConfiguration" />
         <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)" />
+        <Property Name="crlValidationConfiguration" Type="graph.x509CertificateCRLValidationConfiguration" Nullable="false" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="x509CertificateCombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
@@ -20859,6 +20906,9 @@
         <Parameter Name="redemption" Type="Edm.Untyped" />
         <Parameter Name="basis" Type="Edm.Untyped" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="discardCheckout" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
       </Action>
       <Action Name="disconnect" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.remoteAssistancePartner" />
@@ -22228,6 +22278,12 @@
       <Action Name="locateDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
       </Action>
+      <Action Name="lock" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
+        <Parameter Name="lockState" Type="graph.siteLockState">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+      </Action>
       <Action Name="log" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="number" Type="Edm.Untyped" />
@@ -23067,6 +23123,10 @@
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
       </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
+        <ReturnType Type="graph.fileStorageContainer" />
+      </Action>
       <Action Name="restoreFactoryDefaults" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printer" />
       </Action>
@@ -23419,6 +23479,9 @@
         <Parameter Name="number" Type="Edm.Untyped" />
         <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
+      <Action Name="stageForDeletion" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.changeTrackedEntity" />
+      </Action>
       <Action Name="standardize" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="x" Type="Edm.Untyped" />
@@ -23747,6 +23810,9 @@
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="text" Type="Edm.Untyped" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="unlock" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
       </Action>
       <Action Name="unmerge" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
