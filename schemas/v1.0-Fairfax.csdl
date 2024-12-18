@@ -1206,6 +1206,11 @@
         <Member Name="ctph" Value="6" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="fileStorageContainerStatus">
+        <Member Name="inactive" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="filterMode">
         <Member Name="include" Value="0" />
         <Member Name="exclude" Value="1" />
@@ -3425,6 +3430,13 @@
         <Member Name="reactivating" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="siteLockState">
+        <Member Name="unlocked" Value="0" />
+        <Member Name="lockedReadOnly" Value="1" />
+        <Member Name="lockedNoAccess" Value="2" />
+        <Member Name="lockedNoAdditions" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="siteSecurityLevel">
         <Member Name="userDefined" Value="0" />
         <Member Name="low" Value="1" />
@@ -5517,6 +5529,17 @@
         <Property Name="path" Type="Edm.String" />
         <Property Name="riskScore" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="fileStorageContainerCustomPropertyDictionary" BaseType="graph.Dictionary" OpenType="true" />
+      <ComplexType Name="fileStorageContainerCustomPropertyValue">
+        <Property Name="isSearchable" Type="Edm.Boolean" />
+        <Property Name="value" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="fileStorageContainerSettings">
+        <Property Name="isOcrEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="fileStorageContainerViewpoint">
+        <Property Name="effectiveRole" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="fileSystemInfo">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastAccessedDateTime" Type="Edm.DateTimeOffset" />
@@ -6794,6 +6817,9 @@
         <Property Name="recurrenceTimeZone" Type="Edm.String" />
         <Property Name="startDate" Type="Edm.Date" />
         <Property Name="type" Type="graph.recurrenceRangeType" />
+      </ComplexType>
+      <ComplexType Name="recycleBinSettings">
+        <Property Name="retentionPeriodOverrideDays" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="redirectUriSettings">
         <Property Name="index" Type="Edm.Int32" />
@@ -10216,6 +10242,24 @@
         <Property Name="contentId" Type="Edm.String" />
         <Property Name="contentLocation" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="fileStorage" BaseType="graph.entity">
+        <NavigationProperty Name="containers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
+        <NavigationProperty Name="deletedContainers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="fileStorageContainer" BaseType="graph.entity">
+        <Property Name="containerTypeId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="customProperties" Type="graph.fileStorageContainerCustomPropertyDictionary" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="lockState" Type="graph.siteLockState" />
+        <Property Name="settings" Type="graph.fileStorageContainerSettings" Nullable="false" />
+        <Property Name="status" Type="graph.fileStorageContainerStatus" />
+        <Property Name="viewpoint" Type="graph.fileStorageContainerViewpoint" />
+        <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
+        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
+        <NavigationProperty Name="recycleBin" Type="graph.recycleBin" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="filterOperatorSchema" BaseType="graph.entity">
         <Property Name="arity" Type="graph.scopeOperatorType" Nullable="false" />
         <Property Name="multivaluedComparisonType" Type="graph.scopeOperatorMultiValuedComparisonType" Nullable="false" />
@@ -11811,6 +11855,15 @@
         <Property Name="recordingAccessToken" Type="Edm.String" />
         <Property Name="recordingLocation" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="recycleBin" BaseType="graph.baseItem" OpenType="true">
+        <Property Name="settings" Type="graph.recycleBinSettings" />
+        <NavigationProperty Name="items" Type="Collection(graph.recycleBinItem)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="recycleBinItem" BaseType="graph.baseItem" OpenType="true">
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deletedFromLocation" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int64" />
+      </EntityType>
       <EntityType Name="referenceAttachment" BaseType="graph.attachment" />
       <EntityType Name="relyingPartyDetailedSummary" BaseType="graph.entity">
         <Property Name="failedSignInCount" Type="Edm.Int64" Nullable="false" />
@@ -12314,6 +12367,9 @@
       </EntityType>
       <EntityType Name="startHoldMusicOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="stopHoldMusicOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="storage">
+        <NavigationProperty Name="fileStorage" Type="graph.fileStorage" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
         <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="isOrganizationDefault" Type="Edm.Boolean" />
@@ -14209,6 +14265,9 @@
         <Parameter Name="bindingParameter" Type="graph.synchronization" />
         <Parameter Name="credentials" Type="Collection(graph.synchronizationSecretKeyStringValuePair)" />
       </Action>
+      <Action Name="activate" IsBound="true">
+        <Parameter Name="this" Type="graph.fileStorageContainer" />
+      </Action>
       <Action Name="add" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.conversationMember)" />
         <Parameter Name="values" Type="Collection(graph.conversationMember)" />
@@ -15320,6 +15379,9 @@
         <Parameter Name="redemption" Type="graph.Json" />
         <Parameter Name="basis" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="discardCheckout" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.driveItem" />
       </Action>
       <Action Name="disconnect" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.remoteAssistancePartner" />
@@ -16653,6 +16715,12 @@
       <Action Name="locateDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
       </Action>
+      <Action Name="lock" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
+        <Parameter Name="lockState" Type="graph.siteLockState">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+      </Action>
       <Action Name="log" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="number" Type="graph.Json" />
@@ -17045,6 +17113,9 @@
         <Parameter Name="x" Type="graph.Json" />
         <Parameter Name="significance" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="permanentDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
       </Action>
       <Action Name="permut" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -17445,6 +17516,10 @@
         <Parameter Name="parentReference" Type="graph.itemReference" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
+      </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
+        <ReturnType Type="graph.fileStorageContainer" />
       </Action>
       <Action Name="restoreFactoryDefaults" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printer" />
@@ -18021,6 +18096,9 @@
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="text" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="unlock" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
       </Action>
       <Action Name="unmerge" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
@@ -19178,6 +19256,7 @@
         <Singleton Name="search" Type="microsoft.graph.searchEntity" />
         <Singleton Name="security" Type="microsoft.graph.security" />
         <Singleton Name="solutions" Type="microsoft.graph.solutionsRoot" />
+        <Singleton Name="storage" Type="microsoft.graph.storage" />
         <Singleton Name="teamwork" Type="microsoft.graph.teamwork" />
         <Singleton Name="tenantRelationships" Type="microsoft.graph.tenantRelationship" />
       </EntityContainer>
