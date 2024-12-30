@@ -41,8 +41,7 @@ try {
     & $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false -csdlVersion $version
 
     Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
-    # pin the hidi version till odata to openApi conversion supports 2.0
-    & dotnet tool install --global Microsoft.OpenApi.Hidi --version 1.4.14
+    & dotnet tool install --global Microsoft.OpenApi.Hidi
     & hidi transform --cs $transformed -o $yamlFilePath --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
 
 } catch {
