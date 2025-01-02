@@ -36,5 +36,6 @@ $yaml = Join-Path $repoDirectory "openapi" $version "$platformName.yaml"
 
 Write-Host "Validating $yaml OpenAPI doc..." -ForegroundColor Green
 
-& dotnet tool install --global Microsoft.OpenApi.Hidi
+# pin the hidi version till odata to openApi conversion supports 2.0
+& dotnet tool install --global Microsoft.OpenApi.Hidi --version 1.4.14
 & hidi validate -d $yaml
