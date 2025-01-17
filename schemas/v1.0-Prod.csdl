@@ -6342,6 +6342,9 @@
         <Property Name="chatId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
       </ComplexType>
+      <ComplexType Name="chatRestrictions">
+        <Property Name="allowTextOnly" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="chatViewpoint">
         <Property Name="isHidden" Type="Edm.Boolean" />
         <Property Name="lastMessageReadDateTime" Type="Edm.DateTimeOffset" />
@@ -9881,6 +9884,14 @@
         <Property Name="height" Type="Edm.Int32" />
         <Property Name="width" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="virtualEventExternalInformation">
+        <Property Name="applicationId" Type="Edm.String" />
+        <Property Name="externalEventId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="virtualEventExternalRegistrationInformation">
+        <Property Name="referrer" Type="Edm.String" />
+        <Property Name="registrationId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="virtualEventPresenterDetails">
         <Property Name="bio" Type="graph.itemBody" />
         <Property Name="company" Type="Edm.String" />
@@ -11419,6 +11430,7 @@
       <EntityType Name="chat" BaseType="graph.entity">
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="isHiddenForAllMembers" Type="Edm.Boolean" />
         <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onlineMeetingInfo" Type="graph.teamworkOnlineMeetingInfo" />
         <Property Name="tenantId" Type="Edm.String" />
@@ -14435,6 +14447,7 @@
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="externalId" Type="Edm.String" />
         <Property Name="isBroadcast" Type="Edm.Boolean" />
+        <Property Name="meetingTemplateId" Type="Edm.String" />
         <Property Name="participants" Type="graph.meetingParticipants" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <NavigationProperty Name="recordings" Type="Collection(graph.callRecording)" ContainsTarget="true" />
@@ -14446,9 +14459,12 @@
         <Property Name="allowedPresenters" Type="graph.onlineMeetingPresenters" />
         <Property Name="allowMeetingChat" Type="graph.meetingChatMode" />
         <Property Name="allowParticipantsToChangeName" Type="Edm.Boolean" />
+        <Property Name="allowRecording" Type="Edm.Boolean" />
         <Property Name="allowTeamworkReactions" Type="Edm.Boolean" />
+        <Property Name="allowTranscription" Type="Edm.Boolean" />
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
+        <Property Name="chatRestrictions" Type="graph.chatRestrictions" />
         <Property Name="isEntryExitAnnounced" Type="Edm.Boolean" />
         <Property Name="joinInformation" Type="graph.itemBody" />
         <Property Name="joinMeetingIdSettings" Type="graph.joinMeetingIdSettings" />
@@ -16908,6 +16924,7 @@
         <Property Name="description" Type="graph.itemBody" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="endDateTime" Type="graph.dateTimeTimeZone" />
+        <Property Name="externalEventInformation" Type="Collection(graph.virtualEventExternalInformation)" />
         <Property Name="settings" Type="graph.virtualEventSettings" />
         <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.virtualEventStatus" />
@@ -16922,6 +16939,7 @@
       <EntityType Name="virtualEventRegistration" BaseType="graph.entity">
         <Property Name="cancelationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="email" Type="Edm.String" />
+        <Property Name="externalRegistrationInformation" Type="graph.virtualEventExternalRegistrationInformation" />
         <Property Name="firstName" Type="Edm.String" />
         <Property Name="lastName" Type="Edm.String" />
         <Property Name="preferredLanguage" Type="Edm.String" />
@@ -21703,6 +21721,10 @@
         <Parameter Name="sourceData" Type="graph.Json" />
         <Parameter Name="seriesBy" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
+      <Action Name="setExternalEventInformation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.virtualEvent" />
+        <Parameter Name="externalEventId" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="setMobileDeviceManagementAuthority" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.organization" />
         <ReturnType Type="Edm.Int32" Nullable="false" />
@@ -22991,10 +23013,21 @@
         <ReturnType Type="graph.site" />
       </Function>
       <Function Name="getByUserIdAndRole" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventTownhall)" />
+        <Parameter Name="userId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="role" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.virtualEventTownhall)" />
+      </Function>
+      <Function Name="getByUserIdAndRole" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventWebinar)" />
         <Parameter Name="userId" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="role" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.virtualEventWebinar)" />
+      </Function>
+      <Function Name="getByUserRole" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventTownhall)" />
+        <Parameter Name="role" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.virtualEventTownhall)" />
       </Function>
       <Function Name="getByUserRole" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.virtualEventWebinar)" />
