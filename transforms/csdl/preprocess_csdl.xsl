@@ -2177,6 +2177,22 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+
+    <!-- Update UpdateRestrictions for synchronization/jobs/synchronizationJob/schema navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/jobs/synchronizationJob/schema']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
+        <xsl:copy>
+        <xsl:copy-of select="@*"/>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+            <xsl:copy-of select="edm:Record/edm:PropertyValue"/>
+                <xsl:call-template name="UpdateMethodTemplate">
+                    <xsl:with-param name="httpMethod">PUT</xsl:with-param>            
+                </xsl:call-template>
+                <xsl:call-template name="UpdatableTemplate">
+                    <xsl:with-param name="updatable">true</xsl:with-param>            
+                </xsl:call-template>   
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add UpdateRestrictions for crossTenantAccessPolicyConfigurationPartner/identitySynchronization navigation property -->
