@@ -2543,6 +2543,7 @@
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveReports'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='appRoleAssignments'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='oAuth2PermissionGrant'] |
+                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='rbacApplication']/edm:NavigationProperty[@Name='transitiveRoleAssignments']">
         <xsl:copy>
             <xsl:copy-of select="@*|node()"/>
