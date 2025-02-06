@@ -991,6 +991,15 @@
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
+    <!-- Add paths for user authentication requirements by adding annotations to update properties of the sitePage object-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sitePage']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:call-template name="UpdateRestrictionsTemplate">
+                <xsl:with-param name="updatable">true</xsl:with-param>
+            </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
     <!-- Add paths for user serviceProvisioningErrors by adding annotations to read complex property-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:Property[@Name='serviceProvisioningErrors']|
                          edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:Property[@Name='serviceProvisioningErrors']|
@@ -2193,6 +2202,7 @@
             </xsl:element>
         </xsl:copy>
     </xsl:template>
+
     
     <!-- If only the grand-parent "Annotations" tag exists, modify it -->
     <!-- Add UpdateRestrictions for crossTenantAccessPolicyConfigurationPartner/identitySynchronization navigation property -->
