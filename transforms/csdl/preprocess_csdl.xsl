@@ -2178,8 +2178,8 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- Update UpdateRestrictions for synchronization/jobs/synchronizationJob/schema navigation property -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronization/jobs/synchronizationJob/schema']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
+    <!-- Update UpdateRestrictions for synchronizationJob/schema navigation property -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.synchronizationJob/schema']/edm:Annotation[@Term='Org.OData.Capabilities.V1.UpdateRestrictions']">
         <xsl:copy>
         <xsl:copy-of select="@*"/>
             <xsl:element name="Record" namespace="{namespace-uri()}">
