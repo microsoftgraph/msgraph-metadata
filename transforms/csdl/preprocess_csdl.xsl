@@ -2512,7 +2512,6 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='printerShare']/edm:NavigationProperty[@Name='allowedUsers']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='claimsMappingPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='homeRealmDiscoveryPolicies']|
-                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='managedDevice']/edm:NavigationProperty[@Name='deviceCategory']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postAttributeCollection']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postFederationSignup']">
@@ -2559,7 +2558,6 @@
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='transitiveReports'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='appRoleAssignments'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='oAuth2PermissionGrant'] |
-                    edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager'] |
                     edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='rbacApplication']/edm:NavigationProperty[@Name='transitiveRoleAssignments']">
         <xsl:copy>
             <xsl:copy-of select="@*|node()"/>
@@ -2567,6 +2565,20 @@
                 <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
                 <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
             </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Add both $ref and consistency level header to manager navigation property-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='manager']">
+        <xsl:copy>
+            <xsl:copy-of select="@*|node()"/>
+            <xsl:element name="Annotation">
+                <xsl:attribute name="Term">Org.OData.Capabilities.V1.ReadRestrictions</xsl:attribute>
+                <xsl:call-template name="ConsistencyLevelHeaderTemplate"/>
+            </xsl:element>
+            <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                <xsl:with-param name="referenceable">true</xsl:with-param>
+            </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
