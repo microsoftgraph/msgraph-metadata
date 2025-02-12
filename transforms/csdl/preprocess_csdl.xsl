@@ -478,6 +478,8 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    <!-- Remove the appRoleAssignments entityset as it is not directly queriable from the root path -->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityContainer[@Name='GraphService']/edm:EntitySet[@Name='appRoleAssignments']"/>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph.ediscovery']/edm:EntityType[@Name='case']/edm:NavigationProperty[@Name='operations']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
