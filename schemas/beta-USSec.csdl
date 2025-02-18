@@ -599,20 +599,6 @@
       <EnumType Name="component">
         <Member Name="Label" Value="0" />
       </EnumType>
-      <EnumType Name="conditionalAccessAudienceReason" IsFlags="true">
-        <Member Name="none" Value="0" />
-        <Member Name="resourcelessRequest" Value="1" />
-        <Member Name="confidentialClientIdToken" Value="2" />
-        <Member Name="confidentialClientNonIdToken" Value="4" />
-        <Member Name="resourceMapping" Value="8" />
-        <Member Name="resourceMappingDefault" Value="16" />
-        <Member Name="scopeMapping" Value="32" />
-        <Member Name="scopeMappingDefault" Value="64" />
-        <Member Name="delegatedScope" Value="128" />
-        <Member Name="firstPartyResourceDefault" Value="256" />
-        <Member Name="thirdPartyResourceDefault" Value="512" />
-        <Member Name="unknownFutureValue" Value="1024" />
-      </EnumType>
       <EnumType Name="conditionalAccessClientApp">
         <Member Name="all" Value="0" />
         <Member Name="browser" Value="1" />
@@ -2738,8 +2724,8 @@
         <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
       </ComplexType>
       <ComplexType Name="appManagementConfiguration">
-        <Property Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" />
-        <Property Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" />
+        <NavigationProperty Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" ContainsTarget="true" />
+        <NavigationProperty Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" ContainsTarget="true" />
       </ComplexType>
       <ComplexType Name="appManagementPolicyActorExemptions">
         <NavigationProperty Name="customSecurityAttributes" Type="Collection(graph.customSecurityAttributeExemption)" ContainsTarget="true" />
@@ -3275,10 +3261,6 @@
         <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeAuthenticationContextClassReferences" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeUserActions" Type="Collection(Edm.String)" Nullable="false" />
-      </ComplexType>
-      <ComplexType Name="conditionalAccessAudience">
-        <Property Name="applicationId" Type="Edm.String" />
-        <Property Name="audienceReasons" Type="graph.conditionalAccessAudienceReason" />
       </ComplexType>
       <ComplexType Name="conditionalAccessAuthenticationFlows">
         <Property Name="transferMethods" Type="graph.conditionalAccessTransferMethods" Nullable="false" />
@@ -4124,13 +4106,6 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="usage" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="keyCredentialConfiguration">
-        <Property Name="certificateBasedApplicationConfigurationIds" Type="Collection(Edm.String)" />
-        <Property Name="maxLifetime" Type="Edm.Duration" />
-        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
-        <Property Name="state" Type="graph.appManagementRestrictionState" />
-      </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
@@ -4665,12 +4640,6 @@
         <Property Name="keyId" Type="Edm.Guid" />
         <Property Name="secretText" Type="Edm.String" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-      </ComplexType>
-      <ComplexType Name="passwordCredentialConfiguration">
-        <Property Name="maxLifetime" Type="Edm.Duration" />
-        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" />
-        <Property Name="state" Type="graph.appManagementRestrictionState" />
       </ComplexType>
       <ComplexType Name="passwordProfile">
         <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean" />
@@ -8384,6 +8353,16 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="keyCredentialConfiguration">
+        <Key>
+          <PropertyRef Name="restrictionType" />
+        </Key>
+        <Property Name="certificateBasedApplicationConfigurationIds" Type="Collection(Edm.String)" />
+        <Property Name="maxLifetime" Type="Edm.Duration" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" Nullable="false" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" />
+      </EntityType>
       <EntityType Name="languageProficiency" BaseType="graph.itemFacet">
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="proficiency" Type="graph.languageProficiencyLevel" />
@@ -8792,6 +8771,15 @@
       <EntityType Name="passkeyAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget" />
       <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="password" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="passwordCredentialConfiguration">
+        <Key>
+          <PropertyRef Name="restrictionType" />
+        </Key>
+        <Property Name="maxLifetime" Type="Edm.Duration" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" Nullable="false" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" />
       </EntityType>
       <EntityType Name="passwordlessMicrosoftAuthenticatorAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
@@ -9797,7 +9785,7 @@
         <Property Name="authenticationRequirement" Type="Edm.String" />
         <Property Name="authenticationRequirementPolicies" Type="Collection(graph.authenticationRequirementPolicy)" />
         <Property Name="clientAppUsed" Type="Edm.String" />
-        <Property Name="conditionalAccessAudiences" Type="Collection(graph.conditionalAccessAudience)" />
+        <Property Name="conditionalAccessAudiences" Type="Collection(Edm.String)" />
         <Property Name="conditionalAccessStatus" Type="graph.conditionalAccessStatus" />
         <Property Name="correlationId" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
