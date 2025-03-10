@@ -4,6 +4,5 @@ We use this metadata to generate code files for .Net, Java, TypeScript, PHP, and
 
 Here's a partial list of what you can find in some of the project's folders:
 
-`schema` - the files handed off, via a sync process, directly from the runtime engine of Microsoft Graph.
-
-`openapi` - OpenAPI format descriptions of the Microsoft Graph
+- `schema` - the files handed off, via a sync process, directly from the runtime engine of Microsoft Graph.
+- `openapi` - OpenAPI format descriptions of the Microsoft Graph
