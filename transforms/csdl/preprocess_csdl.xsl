@@ -500,6 +500,18 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+        <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='backupRestoreRoot']/edm:NavigationProperty[@Name='protectionUnits']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+            <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                <Collection>
+					<String>microsoft.graph.siteProtectionUnit</String>
+					<String>microsoft.graph.mailboxProtectionUnit</String>
+					<String>microsoft.graph.driveProtectionUnit</String>
+				</Collection>
+            </Annotation>
+        </xsl:copy>
+    </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='externalUsersSelfServiceSignUpEventsFlow']/edm:Property[@Name='onAttributeCollection']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
