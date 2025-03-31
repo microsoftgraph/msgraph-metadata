@@ -847,6 +847,7 @@
           </Collection>
         </Annotation>
       </EntityType>
+      <EntityType Name="conditionalAccessRoot" />
       <EntityType Name="contract" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="contractType" Type="Edm.String" />
         <Property Name="customerId" Type="Edm.Guid" />
@@ -1183,6 +1184,7 @@
         </Annotation>
       </EntityType>
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="identityContainer" />
       <EntityType Name="identityProviderBase" BaseType="graph.entity" Abstract="true">
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
@@ -1390,6 +1392,17 @@
       <EntityType Name="publicKeyInfrastructureRoot" BaseType="graph.entity">
         <NavigationProperty Name="certificateBasedAuthConfigurations" Type="Collection(graph.certificateBasedAuthPki)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="rbacApplication" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+        <NavigationProperty Name="transitiveRoleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="rbacApplicationMultiple" BaseType="graph.entity">
+        <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
+        <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignmentMultiple)" ContainsTarget="true" />
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="remoteDesktopSecurityConfiguration" BaseType="graph.entity">
         <Property Name="isRemoteDesktopProtocolEnabled" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="targetDeviceGroups" Type="Collection(graph.targetDeviceGroup)" ContainsTarget="true" />
@@ -1400,6 +1413,9 @@
         <Property Name="permission" Type="Edm.String" />
         <Property Name="permissionType" Type="Edm.String" />
         <Property Name="resourceAppId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="roleManagement">
+        <NavigationProperty Name="directory" Type="graph.rbacApplication" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="samlOrWsFedExternalDomainFederation" BaseType="graph.samlOrWsFedProvider">
         <NavigationProperty Name="domains" Type="Collection(graph.externalDomainName)" ContainsTarget="true" />
@@ -1557,6 +1573,19 @@
         <NavigationProperty Name="appScope" Type="graph.appScope" ContainsTarget="true" />
         <NavigationProperty Name="directoryScope" Type="graph.directoryObject" />
         <NavigationProperty Name="principal" Type="graph.directoryObject" />
+        <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
+      </EntityType>
+      <EntityType Name="unifiedRoleAssignmentMultiple" BaseType="graph.entity">
+        <Property Name="appScopeIds" Type="Collection(Edm.String)" />
+        <Property Name="condition" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="directoryScopeIds" Type="Collection(Edm.String)" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="principalIds" Type="Collection(Edm.String)" />
+        <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="appScopes" Type="Collection(graph.appScope)" ContainsTarget="true" />
+        <NavigationProperty Name="directoryScopes" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="principals" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="roleDefinition" Type="graph.unifiedRoleDefinition" />
       </EntityType>
       <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
@@ -1751,6 +1780,13 @@
         <Parameter Name="type" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.directoryObject" />
       </Action>
+      <Action Name="importResourceActions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.unifiedRbacResourceNamespace" />
+        <Parameter Name="format" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="value" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="overwriteResourceNamespace" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.unifiedRbacResourceNamespace" />
+      </Action>
       <Action Name="invalidateAllRefreshTokens" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
@@ -1811,6 +1847,19 @@
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <ReturnType Type="graph.domain" />
       </Action>
+      <Function Name="assignedPrincipals" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.unifiedRoleDefinition" Nullable="false" />
+        <Parameter Name="transitive" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="directoryScopeType" Type="Edm.String" Nullable="false" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="directoryScopeId" Type="Edm.String" Nullable="false" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.directoryObject)" />
+      </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.administrativeUnit)" />
         <ReturnType Type="Collection(graph.administrativeUnit)" />
@@ -1938,10 +1987,12 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveReports" Target="directoryObjects" />
         </EntitySet>
+        <Singleton Name="conditionalAccess" Type="microsoft.graph.conditionalAccessRoot" />
         <Singleton Name="directory" Type="microsoft.graph.directory">
           <NavigationPropertyBinding Path="administrativeUnits/deletedMembers" Target="directoryObjects" />
           <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
         </Singleton>
+        <Singleton Name="identity" Type="microsoft.graph.identityContainer" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -1955,6 +2006,7 @@
           <NavigationPropertyBinding Path="transitiveReports" Target="directoryObjects" />
         </Singleton>
         <Singleton Name="policies" Type="microsoft.graph.policyRoot" />
+        <Singleton Name="roleManagement" Type="microsoft.graph.roleManagement" />
         <Singleton Name="tenantRelationships" Type="microsoft.graph.tenantRelationship" />
       </EntityContainer>
       <Annotations Target="microsoft.graph.administrativeUnit">
