@@ -26,6 +26,11 @@ if([string]::IsNullOrWhiteSpace($platformName))
    $platformName = "openapi"
 }
 
+$hidiResults = dotnet tool list microsoft.openapi.hidi -g --format json | ConvertFrom-json
+if ($hidiResults.data.Length -lt 1) {
+    throw "Hidi tool is not installed. Please install it using the command: dotnet tool install --global Microsoft.OpenApi.Hidi"
+}
+
 $transformCsdlDirectory = Join-Path $repoDirectory "transforms/csdl"
 $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
 $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
@@ -37,12 +42,10 @@ $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 $yamlFilePath = Join-Path $repoDirectory "transformed_$($version)_$($platformName)_metadata.yml"
 
 try {
-    Write-Host "Tranforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
+    Write-Host "Transforming $snapshot metadata using xslt with parameters used in the OpenAPI flow..." -ForegroundColor Green
     & $transformScript -xslPath $xsltPath -inputPath $snapshot -outputPath $transformed -addInnerErrorDescription $true -removeCapabilityAnnotations $false -csdlVersion $version
 
     Write-Host "Validating $transformed metadata after the transform..." -ForegroundColor Green
-    # pin the hidi version till odata to openApi conversion supports 2.0
-    & dotnet tool install --global Microsoft.OpenApi.Hidi
     & hidi transform --cs $transformed -o $yamlFilePath --co -f Yaml --sp "$conversionSettingsDirectory/$platformName.json"
 
 } catch {

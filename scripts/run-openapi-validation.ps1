@@ -32,10 +32,13 @@ if([string]::IsNullOrWhiteSpace($platformName))
    $platformName = "openapi"
 }
 
+$hidiResults = dotnet tool list microsoft.openapi.hidi -g --format json | ConvertFrom-json
+if ($hidiResults.data.Length -lt 1) {
+    throw "Hidi tool is not installed. Please install it using the command: dotnet tool install --global Microsoft.OpenApi.Hidi"
+}
+
 $yaml = Join-Path $repoDirectory "openapi" $version "$platformName.yaml"
 
 Write-Host "Validating $yaml OpenAPI doc..." -ForegroundColor Green
 
-# pin the hidi version till odata to openApi conversion supports 2.0
-& dotnet tool install --global Microsoft.OpenApi.Hidi
 & hidi validate -d $yaml
