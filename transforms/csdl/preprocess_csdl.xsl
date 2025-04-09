@@ -669,6 +669,8 @@
     <!-- This should be a temp fix, tracking: https://github.com/microsoft/OpenAPI.NET.OData/issues/582 -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='verify']/edm:Parameter[@Name='forceTakeover']"/>
 
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph.security']/edm:Action[@Name='estimateStatistics']/edm:Parameter[@Name='statisticsOptions']"/>
+
     <!-- Remove action parameters -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoftgraph/MSGraph-SDK-Code-Generator/issues/261 -->
     <!-- <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='createUploadSession']/edm:Parameter[@Name='deferCommit']"/> -->
