@@ -663,6 +663,7 @@
     <!-- Remove action parameter -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoft/OpenAPI.NET.OData/issues/582 -->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='restore']/edm:Parameter[@Name='autoReconcileProxyConflict']"/>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='restore']/edm:Parameter[@Name='newUserPrincipalName']"/>
 
     <!-- Remove action parameter -->
     <!-- This should be a temp fix, tracking: https://github.com/microsoft/OpenAPI.NET.OData/issues/582 -->
