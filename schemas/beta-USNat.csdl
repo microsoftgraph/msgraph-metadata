@@ -719,29 +719,6 @@
         <Member Name="authenticationTransfer" Value="2" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
-      <EnumType Name="conditionalAccessWhatIfReasons">
-        <Member Name="notSet" Value="0" />
-        <Member Name="notEnoughInformation" Value="1" />
-        <Member Name="invalidCondition" Value="2" />
-        <Member Name="users" Value="3" />
-        <Member Name="workloadIdentities" Value="4" />
-        <Member Name="application" Value="5" />
-        <Member Name="userActions" Value="6" />
-        <Member Name="authenticationContext" Value="7" />
-        <Member Name="devicePlatform" Value="8" />
-        <Member Name="devices" Value="9" />
-        <Member Name="clientApps" Value="10" />
-        <Member Name="location" Value="11" />
-        <Member Name="signInRisk" Value="12" />
-        <Member Name="emptyPolicy" Value="13" />
-        <Member Name="invalidPolicy" Value="14" />
-        <Member Name="policyNotEnabled" Value="15" />
-        <Member Name="userRisk" Value="16" />
-        <Member Name="time" Value="17" />
-        <Member Name="insiderRisk" Value="18" />
-        <Member Name="authenticationFlow" Value="19" />
-        <Member Name="unknownFutureValue" Value="20" />
-      </EnumType>
       <EnumType Name="connectionDirection">
         <Member Name="unknown" Value="0" />
         <Member Name="inbound" Value="1" />
@@ -1425,6 +1402,7 @@
         <Member Name="driveItem" Value="5" />
         <Member Name="user" Value="6" />
         <Member Name="teamsChannel" Value="7" />
+        <Member Name="plannerTask" Value="9" />
       </EnumType>
       <EnumType Name="plannerContextState">
         <Member Name="active" Value="0" />
@@ -2436,6 +2414,29 @@
         <Member Name="flaggedEmails" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="whatIfAnalysisReasons" IsFlags="true">
+        <Member Name="notSet" Value="0" />
+        <Member Name="notEnoughInformation" Value="1" />
+        <Member Name="invalidCondition" Value="2" />
+        <Member Name="users" Value="4" />
+        <Member Name="workloadIdentities" Value="8" />
+        <Member Name="application" Value="16" />
+        <Member Name="userActions" Value="32" />
+        <Member Name="authenticationContext" Value="64" />
+        <Member Name="devicePlatform" Value="128" />
+        <Member Name="devices" Value="256" />
+        <Member Name="clientApps" Value="512" />
+        <Member Name="location" Value="1024" />
+        <Member Name="signInRisk" Value="2048" />
+        <Member Name="emptyPolicy" Value="4096" />
+        <Member Name="invalidPolicy" Value="8192" />
+        <Member Name="policyNotEnabled" Value="16384" />
+        <Member Name="userRisk" Value="32768" />
+        <Member Name="time" Value="65536" />
+        <Member Name="insiderRisk" Value="131072" />
+        <Member Name="authenticationFlow" Value="262144" />
+        <Member Name="unknownFutureValue" Value="524288" />
+      </EnumType>
       <EnumType Name="x509CertificateAffinityLevel">
         <Member Name="low" Value="0" />
         <Member Name="high" Value="1" />
@@ -2680,6 +2681,9 @@
         <Property Name="servicePrincipalId" Type="Edm.String" />
         <Property Name="servicePrincipalName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="applicationContext" BaseType="graph.signInContext">
+        <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
       <ComplexType Name="applicationServicePrincipal">
         <NavigationProperty Name="application" Type="graph.application" />
@@ -2857,6 +2861,9 @@
         <Property Name="app" Type="graph.appIdentity" />
         <Property Name="linkableIdentifiers" Type="graph.linkableIdentifiers" />
         <Property Name="user" Type="graph.userIdentity" />
+      </ComplexType>
+      <ComplexType Name="authContext" BaseType="graph.signInContext">
+        <Property Name="authenticationContextValue" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="authenticationAppDeviceDetails">
         <Property Name="appVersion" Type="Edm.String" />
@@ -3273,7 +3280,6 @@
         <Property Name="userRiskLevels" Type="Collection(graph.riskLevel)" Nullable="false" />
         <Property Name="users" Type="graph.conditionalAccessUsers" />
       </ComplexType>
-      <ComplexType Name="conditionalAccessContext" Abstract="true" />
       <ComplexType Name="conditionalAccessDevices">
         <Property Name="deviceFilter" Type="graph.conditionalAccessFilter" />
         <Property Name="excludeDevices" Type="Collection(Edm.String)" Nullable="false" />
@@ -3345,17 +3351,6 @@
         <Property Name="includeRoles" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeUsers" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="conditionalAccessWhatIfConditions">
-        <Property Name="authenticationFlow" Type="graph.authenticationFlow" />
-        <Property Name="clientAppType" Type="graph.conditionalAccessClientApp" />
-        <Property Name="country" Type="Edm.String" />
-        <Property Name="devicePlatform" Type="graph.conditionalAccessDevicePlatform" />
-        <Property Name="ipAddress" Type="Edm.String" />
-        <Property Name="servicePrincipalRiskLevel" Type="graph.riskLevel" />
-        <Property Name="signInRiskLevel" Type="graph.riskLevel" />
-        <Property Name="userRiskLevel" Type="graph.riskLevel" />
-      </ComplexType>
-      <ComplexType Name="conditionalAccessWhatIfSubject" Abstract="true" />
       <ComplexType Name="configurationUri">
         <Property Name="appliesToSingleSignOnMode" Type="Edm.String" Nullable="false" />
         <Property Name="examples" Type="Collection(Edm.String)" />
@@ -3579,6 +3574,37 @@
         <Property Name="isCompliant" Type="Edm.Boolean" />
         <Property Name="isManaged" Type="Edm.Boolean" />
         <Property Name="operatingSystem" Type="Edm.String" />
+        <Property Name="trustType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="deviceInfo">
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="enrollmentProfileName" Type="Edm.String" />
+        <Property Name="extensionAttribute1" Type="Edm.String" />
+        <Property Name="extensionAttribute10" Type="Edm.String" />
+        <Property Name="extensionAttribute11" Type="Edm.String" />
+        <Property Name="extensionAttribute12" Type="Edm.String" />
+        <Property Name="extensionAttribute13" Type="Edm.String" />
+        <Property Name="extensionAttribute14" Type="Edm.String" />
+        <Property Name="extensionAttribute15" Type="Edm.String" />
+        <Property Name="extensionAttribute2" Type="Edm.String" />
+        <Property Name="extensionAttribute3" Type="Edm.String" />
+        <Property Name="extensionAttribute4" Type="Edm.String" />
+        <Property Name="extensionAttribute5" Type="Edm.String" />
+        <Property Name="extensionAttribute6" Type="Edm.String" />
+        <Property Name="extensionAttribute7" Type="Edm.String" />
+        <Property Name="extensionAttribute8" Type="Edm.String" />
+        <Property Name="extensionAttribute9" Type="Edm.String" />
+        <Property Name="isCompliant" Type="Edm.Boolean" />
+        <Property Name="manufacturer" Type="Edm.String" />
+        <Property Name="mdmAppId" Type="Edm.String" />
+        <Property Name="model" Type="Edm.String" />
+        <Property Name="operatingSystem" Type="Edm.String" />
+        <Property Name="operatingSystemVersion" Type="Edm.String" />
+        <Property Name="ownership" Type="Edm.String" />
+        <Property Name="physicalIds" Type="Collection(Edm.String)" />
+        <Property Name="profileType" Type="Edm.String" />
+        <Property Name="systemLabels" Type="Collection(Edm.String)" />
         <Property Name="trustType" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="deviceKey">
@@ -5309,7 +5335,7 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="servicePrincipalSubject" BaseType="graph.conditionalAccessWhatIfSubject">
+      <ComplexType Name="servicePrincipalSignIn" BaseType="graph.signInIdentity">
         <Property Name="servicePrincipalId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="serviceProvisioningError" Abstract="true">
@@ -5384,6 +5410,18 @@
         <Property Name="lastSuccessfulSignInDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastSuccessfulSignInRequestId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="signInConditions">
+        <Property Name="authenticationFlow" Type="graph.authenticationFlow" />
+        <Property Name="clientAppType" Type="graph.conditionalAccessClientApp" />
+        <Property Name="country" Type="Edm.String" />
+        <Property Name="deviceInfo" Type="graph.deviceInfo" />
+        <Property Name="devicePlatform" Type="graph.conditionalAccessDevicePlatform" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="servicePrincipalRiskLevel" Type="graph.riskLevel" />
+        <Property Name="signInRiskLevel" Type="graph.riskLevel" />
+        <Property Name="userRiskLevel" Type="graph.riskLevel" />
+      </ComplexType>
+      <ComplexType Name="signInContext" Abstract="true" />
       <ComplexType Name="signInFrequencySessionControl" BaseType="graph.conditionalAccessSessionControl">
         <Property Name="authenticationType" Type="graph.signInFrequencyAuthenticationType" />
         <Property Name="frequencyInterval" Type="graph.signInFrequencyInterval" />
@@ -5394,6 +5432,7 @@
         <Property Name="certificateUpdateResult" Type="Edm.String" />
         <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="signInIdentity" Abstract="true" />
       <ComplexType Name="signInLocation">
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
@@ -5974,6 +6013,9 @@
         <Property Name="nextExpectedRanges" Type="Collection(Edm.String)" />
         <Property Name="uploadUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="userActionContext" BaseType="graph.signInContext">
+        <Property Name="userAction" Type="graph.userAction" />
+      </ComplexType>
       <ComplexType Name="userGovernanceCriteria" BaseType="graph.governanceCriteria">
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
@@ -6031,7 +6073,7 @@
       <ComplexType Name="userSet" Abstract="true">
         <Property Name="isBackup" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="userSubject" BaseType="graph.conditionalAccessWhatIfSubject">
+      <ComplexType Name="userSignIn" BaseType="graph.signInIdentity">
         <Property Name="externalTenantId" Type="Edm.String" />
         <Property Name="externalUserType" Type="graph.conditionalAccessGuestOrExternalUserTypes" Nullable="false" />
         <Property Name="userId" Type="Edm.String" />
@@ -6177,15 +6219,6 @@
         <Property Name="address" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="graph.websiteType" />
-      </ComplexType>
-      <ComplexType Name="whatIfApplicationContext" BaseType="graph.conditionalAccessContext">
-        <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
-      </ComplexType>
-      <ComplexType Name="whatIfAuthenticationContext" BaseType="graph.conditionalAccessContext">
-        <Property Name="authenticationContext" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="whatIfUserActionContext" BaseType="graph.conditionalAccessContext">
-        <Property Name="userAction" Type="graph.userAction" />
       </ComplexType>
       <ComplexType Name="workingHours">
         <Property Name="daysOfWeek" Type="Collection(graph.dayOfWeek)" />
@@ -7242,10 +7275,6 @@
         <Property Name="details" Type="graph.conditionalAccessPolicyDetail" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="scenarios" Type="graph.templateScenarios" Nullable="false" />
-      </EntityType>
-      <EntityType Name="conditionalAccessWhatIfPolicy" BaseType="graph.conditionalAccessPolicy">
-        <Property Name="policyApplies" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="reasons" Type="Collection(graph.conditionalAccessWhatIfReasons)" Nullable="false" />
       </EntityType>
       <EntityType Name="connector" BaseType="graph.entity">
         <Property Name="externalIp" Type="Edm.String" Nullable="false" />
@@ -10734,6 +10763,10 @@
         <NavigationProperty Name="corsConfigurations" Type="Collection(graph.corsConfiguration_v2)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="webPart" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="whatIfAnalysisResult" BaseType="graph.conditionalAccessPolicy">
+        <Property Name="analysisReasons" Type="graph.whatIfAnalysisReasons" Nullable="false" />
+        <Property Name="policyApplies" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="windowsHelloForBusinessAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
@@ -11147,11 +11180,11 @@
       </Action>
       <Action Name="evaluate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.conditionalAccessRoot" />
-        <Parameter Name="conditionalAccessWhatIfSubject" Type="graph.conditionalAccessWhatIfSubject" />
-        <Parameter Name="conditionalAccessContext" Type="graph.conditionalAccessContext" />
-        <Parameter Name="conditionalAccessWhatIfConditions" Type="graph.conditionalAccessWhatIfConditions" />
+        <Parameter Name="signInIdentity" Type="graph.signInIdentity" />
+        <Parameter Name="signInContext" Type="graph.signInContext" />
+        <Parameter Name="signInConditions" Type="graph.signInConditions" />
         <Parameter Name="appliedPoliciesOnly" Type="Edm.Boolean" />
-        <ReturnType Type="Collection(graph.conditionalAccessWhatIfPolicy)" />
+        <ReturnType Type="Collection(graph.whatIfAnalysisResult)" />
       </Action>
       <Action Name="evaluateDynamicMembership" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.group)" />
