@@ -446,6 +446,15 @@
         <Member Name="federatedMultiFactor" Value="32768" />
         <Member Name="unknownFutureValue" Value="65536" />
       </EnumType>
+      <EnumType Name="authenticationMethodPlatform">
+        <Member Name="unknown" Value="0" />
+        <Member Name="windows" Value="1" />
+        <Member Name="macOS" Value="2" />
+        <Member Name="iOS" Value="3" />
+        <Member Name="android" Value="4" />
+        <Member Name="linux" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="authenticationMethodSignInState">
         <Member Name="notSupported" Value="0" />
         <Member Name="notAllowedByPolicy" Value="1" />
@@ -8082,6 +8091,16 @@
         <NavigationProperty Name="attributes" Type="Collection(graph.identityUserFlowAttribute)" />
       </ComplexType>
       <ComplexType Name="onAttributeCollectionHandler" Abstract="true" />
+      <ComplexType Name="onAttributeCollectionStartCustomExtensionHandler" BaseType="graph.onAttributeCollectionStartHandler">
+        <Property Name="configuration" Type="graph.customExtensionOverwriteConfiguration" />
+        <NavigationProperty Name="customExtension" Type="graph.onAttributeCollectionStartCustomExtension" />
+      </ComplexType>
+      <ComplexType Name="onAttributeCollectionStartHandler" Abstract="true" />
+      <ComplexType Name="onAttributeCollectionSubmitCustomExtensionHandler" BaseType="graph.onAttributeCollectionSubmitHandler">
+        <Property Name="configuration" Type="graph.customExtensionOverwriteConfiguration" />
+        <NavigationProperty Name="customExtension" Type="graph.onAttributeCollectionSubmitCustomExtension" />
+      </ComplexType>
+      <ComplexType Name="onAttributeCollectionSubmitHandler" Abstract="true" />
       <ComplexType Name="onAuthenticationMethodLoadStartExternalUsersSelfServiceSignUp" BaseType="graph.onAuthenticationMethodLoadStartHandler">
         <NavigationProperty Name="identityProviders" Type="Collection(graph.identityProviderBase)" />
       </ComplexType>
@@ -11058,7 +11077,9 @@
       <EntityType Name="attendanceRecord" BaseType="graph.entity">
         <Property Name="attendanceIntervals" Type="Collection(graph.attendanceInterval)" />
         <Property Name="emailAddress" Type="Edm.String" />
+        <Property Name="externalRegistrationInformation" Type="graph.virtualEventExternalRegistrationInformation" />
         <Property Name="identity" Type="graph.identity" />
+        <Property Name="registrationId" Type="Edm.String" />
         <Property Name="role" Type="Edm.String" />
         <Property Name="totalAttendanceInSeconds" Type="Edm.Int32" />
       </EntityType>
@@ -11100,6 +11121,7 @@
         <NavigationProperty Name="operations" Type="Collection(graph.longRunningOperation)" ContainsTarget="true" />
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="platformCredentialMethods" Type="Collection(graph.platformCredentialAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="softwareOathMethods" Type="Collection(graph.softwareOathAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
@@ -12879,8 +12901,11 @@
         <NavigationProperty Name="users" Type="Collection(graph.educationUser)" />
       </EntityType>
       <EntityType Name="educationSubmission" BaseType="graph.entity">
+        <Property Name="assignmentId" Type="Edm.String" />
         <Property Name="excusedBy" Type="graph.identitySet" />
         <Property Name="excusedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="reassignedBy" Type="graph.identitySet" />
         <Property Name="reassignedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="recipient" Type="graph.educationSubmissionRecipient" />
@@ -13129,6 +13154,8 @@
       <EntityType Name="externalDomainName" BaseType="graph.entity" />
       <EntityType Name="externalUsersSelfServiceSignUpEventsFlow" BaseType="graph.authenticationEventsFlow">
         <Property Name="onAttributeCollection" Type="graph.onAttributeCollectionHandler" />
+        <Property Name="onAttributeCollectionStart" Type="graph.onAttributeCollectionStartHandler" />
+        <Property Name="onAttributeCollectionSubmit" Type="graph.onAttributeCollectionSubmitHandler" />
         <Property Name="onAuthenticationMethodLoadStart" Type="graph.onAuthenticationMethodLoadStartHandler" />
         <Property Name="onInteractiveAuthFlowStart" Type="graph.onInteractiveAuthFlowStartHandler" />
         <Property Name="onUserCreateStart" Type="graph.onUserCreateStartHandler" />
@@ -14248,6 +14275,7 @@
       </EntityType>
       <EntityType Name="mdmWindowsInformationProtectionPolicy" BaseType="graph.windowsInformationProtection" />
       <EntityType Name="meetingAttendanceReport" BaseType="graph.entity">
+        <Property Name="externalEventInformation" Type="Collection(graph.virtualEventExternalInformation)" />
         <Property Name="meetingEndDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="meetingStartDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="totalParticipantCount" Type="Edm.Int32" />
@@ -14482,6 +14510,14 @@
       </EntityType>
       <EntityType Name="onAttributeCollectionListener" BaseType="graph.authenticationEventListener">
         <Property Name="handler" Type="graph.onAttributeCollectionHandler" />
+      </EntityType>
+      <EntityType Name="onAttributeCollectionStartCustomExtension" BaseType="graph.customAuthenticationExtension" />
+      <EntityType Name="onAttributeCollectionStartListener" BaseType="graph.authenticationEventListener">
+        <Property Name="handler" Type="graph.onAttributeCollectionStartHandler" />
+      </EntityType>
+      <EntityType Name="onAttributeCollectionSubmitCustomExtension" BaseType="graph.customAuthenticationExtension" />
+      <EntityType Name="onAttributeCollectionSubmitListener" BaseType="graph.authenticationEventListener">
+        <Property Name="handler" Type="graph.onAttributeCollectionSubmitHandler" />
       </EntityType>
       <EntityType Name="onAuthenticationMethodLoadStartListener" BaseType="graph.authenticationEventListener">
         <Property Name="handler" Type="graph.onAuthenticationMethodLoadStartHandler" />
@@ -14915,6 +14951,13 @@
       <EntityType Name="plannerUser" BaseType="graph.entity">
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" />
         <NavigationProperty Name="tasks" Type="Collection(graph.plannerTask)" />
+      </EntityType>
+      <EntityType Name="platformCredentialAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
+        <Property Name="platform" Type="graph.authenticationMethodPlatform" />
+        <NavigationProperty Name="device" Type="graph.device" />
       </EntityType>
       <EntityType Name="playPromptOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
@@ -23461,6 +23504,10 @@
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
         <ReturnType Type="Collection(graph.archivedPrintJob)" />
       </Function>
+      <Function Name="getRecentlyModifiedSubmissions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.educationClass" />
+        <ReturnType Type="Collection(graph.educationSubmission)" />
+      </Function>
       <Function Name="getRecentNotebooks" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.notebook)" />
         <Parameter Name="includePersonalNotebooks" Type="Edm.Boolean" Nullable="false" />
@@ -26446,6 +26493,18 @@
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/platformCredentialMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -30151,10 +30210,19 @@
       <Annotations Target="microsoft.graph.educationRubric/lastModifiedDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/assignmentId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.educationSubmission/excusedBy">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationSubmission/excusedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.educationSubmission/lastModifiedDateTime">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.educationSubmission/reassignedBy">
