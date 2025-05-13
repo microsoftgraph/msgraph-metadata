@@ -781,6 +781,11 @@
         <Member Name="preset23" Value="23" />
         <Member Name="preset24" Value="24" />
       </EnumType>
+      <EnumType Name="certificateAuthorityType">
+        <Member Name="root" Value="0" />
+        <Member Name="intermediate" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="certificateStatus">
         <Member Name="notProvisioned" Value="0" />
         <Member Name="provisioned" Value="1" />
@@ -11540,8 +11545,28 @@
         <NavigationProperty Name="horizontalSections" Type="Collection(graph.horizontalSection)" ContainsTarget="true" />
         <NavigationProperty Name="verticalSection" Type="graph.verticalSection" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="certificateAuthorityDetail" BaseType="graph.directoryObject">
+        <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
+        <Property Name="certificateAuthorityType" Type="graph.certificateAuthorityType" />
+        <Property Name="certificateRevocationListUrl" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deltaCertificateRevocationListUrl" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="isIssuerHintEnabled" Type="Edm.Boolean" />
+        <Property Name="issuer" Type="Edm.String" />
+        <Property Name="issuerSubjectKeyIdentifier" Type="Edm.String" />
+        <Property Name="thumbprint" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="certificateBasedAuthConfiguration" BaseType="graph.entity">
         <Property Name="certificateAuthorities" Type="Collection(graph.certificateAuthority)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="certificateBasedAuthPki" BaseType="graph.directoryObject">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="status" Type="Edm.String" />
+        <Property Name="statusDetails" Type="Edm.String" />
+        <NavigationProperty Name="certificateAuthorities" Type="Collection(graph.certificateAuthorityDetail)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="changeTrackedEntity" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -12586,6 +12611,7 @@
         <NavigationProperty Name="deviceLocalCredentials" Type="Collection(graph.deviceLocalCredentialInfo)" ContainsTarget="true" />
         <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="onPremisesSynchronization" Type="Collection(graph.onPremisesDirectorySynchronization)" ContainsTarget="true" />
+        <NavigationProperty Name="publicKeyInfrastructure" Type="graph.publicKeyInfrastructureRoot" ContainsTarget="true" />
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
@@ -15331,6 +15357,9 @@
         <Property Name="targetIdentity" Type="graph.provisionedIdentity" />
         <Property Name="targetSystem" Type="graph.provisioningSystem" />
         <Property Name="tenantId" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="publicKeyInfrastructureRoot" BaseType="graph.entity">
+        <NavigationProperty Name="certificateBasedAuthConfigurations" Type="Collection(graph.certificateBasedAuthPki)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="rbacApplication" BaseType="graph.entity">
         <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
@@ -22571,6 +22600,11 @@
         <Parameter Name="bindingParameter" Type="graph.teamsAppInstallation" />
         <Parameter Name="consentedPermissionSet" Type="graph.teamsAppPermissionSet" />
       </Action>
+      <Action Name="upload" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.certificateBasedAuthPki" Nullable="false" />
+        <Parameter Name="uploadUrl" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="sha256FileHash" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
       <Action Name="uploadClientCertificate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.identityApiConnector" />
         <Parameter Name="pkcs12Value" Type="Edm.String" Unicode="false" />
@@ -27515,6 +27549,54 @@
       </Annotations>
       <Annotations Target="microsoft.graph.cancel(microsoft.graph.bookingAppointment, Edm.String)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Cancels the giving booking appointment, sending a message to the involved parties." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.certificateAuthorityDetail">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.certificateBasedAuthPki">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.certification/certificationDetailsUrl">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
