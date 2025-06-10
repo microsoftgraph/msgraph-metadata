@@ -967,8 +967,34 @@
                             </xsl:call-template>
                         </xsl:element>
                     </xsl:element>
+                    <xsl:element name="PropertyValue">
+                        <xsl:attribute name="Property">Navigability</xsl:attribute>
+                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                    </xsl:element> 
                 </xsl:element>
             </xsl:element>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='exceptionOccurrences']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:choose>
+                <xsl:when test="$open-api-generation='False'">
+                    <xsl:element name="Annotations">
+                        <xsl:attribute name="Target">microsoft.graph.event/exceptionOccurrences</xsl:attribute>
+                        <xsl:element name="Annotation">
+                            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
+                            <xsl:element name="Record" namespace="{namespace-uri()}">
+                                <xsl:element name="PropertyValue">
+                                    <xsl:attribute name="Property">Navigability</xsl:attribute>
+                                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
+                                </xsl:element> 
+                            </xsl:element>
+                        </xsl:element> 
+                    </xsl:element>
+                </xsl:when>                       
+            </xsl:choose>
         </xsl:copy>
     </xsl:template>
 
@@ -1375,7 +1401,7 @@
     </xsl:template>
        
     <!-- Add Navigation Restrictions Annotations -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']"> 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
             
