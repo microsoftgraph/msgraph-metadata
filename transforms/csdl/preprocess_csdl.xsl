@@ -967,34 +967,44 @@
                             </xsl:call-template>
                         </xsl:element>
                     </xsl:element>
-                    <xsl:element name="PropertyValue">
-                        <xsl:attribute name="Property">Navigability</xsl:attribute>
-                            <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
-                    </xsl:element> 
                 </xsl:element>
             </xsl:element>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+                <xsl:with-param name="readableByKey">false</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="IndexableByKeyTemplate">
+              <xsl:with-param name="indexableByKey">false</xsl:with-param>
+          </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='bookingBusiness']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='calendar']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='calendarView']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+                <xsl:with-param name="readableByKey">false</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="IndexableByKeyTemplate">
+              <xsl:with-param name="indexableByKey">false</xsl:with-param>
+          </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='exceptionOccurrences']">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:choose>
-                <xsl:when test="$open-api-generation='False'">
-                    <xsl:element name="Annotations">
-                        <xsl:attribute name="Target">microsoft.graph.event/exceptionOccurrences</xsl:attribute>
-                        <xsl:element name="Annotation">
-                            <xsl:attribute name="Term">Org.OData.Capabilities.V1.NavigationRestrictions</xsl:attribute>
-                            <xsl:element name="Record" namespace="{namespace-uri()}">
-                                <xsl:element name="PropertyValue">
-                                    <xsl:attribute name="Property">Navigability</xsl:attribute>
-                                        <xsl:element name="EnumMember">Org.OData.Capabilities.V1.NavigationType/None</xsl:element>
-                                </xsl:element> 
-                            </xsl:element>
-                        </xsl:element> 
-                    </xsl:element>
-                </xsl:when>                       
-            </xsl:choose>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">false</xsl:with-param>
+                <xsl:with-param name="readableByKey">false</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="IndexableByKeyTemplate">
+                <xsl:with-param name="indexableByKey">false</xsl:with-param>
+            </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
