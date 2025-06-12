@@ -969,6 +969,43 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
+            <!--Add readRestcitions to Instances through annotations. Instances is readble, but not indexable or readableByKey-->
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+                <xsl:with-param name="readableByKey">false</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="IndexableByKeyTemplate">
+              <xsl:with-param name="indexableByKey">false</xsl:with-param>
+            </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+
+    <!--Add readRestcitions to CalendarView through annotations. CalendarView is readble, but not indexable or readableByKey-->
+    <!--https://github.com/oasis-tcs/odata-vocabularies/blob/main/vocabularies/Org.OData.Capabilities.V1.md#ReadByKeyRestrictionsType-->
+    <!--https://github.com/oasis-tcs/odata-vocabularies/blob/main/vocabularies/Org.OData.Capabilities.V1.md#defaultcapabilitiestype-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='bookingBusiness']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='calendar']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='group']/edm:NavigationProperty[@Name='calendarView']|
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='calendarView']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+            <xsl:call-template name="ReadRestrictionsTemplate">
+                <xsl:with-param name="readable">true</xsl:with-param>
+                <xsl:with-param name="readableByKey">false</xsl:with-param>
+            </xsl:call-template>
+            <xsl:call-template name="IndexableByKeyTemplate">
+              <xsl:with-param name="indexableByKey">false</xsl:with-param>
+          </xsl:call-template>
+        </xsl:copy>
+    </xsl:template>
+  <!--Remove exceptionOccurrences from all URI and navigation paths by adding NavigrationRestriction annotations-->
+  <!--https://github.com/oasis-tcs/odata-vocabularies/blob/main/vocabularies/Org.OData.Capabilities.V1.md#navigationrestrictionstype-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='exceptionOccurrences']">
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
@@ -1375,7 +1412,7 @@
     </xsl:template>
        
     <!-- Add Navigation Restrictions Annotations -->
-    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']"> 
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
             
