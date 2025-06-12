@@ -997,14 +997,10 @@
 
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='event']/edm:NavigationProperty[@Name='exceptionOccurrences']">
         <xsl:copy>
-            <xsl:apply-templates select="@* | node()"/>
-            <xsl:call-template name="ReadRestrictionsTemplate">
-                <xsl:with-param name="readable">false</xsl:with-param>
-                <xsl:with-param name="readableByKey">false</xsl:with-param>
-            </xsl:call-template>
-            <xsl:call-template name="IndexableByKeyTemplate">
-                <xsl:with-param name="indexableByKey">false</xsl:with-param>
-            </xsl:call-template>
+            <xsl:copy-of select="@* | node()" />
+                <xsl:call-template name="NavigationRestrictionsTemplate">
+                    <xsl:with-param name="navigability">None</xsl:with-param>
+                </xsl:call-template>
         </xsl:copy>
     </xsl:template>
 
