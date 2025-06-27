@@ -1,0 +1,36 @@
+name: validate typespec changes
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: additions
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install typescript and typespec globally
+        run: npm i -g typescript @typespec/compiler
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: build typespec
+        run: tsp compile .
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: CSDLs
+          path: tsp-output/*.csdl
