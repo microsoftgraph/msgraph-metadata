@@ -1,9 +1,21 @@
 import "@microsoft/typespec-msgraph";
 
-using Http;
-@service(#{ title: "Microsoft Graph" })
-namespace Microsoft.Graph;
+using MsGraph;
 
-@entity()
-model OrgContact {
+@publicNamespace("microsoft.graph")
+@container("GraphService")
+namespace microsoft.graph {
+
+	@entity()
+	model OrgContact extends SharedModels.entity {
+		displayName: string | null
+	}
+	@graphRoute("contacts/{id}")
+	interface OrgContactsById extends Resource<OrgContact> {
+        @select GetResource is GraphOps.GetResource;
+	}
+	@graphRoute("contacts")
+	interface OrgContacts extends Collection<OrgContact> {
+        @orderBy("displayName") @filter("*") @search @count @select @top GetCollection is GraphOps.GetPagedCollection;
+	}
 }
