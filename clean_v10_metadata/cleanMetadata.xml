@@ -732,6 +732,12 @@
         <Member Name="incoming" Value="0" />
         <Member Name="outgoing" Value="1" />
       </EnumType>
+      <EnumType Name="callEventType">
+        <Member Name="callStarted" Value="0" />
+        <Member Name="callEnded" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="rosterUpdated" Value="3" />
+      </EnumType>
       <EnumType Name="callRecordingStatus">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
@@ -7213,6 +7219,13 @@
         <Property Name="senderDomain" Type="Edm.String" Nullable="false" />
         <Property Name="useCompanyBranding" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="emergencyCallerInfo">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="location" Type="graph.location" />
+        <Property Name="phoneNumber" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="upn" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="employeeOrgData">
         <Property Name="costCenter" Type="Edm.String" />
         <Property Name="division" Type="Edm.String" />
@@ -11772,6 +11785,11 @@
         <NavigationProperty Name="operations" Type="Collection(graph.commsOperation)" ContainsTarget="true" />
         <NavigationProperty Name="participants" Type="Collection(graph.participant)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="callEvent" BaseType="graph.entity">
+        <Property Name="callEventType" Type="graph.callEventType" Nullable="false" />
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="participants" Type="Collection(graph.participant)" />
+      </EntityType>
       <EntityType Name="callRecording" BaseType="graph.entity">
         <Property Name="callId" Type="Edm.String" />
         <Property Name="content" Type="Edm.Stream" />
@@ -13607,6 +13625,11 @@
         <Property Name="contentData" Type="Edm.String" Nullable="false" />
         <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
         <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="emergencyCallEvent" BaseType="graph.callEvent">
+        <Property Name="callerInfo" Type="graph.emergencyCallerInfo" />
+        <Property Name="emergencyNumberDialed" Type="Edm.String" />
+        <Property Name="policyName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="employeeExperience">
         <NavigationProperty Name="communities" Type="Collection(graph.community)" ContainsTarget="true" />
@@ -45060,6 +45083,7 @@
       </EntityType>
       <EntityType Name="billingReconciliation" BaseType="graph.entity">
         <NavigationProperty Name="billed" Type="microsoft.graph.partners.billing.billedReconciliation" ContainsTarget="true" Nullable="false" />
+        <NavigationProperty Name="unbilled" Type="microsoft.graph.partners.billing.unbilledReconciliation" ContainsTarget="true" Nullable="false" />
       </EntityType>
       <EntityType Name="exportSuccessOperation" BaseType="microsoft.graph.partners.billing.operation">
         <NavigationProperty Name="resourceLocation" Type="microsoft.graph.partners.billing.manifest" Nullable="false" />
@@ -45085,6 +45109,7 @@
         <Property Name="status" Type="graph.longRunningOperationStatus" />
       </EntityType>
       <EntityType Name="runningOperation" BaseType="microsoft.graph.partners.billing.operation" />
+      <EntityType Name="unbilledReconciliation" BaseType="graph.entity" />
       <EntityType Name="unbilledUsage" BaseType="graph.entity" />
       <Action Name="export" IsBound="true">
         <Parameter Name="this" Type="microsoft.graph.partners.billing.billedReconciliation" />
@@ -45097,6 +45122,13 @@
       <Action Name="export" IsBound="true">
         <Parameter Name="this" Type="microsoft.graph.partners.billing.billedUsage" />
         <Parameter Name="invoiceId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="attributeSet" Type="microsoft.graph.partners.billing.attributeSet" />
+        <ReturnType Type="microsoft.graph.partners.billing.operation" />
+      </Action>
+      <Action Name="export" IsBound="true">
+        <Parameter Name="this" Type="microsoft.graph.partners.billing.unbilledReconciliation" />
+        <Parameter Name="currencyCode" Type="Edm.String" Unicode="false" />
+        <Parameter Name="billingPeriod" Type="microsoft.graph.partners.billing.billingPeriod" />
         <Parameter Name="attributeSet" Type="microsoft.graph.partners.billing.attributeSet" />
         <ReturnType Type="microsoft.graph.partners.billing.operation" />
       </Action>
