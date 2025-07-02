@@ -5,7 +5,7 @@
 .Synopsis
     Runs MetadataParser tool to validate latest XSLT rules don't break downstream parsing of the metadata
 .Description
-    1. tranforms latests snapshots of beta or v1 metadata
+    1. transforms latests snapshots of beta or v1 metadata
     2. validates that the transformed metadata is parsable as OData EDM model and conversion to OpenAPI document is possible
 .Example
     ./scripts/run-metadata-validation.ps1 -repoDirectory C:/github/msgraph-metadata -version "v1.0"
