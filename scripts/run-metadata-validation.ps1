@@ -36,7 +36,7 @@ $transformScript = Join-Path $transformCsdlDirectory "transform.ps1"
 $xsltPath = Join-Path $transformCsdlDirectory "preprocess_csdl.xsl"
 $conversionSettingsDirectory = Join-Path $repoDirectory "conversion-settings"
 
-$snapshot = Join-Path $repoDirectory "schemas" "annotated-$($version)-Prod.csdl"
+$snapshot = Join-Path $repoDirectory "schemas" "$($version)-Prod.csdl"
 
 $transformed = Join-Path $repoDirectory "transformed_$($version)_metadata.xml"
 $yamlFilePath = Join-Path $repoDirectory "transformed_$($version)_$($platformName)_metadata.yml"
