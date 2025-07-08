@@ -6723,6 +6723,8 @@
       </ComplexType>
       <ComplexType Name="computeRightsAndInheritanceResult">
         <NavigationProperty Name="contentRights" Type="Collection(graph.labelContentRight)" />
+        <NavigationProperty Name="inheritedLabel" Type="graph.sensitivityLabel" />
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" />
       </ComplexType>
       <ComplexType Name="conditionalAccessAllExternalTenants" BaseType="graph.conditionalAccessExternalTenants" />
       <ComplexType Name="conditionalAccessApplications">
@@ -6799,6 +6801,7 @@
         <Property Name="cloudAppSecurity" Type="graph.cloudAppSecuritySessionControl" />
         <Property Name="disableResilienceDefaults" Type="Edm.Boolean" />
         <Property Name="persistentBrowser" Type="graph.persistentBrowserSessionControl" />
+        <Property Name="secureSignInSession" Type="graph.secureSignInSessionControl" />
         <Property Name="signInFrequency" Type="graph.signInFrequencySessionControl" />
       </ComplexType>
       <ComplexType Name="conditionalAccessUsers">
@@ -9330,6 +9333,7 @@
         <Property Name="updatedBy" Type="Edm.String" />
         <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="secureSignInSessionControl" BaseType="graph.conditionalAccessSessionControl" />
       <ComplexType Name="securityResource">
         <Property Name="resource" Type="Edm.String" />
         <Property Name="resourceType" Type="graph.securityResourceType" />
@@ -12390,7 +12394,9 @@
         <Property Name="submittedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="userId" Type="Edm.String" Nullable="false" />
       </EntityType>
-      <EntityType Name="dataSecurityAndGovernance" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="dataSecurityAndGovernance" BaseType="graph.entity" Abstract="true">
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="dayNote" BaseType="graph.changeTrackedEntity">
         <Property Name="dayNoteDate" Type="Edm.Date" />
         <Property Name="draftDayNote" Type="graph.itemBody" />
@@ -14132,6 +14138,8 @@
       <EntityType Name="labelContentRight" BaseType="graph.entity">
         <Property Name="cid" Type="Edm.String" />
         <Property Name="format" Type="Edm.String" />
+        <Property Name="rights" Type="graph.usageRights" Nullable="false" />
+        <NavigationProperty Name="label" Type="graph.sensitivityLabel" Nullable="false" />
       </EntityType>
       <EntityType Name="landingPage" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.emailIdentity" />
@@ -16017,6 +16025,21 @@
       <EntityType Name="securityReportsRoot" BaseType="graph.entity" />
       <EntityType Name="sendDtmfTonesOperation" BaseType="graph.commsOperation" OpenType="true">
         <Property Name="completionReason" Type="graph.sendDtmfCompletionReason" />
+      </EntityType>
+      <EntityType Name="sensitivityLabel" BaseType="graph.entity">
+        <Property Name="actionSource" Type="graph.labelActionSource" />
+        <Property Name="autoTooltip" Type="Edm.String" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isDefault" Type="Edm.Boolean" />
+        <Property Name="isEndpointProtectionEnabled" Type="Edm.Boolean" />
+        <Property Name="isScopedToUser" Type="Edm.Boolean" />
+        <Property Name="locale" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="priority" Type="Edm.Int32" />
+        <Property Name="toolTip" Type="Edm.String" />
+        <NavigationProperty Name="rights" Type="graph.usageRightsIncluded" />
+        <NavigationProperty Name="sublabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="serviceAnnouncement" BaseType="graph.entity">
         <NavigationProperty Name="healthOverviews" Type="Collection(graph.serviceHealth)" ContainsTarget="true" />
@@ -19449,6 +19472,14 @@
         <Parameter Name="deviceMetadata" Type="graph.deviceMetadata" />
         <Parameter Name="integratedAppMetadata" Type="graph.integratedApplicationMetadata" />
         <ReturnType Type="Collection(graph.policyUserScope)" />
+      </Action>
+      <Action Name="computeRightsAndInheritance" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.sensitivityLabel)" />
+        <Parameter Name="delegatedUserEmail" Type="Edm.String" Unicode="false" />
+        <Parameter Name="locale" Type="Edm.String" Unicode="false" />
+        <Parameter Name="protectedContents" Type="Collection(graph.protectedContent)" Nullable="false" />
+        <Parameter Name="supportedContentFormats" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.computeRightsAndInheritanceResult" />
       </Action>
       <Action Name="concatenate" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -23288,6 +23319,13 @@
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
         <Parameter Name="count" Type="Edm.Int32" />
         <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="computeInheritance" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.sensitivityLabel)" />
+        <Parameter Name="labelIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="locale" Type="Edm.String" Unicode="false" />
+        <Parameter Name="contentFormats" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="graph.sensitivityLabel" />
       </Function>
       <Function Name="count" IsBound="true">
         <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
