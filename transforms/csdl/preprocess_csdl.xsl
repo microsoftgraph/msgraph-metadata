@@ -500,7 +500,7 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
-        <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='backupRestoreRoot']/edm:NavigationProperty[@Name='protectionUnits']">
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='backupRestoreRoot']/edm:NavigationProperty[@Name='protectionUnits']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
             <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
@@ -509,6 +509,12 @@
 					<String>microsoft.graph.mailboxProtectionUnit</String>
 					<String>microsoft.graph.driveProtectionUnit</String>
 				</Collection>
+            </Annotation>
+            <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
+                <Collection>
+                    <String>microsoft.graph.cancelOffboard</String>
+                    <String>microsoft.graph.offboard</String>
+                </Collection>
             </Annotation>
         </xsl:copy>
     </xsl:template>
@@ -700,6 +706,15 @@
         <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
     </xsl:copy>
     </xsl:template>
+
+    <!-- Actions bound to protectionUnitBase should have the 'RequiresExplicitBinding' annotation-->
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='offboard'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='graph.protectionUnitBase']] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Action[@Name='cancelOffboard'][edm:Parameter[@Name='bindingParameter']][edm:Parameter[@Type='graph.protectionUnitBase']]">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" />
+            <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding"/>
+        </xsl:copy>
+    </xsl:template>    
     
     <!--Delta function for events need the start and end date parameters-->
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Function[@Name='delta'][edm:Parameter[@Name='bindingparameter']][edm:Parameter[@Type='Collection(graph.event)']]">
