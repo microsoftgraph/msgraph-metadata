@@ -73,6 +73,12 @@
         <Member Name="active" Value="0" />
         <Member Name="inactive" Value="1" />
       </EnumType>
+      <EnumType Name="aggregationPeriod">
+        <Member Name="d1" Value="0" />
+        <Member Name="d7" Value="1" />
+        <Member Name="d30" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -6948,6 +6954,9 @@
         <NavigationProperty Name="authenticationMethodConfigurations" Type="Collection(graph.authenticationMethodConfiguration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authenticationMethodsRoot" BaseType="graph.entity">
+        <NavigationProperty Name="userEventsSummary" Type="Collection(graph.userEventsSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="userMfaSignInSummary" Type="Collection(graph.userMfaSignInSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="userPasswordResetsAndChangesSummary" Type="Collection(graph.userPasswordResetsAndChangesSummary)" ContainsTarget="true" />
         <NavigationProperty Name="userRegistrationDetails" Type="Collection(graph.userRegistrationDetails)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authenticationMethodTarget" BaseType="graph.entity">
@@ -10719,8 +10728,35 @@
         <Property Name="userDisplayName" Type="Edm.String" Nullable="false" />
         <Property Name="userPrincipalName" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="userEventsSummary" BaseType="graph.entity">
+        <Property Name="authMethod" Type="graph.usageAuthMethod" Nullable="false" />
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="failureReason" Type="Edm.String" Nullable="false" />
+        <Property Name="feature" Type="graph.featureType" Nullable="false" />
+        <Property Name="isSuccess" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="userDisplayName" Type="Edm.String" Nullable="false" />
+        <Property Name="userPrincipalName" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="userInsightsSettings" BaseType="graph.entity">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="userMfaSignInSummary" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="multiFactorSignIns" Type="Edm.Int64" />
+        <Property Name="singleFactorSignIns" Type="Edm.Int64" />
+        <Property Name="totalSignIns" Type="Edm.Int64" />
+      </EntityType>
+      <EntityType Name="userPasswordResetsAndChangesSummary" BaseType="graph.entity">
+        <Property Name="aggregatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="changePasswordSelfServiceCount" Type="Edm.Int64" />
+        <Property Name="passwordResetsByAdminCount" Type="Edm.Int64" />
+        <Property Name="passwordResetsSelfServiceCount" Type="Edm.Int64" />
+      </EntityType>
+      <EntityType Name="userRegistrationActivitySummary" BaseType="graph.entity">
+        <Property Name="authMethod" Type="graph.usageAuthMethod" Nullable="false" />
+        <Property Name="failureActivityCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="feature" Type="graph.featureType" Nullable="false" />
+        <Property Name="successfulActivityCount" Type="Edm.Int64" Nullable="false" />
       </EntityType>
       <EntityType Name="userRegistrationDetails" BaseType="graph.entity">
         <Property Name="defaultMfaMethod" Type="graph.defaultMfaMethodType" />
@@ -10749,6 +10785,13 @@
       </EntityType>
       <EntityType Name="userSignInInsight" BaseType="graph.governanceInsight">
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="userSignInUsageByAuthMethodActivity">
+        <Key>
+          <PropertyRef Name="authenticationMethod" />
+        </Key>
+        <Property Name="authenticationMethod" Type="Edm.String" Nullable="false" />
+        <Property Name="successActivityCount" Type="Edm.Int64" Nullable="false" />
       </EntityType>
       <EntityType Name="userTeamwork" BaseType="graph.entity">
         <Property Name="locale" Type="Edm.String" />
@@ -12621,6 +12664,16 @@
         <Parameter Name="bindingParameter" Type="graph.authenticationStrengthPolicy" />
         <ReturnType Type="graph.authenticationStrengthUsage" />
       </Function>
+      <Function Name="userRegistrationActivity" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="period" Type="graph.aggregationPeriod" Nullable="false" />
+        <ReturnType Type="Collection(graph.userRegistrationActivitySummary)" Nullable="false" />
+      </Function>
+      <Function Name="userSignInsByAuthMethodSummary" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
+        <Parameter Name="period" Type="graph.aggregationPeriod" Nullable="false" />
+        <ReturnType Type="Collection(graph.userSignInUsageByAuthMethodActivity)" Nullable="false" />
+      </Function>
       <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
         <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
@@ -14185,6 +14238,19 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-06-21" />
+              <PropertyValue Property="Description" String="The Reporting getCredentialUsageSummary API is deprecated and will stop returning data on June 30, 2025. Please use the new userRegistrationActivity API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2024-06-30" />
+              <PropertyValue Property="Version" String="2023-06/credentialUserRegistrationDetails" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.credentialUserRegistrationCount">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
@@ -17270,6 +17336,37 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.userCredentialUsageDetails">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-06-21" />
+              <PropertyValue Property="Description" String="The Reporting userCredentialUsageDetails API is deprecated and will stop returning data on June 30, 2025. Please use the new userEventsSummary API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2024-06-30" />
+              <PropertyValue Property="Version" String="2023-06/credentialUserRegistrationDetails" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.userEventsSummary">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.userRegistrationActivitySummary">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
