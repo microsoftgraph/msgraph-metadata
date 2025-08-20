@@ -892,6 +892,50 @@
         <Member Name="userDefined" Value="5" />
         <Member Name="block" Value="6" />
       </EnumType>
+      <EnumType Name="delegatedAdminAccessAssignmentStatus">
+        <Member Name="pending" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="deleting" Value="2" />
+        <Member Name="deleted" Value="3" />
+        <Member Name="error" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="delegatedAdminAccessContainerType">
+        <Member Name="securityGroup" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipOperationType">
+        <Member Name="delegatedAdminAccessAssignmentUpdate" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+        <Member Name="delegatedAdminRelationshipUpdate" Value="2" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipRequestAction">
+        <Member Name="lockForApproval" Value="0" />
+        <Member Name="approve" Value="1" />
+        <Member Name="terminate" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+        <Member Name="reject" Value="4" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipRequestStatus">
+        <Member Name="created" Value="0" />
+        <Member Name="pending" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="delegatedAdminRelationshipStatus">
+        <Member Name="activating" Value="0" />
+        <Member Name="active" Value="1" />
+        <Member Name="approvalPending" Value="2" />
+        <Member Name="approved" Value="3" />
+        <Member Name="created" Value="4" />
+        <Member Name="expired" Value="5" />
+        <Member Name="expiring" Value="6" />
+        <Member Name="terminated" Value="7" />
+        <Member Name="terminating" Value="8" />
+        <Member Name="terminationRequested" Value="9" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
       <EnumType Name="delegateMeetingMessageDeliveryOptions">
         <Member Name="sendToDelegateAndInformationToPrincipal" Value="0" />
         <Member Name="sendToDelegateAndPrincipal" Value="1" />
@@ -5319,6 +5363,17 @@
         <Property Name="moderateSeverity" Type="graph.defenderThreatAction" Nullable="false" />
         <Property Name="severeSeverity" Type="graph.defenderThreatAction" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="delegatedAdminAccessContainer">
+        <Property Name="accessContainerId" Type="Edm.String" Nullable="false" />
+        <Property Name="accessContainerType" Type="graph.delegatedAdminAccessContainerType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdminAccessDetails">
+        <Property Name="unifiedRoles" Type="Collection(graph.unifiedRole)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdminRelationshipCustomerParticipant">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deleted">
         <Property Name="state" Type="Edm.String" />
       </ComplexType>
@@ -7743,6 +7798,9 @@
         <Property Name="isEscalationEnabled" Type="Edm.Boolean" />
         <Property Name="primaryApprovers" Type="Collection(graph.subjectSet)" />
       </ComplexType>
+      <ComplexType Name="unifiedRole">
+        <Property Name="roleDefinitionId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="unifiedRoleManagementPolicyRuleTarget">
         <Property Name="caller" Type="Edm.String" />
         <Property Name="enforcedSettings" Type="Collection(Edm.String)" />
@@ -9595,6 +9653,50 @@
         <Property Name="screenCaptureBlocked" Type="Edm.Boolean" Nullable="false" />
         <NavigationProperty Name="apps" Type="Collection(graph.managedMobileApp)" ContainsTarget="true" />
         <NavigationProperty Name="deploymentSummary" Type="graph.managedAppPolicyDeploymentSummary" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="delegatedAdminAccessAssignment" BaseType="graph.entity">
+        <Property Name="accessContainer" Type="graph.delegatedAdminAccessContainer" Nullable="false" />
+        <Property Name="accessDetails" Type="graph.delegatedAdminAccessDetails" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminAccessAssignmentStatus" />
+      </EntityType>
+      <EntityType Name="delegatedAdminCustomer" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="serviceManagementDetails" Type="Collection(graph.delegatedAdminServiceManagementDetail)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationship" BaseType="graph.entity">
+        <Property Name="accessDetails" Type="graph.delegatedAdminAccessDetails" Nullable="false" />
+        <Property Name="activatedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="autoExtendDuration" Type="Edm.Duration" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="customer" Type="graph.delegatedAdminRelationshipCustomerParticipant" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="duration" Type="Edm.Duration" Nullable="false" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminRelationshipStatus" />
+        <NavigationProperty Name="accessAssignments" Type="Collection(graph.delegatedAdminAccessAssignment)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.delegatedAdminRelationshipOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="requests" Type="Collection(graph.delegatedAdminRelationshipRequest)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationshipOperation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="data" Type="Edm.String" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="operationType" Type="graph.delegatedAdminRelationshipOperationType" Nullable="false" />
+        <Property Name="status" Type="graph.longRunningOperationStatus" Nullable="false" />
+      </EntityType>
+      <EntityType Name="delegatedAdminRelationshipRequest" BaseType="graph.entity">
+        <Property Name="action" Type="graph.delegatedAdminRelationshipRequestAction" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.delegatedAdminRelationshipRequestStatus" />
+      </EntityType>
+      <EntityType Name="delegatedAdminServiceManagementDetail" BaseType="graph.entity">
+        <Property Name="serviceManagementUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="serviceName" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="classification" Type="graph.permissionClassificationType" />
@@ -12110,6 +12212,10 @@
         <Property Name="customData" Type="Edm.String" />
         <Property Name="status" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="resellerDelegatedAdminRelationship" BaseType="graph.delegatedAdminRelationship">
+        <Property Name="indirectProviderTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="isPartnerConsentPending" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="resourceOperation" BaseType="graph.entity">
         <Property Name="actionName" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
@@ -12789,7 +12895,10 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="servicePrincipalRestrictions" Type="graph.appManagementServicePrincipalConfiguration" />
       </EntityType>
-      <EntityType Name="tenantRelationship" />
+      <EntityType Name="tenantRelationship">
+        <NavigationProperty Name="delegatedAdminCustomers" Type="Collection(graph.delegatedAdminCustomer)" ContainsTarget="true" />
+        <NavigationProperty Name="delegatedAdminRelationships" Type="Collection(graph.delegatedAdminRelationship)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="termsAndConditions" BaseType="graph.entity">
         <Property Name="acceptanceStatement" Type="Edm.String" />
         <Property Name="bodyText" Type="Edm.String" />
@@ -36648,7 +36757,7 @@
         <Property Name="size" Type="Edm.Int64" />
       </ComplexType>
       <ComplexType Name="resourceAccessEvent">
-        <Property Name="accessDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="accessDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="accountId" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="resourceIdentifier" Type="Edm.String" />
@@ -36675,8 +36784,12 @@
         <Property Name="storageResource" Type="microsoft.graph.security.azureResourceEvidence" />
       </ComplexType>
       <ComplexType Name="securityGroupEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="activeDirectoryObjectGuid" Type="Edm.Guid" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="distinguishedName" Type="Edm.String" />
+        <Property Name="friendlyName" Type="Edm.String" />
         <Property Name="securityGroupId" Type="Edm.String" />
+        <Property Name="sid" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="servicePrincipalEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="appId" Type="Edm.String" />
@@ -36742,6 +36855,7 @@
       </ComplexType>
       <ComplexType Name="userAccount">
         <Property Name="accountName" Type="Edm.String" />
+        <Property Name="activeDirectoryObjectGuid" Type="Edm.Guid" />
         <Property Name="azureAdUserId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
