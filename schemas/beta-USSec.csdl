@@ -4809,6 +4809,7 @@
         <Property Name="orientation" Type="Edm.Int16" />
         <Property Name="takenDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="photoAllowedOperations" />
       <ComplexType Name="physicalAddress">
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
@@ -6925,6 +6926,9 @@
         <NavigationProperty Name="businessFlowsWithRequestsAwaitingMyDecision" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
         <NavigationProperty Name="policyTemplates" Type="Collection(graph.governancePolicyTemplate)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="approvedClientApp" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="appScope" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
@@ -8282,6 +8286,7 @@
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
@@ -8727,6 +8732,9 @@
         <NavigationProperty Name="connectors" Type="Collection(graph.connector)" ContainsTarget="true" />
         <NavigationProperty Name="publishedResources" Type="Collection(graph.publishedResource)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="onPremisesSyncBehavior" BaseType="graph.entity">
+        <Property Name="isCloudManaged" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="onTokenIssuanceStartCustomExtension" BaseType="graph.customAuthenticationExtension">
         <Property Name="claimsForTokenConfiguration" Type="Collection(graph.onTokenIssuanceStartReturnClaim)" />
       </EntityType>
@@ -8838,6 +8846,7 @@
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveReports" Type="Collection(graph.directoryObject)" />
       </EntityType>
@@ -9149,6 +9158,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="creationSource" Type="graph.plannerTaskCreation" />
         <Property Name="dueDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="hasChat" Type="Edm.Boolean" Nullable="false" />
         <Property Name="hasDescription" Type="Edm.Boolean" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isOnMyDay" Type="Edm.Boolean" />
@@ -9488,6 +9498,7 @@
       </EntityType>
       <EntityType Name="remoteDesktopSecurityConfiguration" BaseType="graph.entity">
         <Property Name="isRemoteDesktopProtocolEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="approvedClientApps" Type="Collection(graph.approvedClientApp)" ContainsTarget="true" />
         <NavigationProperty Name="targetDeviceGroups" Type="Collection(graph.targetDeviceGroup)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="reportRoot">
@@ -10752,6 +10763,7 @@
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="outlook" Type="graph.outlookUser" ContainsTarget="true" />
         <NavigationProperty Name="ownedDevices" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
@@ -14888,6 +14900,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -14936,6 +14958,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -15028,10 +15060,12 @@
       <Annotations Target="microsoft.graph.GraphService/users">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
             <PropertyValue Property="NonExpandableProperties">
               <Collection>
                 <NavigationPropertyPath>chats</NavigationPropertyPath>
                 <NavigationPropertyPath>joinedTeams</NavigationPropertyPath>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
                 <NavigationPropertyPath>permissionGrants</NavigationPropertyPath>
                 <NavigationPropertyPath>teamwork</NavigationPropertyPath>
               </Collection>
@@ -16343,6 +16377,20 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.photoAllowedOperations">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-02-16" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-02-16" />
+              <PropertyValue Property="Version" String="2023-11/PrivatePreview:photoEditPolicy" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.place/placeId">
         <Annotation Term="Org.OData.Core.V1.Description" String="An alternate immutable unique identifier of the place" />
       </Annotations>
@@ -17575,6 +17623,9 @@
         <Member Name="microsoftDefenderThreatIntelligenceAnalytics" Value="1073741846" />
         <Member Name="builtInMl" Value="1073741847" />
         <Member Name="microsoftInsiderRiskManagement" Value="1073741848" />
+        <Member Name="microsoftThreatIntelligence" Value="1073741849" />
+        <Member Name="microsoftDefenderForAIServices" Value="1073741850" />
+        <Member Name="securityCopilot" Value="1073741851" />
         <Member Name="microsoftSentinel" Value="268435456" />
       </EnumType>
       <EnumType Name="detectionStatus">
