@@ -1568,6 +1568,21 @@
         <Member Name="microsoft365ManagedMdm" Value="258" />
         <Member Name="msSense" Value="1024" />
       </EnumType>
+      <EnumType Name="managementState">
+        <Member Name="managed" Value="0" />
+        <Member Name="retirePending" Value="1" />
+        <Member Name="retireFailed" Value="2" />
+        <Member Name="wipePending" Value="3" />
+        <Member Name="wipeFailed" Value="4" />
+        <Member Name="unhealthy" Value="5" />
+        <Member Name="deletePending" Value="6" />
+        <Member Name="retireIssued" Value="7" />
+        <Member Name="wipeIssued" Value="8" />
+        <Member Name="wipeCanceled" Value="9" />
+        <Member Name="retireCanceled" Value="10" />
+        <Member Name="discovered" Value="11" />
+        <Member Name="unknownFutureValue" Value="12" />
+      </EnumType>
       <EnumType Name="mdmAppConfigKeyType">
         <Member Name="stringType" Value="0" />
         <Member Name="integerType" Value="1" />
@@ -10602,6 +10617,7 @@
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
@@ -11253,6 +11269,7 @@
         <Property Name="managedDeviceOwnerType" Type="graph.managedDeviceOwnerType" Nullable="false" />
         <Property Name="managementAgent" Type="graph.managementAgentType" Nullable="false" />
         <Property Name="managementCertificateExpirationDate" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="managementState" Type="graph.managementState" Nullable="false" />
         <Property Name="manufacturer" Type="Edm.String" />
         <Property Name="meid" Type="Edm.String" />
         <Property Name="model" Type="Edm.String" />
@@ -11605,6 +11622,9 @@
         <Property Name="configuration" Type="graph.onPremisesDirectorySynchronizationConfiguration" />
         <Property Name="features" Type="graph.onPremisesDirectorySynchronizationFeature" Nullable="false" />
       </EntityType>
+      <EntityType Name="onPremisesSyncBehavior" BaseType="graph.entity">
+        <Property Name="isCloudManaged" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="onTokenIssuanceStartCustomExtension" BaseType="graph.customAuthenticationExtension">
         <Property Name="claimsForTokenConfiguration" Type="Collection(graph.onTokenIssuanceStartReturnClaim)" />
       </EntityType>
@@ -11698,6 +11718,7 @@
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="outlookCategory" BaseType="graph.entity">
@@ -12383,6 +12404,7 @@
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
         <NavigationProperty Name="alerts_v2" Type="Collection(microsoft.graph.security.alert)" ContainsTarget="true" />
         <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="identities" Type="microsoft.graph.security.identityContainer" ContainsTarget="true" />
         <NavigationProperty Name="incidents" Type="Collection(microsoft.graph.security.incident)" ContainsTarget="true" />
         <NavigationProperty Name="labels" Type="microsoft.graph.security.labelsRoot" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
@@ -18841,6 +18863,14 @@
         <ReturnType Type="Collection(graph.application)" />
       </Function>
       <Function Name="delta" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.callRecording)" />
+        <ReturnType Type="Collection(graph.callRecording)" />
+      </Function>
+      <Function Name="delta" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.callTranscript)" />
+        <ReturnType Type="Collection(graph.callTranscript)" />
+      </Function>
+      <Function Name="delta" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.chatMessage)" />
         <ReturnType Type="Collection(graph.chatMessage)" />
       </Function>
@@ -25265,6 +25295,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -25313,6 +25353,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -28315,6 +28365,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/managementState">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Management state of the device. Examples: Managed, RetirePending, etc. Default is managed. Supports $filter operator 'eq' and 'or'. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/manufacturer">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Manufacturer of the device. Supports $filter operator 'eq' and 'or'. This property is read-only." />
@@ -28813,6 +28870,48 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managementAgentType/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="Unknown management agent type." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Management state of device in Microsoft Intune." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/deletePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A delete command is occuring on the device " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/discovered">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is discovered but not fully enrolled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/managed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is under management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireCanceled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command for this device has been canceled" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Retire command failed on the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireIssued">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command was issued for the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retirePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command is occuring on the device and in the process of unenrolling from management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/unhealthy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is unhealthy." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeCanceled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command for this device has been canceled" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Wipe command failed on the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeIssued">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command was issued for the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command is occuring on the device and in the process of unenrolling from management" />
       </Annotations>
       <Annotations Target="microsoft.graph.mdmAppConfigKeyType">
         <Annotation Term="Org.OData.Core.V1.Description" String="App configuration key types." />
@@ -30816,6 +30915,9 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.sensorSettings/networkAdapters">
+        <Annotation Term="Org.OData.Core.V1.AutoExpand" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.securityNetworkProtocol">
         <Annotation Term="Org.OData.Core.V1.Revisions">
@@ -36096,6 +36198,18 @@
         <Member Name="notSupported" Value="1000" />
         <Member Name="unknownFutureValue" Value="1023" />
       </EnumType>
+      <EnumType Name="deploymentStatus">
+        <Member Name="upToDate" Value="1" />
+        <Member Name="outdated" Value="2" />
+        <Member Name="updating" Value="3" />
+        <Member Name="updateFailed" Value="4" />
+        <Member Name="notConfigured" Value="5" />
+        <Member Name="unreachable" Value="6" />
+        <Member Name="disconnected" Value="7" />
+        <Member Name="startFailure" Value="8" />
+        <Member Name="syncing" Value="9" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
       <EnumType Name="detectionSource">
         <Member Name="unknown" Value="0" />
         <Member Name="microsoftDefenderForEndpoint" Value="1" />
@@ -36133,6 +36247,8 @@
         <Member Name="builtInMl" Value="1073741847" />
         <Member Name="microsoftInsiderRiskManagement" Value="1073741848" />
         <Member Name="microsoftThreatIntelligence" Value="1073741849" />
+        <Member Name="microsoftDefenderForAIServices" Value="1073741850" />
+        <Member Name="securityCopilot" Value="1073741851" />
         <Member Name="microsoftSentinel" Value="268435456" />
       </EnumType>
       <EnumType Name="detectionStatus">
@@ -36267,6 +36383,23 @@
         <Member Name="global" Value="3" />
         <Member Name="unknownFutureValue" Value="31" />
       </EnumType>
+      <EnumType Name="healthIssueSeverity">
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="healthIssueStatus">
+        <Member Name="open" Value="1" />
+        <Member Name="closed" Value="2" />
+        <Member Name="suppressed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="healthIssueType">
+        <Member Name="sensor" Value="1" />
+        <Member Name="global" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="incidentStatus">
         <Member Name="active" Value="1" />
         <Member Name="resolved" Value="2" />
@@ -36349,6 +36482,21 @@
         <Member Name="none" Value="0" />
         <Member Name="disableGrouping" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="sensorHealthStatus">
+        <Member Name="healthy" Value="1" />
+        <Member Name="notHealthyLow" Value="2" />
+        <Member Name="notHealthyMedium" Value="3" />
+        <Member Name="notHealthyHigh" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="sensorType">
+        <Member Name="adConnectIntegrated" Value="1" />
+        <Member Name="adcsIntegrated" Value="2" />
+        <Member Name="adfsIntegrated" Value="3" />
+        <Member Name="domainControllerIntegrated" Value="4" />
+        <Member Name="domainControllerStandalone" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="servicePrincipalType">
         <Member Name="unknown" Value="0" />
@@ -36501,6 +36649,9 @@
       </ComplexType>
       <ComplexType Name="containerRegistryEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="registry" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="deploymentAccessKeyType">
+        <Property Name="deploymentAccessKey" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="deviceEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="azureAdDeviceId" Type="Edm.String" />
@@ -36857,6 +37008,16 @@
         <Property Name="securityGroupId" Type="Edm.String" />
         <Property Name="sid" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="sensorDeploymentPackage">
+        <Property Name="downloadUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="version" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="sensorSettings">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="domainControllerDnsNames" Type="Collection(Edm.String)" />
+        <Property Name="isDelayedDeploymentEnabled" Type="Edm.Boolean" />
+        <NavigationProperty Name="networkAdapters" Type="Collection(microsoft.graph.security.networkAdapter)" ContainsTarget="true" />
+      </ComplexType>
       <ComplexType Name="servicePrincipalEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="appOwnerTenantId" Type="Edm.String" />
@@ -37143,6 +37304,25 @@
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="filePlanReferenceTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
+      <EntityType Name="healthIssue" BaseType="graph.entity">
+        <Property Name="additionalInformation" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="domainNames" Type="Collection(Edm.String)" />
+        <Property Name="healthIssueType" Type="microsoft.graph.security.healthIssueType" />
+        <Property Name="issueTypeId" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="recommendations" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="recommendedActionCommands" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="sensorDNSNames" Type="Collection(Edm.String)" />
+        <Property Name="severity" Type="microsoft.graph.security.healthIssueSeverity" />
+        <Property Name="status" Type="microsoft.graph.security.healthIssueStatus" />
+      </EntityType>
+      <EntityType Name="identityContainer" BaseType="graph.entity">
+        <NavigationProperty Name="healthIssues" Type="Collection(microsoft.graph.security.healthIssue)" ContainsTarget="true" />
+        <NavigationProperty Name="sensors" Type="Collection(microsoft.graph.security.sensor)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="incident" BaseType="graph.entity">
         <Property Name="assignedTo" Type="Edm.String" />
         <Property Name="classification" Type="microsoft.graph.security.alertClassification" />
@@ -37171,6 +37351,10 @@
         <NavigationProperty Name="departments" Type="Collection(microsoft.graph.security.departmentTemplate)" ContainsTarget="true" />
         <NavigationProperty Name="filePlanReferences" Type="Collection(microsoft.graph.security.filePlanReferenceTemplate)" ContainsTarget="true" />
         <NavigationProperty Name="retentionLabels" Type="Collection(microsoft.graph.security.retentionLabel)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="networkAdapter" BaseType="graph.entity">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="name" Type="Edm.String" />
       </EntityType>
       <EntityType Name="retentionEvent" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -37221,6 +37405,18 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="sensor" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="deploymentStatus" Type="microsoft.graph.security.deploymentStatus" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="domainName" Type="Edm.String" Nullable="false" />
+        <Property Name="healthStatus" Type="microsoft.graph.security.sensorHealthStatus" Nullable="false" />
+        <Property Name="openHealthIssuesCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="sensorType" Type="microsoft.graph.security.sensorType" Nullable="false" />
+        <Property Name="settings" Type="microsoft.graph.security.sensorSettings" Nullable="false" />
+        <Property Name="version" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="healthIssues" Type="Collection(microsoft.graph.security.healthIssue)" />
       </EntityType>
       <EntityType Name="siteSource" BaseType="microsoft.graph.security.dataSource">
         <NavigationProperty Name="site" Type="graph.site" Nullable="false" />
@@ -37329,6 +37525,10 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
       </Action>
+      <Action Name="regenerateDeploymentAccessKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.sensor)" />
+        <ReturnType Type="microsoft.graph.security.deploymentAccessKeyType" />
+      </Action>
       <Action Name="release" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
       </Action>
@@ -37372,6 +37572,14 @@
       <Function Name="asHierarchy" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
         <ReturnType Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+      </Function>
+      <Function Name="getDeploymentAccessKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.sensor)" />
+        <ReturnType Type="microsoft.graph.security.deploymentAccessKeyType" />
+      </Function>
+      <Function Name="getDeploymentPackageUri" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.sensor)" />
+        <ReturnType Type="microsoft.graph.security.sensorDeploymentPackage" />
       </Function>
     </Schema>
     <Schema Namespace="microsoft.graph.termStore" xmlns="http://docs.oasis-open.org/odata/ns/edm">
