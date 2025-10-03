@@ -1246,6 +1246,21 @@
         <Member Name="microsoft365ManagedMdm" Value="258" />
         <Member Name="msSense" Value="1024" />
       </EnumType>
+      <EnumType Name="managementState">
+        <Member Name="managed" Value="0" />
+        <Member Name="retirePending" Value="1" />
+        <Member Name="retireFailed" Value="2" />
+        <Member Name="wipePending" Value="3" />
+        <Member Name="wipeFailed" Value="4" />
+        <Member Name="unhealthy" Value="5" />
+        <Member Name="deletePending" Value="6" />
+        <Member Name="retireIssued" Value="7" />
+        <Member Name="wipeIssued" Value="8" />
+        <Member Name="wipeCanceled" Value="9" />
+        <Member Name="retireCanceled" Value="10" />
+        <Member Name="discovered" Value="11" />
+        <Member Name="unknownFutureValue" Value="12" />
+      </EnumType>
       <EnumType Name="mdmAppConfigKeyType">
         <Member Name="stringType" Value="0" />
         <Member Name="integerType" Value="1" />
@@ -7175,7 +7190,6 @@
         <NavigationProperty Name="roleAssignments" Type="Collection(graph.deviceAndAppManagementRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="roleDefinitions" Type="Collection(graph.roleDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="softwareUpdateStatusSummary" Type="graph.softwareUpdateStatusSummary" />
-        <NavigationProperty Name="telecomExpenseManagementPartners" Type="Collection(graph.telecomExpenseManagementPartner)" ContainsTarget="true" />
         <NavigationProperty Name="termsAndConditions" Type="Collection(graph.termsAndConditions)" ContainsTarget="true" />
         <NavigationProperty Name="troubleshootingEvents" Type="Collection(graph.deviceManagementTroubleshootingEvent)" ContainsTarget="true" />
         <NavigationProperty Name="userExperienceAnalyticsAppHealthApplicationPerformance" Type="Collection(graph.userExperienceAnalyticsAppHealthApplicationPerformance)" ContainsTarget="true" />
@@ -7667,6 +7681,7 @@
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
@@ -8326,6 +8341,7 @@
         <Property Name="managedDeviceOwnerType" Type="graph.managedDeviceOwnerType" Nullable="false" />
         <Property Name="managementAgent" Type="graph.managementAgentType" Nullable="false" />
         <Property Name="managementCertificateExpirationDate" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="managementState" Type="graph.managementState" Nullable="false" />
         <Property Name="manufacturer" Type="Edm.String" />
         <Property Name="meid" Type="Edm.String" />
         <Property Name="model" Type="Edm.String" />
@@ -8615,6 +8631,9 @@
         <Property Name="configuration" Type="graph.onPremisesDirectorySynchronizationConfiguration" />
         <Property Name="features" Type="graph.onPremisesDirectorySynchronizationFeature" Nullable="false" />
       </EntityType>
+      <EntityType Name="onPremisesSyncBehavior" BaseType="graph.entity">
+        <Property Name="isCloudManaged" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="openTypeExtension" BaseType="graph.extension" OpenType="true">
         <Property Name="extensionName" Type="Edm.String" Nullable="false" />
       </EntityType>
@@ -8702,6 +8721,7 @@
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="outlookItem" BaseType="graph.entity" Abstract="true">
@@ -9421,13 +9441,6 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="telecomExpenseManagementPartner" BaseType="graph.entity">
-        <Property Name="appAuthorized" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="displayName" Type="Edm.String" />
-        <Property Name="enabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="lastConnectionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="url" Type="Edm.String" />
       </EntityType>
       <EntityType Name="tenantAppManagementPolicy" BaseType="graph.policyBase">
         <Property Name="applicationRestrictions" Type="graph.appManagementApplicationConfiguration" />
@@ -16362,9 +16375,6 @@
       <Annotations Target="microsoft.graph.deviceManagement/subscriptionState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Tenant mobile device management subscription state." />
       </Annotations>
-      <Annotations Target="microsoft.graph.deviceManagement/telecomExpenseManagementPartners">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The telecom expense management partners." />
-      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagement/termsAndConditions">
         <Annotation Term="Org.OData.Core.V1.Description" String="The terms and conditions associated with device management of the company." />
       </Annotations>
@@ -17439,6 +17449,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -17487,6 +17507,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -20437,6 +20467,13 @@
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.managedDevice/managementState">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Management state of the device. Examples: Managed, RetirePending, etc. Default is managed. Supports $filter operator 'eq' and 'or'. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.managedDevice/manufacturer">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Manufacturer of the device. Supports $filter operator 'eq' and 'or'. This property is read-only." />
@@ -20935,6 +20972,48 @@
       </Annotations>
       <Annotations Target="microsoft.graph.managementAgentType/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="Unknown management agent type." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Management state of device in Microsoft Intune." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/deletePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A delete command is occuring on the device " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/discovered">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is discovered but not fully enrolled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/managed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is under management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireCanceled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command for this device has been canceled" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Retire command failed on the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retireIssued">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command was issued for the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/retirePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A retire command is occuring on the device and in the process of unenrolling from management" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/unhealthy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The device is unhealthy." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeCanceled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command for this device has been canceled" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Wipe command failed on the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipeIssued">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command was issued for the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.managementState/wipePending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A wipe command is occuring on the device and in the process of unenrolling from management" />
       </Annotations>
       <Annotations Target="microsoft.graph.mdmAppConfigKeyType">
         <Annotation Term="Org.OData.Core.V1.Description" String="App configuration key types." />
@@ -22875,24 +22954,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.targetedManagedAppProtection/isAssigned">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if the policy is deployed to any inclusion groups or not." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner">
-        <Annotation Term="Org.OData.Core.V1.Description" String="telecomExpenseManagementPartner resources represent the metadata and status of a given TEM service. Once your organization has onboarded with a partner, the partner can be enabled or disabled to switch TEM functionality on or off." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner/appAuthorized">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the partner's AAD app has been authorized to access Intune." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner/displayName">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the TEM partner." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner/enabled">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Whether Intune's connection to the TEM service is currently enabled or disabled." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner/lastConnectionDateTime">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of the last request sent to Intune by the TEM partner." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.telecomExpenseManagementPartner/url">
-        <Annotation Term="Org.OData.Core.V1.Description" String="URL of the TEM partner's administrative control panel, where an administrator can configure their TEM service." />
       </Annotations>
       <Annotations Target="microsoft.graph.termsAndConditions">
         <Annotation Term="Org.OData.Core.V1.Description" String="A termsAndConditions entity represents the metadata and contents of a given Terms and Conditions (T&amp;C) policy. T&amp;C policies’ contents are presented to users upon their first attempt to enroll into Intune and subsequently upon edits where an administrator has required re-acceptance. They enable administrators to communicate the provisions to which a user must agree in order to have devices enrolled into Intune." />
