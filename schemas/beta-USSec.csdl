@@ -84,6 +84,12 @@
         <Member Name="d30" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="aggregationWindow">
+        <Member Name="h1" Value="0" />
+        <Member Name="h6" Value="1" />
+        <Member Name="d1" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="agreementAcceptanceState">
         <Member Name="accepted" Value="2" />
         <Member Name="declined" Value="3" />
@@ -4809,6 +4815,7 @@
         <Property Name="orientation" Type="Edm.Int16" />
         <Property Name="takenDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="photoAllowedOperations" />
       <ComplexType Name="physicalAddress">
         <Property Name="city" Type="Edm.String" />
         <Property Name="countryOrRegion" Type="Edm.String" />
@@ -6925,6 +6932,9 @@
         <NavigationProperty Name="businessFlowsWithRequestsAwaitingMyDecision" Type="Collection(graph.businessFlow)" ContainsTarget="true" />
         <NavigationProperty Name="policyTemplates" Type="Collection(graph.governancePolicyTemplate)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="approvedClientApp" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="appScope" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
@@ -6955,11 +6965,19 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="maxAttributesPerSet" Type="Edm.Int32" />
       </EntityType>
+      <EntityType Name="auditActivityType" BaseType="graph.entity">
+        <Property Name="activity" Type="Edm.String" />
+        <Property Name="category" Type="Edm.String" />
+        <Property Name="service" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="auditLogRoot">
+        <NavigationProperty Name="auditActivityTypes" Type="Collection(graph.auditActivityType)" ContainsTarget="true" />
         <NavigationProperty Name="customSecurityAttributeAudits" Type="Collection(graph.customSecurityAttributeAudit)" ContainsTarget="true" />
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true" />
         <NavigationProperty Name="directoryProvisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
         <NavigationProperty Name="provisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="signInEventsAppSummary" Type="Collection(graph.signInEventsAppActivity)" ContainsTarget="true" />
+        <NavigationProperty Name="signInEventsSummary" Type="Collection(graph.signInEventsActivity)" ContainsTarget="true" />
         <NavigationProperty Name="signIns" Type="Collection(graph.signIn)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authentication" BaseType="graph.entity">
@@ -8282,6 +8300,7 @@
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
         <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
@@ -8727,6 +8746,9 @@
         <NavigationProperty Name="connectors" Type="Collection(graph.connector)" ContainsTarget="true" />
         <NavigationProperty Name="publishedResources" Type="Collection(graph.publishedResource)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="onPremisesSyncBehavior" BaseType="graph.entity">
+        <Property Name="isCloudManaged" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="onTokenIssuanceStartCustomExtension" BaseType="graph.customAuthenticationExtension">
         <Property Name="claimsForTokenConfiguration" Type="Collection(graph.onTokenIssuanceStartReturnClaim)" />
       </EntityType>
@@ -8838,6 +8860,7 @@
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="transitiveReports" Type="Collection(graph.directoryObject)" />
       </EntityType>
@@ -9149,6 +9172,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="creationSource" Type="graph.plannerTaskCreation" />
         <Property Name="dueDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="hasChat" Type="Edm.Boolean" Nullable="false" />
         <Property Name="hasDescription" Type="Edm.Boolean" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isOnMyDay" Type="Edm.Boolean" />
@@ -9488,6 +9512,7 @@
       </EntityType>
       <EntityType Name="remoteDesktopSecurityConfiguration" BaseType="graph.entity">
         <Property Name="isRemoteDesktopProtocolEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="approvedClientApps" Type="Collection(graph.approvedClientApp)" ContainsTarget="true" />
         <NavigationProperty Name="targetDeviceGroups" Type="Collection(graph.targetDeviceGroup)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="reportRoot">
@@ -9978,6 +10003,19 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userType" Type="graph.signInUserType" />
       </EntityType>
+      <EntityType Name="signInEventsActivity" BaseType="graph.entity">
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="signInCount" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="signInEventsAppActivity">
+        <Key>
+          <PropertyRef Name="appId" />
+        </Key>
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="signInCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="application" Type="graph.application" Nullable="false" />
+      </EntityType>
       <EntityType Name="singleValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Edm.String" />
       </EntityType>
@@ -10092,6 +10130,24 @@
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
         <Property Name="resource" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="summarizedSignIn" BaseType="graph.entity">
+        <Property Name="agent" Type="agentic.agentSignIn" />
+        <Property Name="aggregationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="appDisplayName" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="conditionalAccessStatus" Type="graph.conditionalAccessStatus" />
+        <Property Name="firstSignInDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="managedServiceIdentity" Type="graph.managedIdentity" />
+        <Property Name="resourceDisplayName" Type="Edm.String" />
+        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+        <Property Name="servicePrincipalName" Type="Edm.String" />
+        <Property Name="signInCount" Type="Edm.Int64" />
+        <Property Name="status" Type="graph.signInStatus" />
+        <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="synchronization" BaseType="graph.entity">
         <Property Name="secrets" Type="Collection(graph.synchronizationSecretKeyStringValuePair)" />
@@ -10752,6 +10808,7 @@
         <NavigationProperty Name="manager" Type="graph.directoryObject" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="outlook" Type="graph.outlookUser" ContainsTarget="true" />
         <NavigationProperty Name="ownedDevices" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
@@ -12541,6 +12598,21 @@
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Stream" Nullable="false" />
       </Function>
+      <Function Name="getSummarizedMSISignIns" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.auditLogRoot" />
+        <Parameter Name="aggregationWindow" Type="graph.aggregationWindow" Nullable="false" />
+        <ReturnType Type="Collection(graph.summarizedSignIn)" Nullable="false" />
+      </Function>
+      <Function Name="getSummarizedNonInteractiveSignIns" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.auditLogRoot" />
+        <Parameter Name="aggregationWindow" Type="graph.aggregationWindow" Nullable="false" />
+        <ReturnType Type="Collection(graph.summarizedSignIn)" Nullable="false" />
+      </Function>
+      <Function Name="getSummarizedServicePrincipalSignIns" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="graph.auditLogRoot" />
+        <Parameter Name="aggregationWindow" Type="graph.aggregationWindow" Nullable="false" />
+        <ReturnType Type="Collection(graph.summarizedSignIn)" Nullable="false" />
+      </Function>
       <Function Name="getTeamsDeviceUsageDistributionTotalUserCounts" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -12968,6 +13040,19 @@
         <Singleton Name="termStore" Type="microsoft.graph.termStore.store" />
       </EntityContainer>
     </Schema>
+    <Schema Namespace="microsoft.graph.agentic" Alias="agentic" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="agentType">
+        <Member Name="notAgentic" Value="0" />
+        <Member Name="agenticAppBuilder" Value="1" />
+        <Member Name="agenticApp" Value="2" />
+        <Member Name="agenticAppInstance" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <ComplexType Name="agentSignIn">
+        <Property Name="agentType" Type="agentic.agentType" Nullable="false" />
+        <Property Name="parentAppId" Type="Edm.String" />
+      </ComplexType>
+    </Schema>
     <Schema Namespace="microsoft.graph.cloudLicensing" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="assigneeTypes" IsFlags="true">
         <Member Name="none" Value="0" />
@@ -12994,6 +13079,16 @@
       </EntityType>
     </Schema>
     <Schema Namespace="microsoft.graph.identityGovernance" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="activationTaskScopeType">
+        <Member Name="allTasks" Value="0" />
+        <Member Name="failedTasks" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="activationUserScopeType">
+        <Member Name="allUsers" Value="0" />
+        <Member Name="failedUsers" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="customTaskExtensionOperationStatus">
         <Member Name="completed" Value="0" />
         <Member Name="failed" Value="1" />
@@ -13036,6 +13131,7 @@
         <Member Name="scheduled" Value="0" />
         <Member Name="onDemand" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="activatedWithScope" Value="3" />
       </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
@@ -13047,9 +13143,12 @@
         <NavigationProperty Name="group" Type="graph.group" Nullable="false" />
       </ComplexType>
       <ComplexType Name="activateProcessingResultScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <Property Name="taskScope" Type="microsoft.graph.identityGovernance.activationTaskScopeType" Nullable="false" />
         <NavigationProperty Name="processingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
       </ComplexType>
       <ComplexType Name="activateRunScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <Property Name="taskScope" Type="microsoft.graph.identityGovernance.activationTaskScopeType" Nullable="false" />
+        <Property Name="userScope" Type="microsoft.graph.identityGovernance.activationUserScopeType" Nullable="false" />
         <NavigationProperty Name="run" Type="microsoft.graph.identityGovernance.run" Nullable="false" />
       </ComplexType>
       <ComplexType Name="activateUserScope" BaseType="microsoft.graph.identityGovernance.activationScope">
@@ -13193,6 +13292,7 @@
         <NavigationProperty Name="workflowTemplates" Type="Collection(microsoft.graph.identityGovernance.workflowTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="run" BaseType="graph.entity">
+        <Property Name="activatedOnScope" Type="microsoft.graph.identityGovernance.activationScope" />
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="failedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedUsersCount" Type="Edm.Int32" Nullable="false" />
@@ -13205,6 +13305,7 @@
         <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalUsersCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
+        <NavigationProperty Name="reprocessedRuns" Type="Collection(microsoft.graph.identityGovernance.run)" />
         <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
         <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
       </EntityType>
@@ -13260,6 +13361,7 @@
         <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
         <Property Name="workflowVersion" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="reprocessedRuns" Type="Collection(microsoft.graph.identityGovernance.run)" />
         <NavigationProperty Name="subject" Type="graph.user" Nullable="false" />
         <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
       </EntityType>
@@ -13306,6 +13408,10 @@
       <Action Name="activate" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="subjects" Type="Collection(graph.user)" />
+      </Action>
+      <Action Name="activateWithScope" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="scope" Type="microsoft.graph.identityGovernance.activationScope" />
       </Action>
       <Action Name="createNewVersion" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
@@ -13682,6 +13788,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.audienceRestriction/isStateSetByMicrosoft">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.auditActivityType">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.authentication/fido2Methods">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -14888,6 +15008,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/contacts">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -14936,6 +15066,16 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/groups">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -15028,10 +15168,12 @@
       <Annotations Target="microsoft.graph.GraphService/users">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
             <PropertyValue Property="NonExpandableProperties">
               <Collection>
                 <NavigationPropertyPath>chats</NavigationPropertyPath>
                 <NavigationPropertyPath>joinedTeams</NavigationPropertyPath>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
                 <NavigationPropertyPath>permissionGrants</NavigationPropertyPath>
                 <NavigationPropertyPath>teamwork</NavigationPropertyPath>
               </Collection>
@@ -15316,6 +15458,48 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.activateWithScope(microsoft.graph.identityGovernance.workflow, microsoft.graph.identityGovernance.activationScope)">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.activationTaskScopeType">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.activationUserScopeType">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.customTaskExtension">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -15431,6 +15615,34 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.run/activatedOnScope">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.run/reprocessedRuns">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.run/taskProcessingResults">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
@@ -15682,6 +15894,20 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.userProcessingResult/reprocessedRuns">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.userProcessingResult/taskProcessingResults">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
@@ -15806,6 +16032,20 @@
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowExecutionType/activatedWithScope">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-03-14" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-08-01" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.workflowTemplate">
@@ -16339,6 +16579,20 @@
               </PropertyValue>
               <PropertyValue Property="RemovalDate" Date="2023-10-01" />
               <PropertyValue Property="Version" String="2021-09/Removal" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.photoAllowedOperations">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-02-16" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-02-16" />
+              <PropertyValue Property="Version" String="2023-11/PrivatePreview:photoEditPolicy" />
             </Record>
           </Collection>
         </Annotation>
@@ -16920,6 +17174,34 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.signInEventsActivity">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.signInEventsAppActivity">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.subscribedSku">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -16977,6 +17259,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.summarizedSignIn">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.synchronization">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -17575,6 +17871,9 @@
         <Member Name="microsoftDefenderThreatIntelligenceAnalytics" Value="1073741846" />
         <Member Name="builtInMl" Value="1073741847" />
         <Member Name="microsoftInsiderRiskManagement" Value="1073741848" />
+        <Member Name="microsoftThreatIntelligence" Value="1073741849" />
+        <Member Name="microsoftDefenderForAIServices" Value="1073741850" />
+        <Member Name="securityCopilot" Value="1073741851" />
         <Member Name="microsoftSentinel" Value="268435456" />
       </EnumType>
       <EnumType Name="detectionStatus">
