@@ -3836,11 +3836,19 @@
         <Member Name="completed" Value="2" />
         <Member Name="completedWithErrors" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="updateRequested" Value="5" />
+        <Member Name="deleteRequested" Value="6" />
       </EnumType>
       <EnumType Name="protectionScopeState">
         <Member Name="notModified" Value="0" />
         <Member Name="modified" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="protectionSource" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="manual" Value="1" />
+        <Member Name="dynamicRule" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="protectionUnitsBulkJobStatus">
         <Member Name="unknown" Value="0" />
@@ -3856,6 +3864,9 @@
         <Member Name="unprotected" Value="3" />
         <Member Name="removeRequested" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="offboardRequested" Value="6" />
+        <Member Name="offboarded" Value="7" />
+        <Member Name="cancelOffboardRequested" Value="8" />
       </EnumType>
       <EnumType Name="provisioningAction">
         <Member Name="other" Value="0" />
@@ -5825,6 +5836,7 @@
         <Property Name="removeAccessWhenTargetLeavesAllowedTargets" Type="Edm.Boolean" />
         <Property Name="requestAccessForAllowedTargets" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="accessPackageDynamicApprovalStage" BaseType="graph.accessPackageApprovalStage" />
       <ComplexType Name="accessPackageLocalizedText">
         <Property Name="languageCode" Type="Edm.String" Nullable="false" />
         <Property Name="text" Type="Edm.String" />
@@ -5832,6 +5844,7 @@
       <ComplexType Name="accessPackageNotificationSettings">
         <Property Name="isAssignmentNotificationDisabled" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="accessPackageRequestApprovalStageCallbackConfiguration" BaseType="graph.customExtensionCallbackConfiguration" />
       <ComplexType Name="accessPackageResourceAttribute">
         <Property Name="destination" Type="graph.accessPackageResourceAttributeDestination" />
         <Property Name="isEditable" Type="Edm.Boolean" />
@@ -6155,6 +6168,9 @@
       </ComplexType>
       <ComplexType Name="assignmentOrder">
         <Property Name="order" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="assignmentRequestApprovalStageCallbackData" BaseType="graph.accessPackageAssignmentRequestCallbackData">
+        <Property Name="approvalStage" Type="graph.accessPackageApprovalStage" />
       </ComplexType>
       <ComplexType Name="attachmentInfo">
         <Property Name="attachmentType" Type="graph.attachmentType" />
@@ -17296,7 +17312,9 @@
         <Property Name="error" Type="graph.publicError" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="offboardRequestedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="policyId" Type="Edm.String" />
+        <Property Name="protectionSources" Type="graph.protectionSource" Nullable="false" />
         <Property Name="status" Type="graph.protectionUnitStatus" />
       </EntityType>
       <EntityType Name="protectionUnitsBulkJobBase" BaseType="graph.entity" Abstract="true">
@@ -21493,6 +21511,11 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.cancelMediaProcessingOperation" />
       </Action>
+      <Action Name="cancelOffboard" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.protectionUnitBase" />
+        <ReturnType Type="graph.protectionUnitBase" />
+        <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm" />
+      </Action>
       <Action Name="ceiling_Math" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="number" Type="Edm.Untyped" />
@@ -22171,6 +22194,10 @@
       <Action Name="delete" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookRange" />
         <Parameter Name="shift" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="deleteAndUnprotect" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.protectionRuleBase" />
+        <ReturnType Type="graph.protectionRuleBase" />
       </Action>
       <Action Name="deleteUserFromSharedAppleDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
@@ -23952,6 +23979,11 @@
         <Parameter Name="frequency" Type="Edm.Untyped" />
         <Parameter Name="basis" Type="Edm.Untyped" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="offboard" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.protectionUnitBase" />
+        <ReturnType Type="graph.protectionUnitBase" />
+        <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding" xmlns:edm="http://docs.oasis-open.org/odata/ns/edm" />
       </Action>
       <Action Name="onenotePatchContent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.onenotePage" />
@@ -30319,6 +30351,14 @@
               <PropertyValue Property="RemovalDate" Date="2023-03-15" />
               <PropertyValue Property="Version" String="2021-05/identityProvider" />
             </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.backupRestoreRoot/protectionUnits">
+        <Annotation Term="Org.OData.Core.V1.ExplicitOperationBindings">
+          <Collection>
+            <String>microsoft.graph.cancelOffboard</String>
+            <String>microsoft.graph.offboard</String>
           </Collection>
         </Annotation>
       </Annotations>
