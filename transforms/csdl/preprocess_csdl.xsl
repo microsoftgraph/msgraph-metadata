@@ -1748,7 +1748,7 @@
                                 <xsl:with-param name="readable">false</xsl:with-param>
                             </xsl:call-template>
                             <xsl:call-template name="InsertRestrictionsTemplate">
-                                <xsl:with-param name="insertable">false</xsl:with-param>
+                                <xsl:with-param name="insertable">true</xsl:with-param>
                             </xsl:call-template>                            
                     </xsl:element>
                 </xsl:when>
