@@ -261,6 +261,18 @@
         <Member Name="universal" Value="1" />
         <Member Name="desktop" Value="2" />
       </EnumType>
+      <EnumType Name="appliedConditionalAccessPolicyResult">
+        <Member Name="success" Value="0" />
+        <Member Name="failure" Value="1" />
+        <Member Name="notApplied" Value="2" />
+        <Member Name="notEnabled" Value="3" />
+        <Member Name="unknown" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="reportOnlySuccess" Value="6" />
+        <Member Name="reportOnlyFailure" Value="7" />
+        <Member Name="reportOnlyNotApplied" Value="8" />
+        <Member Name="reportOnlyInterrupted" Value="9" />
+      </EnumType>
       <EnumType Name="appListType">
         <Member Name="none" Value="0" />
         <Member Name="appsInListCompliant" Value="1" />
@@ -794,6 +806,12 @@
         <Member Name="enabled" Value="0" />
         <Member Name="disabled" Value="1" />
         <Member Name="enabledForReportingButNotEnforced" Value="2" />
+      </EnumType>
+      <EnumType Name="conditionalAccessStatus">
+        <Member Name="success" Value="0" />
+        <Member Name="failure" Value="1" />
+        <Member Name="notApplied" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="conditionalAccessTransferMethods" IsFlags="true">
         <Member Name="none" Value="0" />
@@ -3274,6 +3292,23 @@
         <Member Name="offline" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="riskEventType">
+        <Member Name="unlikelyTravel" Value="0" />
+        <Member Name="anonymizedIPAddress" Value="1" />
+        <Member Name="maliciousIPAddress" Value="2" />
+        <Member Name="unfamiliarFeatures" Value="3" />
+        <Member Name="malwareInfectedIPAddress" Value="4" />
+        <Member Name="suspiciousIPAddress" Value="5" />
+        <Member Name="leakedCredentials" Value="6" />
+        <Member Name="investigationsThreatIntelligence" Value="7" />
+        <Member Name="generic" Value="8" />
+        <Member Name="adminConfirmedUserCompromised" Value="9" />
+        <Member Name="mcasImpossibleTravel" Value="10" />
+        <Member Name="mcasSuspiciousInboxManipulationRules" Value="11" />
+        <Member Name="investigationsThreatIntelligenceSigninLinked" Value="12" />
+        <Member Name="maliciousIPAddressValidCredentialsBlockedIP" Value="13" />
+        <Member Name="unknownFutureValue" Value="14" />
+      </EnumType>
       <EnumType Name="riskLevel">
         <Member Name="low" Value="0" />
         <Member Name="medium" Value="1" />
@@ -4594,6 +4629,13 @@
         <NavigationProperty Name="application" Type="graph.application" />
         <NavigationProperty Name="servicePrincipal" Type="graph.servicePrincipal" />
       </ComplexType>
+      <ComplexType Name="appliedConditionalAccessPolicy">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="enforcedGrantControls" Type="Collection(Edm.String)" />
+        <Property Name="enforcedSessionControls" Type="Collection(Edm.String)" />
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="result" Type="graph.appliedConditionalAccessPolicyResult" />
+      </ComplexType>
       <ComplexType Name="appListItem">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="appStoreUrl" Type="Edm.String" />
@@ -5434,6 +5476,15 @@
         <Property Name="userName" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="deviceDetail">
+        <Property Name="browser" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isCompliant" Type="Edm.Boolean" />
+        <Property Name="isManaged" Type="Edm.Boolean" />
+        <Property Name="operatingSystem" Type="Edm.String" />
+        <Property Name="trustType" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="deviceEnrollmentPlatformRestriction">
         <Property Name="osMaximumVersion" Type="Edm.String" />
         <Property Name="osMinimumVersion" Type="Edm.String" />
@@ -5900,13 +5951,6 @@
         <Property Name="ccRecipients" Type="Collection(graph.recipient)" />
         <Property Name="customizedMessageBody" Type="Edm.String" />
         <Property Name="messageLanguage" Type="Edm.String" />
-      </ComplexType>
-      <ComplexType Name="iosDdmLobAppAssignmentSettings" BaseType="graph.mobileAppAssignmentSettings">
-        <Property Name="associatedDomains" Type="Collection(Edm.String)" />
-        <Property Name="associatedDomainsDirectDownloadAllowed" Type="Edm.Boolean" />
-        <Property Name="preventManagedAppBackup" Type="Edm.Boolean" />
-        <Property Name="tapToPayScreenLockEnabled" Type="Edm.Boolean" />
-        <Property Name="vpnConfigurationId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="iosDeviceType">
         <Property Name="iPad" Type="Edm.Boolean" Nullable="false" />
@@ -7399,6 +7443,11 @@
         <Property Name="countryOrRegion" Type="Edm.String" />
         <Property Name="geoCoordinates" Type="graph.geoCoordinates" />
         <Property Name="state" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="signInStatus">
+        <Property Name="additionalDetails" Type="Edm.String" />
+        <Property Name="errorCode" Type="Edm.Int32" />
+        <Property Name="failureReason" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="singleServicePrincipal" BaseType="graph.subjectSet">
         <Property Name="description" Type="Edm.String" />
@@ -8974,6 +9023,7 @@
       <EntityType Name="auditLogRoot">
         <NavigationProperty Name="directoryAudits" Type="Collection(graph.directoryAudit)" ContainsTarget="true" />
         <NavigationProperty Name="provisioning" Type="Collection(graph.provisioningObjectSummary)" ContainsTarget="true" />
+        <NavigationProperty Name="signIns" Type="Collection(graph.signIn)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="authentication" BaseType="graph.entity">
         <NavigationProperty Name="emailMethods" Type="Collection(graph.emailAuthenticationMethod)" ContainsTarget="true" />
@@ -12620,6 +12670,31 @@
         <Property Name="siteCreationDefaultStorageLimitInMB" Type="Edm.Int32" />
         <Property Name="tenantDefaultTimezone" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="signIn" BaseType="graph.entity">
+        <Property Name="appDisplayName" Type="Edm.String" />
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="appliedConditionalAccessPolicies" Type="Collection(graph.appliedConditionalAccessPolicy)" />
+        <Property Name="clientAppUsed" Type="Edm.String" />
+        <Property Name="conditionalAccessStatus" Type="graph.conditionalAccessStatus" />
+        <Property Name="correlationId" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="deviceDetail" Type="graph.deviceDetail" />
+        <Property Name="ipAddress" Type="Edm.String" />
+        <Property Name="isInteractive" Type="Edm.Boolean" />
+        <Property Name="location" Type="graph.signInLocation" />
+        <Property Name="resourceDisplayName" Type="Edm.String" />
+        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="riskDetail" Type="graph.riskDetail" />
+        <Property Name="riskEventTypes" Type="Collection(graph.riskEventType)" />
+        <Property Name="riskEventTypes_v2" Type="Collection(Edm.String)" />
+        <Property Name="riskLevelAggregated" Type="graph.riskLevel" />
+        <Property Name="riskLevelDuringSignIn" Type="graph.riskLevel" />
+        <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="status" Type="graph.signInStatus" />
+        <Property Name="userDisplayName" Type="Edm.String" />
+        <Property Name="userId" Type="Edm.String" Nullable="false" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="singleValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Edm.String" />
       </EntityType>
@@ -15322,9 +15397,17 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
         <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
+      <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.signIn)" />
+        <Parameter Name="requestIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
       <Action Name="confirmSafe" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
         <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmSafe" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.signIn)" />
+        <Parameter Name="requestIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="convert" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
@@ -15739,6 +15822,10 @@
       <Action Name="dismiss" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
         <Parameter Name="userIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.signIn)" />
+        <Parameter Name="requestIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
@@ -26554,24 +26641,6 @@
       <Annotations Target="microsoft.graph.iosCustomConfiguration/payloadName">
         <Annotation Term="Org.OData.Core.V1.Description" String="Name that is displayed to the user." />
       </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties used to assign an iOS iOS Declarative Device Management (DDM) Line Of Business (LOB) mobile app to a group." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings/associatedDomains">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Domain names to associate with the app" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings/associatedDomainsDirectDownloadAllowed">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When true, the system allows direct downloads for the AssociatedDomains. When false, the system will not allow direct downloads for the AssociatedDomains. Default is false." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings/preventManagedAppBackup">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When true, indicates that the app should not be backed up to iCloud. When false, indicates that the app may be backed up to iCloud. Default is false." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings/tapToPayScreenLockEnabled">
-        <Annotation Term="Org.OData.Core.V1.Description" String="When true, the device locks its screen after every transaction that requires a customer’s card PIN. When false, the user can choose the behavior. Default value is false." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.iosDdmLobAppAssignmentSettings/vpnConfigurationId">
-        <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the relay to associate with the app." />
-      </Annotations>
       <Annotations Target="microsoft.graph.iosDeviceFeaturesConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="iOS Device Features Configuration Profile." />
       </Annotations>
@@ -31093,6 +31162,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.shutDown(microsoft.graph.managedDevice)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Shut down device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.signIn">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.siteSecurityLevel">
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values for site security level." />
@@ -36383,6 +36466,27 @@
         <Member Name="unknownFutureValue" Value="127" />
         <Member Name="awaitingAction" Value="128" />
       </EnumType>
+      <EnumType Name="investigationState" UnderlyingType="Edm.Int64">
+        <Member Name="unknown" Value="0" />
+        <Member Name="terminated" Value="1" />
+        <Member Name="successfullyRemediated" Value="2" />
+        <Member Name="benign" Value="4" />
+        <Member Name="failed" Value="8" />
+        <Member Name="partiallyRemediated" Value="16" />
+        <Member Name="running" Value="32" />
+        <Member Name="pendingApproval" Value="64" />
+        <Member Name="pendingResource" Value="128" />
+        <Member Name="queued" Value="512" />
+        <Member Name="innerFailure" Value="1024" />
+        <Member Name="preexistingAlert" Value="2048" />
+        <Member Name="unsupportedOs" Value="4056" />
+        <Member Name="unsupportedAlertType" Value="8192" />
+        <Member Name="suppressedAlert" Value="16384" />
+        <Member Name="partiallyInvestigated" Value="32768" />
+        <Member Name="terminatedByUser" Value="65536" />
+        <Member Name="terminatedBySystem" Value="131072" />
+        <Member Name="unknownFutureValue" Value="262144" />
+      </EnumType>
       <EnumType Name="ioTDeviceImportanceType">
         <Member Name="unknown" Value="0" />
         <Member Name="low" Value="1" />
@@ -37094,6 +37198,7 @@
         <Property Name="firstActivityDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="incidentId" Type="Edm.String" />
         <Property Name="incidentWebUrl" Type="Edm.String" />
+        <Property Name="investigationState" Type="microsoft.graph.security.investigationState" />
         <Property Name="lastActivityDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastUpdateDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="mitreTechniques" Type="Collection(Edm.String)" />
