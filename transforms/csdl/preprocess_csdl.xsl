@@ -1746,10 +1746,7 @@
                         <xsl:attribute name="Target">microsoft.graph.GraphService/places</xsl:attribute>
                             <xsl:call-template name="ReadRestrictionsTemplate">
                                 <xsl:with-param name="readable">false</xsl:with-param>
-                            </xsl:call-template>
-                            <xsl:call-template name="InsertRestrictionsTemplate">
-                                <xsl:with-param name="insertable">false</xsl:with-param>
-                            </xsl:call-template>                            
+                            </xsl:call-template>            
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
