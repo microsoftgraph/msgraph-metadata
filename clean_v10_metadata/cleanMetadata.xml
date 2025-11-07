@@ -855,6 +855,13 @@
         <Member Name="meeting" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="checkInMethod">
+        <Member Name="unspecified" Value="0" />
+        <Member Name="manual" Value="1" />
+        <Member Name="inferred" Value="2" />
+        <Member Name="verified" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="clickSource">
         <Member Name="unknown" Value="0" />
         <Member Name="qrCode" Value="1" />
@@ -7874,6 +7881,10 @@
         <Property Name="flagStatus" Type="graph.followupFlagStatus" />
         <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
       </ComplexType>
+      <ComplexType Name="fraudProtectionConfiguration" Abstract="true" />
+      <ComplexType Name="fraudProtectionProviderConfiguration" BaseType="graph.fraudProtectionConfiguration">
+        <NavigationProperty Name="fraudProtectionProvider" Type="graph.fraudProtectionProvider" />
+      </ComplexType>
       <ComplexType Name="freeBusyError">
         <Property Name="message" Type="Edm.String" />
         <Property Name="responseCode" Type="Edm.String" />
@@ -8717,6 +8728,10 @@
         <Property Name="position" Type="graph.onenotePatchInsertPosition" />
         <Property Name="target" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="onFraudProtectionLoadStartExternalUsersAuthHandler" BaseType="graph.onFraudProtectionLoadStartHandler">
+        <Property Name="signUp" Type="graph.fraudProtectionConfiguration" />
+      </ComplexType>
+      <ComplexType Name="onFraudProtectionLoadStartHandler" Abstract="true" />
       <ComplexType Name="onInteractiveAuthFlowStartExternalUsersSelfServiceSignUp" BaseType="graph.onInteractiveAuthFlowStartHandler">
         <Property Name="isSignUpAllowed" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
@@ -11948,6 +11963,12 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="arkoseFraudProtectionProvider" BaseType="graph.fraudProtectionProvider">
+        <Property Name="clientSubDomain" Type="Edm.String" Nullable="false" />
+        <Property Name="privateKey" Type="Edm.String" Nullable="false" />
+        <Property Name="publicKey" Type="Edm.String" Nullable="false" />
+        <Property Name="verifySubDomain" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="associatedTeamInfo" BaseType="graph.teamInfo" />
       <EntityType Name="attachment" BaseType="graph.entity" Abstract="true">
         <Property Name="contentType" Type="Edm.String" />
@@ -12051,6 +12072,7 @@
       <EntityType Name="authenticationEventListener" BaseType="graph.entity" Abstract="true" OpenType="true">
         <Property Name="authenticationEventsFlowId" Type="Edm.String" />
         <Property Name="conditions" Type="graph.authenticationConditions" />
+        <Property Name="displayName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="authenticationEventsFlow" BaseType="graph.entity" Abstract="true" OpenType="true">
         <Property Name="conditions" Type="graph.authenticationConditions" />
@@ -12618,6 +12640,14 @@
         <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
         <Property Name="isDeleted" Type="Edm.Boolean" />
         <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
+      </EntityType>
+      <EntityType Name="checkInClaim">
+        <Key>
+          <PropertyRef Name="calendarEventId" />
+        </Key>
+        <Property Name="calendarEventId" Type="Edm.String" Nullable="false" />
+        <Property Name="checkInMethod" Type="graph.checkInMethod" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="checklistItem" BaseType="graph.entity">
         <Property Name="checkedDateTime" Type="Edm.DateTimeOffset" />
@@ -14366,8 +14396,10 @@
         <NavigationProperty Name="engagementAsyncOperations" Type="Collection(graph.engagementAsyncOperation)" ContainsTarget="true" />
         <NavigationProperty Name="learningCourseActivities" Type="Collection(graph.learningCourseActivity)" ContainsTarget="true" />
         <NavigationProperty Name="learningProviders" Type="Collection(graph.learningProvider)" ContainsTarget="true" />
+        <NavigationProperty Name="roles" Type="Collection(graph.engagementRole)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="employeeExperienceUser" BaseType="graph.entity">
+        <NavigationProperty Name="assignedRoles" Type="Collection(graph.engagementRole)" ContainsTarget="true" />
         <NavigationProperty Name="learningCourseActivities" Type="Collection(graph.learningCourseActivity)" />
       </EntityType>
       <EntityType Name="endpoint" BaseType="graph.directoryObject" OpenType="true">
@@ -14430,6 +14462,15 @@
         <Property Name="title" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="engagementConversationSystemMessage" BaseType="graph.engagementConversationMessage" />
+      <EntityType Name="engagementRole" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="members" Type="Collection(graph.engagementRoleMember)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="engagementRoleMember" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="userId" Type="Edm.String" />
+        <NavigationProperty Name="user" Type="graph.user" />
+      </EntityType>
       <EntityType Name="enrollmentConfigurationAssignment" BaseType="graph.entity">
         <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget" />
       </EntityType>
@@ -14739,6 +14780,9 @@
         <Property Name="arity" Type="graph.scopeOperatorType" Nullable="false" />
         <Property Name="multivaluedComparisonType" Type="graph.scopeOperatorMultiValuedComparisonType" Nullable="false" />
         <Property Name="supportedAttributeTypes" Type="Collection(graph.attributeType)" Nullable="false" />
+      </EntityType>
+      <EntityType Name="fraudProtectionProvider" BaseType="graph.entity" Abstract="true">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="governanceInsight" BaseType="graph.entity" Abstract="true">
         <Property Name="insightCreatedDateTime" Type="Edm.DateTimeOffset" />
@@ -15125,6 +15169,10 @@
       <EntityType Name="horizontalSectionColumn" BaseType="graph.entity">
         <Property Name="width" Type="Edm.Int32" />
         <NavigationProperty Name="webparts" Type="Collection(graph.webPart)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="humanSecurityFraudProtectionProvider" BaseType="graph.fraudProtectionProvider">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="serverToken" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="identityApiConnector" BaseType="graph.entity">
         <Property Name="authenticationConfiguration" Type="graph.apiAuthenticationConfigurationBase" />
@@ -16451,6 +16499,9 @@
         <NavigationProperty Name="parentNotebook" Type="graph.notebook" />
         <NavigationProperty Name="parentSectionGroup" Type="graph.sectionGroup" />
       </EntityType>
+      <EntityType Name="onFraudProtectionLoadStartListener" BaseType="graph.authenticationEventListener">
+        <Property Name="handler" Type="graph.onFraudProtectionLoadStartHandler" />
+      </EntityType>
       <EntityType Name="onInteractiveAuthFlowStartListener" BaseType="graph.authenticationEventListener">
         <Property Name="handler" Type="graph.onInteractiveAuthFlowStartHandler" />
       </EntityType>
@@ -16941,6 +16992,7 @@
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="geoCoordinates" Type="graph.outlookGeoCoordinates" />
         <Property Name="phone" Type="Edm.String" />
+        <NavigationProperty Name="checkIns" Type="Collection(graph.checkInClaim)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="planner" BaseType="graph.entity">
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" ContainsTarget="true">
@@ -17678,6 +17730,7 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="riskPreventionContainer">
+        <NavigationProperty Name="fraudProtectionProviders" Type="Collection(graph.fraudProtectionProvider)" ContainsTarget="true" />
         <NavigationProperty Name="webApplicationFirewallProviders" Type="Collection(graph.webApplicationFirewallProvider)" ContainsTarget="true" />
         <NavigationProperty Name="webApplicationFirewallVerifications" Type="Collection(graph.webApplicationFirewallVerificationModel)" ContainsTarget="true" />
       </EntityType>
@@ -28771,6 +28824,16 @@
       </Action>
     </Schema>
     <Schema Namespace="microsoft.graph.identityGovernance" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="activationTaskScopeType">
+        <Member Name="allTasks" Value="0" />
+        <Member Name="failedTasks" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="activationUserScopeType">
+        <Member Name="allUsers" Value="0" />
+        <Member Name="failedUsers" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="customTaskExtensionOperationStatus">
         <Member Name="completed" Value="0" />
         <Member Name="failed" Value="1" />
@@ -28813,6 +28876,7 @@
         <Member Name="scheduled" Value="0" />
         <Member Name="onDemand" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="activatedWithScope" Value="3" />
       </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
@@ -28820,6 +28884,22 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="createdDateTime" Value="3" />
       </EnumType>
+      <ComplexType Name="activateGroupScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <NavigationProperty Name="group" Type="graph.group" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="activateProcessingResultScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <Property Name="taskScope" Type="microsoft.graph.identityGovernance.activationTaskScopeType" Nullable="false" />
+        <NavigationProperty Name="processingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
+      </ComplexType>
+      <ComplexType Name="activateRunScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <Property Name="taskScope" Type="microsoft.graph.identityGovernance.activationTaskScopeType" Nullable="false" />
+        <Property Name="userScope" Type="microsoft.graph.identityGovernance.activationUserScopeType" Nullable="false" />
+        <NavigationProperty Name="run" Type="microsoft.graph.identityGovernance.run" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="activateUserScope" BaseType="microsoft.graph.identityGovernance.activationScope">
+        <NavigationProperty Name="users" Type="Collection(graph.user)" />
+      </ComplexType>
+      <ComplexType Name="activationScope" Abstract="true" />
       <ComplexType Name="attributeChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="triggerAttributes" Type="Collection(microsoft.graph.identityGovernance.triggerAttribute)" Nullable="false" />
       </ComplexType>
@@ -28957,6 +29037,7 @@
         <NavigationProperty Name="workflowTemplates" Type="Collection(microsoft.graph.identityGovernance.workflowTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="run" BaseType="graph.entity">
+        <Property Name="activatedOnScope" Type="microsoft.graph.identityGovernance.activationScope" />
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="failedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedUsersCount" Type="Edm.Int32" Nullable="false" />
@@ -28969,6 +29050,7 @@
         <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalUsersCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
+        <NavigationProperty Name="reprocessedRuns" Type="Collection(microsoft.graph.identityGovernance.run)" />
         <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
         <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
       </EntityType>
@@ -29024,6 +29106,7 @@
         <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
         <Property Name="workflowVersion" Type="Edm.Int32" Nullable="false" />
+        <NavigationProperty Name="reprocessedRuns" Type="Collection(microsoft.graph.identityGovernance.run)" />
         <NavigationProperty Name="subject" Type="graph.user" Nullable="false" />
         <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
       </EntityType>
@@ -29070,6 +29153,10 @@
       <Action Name="activate" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="subjects" Type="Collection(graph.user)" />
+      </Action>
+      <Action Name="activateWithScope" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="scope" Type="microsoft.graph.identityGovernance.activationScope" />
       </Action>
       <Action Name="createNewVersion" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
@@ -34206,6 +34293,12 @@
       <Annotations Target="microsoft.graph.employeeExperience/engagementAsyncOperations">
         <Annotation Term="Org.OData.Core.V1.Description" String="A collection of long-running, asynchronous operations related to Viva Engage." />
       </Annotations>
+      <Annotations Target="microsoft.graph.employeeExperience/roles">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Viva Engage roles and their membership." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.employeeExperienceUser/assignedRoles">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Viva Engage roles assigned to the user." />
+      </Annotations>
       <Annotations Target="microsoft.graph.enablement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values of a property" />
       </Annotations>
@@ -34465,6 +34558,29 @@
       </Annotations>
       <Annotations Target="microsoft.graph.engagementIdentitySet/group">
         <Annotation Term="Org.OData.Core.V1.Description" String="The group identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRole">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a Viva Engage role and its members" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRole/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Name of the role" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRole/members">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Users who have been assigned this role." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRoleMember">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Entity to represent the assignment of a role to a user." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRoleMember/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The date and time when the user was assigned the role." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRoleMember/user">
+        <Annotation Term="Org.OData.Core.V1.Description" String="User entity of the member who has been assigned the role." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.engagementRoleMember/userId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the user who has been assigned the role." />
       </Annotations>
       <Annotations Target="microsoft.graph.enrollmentConfigurationAssignment">
         <Annotation Term="Org.OData.Core.V1.Description" String="Enrollment Configuration Assignment" />
@@ -39564,6 +39680,13 @@
               <PropertyValue Property="Version" String="2021-09/Removal" />
             </Record>
           </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.place/checkIns">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.plannerPlan/owner">
