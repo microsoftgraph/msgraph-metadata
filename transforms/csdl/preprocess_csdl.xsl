@@ -474,6 +474,11 @@
                 <Collection>
                     <String>microsoft.graph.room</String>
                     <String>microsoft.graph.roomList</String>
+                    <String>microsoft.graph.building</String>
+                    <String>microsoft.graph.floor</String>
+                    <String>microsoft.graph.desk</String>
+                    <String>microsoft.graph.section</String>
+                    <String>microsoft.graph.workspace</String>
                 </Collection>
             </Annotation>
         </xsl:copy>
