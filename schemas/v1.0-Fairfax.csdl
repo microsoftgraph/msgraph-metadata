@@ -3514,6 +3514,25 @@
         <Member Name="guest" Value="1" />
         <Member Name="domain" Value="2" />
       </EnumType>
+      <EnumType Name="sharePointMigrationJobErrorLevel">
+        <Member Name="important" Value="0" />
+        <Member Name="warning" Value="1" />
+        <Member Name="error" Value="2" />
+        <Member Name="fatalError" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="sharePointMigrationObjectType">
+        <Member Name="site" Value="0" />
+        <Member Name="web" Value="1" />
+        <Member Name="folder" Value="2" />
+        <Member Name="list" Value="3" />
+        <Member Name="listItem" Value="4" />
+        <Member Name="file" Value="5" />
+        <Member Name="alert" Value="6" />
+        <Member Name="sharedWithObject" Value="7" />
+        <Member Name="invalid" Value="8" />
+        <Member Name="unknownFutureValue" Value="9" />
+      </EnumType>
       <EnumType Name="sharingCapabilities">
         <Member Name="disabled" Value="0" />
         <Member Name="externalUserSharingOnly" Value="1" />
@@ -7389,6 +7408,11 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="sharePointMigrationContainerInfo">
+        <Property Name="dataContainerUri" Type="Edm.String" Nullable="false" />
+        <Property Name="encryptionKey" Type="Edm.String" Nullable="false" />
+        <Property Name="metadataContainerUri" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="sharePointOneDriveOptions">
         <Property Name="includeContent" Type="graph.searchContent" />
       </ComplexType>
@@ -10600,6 +10624,7 @@
         <Property Name="status" Type="graph.fileStorageContainerStatus" />
         <Property Name="viewpoint" Type="graph.fileStorageContainerViewpoint" />
         <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
+        <NavigationProperty Name="migrationJobs" Type="Collection(graph.sharePointMigrationJob)" ContainsTarget="true" />
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
         <NavigationProperty Name="recycleBin" Type="graph.recycleBin" ContainsTarget="true" />
       </EntityType>
@@ -12638,6 +12663,61 @@
       </EntityType>
       <EntityType Name="sharepoint" BaseType="graph.entity">
         <NavigationProperty Name="settings" Type="graph.sharepointSettings" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationEvent" BaseType="graph.entity">
+        <Property Name="correlationId" Type="Edm.String" Nullable="false" />
+        <Property Name="eventDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="jobId" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationFinishManifestFileUploadEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="manifestFileName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJob" BaseType="graph.entity">
+        <Property Name="containerInfo" Type="graph.sharePointMigrationContainerInfo" Nullable="false" />
+        <NavigationProperty Name="progressEvents" Type="Collection(graph.sharePointMigrationEvent)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJobCancelledEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="isCancelledByUser" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="totalRetryCount" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJobDeletedEvent" BaseType="graph.sharePointMigrationEvent" />
+      <EntityType Name="sharePointMigrationJobErrorEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="error" Type="graph.publicError" Nullable="false" />
+        <Property Name="errorLevel" Type="graph.sharePointMigrationJobErrorLevel" Nullable="false" />
+        <Property Name="objectId" Type="Edm.String" Nullable="false" />
+        <Property Name="objectType" Type="graph.sharePointMigrationObjectType" Nullable="false" />
+        <Property Name="objectUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="totalRetryCount" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJobPostponedEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="jobsInQueue" Type="Edm.Int64" Nullable="false" />
+        <Property Name="nextPickupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="reason" Type="Edm.String" Nullable="false" />
+        <Property Name="totalRetryCount" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJobProgressEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="bytesProcessed" Type="Edm.Int64" Nullable="false" />
+        <Property Name="bytesProcessedOnlyCurrentVersion" Type="Edm.Int64" Nullable="false" />
+        <Property Name="cpuDurationMs" Type="Edm.Int64" Nullable="false" />
+        <Property Name="filesProcessed" Type="Edm.Int64" Nullable="false" />
+        <Property Name="filesProcessedOnlyCurrentVersion" Type="Edm.Int64" Nullable="false" />
+        <Property Name="isCompleted" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastProcessedObjectId" Type="Edm.String" Nullable="false" />
+        <Property Name="objectsProcessed" Type="Edm.Int64" Nullable="false" />
+        <Property Name="sqlDurationMs" Type="Edm.Int64" Nullable="false" />
+        <Property Name="sqlQueryCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="totalDurationMs" Type="Edm.Int64" Nullable="false" />
+        <Property Name="totalErrors" Type="Edm.Int64" Nullable="false" />
+        <Property Name="totalExpectedBytes" Type="Edm.Int64" Nullable="false" />
+        <Property Name="totalExpectedObjects" Type="Edm.Int64" Nullable="false" />
+        <Property Name="totalRetryCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalWarnings" Type="Edm.Int64" Nullable="false" />
+        <Property Name="waitTimeOnSqlThrottlingMs" Type="Edm.Int64" Nullable="false" />
+      </EntityType>
+      <EntityType Name="sharePointMigrationJobQueuedEvent" BaseType="graph.sharePointMigrationEvent" />
+      <EntityType Name="sharePointMigrationJobStartEvent" BaseType="graph.sharePointMigrationEvent">
+        <Property Name="isRestarted" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="totalRetryCount" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <EntityType Name="sharepointSettings" BaseType="graph.entity">
         <Property Name="allowedDomainGuidsForSyncApp" Type="Collection(Edm.Guid)" />
@@ -17675,6 +17755,10 @@
         <Parameter Name="bindingParameter" Type="graph.channel" />
         <ReturnType Type="graph.provisionChannelEmailResult" />
       </Action>
+      <Action Name="provisionMigrationContainers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
+        <ReturnType Type="graph.sharePointMigrationContainerInfo" />
+      </Action>
       <Action Name="provisionOnDemand" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
         <Parameter Name="parameters" Type="Collection(graph.synchronizationJobApplicationParameters)" />
@@ -17829,6 +17913,10 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
         <Parameter Name="value" Type="Collection(graph.site)" />
         <ReturnType Type="Collection(graph.site)" />
+      </Action>
+      <Action Name="removeAllAccessForUser" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.chat" />
+        <Parameter Name="user" Type="graph.teamworkUserIdentity" />
       </Action>
       <Action Name="removeAllDevicesFromManagement" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" />
@@ -20472,6 +20560,9 @@
       </ComplexType>
       <ComplexType Name="triggerAttribute">
         <Property Name="name" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="userInactivityTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="inactivityPeriodInDays" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="usersProcessingSummary">
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
@@ -36146,6 +36237,13 @@
         <Member Name="splitSource" Value="4096" />
         <Member Name="includeReport" Value="16384" />
       </EnumType>
+      <EnumType Name="aiAgentPlatform">
+        <Member Name="unknown" Value="0" />
+        <Member Name="azureAIFoundry" Value="10" />
+        <Member Name="copilotStudio" Value="20" />
+        <Member Name="copilot" Value="30" />
+        <Member Name="unknownFutureValue" Value="40" />
+      </EnumType>
       <EnumType Name="alertClassification" UnderlyingType="Edm.Byte">
         <Member Name="unknown" Value="0" />
         <Member Name="falsePositive" Value="10" />
@@ -36667,6 +36765,12 @@
         <Member Name="azure" Value="1" />
         <Member Name="unknownFutureValue" Value="15" />
       </EnumType>
+      <ComplexType Name="aiAgentEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="agentId" Type="Edm.String" />
+        <Property Name="agentName" Type="Edm.String" />
+        <Property Name="hostingPlatformType" Type="microsoft.graph.security.aiAgentPlatform" />
+        <Property Name="instructions" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="alertComment">
         <Property Name="comment" Type="Edm.String" />
         <Property Name="createdByDisplayName" Type="Edm.String" />
