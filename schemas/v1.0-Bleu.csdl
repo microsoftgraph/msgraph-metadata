@@ -247,6 +247,12 @@
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
       </EnumType>
+      <EnumType Name="postType">
+        <Member Name="regular" Value="0" />
+        <Member Name="quick" Value="1" />
+        <Member Name="strategic" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="promptLoginBehavior">
         <Member Name="translateToFreshPasswordAuthentication" Value="0" />
         <Member Name="nativeSupport" Value="1" />
@@ -270,6 +276,49 @@
       <EnumType Name="scopeOperatorType">
         <Member Name="Binary" Value="0" />
         <Member Name="Unary" Value="1" />
+      </EnumType>
+      <EnumType Name="serviceHealthClassificationType">
+        <Member Name="advisory" Value="1" />
+        <Member Name="incident" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="serviceHealthOrigin">
+        <Member Name="microsoft" Value="1" />
+        <Member Name="thirdParty" Value="2" />
+        <Member Name="customer" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="serviceHealthStatus">
+        <Member Name="serviceOperational" Value="0" />
+        <Member Name="investigating" Value="1" />
+        <Member Name="restoringService" Value="2" />
+        <Member Name="verifyingService" Value="3" />
+        <Member Name="serviceRestored" Value="4" />
+        <Member Name="postIncidentReviewPublished" Value="5" />
+        <Member Name="serviceDegradation" Value="6" />
+        <Member Name="serviceInterruption" Value="7" />
+        <Member Name="extendedRecovery" Value="8" />
+        <Member Name="falsePositive" Value="9" />
+        <Member Name="investigationSuspended" Value="10" />
+        <Member Name="resolved" Value="11" />
+        <Member Name="mitigatedExternal" Value="12" />
+        <Member Name="mitigated" Value="13" />
+        <Member Name="resolvedExternal" Value="14" />
+        <Member Name="confirmed" Value="15" />
+        <Member Name="reported" Value="16" />
+        <Member Name="unknownFutureValue" Value="17" />
+      </EnumType>
+      <EnumType Name="serviceUpdateCategory">
+        <Member Name="preventOrFixIssue" Value="1" />
+        <Member Name="planForChange" Value="2" />
+        <Member Name="stayInformed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="serviceUpdateSeverity">
+        <Member Name="normal" Value="1" />
+        <Member Name="high" Value="2" />
+        <Member Name="critical" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="synchronizationDisposition">
         <Member Name="Normal" Value="0" />
@@ -938,6 +987,11 @@
       <ComplexType Name="samlSingleSignOnSettings">
         <Property Name="relayState" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="serviceHealthIssuePost">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="graph.itemBody" />
+        <Property Name="postType" Type="graph.postType" />
+      </ComplexType>
       <ComplexType Name="servicePlanInfo">
         <Property Name="appliesTo" Type="Edm.String" />
         <Property Name="provisioningStatus" Type="Edm.String" />
@@ -950,6 +1004,11 @@
         <Property Name="credentialsWithUsageVerify" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="serviceUpdateMessageViewpoint">
+        <Property Name="isArchived" Type="Edm.Boolean" />
+        <Property Name="isFavorited" Type="Edm.Boolean" />
+        <Property Name="isRead" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="settingTemplateValue">
         <Property Name="defaultValue" Type="Edm.String" />
@@ -1104,6 +1163,9 @@
         <Property Name="redirectUriSettings" Type="Collection(graph.redirectUriSettings)" Nullable="false" />
       </ComplexType>
       <EntityType Name="activityBasedTimeoutPolicy" BaseType="graph.stsPolicy" />
+      <EntityType Name="admin">
+        <NavigationProperty Name="serviceAnnouncement" Type="graph.serviceAnnouncement" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="administrativeUnit" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -1844,6 +1906,41 @@
         <Property Name="roleId" Type="Edm.String" Nullable="false" />
         <Property Name="roleMemberInfo" Type="graph.identity" Nullable="false" />
       </EntityType>
+      <EntityType Name="serviceAnnouncement" BaseType="graph.entity">
+        <NavigationProperty Name="healthOverviews" Type="Collection(graph.serviceHealth)" ContainsTarget="true" />
+        <NavigationProperty Name="issues" Type="Collection(graph.serviceHealthIssue)" ContainsTarget="true" />
+        <NavigationProperty Name="messages" Type="Collection(graph.serviceUpdateMessage)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="serviceAnnouncementAttachment" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.Stream" />
+        <Property Name="contentType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
+      <EntityType Name="serviceAnnouncementBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="details" Type="Collection(graph.keyValuePair)" />
+        <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="title" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="serviceHealth" BaseType="graph.entity">
+        <Property Name="service" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.serviceHealthStatus" Nullable="false" />
+        <NavigationProperty Name="issues" Type="Collection(graph.serviceHealthIssue)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="serviceHealthIssue" BaseType="graph.serviceAnnouncementBase">
+        <Property Name="classification" Type="graph.serviceHealthClassificationType" Nullable="false" />
+        <Property Name="feature" Type="Edm.String" />
+        <Property Name="featureGroup" Type="Edm.String" />
+        <Property Name="impactDescription" Type="Edm.String" Nullable="false" />
+        <Property Name="isResolved" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="origin" Type="graph.serviceHealthOrigin" Nullable="false" />
+        <Property Name="posts" Type="Collection(graph.serviceHealthIssuePost)" Nullable="false" />
+        <Property Name="service" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.serviceHealthStatus" Nullable="false" />
+      </EntityType>
       <EntityType Name="servicePrincipal" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="addIns" Type="Collection(graph.addIn)" Nullable="false" />
@@ -1909,6 +2006,19 @@
             </Record>
           </Collection>
         </Annotation>
+      </EntityType>
+      <EntityType Name="serviceUpdateMessage" BaseType="graph.serviceAnnouncementBase">
+        <Property Name="actionRequiredByDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="attachmentsArchive" Type="Edm.Stream" />
+        <Property Name="body" Type="graph.itemBody" Nullable="false" />
+        <Property Name="category" Type="graph.serviceUpdateCategory" Nullable="false" />
+        <Property Name="hasAttachments" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isMajorChange" Type="Edm.Boolean" />
+        <Property Name="services" Type="Collection(Edm.String)" />
+        <Property Name="severity" Type="graph.serviceUpdateSeverity" Nullable="false" />
+        <Property Name="tags" Type="Collection(Edm.String)" />
+        <Property Name="viewPoint" Type="graph.serviceUpdateMessageViewpoint" />
+        <NavigationProperty Name="attachments" Type="Collection(graph.serviceAnnouncementAttachment)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="stsPolicy" BaseType="graph.policyBase" Abstract="true">
         <Property Name="definition" Type="Collection(Edm.String)" Nullable="false" />
@@ -2135,6 +2245,11 @@
         <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
         <ReturnType Type="graph.passwordCredential" Nullable="false" />
       </Action>
+      <Action Name="archive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
         <Parameter Name="addLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
@@ -2187,6 +2302,11 @@
         <Parameter Name="bindingParameter" Type="graph.directoryDefinition" />
         <ReturnType Type="graph.directoryDefinition" />
       </Action>
+      <Action Name="favorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
@@ -2224,6 +2344,16 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <ReturnType Type="graph.applicationServicePrincipal" />
+      </Action>
+      <Action Name="markRead" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="markUnread" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="parseExpression" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationSchema" />
@@ -2309,6 +2439,16 @@
       </Action>
       <Action Name="start" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
+      </Action>
+      <Action Name="unarchive" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="unfavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
+        <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" />
       </Action>
       <Action Name="validateCredentials" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.synchronizationJob)" />
@@ -2402,6 +2542,10 @@
         <Parameter Name="bindingParameter" Type="graph.synchronizationSchema" />
         <ReturnType Type="Collection(graph.attributeMappingFunctionSchema)" />
       </Function>
+      <Function Name="incidentReport" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceHealthIssue" />
+        <ReturnType Type="Edm.Stream" />
+      </Function>
       <EntityContainer Name="GraphService">
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="appManagementPolicies" Target="policies/appManagementPolicies" />
@@ -2475,6 +2619,7 @@
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
+        <Singleton Name="admin" Type="microsoft.graph.admin" />
         <Singleton Name="communications" Type="microsoft.graph.cloudCommunications" />
         <Singleton Name="directory" Type="microsoft.graph.directory">
           <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
