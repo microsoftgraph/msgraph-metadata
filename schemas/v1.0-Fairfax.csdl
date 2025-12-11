@@ -1283,10 +1283,48 @@
         <Member Name="ctph" Value="6" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="fileStorageContainerBillingClassification">
+        <Member Name="standard" Value="0" />
+        <Member Name="trial" Value="1" />
+        <Member Name="directToCustomer" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="fileStorageContainerBillingStatus">
+        <Member Name="invalid" Value="0" />
+        <Member Name="valid" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="fileStorageContainerStatus">
         <Member Name="inactive" Value="0" />
         <Member Name="active" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="fileStorageContainerTypeAppPermission">
+        <Member Name="none" Value="0" />
+        <Member Name="readContent" Value="1" />
+        <Member Name="writeContent" Value="2" />
+        <Member Name="manageContent" Value="3" />
+        <Member Name="create" Value="4" />
+        <Member Name="delete" Value="5" />
+        <Member Name="read" Value="6" />
+        <Member Name="write" Value="7" />
+        <Member Name="enumeratePermissions" Value="8" />
+        <Member Name="addPermissions" Value="9" />
+        <Member Name="updatePermissions" Value="10" />
+        <Member Name="deletePermissions" Value="11" />
+        <Member Name="deleteOwnPermission" Value="12" />
+        <Member Name="managePermissions" Value="13" />
+        <Member Name="full" Value="14" />
+        <Member Name="unknownFutureValue" Value="15" />
+      </EnumType>
+      <EnumType Name="fileStorageContainerTypeSettingsOverride" IsFlags="true">
+        <Member Name="urlTemplate" Value="0" />
+        <Member Name="isDiscoverabilityEnabled" Value="1" />
+        <Member Name="isSearchEnabled" Value="2" />
+        <Member Name="isItemVersioningEnabled" Value="3" />
+        <Member Name="itemMajorVersionLimit" Value="4" />
+        <Member Name="maxStoragePerContainerInBytes" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="filterMode">
         <Member Name="include" Value="0" />
@@ -5781,6 +5819,27 @@
       </ComplexType>
       <ComplexType Name="fileStorageContainerSettings">
         <Property Name="isOcrEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="fileStorageContainerTypeRegistrationSettings">
+        <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
+        <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
+        <Property Name="isSearchEnabled" Type="Edm.Boolean" />
+        <Property Name="isSharingRestricted" Type="Edm.Boolean" />
+        <Property Name="itemMajorVersionLimit" Type="Edm.Int64" />
+        <Property Name="maxStoragePerContainerInBytes" Type="Edm.Int64" />
+        <Property Name="sharingCapability" Type="graph.sharingCapabilities" />
+        <Property Name="urlTemplate" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="fileStorageContainerTypeSettings">
+        <Property Name="consumingTenantOverridables" Type="graph.fileStorageContainerTypeSettingsOverride" />
+        <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
+        <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
+        <Property Name="isSearchEnabled" Type="Edm.Boolean" />
+        <Property Name="isSharingRestricted" Type="Edm.Boolean" />
+        <Property Name="itemMajorVersionLimit" Type="Edm.Int64" />
+        <Property Name="maxStoragePerContainerInBytes" Type="Edm.Int64" />
+        <Property Name="sharingCapability" Type="graph.sharingCapabilities" />
+        <Property Name="urlTemplate" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="fileStorageContainerViewpoint">
         <Property Name="effectiveRole" Type="Edm.String" Nullable="false" />
@@ -10611,9 +10670,12 @@
       </EntityType>
       <EntityType Name="fileStorage" BaseType="graph.entity">
         <NavigationProperty Name="containers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
+        <NavigationProperty Name="containerTypeRegistrations" Type="Collection(graph.fileStorageContainerTypeRegistration)" ContainsTarget="true" />
+        <NavigationProperty Name="containerTypes" Type="Collection(graph.fileStorageContainerType)" ContainsTarget="true" />
         <NavigationProperty Name="deletedContainers" Type="Collection(graph.fileStorageContainer)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="fileStorageContainer" BaseType="graph.entity">
+        <Property Name="assignedSensitivityLabel" Type="graph.assignedLabel" />
         <Property Name="containerTypeId" Type="Edm.Guid" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="customProperties" Type="graph.fileStorageContainerCustomPropertyDictionary" />
@@ -10623,10 +10685,40 @@
         <Property Name="settings" Type="graph.fileStorageContainerSettings" Nullable="false" />
         <Property Name="status" Type="graph.fileStorageContainerStatus" />
         <Property Name="viewpoint" Type="graph.fileStorageContainerViewpoint" />
+        <NavigationProperty Name="columns" Type="Collection(graph.columnDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
         <NavigationProperty Name="migrationJobs" Type="Collection(graph.sharePointMigrationJob)" ContainsTarget="true" />
         <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
         <NavigationProperty Name="recycleBin" Type="graph.recycleBin" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="fileStorageContainerType" BaseType="graph.entity">
+        <Property Name="billingClassification" Type="graph.fileStorageContainerBillingClassification" Nullable="false" />
+        <Property Name="billingStatus" Type="graph.fileStorageContainerBillingStatus" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="etag" Type="Edm.String" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="owningAppId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="settings" Type="graph.fileStorageContainerTypeSettings" Nullable="false" />
+      </EntityType>
+      <EntityType Name="fileStorageContainerTypeAppPermissionGrant">
+        <Key>
+          <PropertyRef Name="appId" />
+        </Key>
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="applicationPermissions" Type="Collection(graph.fileStorageContainerTypeAppPermission)" />
+        <Property Name="delegatedPermissions" Type="Collection(graph.fileStorageContainerTypeAppPermission)" />
+      </EntityType>
+      <EntityType Name="fileStorageContainerTypeRegistration" BaseType="graph.entity">
+        <Property Name="billingClassification" Type="graph.fileStorageContainerBillingClassification" Nullable="false" />
+        <Property Name="billingStatus" Type="graph.fileStorageContainerBillingStatus" Nullable="false" />
+        <Property Name="etag" Type="Edm.String" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="owningAppId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="registeredDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="settings" Type="graph.fileStorageContainerTypeRegistrationSettings" Nullable="false" />
+        <NavigationProperty Name="applicationPermissionGrants" Type="Collection(graph.fileStorageContainerTypeAppPermissionGrant)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="filterOperatorSchema" BaseType="graph.entity">
         <Property Name="arity" Type="graph.scopeOperatorType" Nullable="false" />
@@ -25316,6 +25408,36 @@
       </Annotations>
       <Annotations Target="microsoft.graph.externalConnectors.externalConnection/state">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.fido2AuthenticationMethodConfiguration/isAttestationEnforced">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-10-15" />
+              <PropertyValue Property="Description" String="This property is deprecated and will stop returning data on October 15, 2027. Please use passkeyProfiles property." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-10-15" />
+              <PropertyValue Property="Version" String="2025-10/PasskeyGlobalProperties" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.fido2AuthenticationMethodConfiguration/keyRestrictions">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-10-15" />
+              <PropertyValue Property="Description" String="This property is deprecated and will stop returning data on October 15, 2027. Please use passkeyProfiles property." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-10-15" />
+              <PropertyValue Property="Version" String="2025-10/PasskeyGlobalProperties" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.fileEncryptionInfo">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for file encryption information for the content version of a line-of-business app." />
