@@ -938,6 +938,13 @@
         <Member Name="system" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="labelActionSource">
+        <Member Name="manual" Value="0" />
+        <Member Name="automatic" Value="1" />
+        <Member Name="recommended" Value="2" />
+        <Member Name="none" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="layoutTemplateType">
         <Member Name="default" Value="0" />
         <Member Name="verticalSplit" Value="1" />
@@ -1917,6 +1924,29 @@
         <Member Name="selfRenew" Value="9" />
         <Member Name="unknownFutureValue" Value="10" />
       </EnumType>
+      <EnumType Name="usageRights" IsFlags="true">
+        <Member Name="unknown" Value="1" />
+        <Member Name="docEdit" Value="2" />
+        <Member Name="edit" Value="4" />
+        <Member Name="comment" Value="8" />
+        <Member Name="export" Value="16" />
+        <Member Name="forward" Value="32" />
+        <Member Name="owner" Value="64" />
+        <Member Name="print" Value="128" />
+        <Member Name="reply" Value="256" />
+        <Member Name="replyAll" Value="512" />
+        <Member Name="view" Value="1024" />
+        <Member Name="extract" Value="2048" />
+        <Member Name="viewRightsData" Value="4096" />
+        <Member Name="editRightsData" Value="8192" />
+        <Member Name="objModel" Value="16384" />
+        <Member Name="accessDenied" Value="32768" />
+        <Member Name="userDefinedProtectionTypeNotSupportedException" Value="65536" />
+        <Member Name="encryptedProtectionTypeNotSupportedException" Value="131072" />
+        <Member Name="purviewClaimsChallengeNotSupportedException" Value="262144" />
+        <Member Name="exception" Value="524288" />
+        <Member Name="unknownFutureValue" Value="1048576" />
+      </EnumType>
       <EnumType Name="userAccountSecurityType">
         <Member Name="unknown" Value="0" />
         <Member Name="standard" Value="1" />
@@ -2706,6 +2736,11 @@
       <ComplexType Name="complianceInformation" OpenType="true">
         <Property Name="certificationControls" Type="Collection(graph.certificationControl)" />
         <Property Name="certificationName" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="computeRightsAndInheritanceResult">
+        <NavigationProperty Name="contentRights" Type="Collection(graph.labelContentRight)" />
+        <NavigationProperty Name="inheritedLabel" Type="graph.sensitivityLabel" />
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" />
       </ComplexType>
       <ComplexType Name="conditionalAccessAllExternalTenants" BaseType="graph.conditionalAccessExternalTenants" />
       <ComplexType Name="conditionalAccessApplications">
@@ -3984,6 +4019,11 @@
       <ComplexType Name="propertyToEvaluate">
         <Property Name="propertyName" Type="Edm.String" />
         <Property Name="propertyValue" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="protectedContent">
+        <Property Name="cid" Type="Edm.String" />
+        <Property Name="format" Type="Edm.String" />
+        <Property Name="labelId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="protectGroup" BaseType="graph.labelActionBase">
         <Property Name="allowEmailFromGuestUsers" Type="Edm.Boolean" />
@@ -6011,6 +6051,9 @@
       <EntityType Name="dataLossPreventionPolicy" BaseType="graph.entity">
         <Property Name="name" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="dataSecurityAndGovernance" BaseType="graph.entity" Abstract="true">
+        <NavigationProperty Name="sensitivityLabels" Type="Collection(graph.sensitivityLabel)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="classification" Type="graph.permissionClassificationType" />
         <Property Name="permissionId" Type="Edm.String" />
@@ -6697,6 +6740,12 @@
         <Property Name="status" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="labelContentRight" BaseType="graph.entity">
+        <Property Name="cid" Type="Edm.String" />
+        <Property Name="format" Type="Edm.String" />
+        <Property Name="rights" Type="graph.usageRights" Nullable="false" />
+        <NavigationProperty Name="label" Type="graph.sensitivityLabel" Nullable="false" />
       </EntityType>
       <EntityType Name="licenseDetails" BaseType="graph.entity">
         <Property Name="servicePlans" Type="Collection(graph.servicePlanInfo)" Nullable="false" />
@@ -7426,6 +7475,7 @@
         <Property Name="autoLabeling" Type="graph.autoLabeling" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="hasProtection" Type="Edm.Boolean" />
         <Property Name="isDefault" Type="Edm.Boolean" />
         <Property Name="isEndpointProtectionEnabled" Type="Edm.Boolean" />
         <Property Name="labelActions" Type="Collection(graph.labelActionBase)" />
@@ -8112,6 +8162,11 @@
       </EntityType>
       <EntityType Name="unmuteParticipantOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="updateRecordingStatusOperation" BaseType="graph.commsOperation" OpenType="true" />
+      <EntityType Name="usageRightsIncluded" BaseType="graph.entity">
+        <Property Name="ownerEmail" Type="Edm.String" />
+        <Property Name="userEmail" Type="Edm.String" />
+        <Property Name="value" Type="graph.usageRights" Nullable="false" />
+      </EntityType>
       <EntityType Name="user" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="aboutMe" Type="Edm.String" />
         <Property Name="accountEnabled" Type="Edm.Boolean" />
@@ -8509,6 +8564,14 @@
       </Action>
       <Action Name="completeMigration" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
+      </Action>
+      <Action Name="computeRightsAndInheritance" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.sensitivityLabel)" />
+        <Parameter Name="delegatedUserEmail" Type="Edm.String" Unicode="false" />
+        <Parameter Name="locale" Type="Edm.String" Unicode="false" />
+        <Parameter Name="protectedContents" Type="Collection(graph.protectedContent)" Nullable="false" />
+        <Parameter Name="supportedContentFormats" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.computeRightsAndInheritanceResult" />
       </Action>
       <Action Name="confirmCompromised" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
@@ -9291,6 +9354,13 @@
         <Parameter Name="bindingparameter" Type="graph.calendar" />
         <Parameter Name="User" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.calendarRoleType)" Nullable="false" />
+      </Function>
+      <Function Name="computeInheritance" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.sensitivityLabel)" />
+        <Parameter Name="labelIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
+        <Parameter Name="locale" Type="Edm.String" Unicode="false" />
+        <Parameter Name="contentFormats" Type="Collection(Edm.String)" Unicode="false" />
+        <ReturnType Type="graph.sensitivityLabel" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.application)" />
