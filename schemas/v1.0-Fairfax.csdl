@@ -5269,6 +5269,16 @@
       <ComplexType Name="commsNotifications">
         <Property Name="value" Type="Collection(graph.commsNotification)" />
       </ComplexType>
+      <ComplexType Name="communicationsIdentitySet" BaseType="graph.identitySet" OpenType="true">
+        <Property Name="applicationInstance" Type="graph.identity" />
+        <Property Name="assertedIdentity" Type="graph.identity" />
+        <Property Name="azureCommunicationServicesUser" Type="graph.identity" />
+        <Property Name="encrypted" Type="graph.identity" />
+        <Property Name="endpointType" Type="graph.endpointType" />
+        <Property Name="guest" Type="graph.identity" />
+        <Property Name="onPremises" Type="graph.identity" />
+        <Property Name="phone" Type="graph.identity" />
+      </ComplexType>
       <ComplexType Name="ComplexExtensionValue" OpenType="true" />
       <ComplexType Name="complianceInformation" OpenType="true">
         <Property Name="certificationControls" Type="Collection(graph.certificationControl)" />
@@ -13556,6 +13566,7 @@
         <NavigationProperty Name="messages" Type="Collection(graph.message)" ContainsTarget="true" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="onlineMeetings" Type="Collection(graph.onlineMeeting)" ContainsTarget="true" />
+        <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="outlook" Type="graph.outlookUser" ContainsTarget="true" />
         <NavigationProperty Name="ownedDevices" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
@@ -20155,6 +20166,9 @@
         <Member Name="wifi80211ax" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <ComplexType Name="administrativeUnitInfo">
+        <Property Name="id" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="clientUserAgent" BaseType="microsoft.graph.callRecords.userAgent">
         <Property Name="azureADAppId" Type="Edm.String" />
         <Property Name="communicationServiceId" Type="Edm.String" />
@@ -20228,6 +20242,7 @@
         <Property Name="averageAudioDegradation" Type="Edm.Single" />
         <Property Name="averageAudioNetworkJitter" Type="Edm.Duration" />
         <Property Name="averageBandwidthEstimate" Type="Edm.Int64" />
+        <Property Name="averageFreezeDuration" Type="Edm.Duration" />
         <Property Name="averageJitter" Type="Edm.Duration" />
         <Property Name="averagePacketLossRate" Type="Edm.Single" />
         <Property Name="averageRatioOfConcealedSamples" Type="Edm.Single" />
@@ -20237,6 +20252,7 @@
         <Property Name="averageVideoFrameRate" Type="Edm.Single" />
         <Property Name="averageVideoPacketLossRate" Type="Edm.Single" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="isAudioForwardErrorCorrectionUsed" Type="Edm.Boolean" />
         <Property Name="lowFrameRateRatio" Type="Edm.Single" />
         <Property Name="lowVideoProcessingCapabilityRatio" Type="Edm.Single" />
         <Property Name="maxAudioNetworkJitter" Type="Edm.Duration" />
@@ -20246,6 +20262,7 @@
         <Property Name="maxRoundTripTime" Type="Edm.Duration" />
         <Property Name="packetUtilization" Type="Edm.Int64" />
         <Property Name="postForwardErrorCorrectionPacketLossRate" Type="Edm.Single" />
+        <Property Name="rmsFreezeDuration" Type="Edm.Duration" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="streamDirection" Type="microsoft.graph.callRecords.mediaStreamDirection" Nullable="false" />
         <Property Name="streamId" Type="Edm.String" />
@@ -20281,8 +20298,13 @@
         <Property Name="wifiVendorDriverVersion" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="participantEndpoint" BaseType="microsoft.graph.callRecords.endpoint">
+        <Property Name="associatedIdentity" Type="graph.identity" />
+        <Property Name="cpuCoresCount" Type="Edm.Int32" />
+        <Property Name="cpuName" Type="Edm.String" />
+        <Property Name="cpuProcessorSpeedInMhz" Type="Edm.Int32" />
         <Property Name="feedback" Type="microsoft.graph.callRecords.userFeedback" />
         <Property Name="identity" Type="graph.identitySet" />
+        <Property Name="name" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="pstnCallLogRow">
         <Property Name="callDurationSource" Type="microsoft.graph.callRecords.pstnCallDurationSource" />
@@ -20327,6 +20349,9 @@
         <Property Name="text" Type="Edm.String" />
         <Property Name="tokens" Type="microsoft.graph.callRecords.feedbackTokenSet" />
       </ComplexType>
+      <ComplexType Name="userIdentity" BaseType="graph.identity" OpenType="true">
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </ComplexType>
       <EntityType Name="callRecord" BaseType="graph.entity">
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="joinWebUrl" Type="Edm.String" />
@@ -20337,7 +20362,15 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="type" Type="microsoft.graph.callRecords.callType" Nullable="false" />
         <Property Name="version" Type="Edm.Int64" Nullable="false" />
+        <NavigationProperty Name="organizer_v2" Type="microsoft.graph.callRecords.organizer" ContainsTarget="true" />
+        <NavigationProperty Name="participants_v2" Type="Collection(microsoft.graph.callRecords.participant)" ContainsTarget="true" />
         <NavigationProperty Name="sessions" Type="Collection(microsoft.graph.callRecords.session)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="organizer" BaseType="microsoft.graph.callRecords.participantBase" />
+      <EntityType Name="participant" BaseType="microsoft.graph.callRecords.participantBase" />
+      <EntityType Name="participantBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="administrativeUnitInfos" Type="Collection(microsoft.graph.callRecords.administrativeUnitInfo)" />
+        <Property Name="identity" Type="graph.communicationsIdentitySet" />
       </EntityType>
       <EntityType Name="segment" BaseType="graph.entity">
         <Property Name="callee" Type="microsoft.graph.callRecords.endpoint" />
@@ -22637,6 +22670,54 @@
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/organizer">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-12-10" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use organizer_v2 instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-06/New_Properties_Added" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/organizer_v2">
+        <Annotation Term="Org.OData.Core.V1.AutoExpand" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.callRecord/participants">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-12-10" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use participants_v2 instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-06/New_Properties_Added" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.callRecords.participantEndpoint/identity">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2023-11-06" />
+              <PropertyValue Property="Description" String="This property is deprecated and will be removed in a future version. Use associatedIdentity instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-11-06" />
+              <PropertyValue Property="Version" String="2023-11/New_Properties_Added" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.cancel(microsoft.graph.bookingAppointment, Edm.String)">
@@ -25834,10 +25915,12 @@
       <Annotations Target="microsoft.graph.GraphService/users">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
             <PropertyValue Property="NonExpandableProperties">
               <Collection>
                 <NavigationPropertyPath>chats</NavigationPropertyPath>
                 <NavigationPropertyPath>joinedTeams</NavigationPropertyPath>
+                <NavigationPropertyPath>onPremisesSyncBehavior</NavigationPropertyPath>
                 <NavigationPropertyPath>permissionGrants</NavigationPropertyPath>
                 <NavigationPropertyPath>teamwork</NavigationPropertyPath>
               </Collection>
@@ -36874,6 +36957,11 @@
         <Member Name="messages" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="recipientType" IsFlags="true">
+        <Member Name="user" Value="1" />
+        <Member Name="roleGroup" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="retentionTrigger">
         <Member Name="dateLabeled" Value="0" />
         <Member Name="dateCreated" Value="1" />
@@ -36957,6 +37045,10 @@
         <Member Name="azure" Value="1" />
         <Member Name="unknownFutureValue" Value="15" />
       </EnumType>
+      <ComplexType Name="activeDirectoryDomainEvidence" BaseType="microsoft.graph.security.alertEvidence">
+        <Property Name="activeDirectoryDomainName" Type="Edm.String" />
+        <Property Name="trustedDomains" Type="Collection(microsoft.graph.security.activeDirectoryDomainEvidence)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="aiAgentEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="agentId" Type="Edm.String" />
         <Property Name="agentName" Type="Edm.String" />
@@ -37081,6 +37173,7 @@
         <Property Name="osPlatform" Type="Edm.String" />
         <Property Name="rbacGroupId" Type="Edm.Int32" />
         <Property Name="rbacGroupName" Type="Edm.String" />
+        <Property Name="resourceAccessEvents" Type="Collection(microsoft.graph.security.resourceAccessEvent)" />
         <Property Name="riskScore" Type="microsoft.graph.security.deviceRiskScore" />
         <Property Name="version" Type="Edm.String" />
         <Property Name="vmMetadata" Type="microsoft.graph.security.vmMetadata" />
@@ -37615,6 +37708,7 @@
         <Property Name="closedBy" Type="graph.identitySet" />
         <Property Name="closedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="externalId" Type="Edm.String" />
+        <NavigationProperty Name="caseMembers" Type="Collection(microsoft.graph.security.ediscoveryCaseMember)" ContainsTarget="true" />
         <NavigationProperty Name="custodians" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" ContainsTarget="true" />
         <NavigationProperty Name="noncustodialDataSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(microsoft.graph.security.caseOperation)" ContainsTarget="true" />
@@ -37622,6 +37716,11 @@
         <NavigationProperty Name="searches" Type="Collection(microsoft.graph.security.ediscoverySearch)" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="microsoft.graph.security.ediscoveryCaseSettings" ContainsTarget="true" />
         <NavigationProperty Name="tags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="ediscoveryCaseMember" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="recipientType" Type="microsoft.graph.security.recipientType" />
+        <Property Name="smtpAddress" Type="Edm.String" />
       </EntityType>
       <EntityType Name="ediscoveryCaseSettings" BaseType="graph.entity">
         <Property Name="caseType" Type="microsoft.graph.security.caseType" Nullable="false" />
