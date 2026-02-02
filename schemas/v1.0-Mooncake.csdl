@@ -481,6 +481,19 @@
         <Member Name="delegateWithPrivateEventAccess" Value="6" />
         <Member Name="custom" Value="7" />
       </EnumType>
+      <EnumType Name="calendarSharingAction">
+        <Member Name="accept" Value="0" />
+        <Member Name="acceptAndViewCalendar" Value="1" />
+        <Member Name="viewCalendar" Value="2" />
+        <Member Name="addThisCalendar" Value="3" />
+      </EnumType>
+      <EnumType Name="calendarSharingActionImportance">
+        <Member Name="primary" Value="0" />
+        <Member Name="secondary" Value="1" />
+      </EnumType>
+      <EnumType Name="calendarSharingActionType">
+        <Member Name="accept" Value="0" />
+      </EnumType>
       <EnumType Name="callRecordingStatus">
         <Member Name="success" Value="0" />
         <Member Name="failure" Value="1" />
@@ -1263,6 +1276,25 @@
         <Member Name="unknownFutureValue" Value="4" />
         <Member Name="invited" Value="5" />
         <Member Name="organizationExcludingGuests" Value="6" />
+      </EnumType>
+      <EnumType Name="locationType">
+        <Member Name="default" Value="0" />
+        <Member Name="conferenceRoom" Value="1" />
+        <Member Name="homeAddress" Value="2" />
+        <Member Name="businessAddress" Value="3" />
+        <Member Name="geoCoordinates" Value="4" />
+        <Member Name="streetAddress" Value="5" />
+        <Member Name="hotel" Value="6" />
+        <Member Name="restaurant" Value="7" />
+        <Member Name="localBusiness" Value="8" />
+        <Member Name="postalAddress" Value="9" />
+      </EnumType>
+      <EnumType Name="locationUniqueIdType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="locationStore" Value="1" />
+        <Member Name="directory" Value="2" />
+        <Member Name="private" Value="3" />
+        <Member Name="bing" Value="4" />
       </EnumType>
       <EnumType Name="longRunningOperationStatus">
         <Member Name="notStarted" Value="0" />
@@ -3203,6 +3235,9 @@
         <Property Name="status" Type="graph.responseStatus" />
         <Property Name="type" Type="graph.attendeeType" />
       </ComplexType>
+      <ComplexType Name="attendeeBase" BaseType="graph.recipient">
+        <Property Name="type" Type="graph.attendeeType" />
+      </ComplexType>
       <ComplexType Name="attributeDefinition">
         <Property Name="anchor" Type="Edm.Boolean" Nullable="false" />
         <Property Name="apiExpressions" Type="Collection(graph.stringKeyStringValuePair)" />
@@ -3353,6 +3388,11 @@
         <Property Name="format" Type="Edm.String" />
         <Property Name="formula" Type="Edm.String" />
         <Property Name="outputType" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="calendarSharingMessageAction">
+        <Property Name="action" Type="graph.calendarSharingAction" />
+        <Property Name="actionType" Type="graph.calendarSharingActionType" />
+        <Property Name="importance" Type="graph.calendarSharingActionImportance" />
       </ComplexType>
       <ComplexType Name="callEndedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="callDuration" Type="Edm.Duration" />
@@ -3728,6 +3768,11 @@
       <ComplexType Name="customExtensionData" Abstract="true" />
       <ComplexType Name="customExtensionEndpointConfiguration" Abstract="true" />
       <ComplexType Name="customSecurityAttributeValue" OpenType="true" />
+      <ComplexType Name="customTimeZone" BaseType="graph.timeZoneBase">
+        <Property Name="bias" Type="Edm.Int32" />
+        <Property Name="daylightOffset" Type="graph.daylightTimeZoneOffset" />
+        <Property Name="standardOffset" Type="graph.standardTimeZoneOffset" />
+      </ComplexType>
       <ComplexType Name="dateTimeColumn">
         <Property Name="displayAs" Type="Edm.String" />
         <Property Name="format" Type="Edm.String" />
@@ -3735,6 +3780,9 @@
       <ComplexType Name="dateTimeTimeZone">
         <Property Name="dateTime" Type="Edm.String" Nullable="false" />
         <Property Name="timeZone" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="daylightTimeZoneOffset" BaseType="graph.standardTimeZoneOffset">
+        <Property Name="daylightBias" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="defaultColumnValue">
         <Property Name="formula" Type="Edm.String" />
@@ -4410,7 +4458,13 @@
       </ComplexType>
       <ComplexType Name="location">
         <Property Name="address" Type="graph.physicalAddress" />
+        <Property Name="coordinates" Type="graph.outlookGeoCoordinates" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="locationEmailAddress" Type="Edm.String" />
+        <Property Name="locationType" Type="graph.locationType" />
+        <Property Name="locationUri" Type="Edm.String" />
+        <Property Name="uniqueId" Type="Edm.String" />
+        <Property Name="uniqueIdType" Type="graph.locationUniqueIdType" />
       </ComplexType>
       <ComplexType Name="logicAppTriggerEndpointConfiguration" BaseType="graph.customExtensionEndpointConfiguration">
         <Property Name="logicAppWorkflowName" Type="Edm.String" />
@@ -5356,6 +5410,13 @@
       </ComplexType>
       <ComplexType Name="specialFolder">
         <Property Name="name" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="standardTimeZoneOffset">
+        <Property Name="dayOccurrence" Type="Edm.Int32" />
+        <Property Name="dayOfWeek" Type="graph.dayOfWeek" />
+        <Property Name="month" Type="Edm.Int32" />
+        <Property Name="time" Type="Edm.TimeOfDay" />
+        <Property Name="year" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="storagePlanInformation">
         <Property Name="upgradeAvailable" Type="Edm.Boolean" />
@@ -6736,7 +6797,9 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="selfServiceSignUp" Type="graph.selfServiceSignUpAuthenticationFlowConfiguration" />
       </EntityType>
-      <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true" />
+      <EntityType Name="authenticationMethod" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
       <EntityType Name="authenticationMethodConfiguration" BaseType="graph.entity" Abstract="true">
         <Property Name="excludeTargets" Type="Collection(graph.excludeTarget)" />
         <Property Name="state" Type="graph.authenticationMethodState" />
@@ -6855,6 +6918,12 @@
         <Property Name="isInsideOrganization" Type="Edm.Boolean" />
         <Property Name="isRemovable" Type="Edm.Boolean" />
         <Property Name="role" Type="graph.calendarRoleType" />
+      </EntityType>
+      <EntityType Name="calendarSharingMessage" BaseType="graph.message">
+        <Property Name="canAccept" Type="Edm.Boolean" />
+        <Property Name="sharingMessageAction" Type="graph.calendarSharingMessageAction" />
+        <Property Name="sharingMessageActions" Type="Collection(graph.calendarSharingMessageAction)" />
+        <Property Name="suggestedCalendarName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="canvasLayout" BaseType="graph.entity">
         <NavigationProperty Name="horizontalSections" Type="Collection(graph.horizontalSection)" ContainsTarget="true" />
@@ -8991,7 +9060,6 @@
         <Property Name="userId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="microsoftAuthenticatorAuthenticationMethod" BaseType="graph.authenticationMethod">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="deviceTag" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="phoneAppVersion" Type="Edm.String" />
@@ -9269,7 +9337,6 @@
         <Property Name="phone" Type="Edm.String" />
       </EntityType>
       <EntityType Name="platformCredentialAuthenticationMethod" BaseType="graph.authenticationMethod">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
         <Property Name="platform" Type="graph.authenticationMethodPlatform" />
@@ -11384,6 +11451,10 @@
         <Property Name="allowedPolicyOIDs" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <Action Name="accept" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
+        <ReturnType Type="graph.calendar" Nullable="false" />
+      </Action>
+      <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
@@ -12431,7 +12502,13 @@
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
       </Action>
       <Action Name="permanentDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.calendar" />
+      </Action>
+      <Action Name="permanentDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
+      </Action>
+      <Action Name="permanentDelete" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.event" />
       </Action>
       <Action Name="permanentDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.fileStorageContainer" />
