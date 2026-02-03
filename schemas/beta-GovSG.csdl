@@ -73,6 +73,11 @@
         <Member Name="rejectMfaByFederatedIdp" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="kind">
+        <Member Name="unrestricted" Value="0" />
+        <Member Name="allowedTenants" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="labelKind">
         <Member Name="all" Value="1" />
         <Member Name="enumerated" Value="2" />
@@ -155,6 +160,13 @@
         <Member Name="allManagedAndEnumeratedFederated" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
+      <EnumType Name="scopeCollectionKind">
+        <Member Name="allAllowed" Value="0" />
+        <Member Name="enumerated" Value="1" />
+        <Member Name="none" Value="2" />
+        <Member Name="scopeKindNotSet" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="weakAlgorithms" IsFlags="true">
         <Member Name="rsaSha1" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
@@ -164,8 +176,13 @@
         <Property Name="properties" Type="Collection(graph.keyValue)" Nullable="false" />
         <Property Name="type" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="allAllowedScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="allDomains" BaseType="graph.validatingDomains" />
       <ComplexType Name="allowedDataLocationInfo" OpenType="true" />
+      <ComplexType Name="allowedTenantsAudience" BaseType="graph.signInAudienceRestrictionsBase">
+        <Property Name="allowedTenantIds" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="isHomeTenantAllowed" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="allPreApprovedPermissions" BaseType="graph.preApprovedPermissions" />
       <ComplexType Name="allPreApprovedPermissionsOnResourceApp" BaseType="graph.preApprovedPermissions">
         <Property Name="resourceApplicationId" Type="Edm.String" />
@@ -320,6 +337,9 @@
         <Property Name="permissionIds" Type="Collection(Edm.String)" />
         <Property Name="resourceApplicationId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="enumeratedScopes" BaseType="graph.inheritableScopes">
+        <Property Name="scopes" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="enumeratedScopeSensitivityLabels" BaseType="graph.scopeSensitivityLabels">
         <Property Name="sensitivityLabels" Type="Collection(Edm.String)" />
       </ComplexType>
@@ -363,6 +383,9 @@
         <Property Name="privacyStatementUrl" Type="Edm.String" />
         <Property Name="supportUrl" Type="Edm.String" />
         <Property Name="termsOfServiceUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="inheritableScopes" Abstract="true">
+        <Property Name="kind" Type="graph.scopeCollectionKind" Nullable="false" />
       </ComplexType>
       <ComplexType Name="instanceResourceAccess">
         <Property Name="permissions" Type="Collection(graph.resourcePermission)" Nullable="false" />
@@ -420,6 +443,7 @@
         <Property Name="hideResetItNow" Type="Edm.Boolean" />
         <Property Name="hideTermsOfUse" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="noScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="objectIdentity">
         <Property Name="issuer" Type="Edm.String" />
         <Property Name="issuerAssignedId" Type="Edm.String" />
@@ -620,6 +644,9 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="signInAudienceRestrictionsBase" Abstract="true">
+        <Property Name="kind" Type="graph.kind" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="signingCertificateUpdateStatus">
         <Property Name="certificateUpdateResult" Type="Edm.String" />
         <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
@@ -647,6 +674,7 @@
         <Property Name="condition" Type="Edm.String" />
         <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="unrestrictedAudience" BaseType="graph.signInAudienceRestrictionsBase" />
       <ComplexType Name="validatingDomains" Abstract="true">
         <Property Name="rootDomains" Type="graph.rootDomains" Nullable="false" />
       </ComplexType>
@@ -681,6 +709,19 @@
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="scopedRoleMembers" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true">
+        <Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="agentIdentityBlueprint" BaseType="graph.application" OpenType="true">
+        <Property Name="createdByAppId" Type="Edm.String" />
+        <NavigationProperty Name="inheritablePermissions" Type="Collection(graph.inheritablePermission)" ContainsTarget="true" />
+        <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true">
+        <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="allowedDataLocation" BaseType="graph.entity" OpenType="true">
         <Property Name="appId" Type="Edm.String" />
@@ -719,6 +760,7 @@
         <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="servicePrincipalLockConfiguration" Type="graph.servicePrincipalLockConfiguration" />
         <Property Name="signInAudience" Type="Edm.String" />
+        <Property Name="signInAudienceRestrictions" Type="graph.signInAudienceRestrictionsBase" Nullable="false" />
         <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
@@ -1215,6 +1257,13 @@
         <Property Name="userId" Type="Edm.String" Nullable="false" />
         <Property Name="userPrincipalName" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="inheritablePermission">
+        <Key>
+          <PropertyRef Name="resourceAppId" />
+        </Key>
+        <Property Name="inheritableScopes" Type="graph.inheritableScopes" Nullable="false" />
+        <Property Name="resourceAppId" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
         <Property Name="activeSignInUri" Type="Edm.String" />
         <Property Name="federatedIdpMfaBehavior" Type="graph.federatedIdpMfaBehavior" />
@@ -1473,6 +1522,7 @@
         <Property Name="appOwnerOrganizationId" Type="Edm.Guid" />
         <Property Name="appRoleAssignmentRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="appRoles" Type="Collection(graph.appRole)" Nullable="false" />
+        <Property Name="createdByAppId" Type="Edm.String" />
         <Property Name="customSecurityAttributes" Type="graph.customSecurityAttributeValue" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="disabledByMicrosoftStatus" Type="Edm.String" />
@@ -1951,6 +2001,7 @@
         <EntitySet Name="applications" EntityType="microsoft.graph.application">
           <NavigationPropertyBinding Path="appManagementPolicies" Target="policies/appManagementPolicies" />
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="microsoft.graph.agentIdentityBlueprint/sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="appRoleAssignments" EntityType="microsoft.graph.appRoleAssignment" />
@@ -1999,6 +2050,8 @@
           <NavigationPropertyBinding Path="appManagementPolicies" Target="policies/appManagementPolicies" />
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="microsoft.graph.agentIdentity/sponsors" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="microsoft.graph.agentIdentityBlueprintPrincipal/sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="oauth2PermissionGrants" Target="oauth2PermissionGrants" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="owners" Target="directoryObjects" />
@@ -2048,6 +2101,12 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentity/agentIdentityBlueprintId">
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentityBlueprint/createdByAppId">
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.application">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -2599,6 +2658,9 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.servicePrincipal/createdByAppId">
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.subscribedSku">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
