@@ -70,3 +70,4 @@ foreach ($env in $environments) {
 }
 
 Write-Host "`nAll CSDL files processed successfully!" -ForegroundColor Green
+exit 0
