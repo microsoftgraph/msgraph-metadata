@@ -133,8 +133,12 @@ extends:
               artifactName: 'referenceLibrary'
               targetPath: '$(Build.ArtifactStagingDirectory)/tmp_lib'
           steps:
+            - checkout: self  # Add this to checkout msgraph-metadata repo
+              displayName: checkout msgraph-metadata
+              fetchDepth: 1
             - checkout: typespec-msgraph
               displayName: checkout typespec-msgraph
+              path: typespec-msgraph
               fetchDepth: 1
               persistCredentials: true
             - pwsh: |
@@ -142,7 +146,7 @@ extends:
                 git config --global user.name "Microsoft Graph DevX Tooling"
               displayName: 'Git: set user config'           
             - pwsh: |
-                $dummyFilePath = "$(Build.SourcesDirectory)/test-pr-generation.txt"
+                $dummyFilePath = "$(Build.SourcesDirectory)/typespec-msgraph/test-pr-generation.txt"
                 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
                 "This is a test file created at $timestamp to verify PR generation" | Out-File -FilePath $dummyFilePath -Encoding UTF8
                 Write-Host "Created dummy file at: $dummyFilePath" -ForegroundColor Green
@@ -151,7 +155,7 @@ extends:
               inputs:
                 sourceFolder: '$(Build.ArtifactStagingDirectory)/tmp_lib'
                 contents: '**/*'
-                targetFolder: '$(Build.SourcesDirectory)/packages/typespec-reference-library/lib'
+                targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-reference-library/lib'
                 overwrite: true
               displayName: Copy OpenAPI files to local typespec-msgraph repo
             # Push changes to Typespec msgraph repo
@@ -159,7 +163,7 @@ extends:
               displayName: Publish new generated files to msgraph-metadata repo
               env:
                 PublishChanges: True
-              workingDirectory: '$(Build.SourcesDirectory)'
+              workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
               enabled: true
               
             # Create PR
@@ -182,4 +186,4 @@ extends:
                 ScriptsDirectory: $(scriptsDirectory)
                 # Adding date as Version to keep up with the schema sync PRs.
                 Date: '$(Date:yyyyMMdd)'
-              workingDirectory: '$(Build.SourcesDirectory)'
+              workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
