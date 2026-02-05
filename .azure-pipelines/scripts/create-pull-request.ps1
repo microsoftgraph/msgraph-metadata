@@ -4,7 +4,7 @@ if (($env:GeneratePullRequest -eq $False)) { # Skip CI if manually running this 
     return;
 }
 
-$title = "Generated $env:Version typespec reference files"
+$title = "Generated typespec reference files on $env:Date"
 
 
 $body = ":bangbang:**_Important_**:bangbang: <br> Check for unexpected deletions or changes in this PR and ensure relevant CI checks are passing. <br><br> **Note:** This pull request was automatically created by Azure pipelines."
