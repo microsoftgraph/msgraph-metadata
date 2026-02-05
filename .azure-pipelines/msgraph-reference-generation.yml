@@ -98,7 +98,7 @@ extends:
             - input: pipelineArtifact
               buildType: 'current'
               artifactName: typespec-reference-tool
-              targetPath: '$(Build.SourcesDirectory)/typespecReferenceTool'
+              targetPath: '$(Build.ArtifactStagingDirectory)/typespecReferenceTool'
             outputs:
             - output: pipelineArtifact
               targetPath: '$(Build.ArtifactStagingDirectory)/lib'
@@ -107,6 +107,11 @@ extends:
             - checkout: self  # Add this to checkout msgraph-metadata repo
               displayName: checkout msgraph-metadata
               fetchDepth: 1
+            - task: CopyFiles@2
+              inputs:
+                sourceFolder: $(Build.ArtifactStagingDirectory)/typespecReferenceTool
+                contents: '**/*'
+                targetFolder: '$(Build.SourcesDirectory)/typespecReferenceTool'
             - pwsh: |
                 Write-Host "Validating artifact download..." -ForegroundColor Cyan
                 $artifactPath = "$(Build.SourcesDirectory)/typespecReferenceTool"
@@ -119,6 +124,7 @@ extends:
                 } else {
                   Write-Host "✗ Artifact path NOT found: $artifactPath" -ForegroundColor Red
                    Get-ChildItem -Path '$(Build.SourcesDirectory)' -Recurse | Select-Object FullName
+                   Get-ChildItem -Path '$(Build.ArtifactStagingDirectory)' -Recurse | Select-Object FullName
                   exit 1
                 }
                 
