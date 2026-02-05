@@ -8,6 +8,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Normalize path separators for Windows
+$ExePath = $ExePath -replace '/', '\'
+
+# Validate that the executable exists
+if (-not (Test-Path $ExePath)) {
+    Write-Host "Error: Executable not found at path: $ExePath" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Using executable: $ExePath" -ForegroundColor Cyan
+
 # Define the environments
 $environments = @(
     "Bleu",
