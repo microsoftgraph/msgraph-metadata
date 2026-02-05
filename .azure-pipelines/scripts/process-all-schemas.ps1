@@ -23,8 +23,8 @@ $environments = @(
 # Process beta files
 Write-Host "Processing beta CSDL files..." -ForegroundColor Cyan
 foreach ($env in $environments) {
-    $csdlFile = "../../schemas/beta-$env.csdl"
-    $outputDir = "../../generated-lib/$env/Beta/"
+    $csdlFile = "./schemas/beta-$env.csdl"
+    $outputDir = "./generated-lib/$env/Beta/"
     
     if (Test-Path $csdlFile) {
         Write-Host "Processing $csdlFile -> $outputDir" -ForegroundColor Green
@@ -42,8 +42,8 @@ foreach ($env in $environments) {
 # Process v1.0 files
 Write-Host "`nProcessing v1.0 CSDL files..." -ForegroundColor Cyan
 foreach ($env in $environments) {
-    $csdlFile = "../../schemas/v1.0-$env.csdl"
-    $outputDir = "../../generated-lib/$env/V1.0/"
+    $csdlFile = "./schemas/v1.0-$env.csdl"
+    $outputDir = "./generated-lib/$env/V1.0/"
     
     if (Test-Path $csdlFile) {
         Write-Host "Processing $csdlFile -> $outputDir" -ForegroundColor Green
