@@ -97,8 +97,8 @@ extends:
             inputs:
             - input: pipelineArtifact
               buildType: 'current'
-              artifactName: 'typespec-reference-tool'
-              targetPath: '$(Build.SourcesDirectory)/typespec-reference-tool'
+              artifactName: typespec-reference-tool
+              targetPath: '$(Build.SourcesDirectory)/typespecReferenceTool'
             outputs:
             - output: pipelineArtifact
               targetPath: '$(Build.ArtifactStagingDirectory)/lib'
@@ -107,7 +107,30 @@ extends:
             - checkout: self  # Add this to checkout msgraph-metadata repo
               displayName: checkout msgraph-metadata
               fetchDepth: 1
-            - pwsh: '$(Build.SourcesDirectory)/.azure-pipelines/scripts/process-all-schemas.ps1 -ExePath $(Build.SourcesDirectory)/typespec-reference-tool/typespec-msgraph-reference.exe'
+            - pwsh: |
+                Write-Host "Validating artifact download..." -ForegroundColor Cyan
+                $artifactPath = "$(Build.SourcesDirectory)/typespecReferenceTool"
+                $exePath = "$artifactPath/typespec-msgraph-reference.exe"
+                
+                if (Test-Path $artifactPath) {
+                  Write-Host "✓ Artifact path exists: $artifactPath" -ForegroundColor Green
+                  Write-Host "`nFolder structure:" -ForegroundColor Cyan
+                  Get-ChildItem -Path $artifactPath -Recurse | Select-Object FullName
+                } else {
+                  Write-Host "✗ Artifact path NOT found: $artifactPath" -ForegroundColor Red
+                   Get-ChildItem -Path '$(Build.SourcesDirectory)' -Recurse | Select-Object FullName
+                  exit 1
+                }
+                
+                if (Test-Path $exePath) {
+                  Write-Host "`n✓ Executable found: $exePath" -ForegroundColor Green
+                } else {
+                  Write-Host "`n✗ Executable NOT found: $exePath" -ForegroundColor Red
+                  Write-Host "Expected location: $exePath" -ForegroundColor Yellow
+                  exit 1
+                }
+              displayName: "Validate artifact and list contents"
+            - pwsh: '$(Build.SourcesDirectory)/.azure-pipelines/scripts/process-all-schemas.ps1 -ExePath $(Build.SourcesDirectory)/typespecReferenceTool/typespec-msgraph-reference.exe'
               displayName: "Process all the valid schemas files"
             - task: CopyFiles@2
               inputs:
