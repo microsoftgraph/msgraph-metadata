@@ -154,9 +154,19 @@ extends:
               inputs:
                 sourceFolder: '$(Build.ArtifactStagingDirectory)/tmp_lib'
                 contents: '**/*'
-                targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-reference-library/lib'
+                targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-msgraph-reference/lib'
                 overwrite: true
               displayName: Copy OpenAPI files to local typespec-msgraph repo
+            - pwsh: |
+                $manifestPath = "$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-msgraph-reference/lib/_manifest"
+                if (Test-Path $manifestPath) {
+                  Write-Host "Deleting _manifest folder: $manifestPath" -ForegroundColor Yellow
+                  Remove-Item -Path $manifestPath -Recurse -Force
+                  Write-Host "_manifest folder deleted successfully" -ForegroundColor Green
+                } else {
+                  Write-Host "_manifest folder not found, skipping deletion" -ForegroundColor Cyan
+                }
+              displayName: 'Delete _manifest folder'
             # Push changes to Typespec msgraph repo
             - pwsh: '$(Build.SourcesDirectory)/msgraph-metadata/.azure-pipelines/scripts/git-push-reference-files.ps1'
               displayName: Publish new generated files to msgraph-metadata repo
@@ -184,5 +194,5 @@ extends:
                 RepoName: 'microsoftgraph/typespec-msgraph'
                 scriptDir: $(Build.SourcesDirectory)\msgraph-metadata\.azure-pipelines\scripts
                 # Adding date as Version to keep up with the schema sync PRs.
-                Date: '$(Date:yyyyMMdd)'
+                Date: $(Get-Date -Format "yyyy-MM-dd")
               workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
