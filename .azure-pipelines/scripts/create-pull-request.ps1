@@ -4,13 +4,13 @@ if (($env:GeneratePullRequest -eq $False)) { # Skip CI if manually running this 
     return;
 }
 
-$title = "Generated $env:Version typespec reference files"
+$title = "Chore: Update Generated typespec reference files"
 
 
 $body = ":bangbang:**_Important_**:bangbang: <br> Check for unexpected deletions or changes in this PR and ensure relevant CI checks are passing. <br><br> **Note:** This pull request was automatically created by Azure pipelines."
 
 # The installed application is required to have the following permissions: read/write on pull requests/
-$tokenGenerationScript = "$env:ScriptsDirectory\Generate-Github-Token.ps1"
+$tokenGenerationScript = "$env:scriptDir\Generate-Github-Token.ps1"
 $env:GITHUB_TOKEN = & $tokenGenerationScript -AppClientId $env:GhAppId -AppPrivateKeyContents $env:GhAppKey -Repository $env:RepoName
 Write-Host "Fetched Github Token for PR generation and set as environment variable."
 

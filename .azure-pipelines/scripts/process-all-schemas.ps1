@@ -8,6 +8,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Normalize path separators for Windows
+$ExePath = $ExePath -replace '/', '\'
+
+# Validate that the executable exists
+if (-not (Test-Path $ExePath)) {
+    Write-Host "Error: Executable not found at path: $ExePath" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Using executable: $ExePath" -ForegroundColor Cyan
+
 # Define the environments
 $environments = @(
     "Bleu",
@@ -23,8 +34,8 @@ $environments = @(
 # Process beta files
 Write-Host "Processing beta CSDL files..." -ForegroundColor Cyan
 foreach ($env in $environments) {
-    $csdlFile = "../../schemas/beta-$env.csdl"
-    $outputDir = "../../generated-lib/$env/Beta/"
+    $csdlFile = "./schemas/beta-$env.csdl"
+    $outputDir = "./generated-lib/$env/Beta/"
     
     if (Test-Path $csdlFile) {
         Write-Host "Processing $csdlFile -> $outputDir" -ForegroundColor Green
@@ -42,8 +53,8 @@ foreach ($env in $environments) {
 # Process v1.0 files
 Write-Host "`nProcessing v1.0 CSDL files..." -ForegroundColor Cyan
 foreach ($env in $environments) {
-    $csdlFile = "../../schemas/v1.0-$env.csdl"
-    $outputDir = "../../generated-lib/$env/V1.0/"
+    $csdlFile = "./schemas/v1.0-$env.csdl"
+    $outputDir = "./generated-lib/$env/V1.0/"
     
     if (Test-Path $csdlFile) {
         Write-Host "Processing $csdlFile -> $outputDir" -ForegroundColor Green
@@ -59,3 +70,4 @@ foreach ($env in $environments) {
 }
 
 Write-Host "`nAll CSDL files processed successfully!" -ForegroundColor Green
+exit 0

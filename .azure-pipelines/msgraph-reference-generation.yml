@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.  See License in the project root for license information.
 # contains an end to end validation pipeline using C# compilation tests for staging beta metadata
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   branches:
     include:
@@ -19,6 +20,10 @@ resources:
   - repository: typespec-msgraph-reference
     type: git
     name: typespec-msgraph-reference
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
 variables:
   BuildConfiguration: 'Release'
   scriptsDirectory: '$(Build.SourcesDirectory)\.azure-pipelines\scripts'
@@ -26,6 +31,13 @@ variables:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      networkIsolationPolicy: Permissive
+    sdl:
+      sourceRepositoriesToScan:
+        exclude:
+        - repository: typespec-msgraph
+        - repository: typespec-msgraph-reference
     pool:
       name: Azure-Pipelines-1ESPT-ExDShared
       vmImage: windows-latest
@@ -62,18 +74,18 @@ extends:
             displayName: 'Restore dependencies'
             inputs:
               command: restore
-              projects: '$(Build.SourcesDirectory)\typespec-msgraph-reference\typespec-msgraph-reference.sln'
+              projects: '$(Build.SourcesDirectory)\typespec-msgraph-reference.sln'
 
           # Build the solution
           - task: DotNetCoreCLI@2
             displayName: 'Build solution'
             inputs:
               command: build
-              projects: '$(Build.SourcesDirectory)\typespec-msgraph-reference\typespec-msgraph-reference.sln'
+              projects: '$(Build.SourcesDirectory)\typespec-msgraph-reference.sln'
               arguments: '--configuration $(BuildConfiguration) --no-incremental'
           - task: CopyFiles@2
             inputs:
-              sourceFolder: '$(Build.SourcesDirectory)/typespec-msgraph-reference/bin/$(BuildConfiguration)/net10.0'
+              sourceFolder: '$(Build.SourcesDirectory)/bin/$(BuildConfiguration)/net10.0'
               contents: '**/*'
               targetFolder: '$(Build.ArtifactStagingDirectory)'
             displayName: Copy Typespec Reference executable
@@ -86,8 +98,8 @@ extends:
             inputs:
             - input: pipelineArtifact
               buildType: 'current'
-              artifactName: 'typespec-reference-tool'
-              targetPath: '$(Build.SourcesDirectory)/typespec-reference-tool'
+              artifactName: typespec-reference-tool
+              targetPath: '$(Build.ArtifactStagingDirectory)/typespecReferenceTool'
             outputs:
             - output: pipelineArtifact
               targetPath: '$(Build.ArtifactStagingDirectory)/lib'
@@ -96,7 +108,13 @@ extends:
             - checkout: self  # Add this to checkout msgraph-metadata repo
               displayName: checkout msgraph-metadata
               fetchDepth: 1
-            - pwsh: '$(Build.SourcesDirectory)/.azure-pipelines/scripts/process-all-schemas.ps1 -ExecPath $(Build.SourcesDirectory)/typespec-reference-tool/typespec-msgraph-reference.exe'
+            - task: CopyFiles@2
+              inputs:
+                sourceFolder: $(Build.ArtifactStagingDirectory)/typespecReferenceTool
+                contents: '**/*'
+                targetFolder: '$(Build.SourcesDirectory)/typespecReferenceTool'
+              displayName: "Validate artifact and list contents"
+            - pwsh: '$(Build.SourcesDirectory)/.azure-pipelines/scripts/process-all-schemas.ps1 -ExePath $(Build.SourcesDirectory)/typespecReferenceTool/typespec-msgraph-reference.exe'
               displayName: "Process all the valid schemas files"
             - task: CopyFiles@2
               inputs:
@@ -113,8 +131,11 @@ extends:
             - input: pipelineArtifact
               buildType: 'current'
               artifactName: 'referenceLibrary'
-              targetPath: '$(Build.SourcesDirectory)/tmp_lib'
+              targetPath: '$(Build.ArtifactStagingDirectory)/tmp_lib'
           steps:
+            - checkout: self  # Add this to checkout msgraph-metadata repo
+              displayName: checkout msgraph-metadata
+              fetchDepth: 1
             - checkout: typespec-msgraph
               displayName: checkout typespec-msgraph
               fetchDepth: 1
@@ -123,21 +144,30 @@ extends:
                 git config --global user.email "GraphTooling@service.microsoft.com"
                 git config --global user.name "Microsoft Graph DevX Tooling"
               displayName: 'Git: set user config'
-            # Copy files from the tmp folder to the checkout repo
             - task: CopyFiles@2
               inputs:
-                sourceFolder: '$(Build.SourcesDirectory)/tmp_lib'
+                sourceFolder: '$(Build.ArtifactStagingDirectory)/tmp_lib'
                 contents: '**/*'
-                targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-reference-library/lib'
+                targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-msgraph-reference/lib'
                 overwrite: true
               displayName: Copy OpenAPI files to local typespec-msgraph repo
+            - pwsh: |
+                $manifestPath = "$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-msgraph-reference/lib/_manifest"
+                if (Test-Path $manifestPath) {
+                  Write-Host "Deleting _manifest folder: $manifestPath" -ForegroundColor Yellow
+                  Remove-Item -Path $manifestPath -Recurse -Force
+                  Write-Host "_manifest folder deleted successfully" -ForegroundColor Green
+                } else {
+                  Write-Host "_manifest folder not found, skipping deletion" -ForegroundColor Cyan
+                }
+              displayName: 'Delete _manifest folder'
             # Push changes to Typespec msgraph repo
-            - pwsh: '$(scriptsDirectory)/git-push-reference-files.ps1'
+            - pwsh: '$(Build.SourcesDirectory)/msgraph-metadata/.azure-pipelines/scripts/git-push-reference-files.ps1'
               displayName: Publish new generated files to msgraph-metadata repo
               env:
                 PublishChanges: True
-              workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
               enabled: true
+              workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
               
             # Create PR
             - task: AzureKeyVault@2
@@ -147,7 +177,7 @@ extends:
                 KeyVaultName: akv-prod-eastus
                 SecretsFilter: "microsoft-graph-devx-bot-appid,microsoft-graph-devx-bot-privatekey"
 
-            - pwsh: '$(scriptsDirectory)/create-pull-request.ps1'
+            - pwsh: '$(Build.SourcesDirectory)/msgraph-metadata/.azure-pipelines/scripts/create-pull-request.ps1'
               displayName: 'Create Pull Request for the generated OpenAPI files for msgraph-metadata'
               env:
                 BaseBranch: main
@@ -156,9 +186,5 @@ extends:
                 GhAppKey: $(microsoft-graph-devx-bot-privatekey)
                 OverrideSkipCI: false
                 RepoName: 'microsoftgraph/typespec-msgraph'
-                ScriptsDirectory: $(scriptsDirectory)
-                # Version is intentionally left empty for OpenAPI PRs as versioning is not applicable in this context.
-                Version: ''
+                scriptDir: $(Build.SourcesDirectory)\msgraph-metadata\.azure-pipelines\scripts
               workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
-
-
