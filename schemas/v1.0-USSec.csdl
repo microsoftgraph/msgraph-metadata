@@ -1875,7 +1875,8 @@
         <Member Name="encryptedProtectionTypeNotSupportedException" Value="131072" />
         <Member Name="purviewClaimsChallengeNotSupportedException" Value="262144" />
         <Member Name="exception" Value="524288" />
-        <Member Name="unknownFutureValue" Value="1048576" />
+        <Member Name="labelNotFoundException" Value="1048576" />
+        <Member Name="unknownFutureValue" Value="2097152" />
       </EnumType>
       <EnumType Name="userAccountSecurityType">
         <Member Name="unknown" Value="0" />
@@ -1956,6 +1957,12 @@
         <Member Name="insiderRisk" Value="131072" />
         <Member Name="authenticationFlow" Value="262144" />
         <Member Name="unknownFutureValue" Value="524288" />
+      </EnumType>
+      <EnumType Name="workbookOperationStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="succeeded" Value="2" />
+        <Member Name="failed" Value="3" />
       </EnumType>
       <EnumType Name="x509CertificateAffinityLevel">
         <Member Name="low" Value="0" />
@@ -4674,6 +4681,57 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="type" Type="graph.websiteType" />
       </ComplexType>
+      <ComplexType Name="workbookFilterCriteria">
+        <Property Name="color" Type="Edm.String" />
+        <Property Name="criterion1" Type="Edm.String" />
+        <Property Name="criterion2" Type="Edm.String" />
+        <Property Name="dynamicCriteria" Type="Edm.String" Nullable="false" />
+        <Property Name="filterOn" Type="Edm.String" Nullable="false" />
+        <Property Name="icon" Type="graph.workbookIcon" />
+        <Property Name="operator" Type="Edm.String" Nullable="false" />
+        <Property Name="values" Type="graph.Json" />
+      </ComplexType>
+      <ComplexType Name="workbookFilterDatetime">
+        <Property Name="date" Type="Edm.String" />
+        <Property Name="specificity" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workbookIcon">
+        <Property Name="index" Type="Edm.Int32" Nullable="false" />
+        <Property Name="set" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workbookOperationError">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="innerError" Type="graph.workbookOperationError" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="workbookRangeReference">
+        <Property Name="address" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="workbookSessionInfo">
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="persistChanges" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="workbookSortField">
+        <Property Name="ascending" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="color" Type="Edm.String" />
+        <Property Name="dataOption" Type="Edm.String" Nullable="false" />
+        <Property Name="icon" Type="graph.workbookIcon" />
+        <Property Name="key" Type="Edm.Int32" Nullable="false" />
+        <Property Name="sortOn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="workbookWorksheetProtectionOptions">
+        <Property Name="allowAutoFilter" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowDeleteColumns" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowDeleteRows" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowFormatCells" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowFormatColumns" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowFormatRows" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowInsertColumns" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowInsertHyperlinks" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowInsertRows" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowPivotTables" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="allowSort" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="workingHours">
         <Property Name="daysOfWeek" Type="Collection(graph.dayOfWeek)" />
         <Property Name="endTime" Type="Edm.TimeOfDay" />
@@ -5993,6 +6051,7 @@
         <NavigationProperty Name="subscriptions" Type="Collection(graph.subscription)" ContainsTarget="true" />
         <NavigationProperty Name="thumbnails" Type="Collection(graph.thumbnailSet)" ContainsTarget="true" />
         <NavigationProperty Name="versions" Type="Collection(graph.driveItemVersion)" ContainsTarget="true" />
+        <NavigationProperty Name="workbook" Type="graph.workbook" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="driveItemVersion" BaseType="graph.baseItemVersion">
         <Property Name="content" Type="Edm.Stream" />
@@ -6207,6 +6266,8 @@
         <Property Name="preferredLanguage" Type="Edm.String" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="renewedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="resourceBehaviorOptions" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="resourceProvisioningOptions" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="securityEnabled" Type="Edm.Boolean" />
         <Property Name="securityIdentifier" Type="Edm.String" />
         <Property Name="serviceProvisioningErrors" Type="Collection(graph.serviceProvisioningError)" />
@@ -7941,6 +8002,282 @@
         <Property Name="keyStrength" Type="graph.authenticationMethodKeyStrength" />
         <NavigationProperty Name="device" Type="graph.device" />
       </EntityType>
+      <EntityType Name="workbook" BaseType="graph.entity">
+        <NavigationProperty Name="application" Type="graph.workbookApplication" ContainsTarget="true" />
+        <NavigationProperty Name="comments" Type="Collection(graph.workbookComment)" ContainsTarget="true" />
+        <NavigationProperty Name="functions" Type="graph.workbookFunctions" ContainsTarget="true" />
+        <NavigationProperty Name="names" Type="Collection(graph.workbookNamedItem)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(graph.workbookOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="tables" Type="Collection(graph.workbookTable)" ContainsTarget="true" />
+        <NavigationProperty Name="worksheets" Type="Collection(graph.workbookWorksheet)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookApplication" BaseType="graph.entity">
+        <Property Name="calculationMode" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="workbookChart" BaseType="graph.entity">
+        <Property Name="height" Type="Edm.Double" Nullable="false" />
+        <Property Name="left" Type="Edm.Double" Nullable="false" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="top" Type="Edm.Double" Nullable="false" />
+        <Property Name="width" Type="Edm.Double" Nullable="false" />
+        <NavigationProperty Name="axes" Type="graph.workbookChartAxes" ContainsTarget="true" />
+        <NavigationProperty Name="dataLabels" Type="graph.workbookChartDataLabels" ContainsTarget="true" />
+        <NavigationProperty Name="format" Type="graph.workbookChartAreaFormat" ContainsTarget="true" />
+        <NavigationProperty Name="legend" Type="graph.workbookChartLegend" ContainsTarget="true" />
+        <NavigationProperty Name="series" Type="Collection(graph.workbookChartSeries)" ContainsTarget="true" />
+        <NavigationProperty Name="title" Type="graph.workbookChartTitle" ContainsTarget="true" />
+        <NavigationProperty Name="worksheet" Type="graph.workbookWorksheet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAreaFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAxes" BaseType="graph.entity">
+        <NavigationProperty Name="categoryAxis" Type="graph.workbookChartAxis" ContainsTarget="true" />
+        <NavigationProperty Name="seriesAxis" Type="graph.workbookChartAxis" ContainsTarget="true" />
+        <NavigationProperty Name="valueAxis" Type="graph.workbookChartAxis" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAxis" BaseType="graph.entity">
+        <Property Name="majorUnit" Type="graph.Json" />
+        <Property Name="maximum" Type="graph.Json" />
+        <Property Name="minimum" Type="graph.Json" />
+        <Property Name="minorUnit" Type="graph.Json" />
+        <NavigationProperty Name="format" Type="graph.workbookChartAxisFormat" ContainsTarget="true" />
+        <NavigationProperty Name="majorGridlines" Type="graph.workbookChartGridlines" ContainsTarget="true" />
+        <NavigationProperty Name="minorGridlines" Type="graph.workbookChartGridlines" ContainsTarget="true" />
+        <NavigationProperty Name="title" Type="graph.workbookChartAxisTitle" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAxisFormat" BaseType="graph.entity">
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+        <NavigationProperty Name="line" Type="graph.workbookChartLineFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAxisTitle" BaseType="graph.entity">
+        <Property Name="text" Type="Edm.String" />
+        <Property Name="visible" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="format" Type="graph.workbookChartAxisTitleFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartAxisTitleFormat" BaseType="graph.entity">
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartDataLabelFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartDataLabels" BaseType="graph.entity">
+        <Property Name="position" Type="Edm.String" />
+        <Property Name="separator" Type="Edm.String" />
+        <Property Name="showBubbleSize" Type="Edm.Boolean" />
+        <Property Name="showCategoryName" Type="Edm.Boolean" />
+        <Property Name="showLegendKey" Type="Edm.Boolean" />
+        <Property Name="showPercentage" Type="Edm.Boolean" />
+        <Property Name="showSeriesName" Type="Edm.Boolean" />
+        <Property Name="showValue" Type="Edm.Boolean" />
+        <NavigationProperty Name="format" Type="graph.workbookChartDataLabelFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartFill" BaseType="graph.entity" />
+      <EntityType Name="workbookChartFont" BaseType="graph.entity">
+        <Property Name="bold" Type="Edm.Boolean" />
+        <Property Name="color" Type="Edm.String" />
+        <Property Name="italic" Type="Edm.Boolean" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Double" />
+        <Property Name="underline" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workbookChartGridlines" BaseType="graph.entity">
+        <Property Name="visible" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="format" Type="graph.workbookChartGridlinesFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartGridlinesFormat" BaseType="graph.entity">
+        <NavigationProperty Name="line" Type="graph.workbookChartLineFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartLegend" BaseType="graph.entity">
+        <Property Name="overlay" Type="Edm.Boolean" />
+        <Property Name="position" Type="Edm.String" />
+        <Property Name="visible" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="format" Type="graph.workbookChartLegendFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartLegendFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartLineFormat" BaseType="graph.entity">
+        <Property Name="color" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workbookChartPoint" BaseType="graph.entity">
+        <Property Name="value" Type="graph.Json" />
+        <NavigationProperty Name="format" Type="graph.workbookChartPointFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartPointFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartSeries" BaseType="graph.entity">
+        <Property Name="name" Type="Edm.String" />
+        <NavigationProperty Name="format" Type="graph.workbookChartSeriesFormat" ContainsTarget="true" />
+        <NavigationProperty Name="points" Type="Collection(graph.workbookChartPoint)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartSeriesFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+        <NavigationProperty Name="line" Type="graph.workbookChartLineFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartTitle" BaseType="graph.entity">
+        <Property Name="overlay" Type="Edm.Boolean" />
+        <Property Name="text" Type="Edm.String" />
+        <Property Name="visible" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="format" Type="graph.workbookChartTitleFormat" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookChartTitleFormat" BaseType="graph.entity">
+        <NavigationProperty Name="fill" Type="graph.workbookChartFill" ContainsTarget="true" />
+        <NavigationProperty Name="font" Type="graph.workbookChartFont" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookComment" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="replies" Type="Collection(graph.workbookCommentReply)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookCommentReply" BaseType="graph.entity">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="workbookFilter" BaseType="graph.entity">
+        <Property Name="criteria" Type="graph.workbookFilterCriteria" />
+      </EntityType>
+      <EntityType Name="workbookFormatProtection" BaseType="graph.entity">
+        <Property Name="formulaHidden" Type="Edm.Boolean" />
+        <Property Name="locked" Type="Edm.Boolean" />
+      </EntityType>
+      <EntityType Name="workbookFunctionResult" BaseType="graph.entity">
+        <Property Name="error" Type="Edm.String" />
+        <Property Name="value" Type="graph.Json" />
+      </EntityType>
+      <EntityType Name="workbookFunctions" BaseType="graph.entity" />
+      <EntityType Name="workbookNamedItem" BaseType="graph.entity">
+        <Property Name="comment" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="scope" Type="Edm.String" Nullable="false" />
+        <Property Name="type" Type="Edm.String" />
+        <Property Name="value" Type="graph.Json" />
+        <Property Name="visible" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="worksheet" Type="graph.workbookWorksheet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookOperation" BaseType="graph.entity">
+        <Property Name="error" Type="graph.workbookOperationError" />
+        <Property Name="resourceLocation" Type="Edm.String" />
+        <Property Name="status" Type="graph.workbookOperationStatus" Nullable="false" />
+      </EntityType>
+      <EntityType Name="workbookPivotTable" BaseType="graph.entity">
+        <Property Name="name" Type="Edm.String" />
+        <NavigationProperty Name="worksheet" Type="graph.workbookWorksheet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookRange" BaseType="graph.entity">
+        <Property Name="address" Type="Edm.String" />
+        <Property Name="addressLocal" Type="Edm.String" />
+        <Property Name="cellCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="columnCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="columnHidden" Type="Edm.Boolean" />
+        <Property Name="columnIndex" Type="Edm.Int32" Nullable="false" />
+        <Property Name="formulas" Type="graph.Json" />
+        <Property Name="formulasLocal" Type="graph.Json" />
+        <Property Name="formulasR1C1" Type="graph.Json" />
+        <Property Name="hidden" Type="Edm.Boolean" />
+        <Property Name="numberFormat" Type="graph.Json" />
+        <Property Name="rowCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="rowHidden" Type="Edm.Boolean" />
+        <Property Name="rowIndex" Type="Edm.Int32" Nullable="false" />
+        <Property Name="text" Type="graph.Json" />
+        <Property Name="values" Type="graph.Json" />
+        <Property Name="valueTypes" Type="graph.Json" />
+        <NavigationProperty Name="format" Type="graph.workbookRangeFormat" ContainsTarget="true" />
+        <NavigationProperty Name="sort" Type="graph.workbookRangeSort" ContainsTarget="true" />
+        <NavigationProperty Name="worksheet" Type="graph.workbookWorksheet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookRangeBorder" BaseType="graph.entity">
+        <Property Name="color" Type="Edm.String" />
+        <Property Name="sideIndex" Type="Edm.String" />
+        <Property Name="style" Type="Edm.String" />
+        <Property Name="weight" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workbookRangeFill" BaseType="graph.entity">
+        <Property Name="color" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workbookRangeFont" BaseType="graph.entity">
+        <Property Name="bold" Type="Edm.Boolean" />
+        <Property Name="color" Type="Edm.String" />
+        <Property Name="italic" Type="Edm.Boolean" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Double" />
+        <Property Name="underline" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workbookRangeFormat" BaseType="graph.entity">
+        <Property Name="columnWidth" Type="Edm.Double" />
+        <Property Name="horizontalAlignment" Type="Edm.String" />
+        <Property Name="rowHeight" Type="Edm.Double" />
+        <Property Name="verticalAlignment" Type="Edm.String" />
+        <Property Name="wrapText" Type="Edm.Boolean" />
+        <NavigationProperty Name="borders" Type="Collection(graph.workbookRangeBorder)" ContainsTarget="true" />
+        <NavigationProperty Name="fill" Type="graph.workbookRangeFill" ContainsTarget="true" />
+        <NavigationProperty Name="font" Type="graph.workbookRangeFont" ContainsTarget="true" />
+        <NavigationProperty Name="protection" Type="graph.workbookFormatProtection" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookRangeSort" BaseType="graph.entity" />
+      <EntityType Name="workbookRangeView" BaseType="graph.entity">
+        <Property Name="cellAddresses" Type="graph.Json" />
+        <Property Name="columnCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="formulas" Type="graph.Json" />
+        <Property Name="formulasLocal" Type="graph.Json" />
+        <Property Name="formulasR1C1" Type="graph.Json" />
+        <Property Name="index" Type="Edm.Int32" Nullable="false" />
+        <Property Name="numberFormat" Type="graph.Json" />
+        <Property Name="rowCount" Type="Edm.Int32" Nullable="false" />
+        <Property Name="text" Type="graph.Json" />
+        <Property Name="values" Type="graph.Json" />
+        <Property Name="valueTypes" Type="graph.Json" />
+        <NavigationProperty Name="rows" Type="Collection(graph.workbookRangeView)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookTable" BaseType="graph.entity">
+        <Property Name="highlightFirstColumn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="highlightLastColumn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="legacyId" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="showBandedColumns" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="showBandedRows" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="showFilterButton" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="showHeaders" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="showTotals" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="style" Type="Edm.String" />
+        <NavigationProperty Name="columns" Type="Collection(graph.workbookTableColumn)" ContainsTarget="true" />
+        <NavigationProperty Name="rows" Type="Collection(graph.workbookTableRow)" ContainsTarget="true" />
+        <NavigationProperty Name="sort" Type="graph.workbookTableSort" ContainsTarget="true" />
+        <NavigationProperty Name="worksheet" Type="graph.workbookWorksheet" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookTableColumn" BaseType="graph.entity">
+        <Property Name="index" Type="Edm.Int32" Nullable="false" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="values" Type="graph.Json" />
+        <NavigationProperty Name="filter" Type="graph.workbookFilter" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookTableRow" BaseType="graph.entity">
+        <Property Name="index" Type="Edm.Int32" Nullable="false" />
+        <Property Name="values" Type="graph.Json" />
+      </EntityType>
+      <EntityType Name="workbookTableSort" BaseType="graph.entity">
+        <Property Name="fields" Type="Collection(graph.workbookSortField)" />
+        <Property Name="matchCase" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="method" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="workbookWorksheet" BaseType="graph.entity">
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="position" Type="Edm.Int32" Nullable="false" />
+        <Property Name="visibility" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="charts" Type="Collection(graph.workbookChart)" ContainsTarget="true" />
+        <NavigationProperty Name="names" Type="Collection(graph.workbookNamedItem)" ContainsTarget="true" />
+        <NavigationProperty Name="pivotTables" Type="Collection(graph.workbookPivotTable)" ContainsTarget="true" />
+        <NavigationProperty Name="protection" Type="graph.workbookWorksheetProtection" ContainsTarget="true" />
+        <NavigationProperty Name="tables" Type="Collection(graph.workbookTable)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workbookWorksheetProtection" BaseType="graph.entity">
+        <Property Name="options" Type="graph.workbookWorksheetProtectionOptions" />
+        <Property Name="protected" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="x509CertificateAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="authenticationModeConfiguration" Type="graph.x509CertificateAuthenticationModeConfiguration" />
         <Property Name="certificateUserBindings" Type="Collection(graph.x509CertificateUserBinding)" />
@@ -7951,6 +8288,11 @@
         <Property Name="allowedIssuerSkis" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="allowedPolicyOIDs" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
+      <Action Name="abs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="accept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.calendarSharingMessage" />
         <ReturnType Type="graph.calendar" Nullable="false" />
@@ -7962,6 +8304,47 @@
       </Action>
       <Action Name="acceptRecommendations" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="accrInt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="firstInterest" Type="graph.Json" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="par" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <Parameter Name="calcMethod" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="accrIntM" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="par" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="acos" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="acosh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="acot" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="acoth" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="acquireAccessToken" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronization" />
@@ -7977,6 +8360,44 @@
         <Parameter Name="value" Type="Collection(graph.site)" />
         <ReturnType Type="Collection(graph.site)" />
       </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
+        <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="sourceData" Type="graph.Json" />
+        <Parameter Name="seriesBy" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.workbookChart" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookNamedItem)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="reference" Type="graph.Json" />
+        <Parameter Name="comment" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookNamedItem" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
+        <Parameter Name="address" Type="Edm.String" Unicode="false" />
+        <Parameter Name="hasHeaders" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.workbookTable" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
+        <Parameter Name="index" Type="Edm.Int32" />
+        <Parameter Name="values" Type="graph.Json" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookTableColumn" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
+        <Parameter Name="index" Type="Edm.Int32" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookTableRow" />
+      </Action>
+      <Action Name="add" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookWorksheet)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookWorksheet" />
+      </Action>
       <Action Name="addCopy" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
         <Parameter Name="contentType" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -7989,6 +8410,13 @@
       </Action>
       <Action Name="addFavorite" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
+      </Action>
+      <Action Name="addFormulaLocal" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookNamedItem)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <Parameter Name="formula" Type="Edm.String" Unicode="false" />
+        <Parameter Name="comment" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookNamedItem" />
       </Action>
       <Action Name="addGroup" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.groupLifecyclePolicy" />
@@ -8019,14 +8447,106 @@
         <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
         <ReturnType Type="graph.passwordCredential" Nullable="false" />
       </Action>
+      <Action Name="amorDegrc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="datePurchased" Type="graph.Json" />
+        <Parameter Name="firstPeriod" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="period" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="amorLinc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="datePurchased" Type="graph.Json" />
+        <Parameter Name="firstPeriod" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="period" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="and" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="answer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="callbackUri" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="mediaConfig" Type="graph.mediaConfig" Nullable="false" />
         <Parameter Name="acceptedModalities" Type="Collection(graph.modality)" />
       </Action>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="criteria" Type="graph.workbookFilterCriteria" />
+      </Action>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeSort" />
+        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
+        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="hasHeaders" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="orientation" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="apply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
+        <Parameter Name="fields" Type="Collection(graph.workbookSortField)" />
+        <Parameter Name="matchCase" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="method" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="applyBottomItemsFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="count" Type="Edm.Int32" Nullable="false" />
+      </Action>
+      <Action Name="applyBottomPercentFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="percent" Type="Edm.Int32" Nullable="false" />
+      </Action>
+      <Action Name="applyCellColorFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="color" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="applyCustomFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="criteria1" Type="Edm.String" Unicode="false" />
+        <Parameter Name="criteria2" Type="Edm.String" Unicode="false" />
+        <Parameter Name="oper" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
       <Action Name="applyDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
+      </Action>
+      <Action Name="applyDynamicFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="criteria" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="applyFontColorFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="color" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="applyIconFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="icon" Type="graph.workbookIcon" />
+      </Action>
+      <Action Name="applyTopItemsFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="count" Type="Edm.Int32" Nullable="false" />
+      </Action>
+      <Action Name="applyTopPercentFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="percent" Type="Edm.Int32" Nullable="false" />
+      </Action>
+      <Action Name="applyValuesFilter" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+        <Parameter Name="values" Type="graph.Json" />
+      </Action>
+      <Action Name="arabic" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
@@ -8040,6 +8560,26 @@
       <Action Name="archive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
         <Parameter Name="shouldSetSpoSiteReadOnlyForMembers" Type="Edm.Boolean" />
+      </Action>
+      <Action Name="areas" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="reference" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="asc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="asin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="asinh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="assignLicense" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
@@ -8064,12 +8604,191 @@
         <Parameter Name="hubSiteUrls" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
         <Parameter Name="propagateToExistingLists" Type="Edm.Boolean" />
       </Action>
+      <Action Name="atan" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="atan2" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="xNum" Type="graph.Json" />
+        <Parameter Name="yNum" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="atanh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="autofitColumns" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeFormat" />
+      </Action>
+      <Action Name="autofitRows" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeFormat" />
+      </Action>
+      <Action Name="aveDev" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="average" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="averageA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="averageIf" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="range" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <Parameter Name="averageRange" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="averageIfs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="averageRange" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bahtText" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="base" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="radix" Type="graph.Json" />
+        <Parameter Name="minLength" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="batchRecordDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
         <Parameter Name="decision" Type="Edm.String" Unicode="false" />
         <Parameter Name="justification" Type="Edm.String" Unicode="false" />
         <Parameter Name="principalId" Type="Edm.String" Unicode="false" />
         <Parameter Name="resourceId" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="besselI" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="n" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="besselJ" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="n" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="besselK" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="n" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="besselY" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="n" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="beta_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="beta" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <Parameter Name="A" Type="graph.Json" />
+        <Parameter Name="B" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="beta_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="beta" Type="graph.Json" />
+        <Parameter Name="A" Type="graph.Json" />
+        <Parameter Name="B" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bin2Dec" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bin2Hex" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bin2Oct" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="binom_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="numberS" Type="graph.Json" />
+        <Parameter Name="trials" Type="graph.Json" />
+        <Parameter Name="probabilityS" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="binom_Dist_Range" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="trials" Type="graph.Json" />
+        <Parameter Name="probabilityS" Type="graph.Json" />
+        <Parameter Name="numberS" Type="graph.Json" />
+        <Parameter Name="numberS2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="binom_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="trials" Type="graph.Json" />
+        <Parameter Name="probabilityS" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bitand" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number1" Type="graph.Json" />
+        <Parameter Name="number2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bitlshift" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="shiftAmount" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bitor" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number1" Type="graph.Json" />
+        <Parameter Name="number2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bitrshift" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="shiftAmount" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="bitxor" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number1" Type="graph.Json" />
+        <Parameter Name="number2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="calculate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookApplication" />
+        <Parameter Name="calculationType" Type="Edm.String" Nullable="false" Unicode="false" />
       </Action>
       <Action Name="cancel" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessPackageAssignmentRequest" />
@@ -8095,6 +8814,19 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.cancelMediaProcessingOperation" />
       </Action>
+      <Action Name="ceiling_Math" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <Parameter Name="mode" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ceiling_Precise" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="changePassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
         <Parameter Name="currentPassword" Type="Edm.String" Unicode="false" />
@@ -8103,6 +8835,11 @@
       <Action Name="changeScreenSharingRole" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="role" Type="graph.screenSharingRole" Nullable="false" />
+      </Action>
+      <Action Name="char" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="checkin" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -8122,6 +8859,64 @@
       <Action Name="checkout" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
       </Action>
+      <Action Name="chiSq_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="chiSq_Dist_RT" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="chiSq_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="chiSq_Inv_RT" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="choose" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="indexNum" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="clean" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChartFill" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChartLineFormat" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFilter" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="applyTo" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeFill" />
+      </Action>
+      <Action Name="clear" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
+      </Action>
+      <Action Name="clearFilters" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+      </Action>
       <Action Name="clearPresence" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
         <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
@@ -8138,11 +8933,62 @@
         <Parameter Name="visibility" Type="graph.teamVisibilityType" Nullable="false" />
         <Parameter Name="partsToClone" Type="graph.clonableTeamParts" Nullable="false" />
       </Action>
+      <Action Name="closeSession" IsBound="true">
+        <Parameter Name="this" Type="graph.workbook" />
+      </Action>
+      <Action Name="code" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="columns" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="combin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numberChosen" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="combina" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numberChosen" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="completeMigration" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
       </Action>
       <Action Name="completeMigration" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.team" />
+      </Action>
+      <Action Name="complex" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="realNum" Type="graph.Json" />
+        <Parameter Name="iNum" Type="graph.Json" />
+        <Parameter Name="suffix" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="concatenate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="confidence_Norm" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <Parameter Name="size" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="confidence_T" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <Parameter Name="size" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="confirmCompromised" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
@@ -8164,6 +9010,17 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.signIn)" />
         <Parameter Name="requestIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
+      <Action Name="convert" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="fromUnit" Type="graph.Json" />
+        <Parameter Name="toUnit" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="convertToRange" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Action>
       <Action Name="copy" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
@@ -8184,6 +9041,100 @@
         <Parameter Name="bindingParameter" Type="graph.contentType" />
         <Parameter Name="sourceFile" Type="graph.itemReference" Nullable="false" />
         <Parameter Name="destinationFileName" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="cos" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="cosh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="cot" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coth" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="countA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="countBlank" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="range" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="countIf" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="range" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="countIfs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupDayBs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupDays" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupDaysNc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupNcd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupNum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="coupPcd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="createForward" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
@@ -8242,6 +9193,11 @@
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.message" />
       </Action>
+      <Action Name="createSession" IsBound="true">
+        <Parameter Name="this" Type="graph.workbook" />
+        <Parameter Name="persistChanges" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.workbookSessionInfo" />
+      </Action>
       <Action Name="createUploadSession" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.attachment)" />
         <Parameter Name="AttachmentItem" Type="graph.attachmentItem" Nullable="false" />
@@ -8258,14 +9214,178 @@
         <Parameter Name="deferCommit" Type="Edm.Boolean" />
         <ReturnType Type="graph.uploadSession" />
       </Action>
+      <Action Name="csc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="csch" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="cumIPmt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="startPeriod" Type="graph.Json" />
+        <Parameter Name="endPeriod" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="cumPrinc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="startPeriod" Type="graph.Json" />
+        <Parameter Name="endPeriod" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="date" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="year" Type="graph.Json" />
+        <Parameter Name="month" Type="graph.Json" />
+        <Parameter Name="day" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="datevalue" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="dateText" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="daverage" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="day" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="days" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="endDate" Type="graph.Json" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="days360" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="endDate" Type="graph.Json" />
+        <Parameter Name="method" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="db" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="life" Type="graph.Json" />
+        <Parameter Name="period" Type="graph.Json" />
+        <Parameter Name="month" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dbcs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dcount" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dcountA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ddb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="life" Type="graph.Json" />
+        <Parameter Name="period" Type="graph.Json" />
+        <Parameter Name="factor" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dec2Bin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dec2Hex" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dec2Oct" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="decimal" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="radix" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="decline" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="ProposedNewTime" Type="graph.timeSlot" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="degrees" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="angle" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="delete" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="shift" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="delta" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number1" Type="graph.Json" />
+        <Parameter Name="number2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="devSq" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dget" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="disableSmsSignIn" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
+      </Action>
+      <Action Name="disc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="discardCheckout" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -8289,8 +9409,142 @@
       <Action Name="dismissReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
       </Action>
+      <Action Name="dmax" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dmin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dollar" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="decimals" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dollarDe" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="fractionalDollar" Type="graph.Json" />
+        <Parameter Name="fraction" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dollarFr" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="decimalDollar" Type="graph.Json" />
+        <Parameter Name="fraction" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dproduct" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dstDev" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dstDevP" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dsum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="duration" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="coupon" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dvar" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="dvarP" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="database" Type="graph.Json" />
+        <Parameter Name="field" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ecma_Ceiling" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="edate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="months" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="effect" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="nominalRate" Type="graph.Json" />
+        <Parameter Name="npery" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="enableSmsSignIn" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.phoneAuthenticationMethod" />
+      </Action>
+      <Action Name="eoMonth" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="months" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="erf" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="lowerLimit" Type="graph.Json" />
+        <Parameter Name="upperLimit" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="erfC" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="erfC_Precise" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="X" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="erf_Precise" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="X" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="error_Type" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="errorVal" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="evaluate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.conditionalAccessRoot" />
@@ -8311,14 +9565,95 @@
         <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.evaluateDynamicMembershipResult" />
       </Action>
+      <Action Name="even" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="exact" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text1" Type="graph.Json" />
+        <Parameter Name="text2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="exp" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="expon_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="lambda" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="extractSensitivityLabels" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.driveItem" />
         <ReturnType Type="graph.extractSensitivityLabelsResult" />
+      </Action>
+      <Action Name="fact" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="factDouble" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="false" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="favorite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
         <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="find" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="findText" Type="graph.Json" />
+        <Parameter Name="withinText" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="findB" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="findText" Type="graph.Json" />
+        <Parameter Name="withinText" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="fisher" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="fisherInv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="y" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="fixed" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="decimals" Type="graph.Json" />
+        <Parameter Name="noCommas" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="floor_Math" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <Parameter Name="mode" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="floor_Precise" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="follow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -8344,9 +9679,104 @@
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
         <Parameter Name="ToRecipients" Type="Collection(graph.recipient)" Nullable="false" />
       </Action>
+      <Action Name="fv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pmt" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="fvschedule" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="principal" Type="graph.Json" />
+        <Parameter Name="schedule" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="f_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom1" Type="graph.Json" />
+        <Parameter Name="degFreedom2" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="f_Dist_RT" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom1" Type="graph.Json" />
+        <Parameter Name="degFreedom2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="f_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom1" Type="graph.Json" />
+        <Parameter Name="degFreedom2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="f_Inv_RT" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom1" Type="graph.Json" />
+        <Parameter Name="degFreedom2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gamma" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gammaLn" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gammaLn_Precise" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gamma_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="beta" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gamma_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="beta" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gauss" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="gcd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="generateDownloadUri" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewHistoryInstance" />
         <ReturnType Type="graph.accessReviewHistoryInstance" />
+      </Action>
+      <Action Name="geoMean" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="geStep" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="step" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="getApplicablePolicyRequirements" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessPackage" />
@@ -8410,14 +9840,218 @@
         <Parameter Name="recipients" Type="Collection(graph.driveRecipient)" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
+      <Action Name="harMean" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hex2Bin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hex2Dec" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hex2Oct" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="hideForUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chat" />
         <Parameter Name="user" Type="graph.teamworkUserIdentity" />
+      </Action>
+      <Action Name="hlookup" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="lookupValue" Type="graph.Json" />
+        <Parameter Name="tableArray" Type="graph.Json" />
+        <Parameter Name="rowIndexNum" Type="graph.Json" />
+        <Parameter Name="rangeLookup" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hour" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hyperlink" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="linkLocation" Type="graph.Json" />
+        <Parameter Name="friendlyName" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="hypGeom_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="sampleS" Type="graph.Json" />
+        <Parameter Name="numberSample" Type="graph.Json" />
+        <Parameter Name="populationS" Type="graph.Json" />
+        <Parameter Name="numberPop" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="if" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="logicalTest" Type="graph.Json" />
+        <Parameter Name="valueIfTrue" Type="graph.Json" />
+        <Parameter Name="valueIfFalse" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imAbs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imaginary" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imArgument" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imConjugate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imCos" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imCosh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imCot" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imCsc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imCsch" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imDiv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber1" Type="graph.Json" />
+        <Parameter Name="inumber2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imExp" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imLn" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imLog10" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imLog2" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imPower" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imProduct" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imReal" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSec" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSech" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSinh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSqrt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSub" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber1" Type="graph.Json" />
+        <Parameter Name="inumber2" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imSum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="imTan" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="inumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="insert" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="shift" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.workbookRange" />
       </Action>
       <Action Name="instantiate" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.applicationTemplate" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.applicationServicePrincipal" />
+      </Action>
+      <Action Name="int" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="intRate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="investment" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
@@ -8436,12 +10070,183 @@
         <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.permission)" />
       </Action>
+      <Action Name="ipmt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="per" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="irr" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <Parameter Name="guess" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isErr" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isError" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isEven" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isFormula" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="reference" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isLogical" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isNA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isNonText" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isNumber" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isOdd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isoWeekNum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="date" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="iso_Ceiling" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ispmt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="per" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isref" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="isText" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="keepAlive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
+      </Action>
+      <Action Name="kurt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="large" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="k" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="lcm" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="left" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="numChars" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="leftb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="numBytes" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="len" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="lenb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ln" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="log" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="base" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="log10" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="logNorm_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="logNorm_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="logTeleconferenceDeviceQuality" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.call)" />
         <Parameter Name="quality" Type="graph.teleconferenceDeviceQuality" Nullable="false" />
+      </Action>
+      <Action Name="lookup" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="lookupValue" Type="graph.Json" />
+        <Parameter Name="lookupVector" Type="graph.Json" />
+        <Parameter Name="resultVector" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="lower" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="markChatReadForUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chat" />
@@ -8462,6 +10267,89 @@
         <Parameter Name="messageIds" Type="Collection(Edm.String)" Unicode="false" />
         <ReturnType Type="Edm.Boolean" />
       </Action>
+      <Action Name="match" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="lookupValue" Type="graph.Json" />
+        <Parameter Name="lookupArray" Type="graph.Json" />
+        <Parameter Name="matchType" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="max" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="maxA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="mduration" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="coupon" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="median" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="merge" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="across" Type="Edm.Boolean" Nullable="false" />
+      </Action>
+      <Action Name="mid" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <Parameter Name="numChars" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="midb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <Parameter Name="numBytes" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="min" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="minA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="minute" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="mirr" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <Parameter Name="financeRate" Type="graph.Json" />
+        <Parameter Name="reinvestRate" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="mod" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="divisor" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="month" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="move" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.mailFolder" />
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
@@ -8471,6 +10359,17 @@
         <Parameter Name="bindingParameter" Type="graph.message" />
         <Parameter Name="DestinationId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="graph.message" />
+      </Action>
+      <Action Name="mround" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="multiple" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="multiNomial" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="mute" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -8482,6 +10381,178 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.muteParticipantOperation" />
       </Action>
+      <Action Name="n" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="na" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="negBinom_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="numberF" Type="graph.Json" />
+        <Parameter Name="numberS" Type="graph.Json" />
+        <Parameter Name="probabilityS" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="networkDays" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="endDate" Type="graph.Json" />
+        <Parameter Name="holidays" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="networkDays_Intl" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="endDate" Type="graph.Json" />
+        <Parameter Name="weekend" Type="graph.Json" />
+        <Parameter Name="holidays" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="nominal" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="effectRate" Type="graph.Json" />
+        <Parameter Name="npery" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="norm_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="norm_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="norm_S_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="z" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="norm_S_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="not" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="logical" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="now" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="nper" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pmt" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="npv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="numberValue" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="decimalSeparator" Type="graph.Json" />
+        <Parameter Name="groupSeparator" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oct2Bin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oct2Dec" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oct2Hex" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="places" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="odd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oddFPrice" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="firstCoupon" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oddFYield" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="firstCoupon" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oddLPrice" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="lastInterest" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="oddLYield" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="lastInterest" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="or" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="parseExpression" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationSchema" />
         <Parameter Name="expression" Type="Edm.String" Unicode="false" />
@@ -8492,11 +10563,97 @@
       <Action Name="pause" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
       </Action>
+      <Action Name="pduration" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="percentile_Exc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="k" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="percentile_Inc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="k" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="percentRank_Exc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="percentRank_Inc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="significance" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="permut" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numberChosen" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="permutationa" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numberChosen" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="phi" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="pi" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="playPrompt" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="prompts" Type="Collection(graph.prompt)" Nullable="false" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.playPromptOperation" />
+      </Action>
+      <Action Name="pmt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="poisson_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="power" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="power" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="ppmt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="per" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="preview" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
@@ -8504,9 +10661,53 @@
         <Parameter Name="zoom" Type="Edm.Double" />
         <ReturnType Type="graph.itemPreviewInfo" />
       </Action>
+      <Action Name="price" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="priceDisc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="discount" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="priceMat" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="yld" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="product" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="promote" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
+      </Action>
+      <Action Name="proper" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="protect" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheetProtection" />
+        <Parameter Name="options" Type="graph.workbookWorksheetProtectionOptions" />
       </Action>
       <Action Name="provisionEmail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
@@ -8523,8 +10724,89 @@
       <Action Name="publish" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.sitePage" />
       </Action>
+      <Action Name="pv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pmt" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="quartile_Exc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="quart" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="quartile_Inc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="quart" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="quotient" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="numerator" Type="graph.Json" />
+        <Parameter Name="denominator" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="radians" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="angle" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rand" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="randBetween" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="bottom" Type="graph.Json" />
+        <Parameter Name="top" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rank_Avg" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="ref" Type="graph.Json" />
+        <Parameter Name="order" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rank_Eq" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="ref" Type="graph.Json" />
+        <Parameter Name="order" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rate" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pmt" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <Parameter Name="type" Type="graph.Json" />
+        <Parameter Name="guess" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="reapply" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
+      </Action>
+      <Action Name="reapplyFilters" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+      </Action>
       <Action Name="reauthorize" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.subscription" />
+      </Action>
+      <Action Name="received" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="investment" Type="graph.Json" />
+        <Parameter Name="discount" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="recordResponse" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -8543,6 +10825,15 @@
         <Parameter Name="targets" Type="Collection(graph.invitationParticipantInfo)" Nullable="false" />
         <Parameter Name="timeout" Type="Edm.Int32" />
         <Parameter Name="callbackUri" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="refresh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookPivotTable" />
+      </Action>
+      <Action Name="refreshAll" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookPivotTable)" />
+      </Action>
+      <Action Name="refreshSession" IsBound="true">
+        <Parameter Name="this" Type="graph.workbook" />
       </Action>
       <Action Name="reject" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -8595,6 +10886,22 @@
         <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
+      <Action Name="replace" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="oldText" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <Parameter Name="numChars" Type="graph.Json" />
+        <Parameter Name="newText" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="replaceB" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="oldText" Type="graph.Json" />
+        <Parameter Name="startNum" Type="graph.Json" />
+        <Parameter Name="numBytes" Type="graph.Json" />
+        <Parameter Name="newText" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="reply" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.conversationThread" />
         <Parameter Name="Post" Type="graph.post" Nullable="false" />
@@ -8616,6 +10923,12 @@
       <Action Name="reprocessLicenseAssignment" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
         <ReturnType Type="graph.user" />
+      </Action>
+      <Action Name="rept" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="numberTimes" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="resetDecisions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
@@ -8673,6 +10986,69 @@
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
       </Action>
+      <Action Name="right" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="numChars" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rightb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="numBytes" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="roman" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="form" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="round" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numDigits" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="roundDown" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numDigits" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="roundUp" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numDigits" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rows" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="rri" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="nper" Type="graph.Json" />
+        <Parameter Name="pv" Type="graph.Json" />
+        <Parameter Name="fv" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sec" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sech" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="second" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="send" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.message" />
       </Action>
@@ -8716,6 +11092,24 @@
       <Action Name="sendReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
       </Action>
+      <Action Name="seriesSum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="n" Type="graph.Json" />
+        <Parameter Name="m" Type="graph.Json" />
+        <Parameter Name="coefficients" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="setData" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <Parameter Name="sourceData" Type="graph.Json" />
+        <Parameter Name="seriesBy" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="setPosition" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <Parameter Name="startCell" Type="graph.Json" />
+        <Parameter Name="endCell" Type="graph.Json" />
+      </Action>
       <Action Name="setPresence" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
         <Parameter Name="sessionId" Type="Edm.String" Unicode="false" />
@@ -8727,6 +11121,10 @@
         <Parameter Name="bindingParameter" Type="graph.chatMessage" />
         <Parameter Name="reactionType" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="setSolidColor" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChartFill" />
+        <Parameter Name="color" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="setStatusMessage" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
         <Parameter Name="statusMessage" Type="graph.presenceStatusMessage" />
@@ -8737,12 +11135,77 @@
         <Parameter Name="activity" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="expirationDuration" Type="Edm.Duration" />
       </Action>
+      <Action Name="sheet" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sheets" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="reference" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sign" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sin" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sinh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="skew" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="skew_p" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sln" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="life" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="small" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="k" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="snoozeReminder" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="NewReminderTime" Type="graph.dateTimeTimeZone" Nullable="false" />
       </Action>
       <Action Name="softDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.chatMessage" />
+      </Action>
+      <Action Name="sqrt" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sqrtPi" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="standardize" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="mean" Type="graph.Json" />
+        <Parameter Name="standardDev" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="start" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.synchronizationJob" />
@@ -8752,6 +11215,26 @@
         <Parameter Name="customPrompt" Type="graph.prompt" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.startHoldMusicOperation" />
+      </Action>
+      <Action Name="stDevA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="stDevPA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="stDev_P" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="stDev_S" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessReviewInstance" />
@@ -8775,11 +11258,114 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.subscribeToToneOperation" />
       </Action>
+      <Action Name="substitute" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <Parameter Name="oldText" Type="graph.Json" />
+        <Parameter Name="newText" Type="graph.Json" />
+        <Parameter Name="instanceNum" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="subtotal" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="functionNum" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sumIf" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="range" Type="graph.Json" />
+        <Parameter Name="criteria" Type="graph.Json" />
+        <Parameter Name="sumRange" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sumIfs" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="sumRange" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="sumSq" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="syd" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="life" Type="graph.Json" />
+        <Parameter Name="per" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="tan" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="tanh" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="tbillEq" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="discount" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="tbillPrice" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="discount" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="tbillYield" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="tentativelyAccept" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="ProposedNewTime" Type="graph.timeSlot" />
         <Parameter Name="SendResponse" Type="Edm.Boolean" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="text" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <Parameter Name="formatText" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="time" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="hour" Type="graph.Json" />
+        <Parameter Name="minute" Type="graph.Json" />
+        <Parameter Name="second" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="timevalue" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="timeText" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="today" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="transfer" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
@@ -8791,6 +11377,63 @@
         <Parameter Name="TargetIdType" Type="graph.exchangeIdFormat" Nullable="false" />
         <Parameter Name="SourceIdType" Type="graph.exchangeIdFormat" Nullable="false" />
         <ReturnType Type="Collection(graph.convertIdResult)" Nullable="false" />
+      </Action>
+      <Action Name="trim" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="trimMean" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="percent" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="true" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="trunc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="numDigits" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="type" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="value" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t_Dist_2T" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t_Dist_RT" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t_Inv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="t_Inv_2T" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="probability" Type="graph.Json" />
+        <Parameter Name="degFreedom" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="unarchive" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.serviceUpdateMessage)" />
@@ -8821,10 +11464,26 @@
         <Parameter Name="bindingParameter" Type="graph.chat" />
         <Parameter Name="user" Type="graph.teamworkUserIdentity" />
       </Action>
+      <Action Name="unichar" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="unicode" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="unmerge" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+      </Action>
       <Action Name="unmute" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.unmuteParticipantOperation" />
+      </Action>
+      <Action Name="unprotect" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheetProtection" />
       </Action>
       <Action Name="unpublish" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
@@ -8855,6 +11514,17 @@
         <Parameter Name="bindingParameter" Type="graph.certificateBasedAuthPki" Nullable="false" />
         <Parameter Name="uploadUrl" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="sha256FileHash" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="upper" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="usdollar" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="number" Type="graph.Json" />
+        <Parameter Name="decimals" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="validateCredentials" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.synchronizationJob)" />
@@ -8888,6 +11558,42 @@
         <Parameter Name="mailNickname" Type="Edm.String" Unicode="false" />
         <Parameter Name="onBehalfOfUserId" Type="Edm.Guid" />
       </Action>
+      <Action Name="value" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="text" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="varA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="varPA" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="var_P" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="var_S" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="vdb" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="cost" Type="graph.Json" />
+        <Parameter Name="salvage" Type="graph.Json" />
+        <Parameter Name="life" Type="graph.Json" />
+        <Parameter Name="startPeriod" Type="graph.Json" />
+        <Parameter Name="endPeriod" Type="graph.Json" />
+        <Parameter Name="factor" Type="graph.Json" />
+        <Parameter Name="noSwitch" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Action Name="verify" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="forceTakeover" Type="Edm.Boolean">
@@ -8895,10 +11601,197 @@
         </Parameter>
         <ReturnType Type="graph.domain" />
       </Action>
+      <Action Name="vlookup" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="lookupValue" Type="graph.Json" />
+        <Parameter Name="tableArray" Type="graph.Json" />
+        <Parameter Name="colIndexNum" Type="graph.Json" />
+        <Parameter Name="rangeLookup" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="weekday" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <Parameter Name="returnType" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="weekNum" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <Parameter Name="returnType" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="weibull_Dist" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="alpha" Type="graph.Json" />
+        <Parameter Name="beta" Type="graph.Json" />
+        <Parameter Name="cumulative" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="workDay" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="days" Type="graph.Json" />
+        <Parameter Name="holidays" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="workDay_Intl" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="days" Type="graph.Json" />
+        <Parameter Name="weekend" Type="graph.Json" />
+        <Parameter Name="holidays" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="xirr" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <Parameter Name="dates" Type="graph.Json" />
+        <Parameter Name="guess" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="xnpv" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="values" Type="graph.Json" />
+        <Parameter Name="dates" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="xor" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="values" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="year" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="serialNumber" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="yearFrac" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="startDate" Type="graph.Json" />
+        <Parameter Name="endDate" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="yield" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="frequency" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="yieldDisc" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="redemption" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="yieldMat" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="settlement" Type="graph.Json" />
+        <Parameter Name="maturity" Type="graph.Json" />
+        <Parameter Name="issue" Type="graph.Json" />
+        <Parameter Name="rate" Type="graph.Json" />
+        <Parameter Name="pr" Type="graph.Json" />
+        <Parameter Name="basis" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="z_Test" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
+        <Parameter Name="array" Type="graph.Json" />
+        <Parameter Name="x" Type="graph.Json" />
+        <Parameter Name="sigma" Type="graph.Json" />
+        <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
       <Function Name="allowedCalendarSharingRoles" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.calendar" />
         <Parameter Name="User" Type="Edm.String" Nullable="false" Unicode="false" />
         <ReturnType Type="Collection(graph.calendarRoleType)" Nullable="false" />
+      </Function>
+      <Function Name="boundingRect" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="anotherRange" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="cell" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="cell" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="column" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="column" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="columnsAfter" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="columnsAfter" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="count" Type="Edm.Int32" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="columnsBefore" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="columnsBefore" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="count" Type="Edm.Int32" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="count" IsBound="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
+        <ReturnType Type="Edm.Int32" Nullable="false" />
+      </Function>
+      <Function Name="dataBodyRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="dataBodyRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
       </Function>
       <Function Name="delta" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.application)" />
@@ -8985,6 +11878,14 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Function>
+      <Function Name="entireColumn" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="entireRow" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
       </Function>
       <Function Name="filterByCurrentUser" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackage)" />
@@ -9185,13 +12086,140 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.licenseDetails)" />
         <ReturnType Type="graph.teamsLicensingDetails" />
       </Function>
+      <Function Name="headerRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="headerRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="image" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
+      <Function Name="image" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <Parameter Name="width" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
+      <Function Name="image" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <Parameter Name="width" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="height" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
+      <Function Name="image" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbookChart" />
+        <Parameter Name="width" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="height" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="fittingMode" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
       <Function Name="incidentReport" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.serviceHealthIssue" />
         <ReturnType Type="Edm.Stream" />
       </Function>
+      <Function Name="intersection" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="anotherRange" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="isPublished" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentType" />
         <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Function>
+      <Function Name="item" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
+        <Parameter Name="name" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookChart" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChart)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookChart" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartPoint)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookChartPoint" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookChartSeries)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookChartSeries" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeBorder)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRangeBorder" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookRangeView)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRangeView" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTable)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookTable" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableColumn)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookTableColumn" />
+      </Function>
+      <Function Name="itemAt" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="Collection(graph.workbookTableRow)" />
+        <Parameter Name="index" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookTableRow" />
+      </Function>
+      <Function Name="lastCell" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="lastColumn" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="lastRow" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="offsetRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="rowOffset" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="columnOffset" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookNamedItem" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRangeView" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableRow" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="range" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <Parameter Name="address" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.workbookRange" />
       </Function>
       <Function Name="recent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
@@ -9203,6 +12231,35 @@
         <Parameter Name="EndDateTime" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.reminder)" Nullable="false" />
       </Function>
+      <Function Name="resizedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="deltaRows" Type="Edm.Int32" Nullable="false" />
+        <Parameter Name="deltaColumns" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="row" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="row" Type="Edm.Int32" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="rowsAbove" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="rowsAbove" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="count" Type="Edm.Int32" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="rowsBelow" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="rowsBelow" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="count" Type="Edm.Int32" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="search" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
@@ -9212,6 +12269,11 @@
         <Parameter Name="bindingParameter" Type="graph.driveItem" />
         <Parameter Name="q" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="sessionInfoResource" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbook" />
+        <Parameter Name="key" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.workbookSessionInfo" />
       </Function>
       <Function Name="sharedWithMe" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
@@ -9230,10 +12292,41 @@
         <Parameter Name="TimeZoneStandard" Type="graph.timeZoneStandard" Nullable="false" />
         <ReturnType Type="Collection(graph.timeZoneInformation)" Nullable="false" />
       </Function>
+      <Function Name="tableRowOperationResult" IsBound="true">
+        <Parameter Name="bindparameter" Type="graph.workbook" />
+        <Parameter Name="key" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.workbookTableRow" />
+      </Function>
+      <Function Name="totalRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTable" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="totalRowRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookTableColumn" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="usage" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.authenticationStrengthPolicy" />
         <ReturnType Type="graph.authenticationStrengthUsage" />
       </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <Parameter Name="valuesOnly" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
+      <Function Name="usedRange" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookWorksheet" />
+        <Parameter Name="valuesOnly" Type="Edm.Boolean" Nullable="false" />
+        <ReturnType Type="graph.workbookRange" />
+      </Function>
       <Function Name="usersRegisteredByFeature" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="graph.authenticationMethodsRoot" />
         <ReturnType Type="graph.userRegistrationFeatureSummary" Nullable="false" />
@@ -9253,6 +12346,10 @@
         <Parameter Name="includedUserTypes" Type="graph.includedUserTypes" />
         <Parameter Name="includedUserRoles" Type="graph.includedUserRoles" />
         <ReturnType Type="graph.userRegistrationMethodSummary" Nullable="false" />
+      </Function>
+      <Function Name="visibleView" IsBound="true" IsComposable="true">
+        <Parameter Name="bindparameter" Type="graph.workbookRange" />
+        <ReturnType Type="graph.workbookRangeView" />
       </Function>
       <Term Name="changed" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel" />
@@ -9357,7 +12454,9 @@
           <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
         </Singleton>
         <Singleton Name="drive" Type="microsoft.graph.drive" />
-        <Singleton Name="identityGovernance" Type="microsoft.graph.identityGovernance" />
+        <Singleton Name="identityGovernance" Type="microsoft.graph.identityGovernance">
+          <NavigationPropertyBinding Path="lifecycleWorkflows/workflows/administrationScopeTargets" Target="directoryObjects" />
+        </Singleton>
         <Singleton Name="identityProtection" Type="microsoft.graph.identityProtectionRoot" />
         <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
         <Singleton Name="me" Type="microsoft.graph.user">
@@ -9691,6 +12790,7 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isSchedulingEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="administrationScopeTargets" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="createdBy" Type="graph.user" />
         <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
         <NavigationProperty Name="tasks" Type="Collection(microsoft.graph.identityGovernance.task)" ContainsTarget="true" />
@@ -12894,6 +15994,20 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.workbook/operations">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.security" xmlns="http://docs.oasis-open.org/odata/ns/edm">
