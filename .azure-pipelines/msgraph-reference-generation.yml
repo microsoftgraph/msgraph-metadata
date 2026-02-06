@@ -158,12 +158,35 @@ extends:
                 targetFolder: '$(Build.SourcesDirectory)/typespec-msgraph/packages/typespec-reference-library/lib'
                 overwrite: true
               displayName: Copy OpenAPI files to local typespec-msgraph repo
+            # Verify script paths
+            - pwsh: |
+                Write-Host "Checking for git-push-reference-files.ps1 script..." -ForegroundColor Cyan
+                
+                $path1 = "$(Build.SourcesDirectory)/.azure-pipelines/scripts/git-push-reference-files.ps1"
+                $path2 = "$(Build.SourcesDirectory)/msgraph-metadata/.azure-pipelines/scripts/git-push-reference-files.ps1"
+                
+                Write-Host "`nListing SourcesDirectory contents:" -ForegroundColor Yellow
+                Get-ChildItem -Path "$(Build.SourcesDirectory)" | Select-Object Name, FullName
+                
+                Write-Host "`nChecking Path 1: $path1" -ForegroundColor Yellow
+                if (Test-Path $path1) {
+                  Write-Host "✓ Found at: $path1" -ForegroundColor Green
+                } else {
+                  Write-Host "✗ Not found at: $path1" -ForegroundColor Red
+                }
+                
+                Write-Host "`nChecking Path 2: $path2" -ForegroundColor Yellow
+                if (Test-Path $path2) {
+                  Write-Host "✓ Found at: $path2" -ForegroundColor Green
+                } else {
+                  Write-Host "✗ Not found at: $path2" -ForegroundColor Red
+                }
+              displayName: Verify script paths
             # Push changes to Typespec msgraph repo
-            - pwsh: '$(Build.SourcesDirectory)/msgraph-metadata/.azure-pipelines/scripts/git-push-reference-files.ps1'
+            - pwsh: '$(Build.SourcesDirectory)/.azure-pipelines/scripts/git-push-reference-files.ps1'
               displayName: Publish new generated files to msgraph-metadata repo
               env:
                 PublishChanges: True
-              workingDirectory: '$(Build.SourcesDirectory)/typespec-msgraph'
               enabled: true
               
             # Create PR
