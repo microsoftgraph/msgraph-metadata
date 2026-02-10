@@ -1849,6 +1849,16 @@
         <Member Name="restId" Value="3" />
         <Member Name="restImmutableEntryId" Value="4" />
       </EnumType>
+      <EnumType Name="exchangeMessageTraceStatus">
+        <Member Name="gettingStatus" Value="1" />
+        <Member Name="pending" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="delivered" Value="4" />
+        <Member Name="expanded" Value="5" />
+        <Member Name="quarantined" Value="6" />
+        <Member Name="filteredAsSpam" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="executionMode">
         <Member Name="evaluateInline" Value="1" />
         <Member Name="evaluateOffline" Value="2" />
@@ -11655,6 +11665,7 @@
       </EntityType>
       <EntityType Name="admin">
         <NavigationProperty Name="edge" Type="graph.edge" ContainsTarget="true" />
+        <NavigationProperty Name="exchange" Type="graph.exchangeAdmin" ContainsTarget="true" />
         <NavigationProperty Name="microsoft365Apps" Type="graph.adminMicrosoft365Apps" ContainsTarget="true" />
         <NavigationProperty Name="people" Type="graph.peopleAdminSettings" ContainsTarget="true" />
         <NavigationProperty Name="reportSettings" Type="graph.adminReportSettings" ContainsTarget="true" />
@@ -14386,6 +14397,28 @@
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
         <Property Name="responseType" Type="graph.responseType" />
       </EntityType>
+      <EntityType Name="exchangeAdmin" BaseType="graph.entity">
+        <NavigationProperty Name="tracing" Type="graph.messageTracingRoot" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="exchangeMessageTrace" BaseType="graph.entity">
+        <Property Name="fromIP" Type="Edm.String" />
+        <Property Name="messageId" Type="Edm.String" />
+        <Property Name="receivedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="recipientAddress" Type="Edm.String" />
+        <Property Name="senderAddress" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+        <Property Name="status" Type="graph.exchangeMessageTraceStatus" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="toIP" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="exchangeMessageTraceDetail" BaseType="graph.entity">
+        <Property Name="action" Type="Edm.String" />
+        <Property Name="data" Type="Edm.String" />
+        <Property Name="dateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="event" Type="Edm.String" Nullable="false" />
+        <Property Name="messageId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="exchangeProtectionPolicy" BaseType="graph.protectionPolicyBase">
         <NavigationProperty Name="mailboxInclusionRules" Type="Collection(graph.mailboxProtectionRule)" />
         <NavigationProperty Name="mailboxProtectionUnits" Type="Collection(graph.mailboxProtectionUnit)" />
@@ -15669,6 +15702,9 @@
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="isReadOnly" Type="Edm.Boolean" />
         <Property Name="sequence" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="messageTracingRoot" BaseType="graph.entity">
+        <NavigationProperty Name="messageTraces" Type="Collection(graph.exchangeMessageTrace)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="microsoftAccountUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="userId" Type="Edm.String" />
@@ -25101,6 +25137,11 @@
       <Function Name="getCompatibleHubContentTypes" EntitySetPath="bindingParameter" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.contentType)" />
         <ReturnType Type="Collection(graph.contentType)" />
+      </Function>
+      <Function Name="getDetailsByRecipient" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.exchangeMessageTrace" />
+        <Parameter Name="recipientAddress" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.exchangeMessageTraceDetail)" />
       </Function>
       <Function Name="getEffectivePermissions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagement" />
