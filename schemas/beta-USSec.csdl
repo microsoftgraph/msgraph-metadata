@@ -1434,6 +1434,11 @@
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
       </EnumType>
+      <EnumType Name="photoUpdateSource">
+        <Member Name="cloud" Value="0" />
+        <Member Name="onPremises" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="physicalAddressType">
         <Member Name="unknown" Value="0" />
         <Member Name="home" Value="1" />
@@ -2393,6 +2398,13 @@
         <Member Name="bound" Value="1" />
         <Member Name="unbound" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="trafficRoutingMethod">
+        <Member Name="none" Value="0" />
+        <Member Name="random" Value="1" />
+        <Member Name="sessionPersistence" Value="2" />
+        <Member Name="performance" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="translationBehavior">
         <Member Name="Ask" Value="0" />
@@ -3521,6 +3533,9 @@
       </ComplexType>
       <ComplexType Name="connectionInfo">
         <Property Name="url" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="connectivityParameterEntry">
+        <Property Name="value" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="containerFilter">
         <Property Name="includedContainers" Type="Collection(Edm.String)" />
@@ -4769,6 +4784,7 @@
         <Property Name="onPremisesApplicationSegments" Type="Collection(graph.onPremisesApplicationSegment)" />
         <Property Name="segmentsConfiguration" Type="graph.segmentConfiguration" />
         <Property Name="singleSignOnSettings" Type="graph.onPremisesPublishingSingleSignOn" />
+        <Property Name="trafficRoutingMethod" Type="graph.trafficRoutingMethod" Nullable="false" />
         <Property Name="useAlternateUrlForTranslationAndRedirect" Type="Edm.Boolean" />
         <Property Name="verifiedCustomDomainCertificatesMetadata" Type="graph.verifiedCustomDomainCertificatesMetadata" />
         <Property Name="verifiedCustomDomainKeyCredential" Type="graph.keyCredential" />
@@ -7376,6 +7392,10 @@
         <NavigationProperty Name="horizontalSections" Type="Collection(graph.horizontalSection)" ContainsTarget="true" />
         <NavigationProperty Name="verticalSection" Type="graph.verticalSection" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="caPoliciesDeletableRoot" BaseType="graph.entity">
+        <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
+        <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="certificateAuthorityAsEntity" BaseType="graph.entity">
         <Property Name="certificate" Type="Edm.Binary" Nullable="false" />
         <Property Name="isRootAuthority" Type="Edm.Boolean" Nullable="false" />
@@ -7564,12 +7584,16 @@
           </Collection>
         </Annotation>
       </EntityType>
-      <EntityType Name="conditionalAccessPolicy" BaseType="graph.entity">
+      <EntityType Name="conditionalAccessPolicy" BaseType="graph.policyDeletableItem">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
         <Property Name="conditions" Type="graph.conditionalAccessConditionSet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="grantControls" Type="graph.conditionalAccessGrantControls" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="sessionControls" Type="graph.conditionalAccessSessionControls" />
         <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
@@ -7579,6 +7603,7 @@
         <NavigationProperty Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContextClassReference)" ContainsTarget="true" />
         <NavigationProperty Name="authenticationStrength" Type="graph.authenticationStrengthRoot" ContainsTarget="true" />
         <NavigationProperty Name="authenticationStrengths" Type="graph.authenticationStrengthRoot" ContainsTarget="true" />
+        <NavigationProperty Name="deletedItems" Type="graph.caPoliciesDeletableRoot" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
@@ -8893,10 +8918,17 @@
       <EntityType Name="multiValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Collection(Edm.String)" />
       </EntityType>
-      <EntityType Name="namedLocation" BaseType="graph.entity">
+      <EntityType Name="namedLocation" BaseType="graph.policyDeletableItem">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
+      </EntityType>
+      <EntityType Name="namePronunciationSettings" BaseType="graph.entity">
+        <Property Name="isEnabledInOrganization" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="newsLinkPage" BaseType="graph.baseSitePage">
         <Property Name="bannerImageWebUrl" Type="Edm.String" />
@@ -9203,6 +9235,8 @@
       </EntityType>
       <EntityType Name="peopleAdminSettings" BaseType="graph.entity">
         <NavigationProperty Name="itemInsights" Type="graph.insightsSettings" ContainsTarget="true" />
+        <NavigationProperty Name="namePronunciation" Type="graph.namePronunciationSettings" ContainsTarget="true" />
+        <NavigationProperty Name="photoUpdateSettings" Type="graph.photoUpdateSettings" ContainsTarget="true" />
         <NavigationProperty Name="profileCardProperties" Type="Collection(graph.profileCardProperty)" ContainsTarget="true" />
         <NavigationProperty Name="pronouns" Type="graph.pronounsSettings" ContainsTarget="true" />
       </EntityType>
@@ -9322,6 +9356,10 @@
       </EntityType>
       <EntityType Name="phoneUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="phoneNumber" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="photoUpdateSettings" BaseType="graph.entity">
+        <Property Name="allowedRoles" Type="Collection(Edm.String)" />
+        <Property Name="source" Type="graph.photoUpdateSource" />
       </EntityType>
       <EntityType Name="pinnedChatMessageInfo" BaseType="graph.entity">
         <NavigationProperty Name="message" Type="graph.chatMessage" />
@@ -9474,6 +9512,9 @@
       <EntityType Name="policyBase" BaseType="graph.directoryObject" Abstract="true">
         <Property Name="description" Type="Edm.String" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="policyDeletableItem" Abstract="true">
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="policyRoot" BaseType="graph.entity">
         <NavigationProperty Name="accessReviewPolicy" Type="graph.accessReviewPolicy" ContainsTarget="true" />
@@ -9644,6 +9685,7 @@
       <EntityType Name="profileCardProperty" BaseType="graph.entity">
         <Property Name="annotations" Type="Collection(graph.profileCardAnnotation)" />
         <Property Name="directoryPropertyName" Type="Edm.String" />
+        <Property Name="isVisible" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="profilePhoto" BaseType="graph.entity" HasStream="true">
         <Property Name="height" Type="Edm.Int32" />
@@ -14320,6 +14362,10 @@
         <Parameter Name="bindingParameter" Type="graph.teamworkDevice" />
       </Action>
       <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.conditionalAccessPolicy" Nullable="false" />
+        <ReturnType Type="graph.conditionalAccessPolicy" />
+      </Action>
+      <Action Name="restore" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.directoryObject" Nullable="false" />
         <Parameter Name="autoReconcileProxyConflict" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
@@ -14337,6 +14383,10 @@
         <Parameter Name="parentReference" Type="graph.itemReference" />
         <Parameter Name="name" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.driveItem" />
+      </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.namedLocation" Nullable="false" />
+        <ReturnType Type="graph.namedLocation" />
       </Action>
       <Action Name="restoreVersion" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.driveItemVersion" />
@@ -16469,6 +16519,7 @@
         <Member Name="onDemand" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="activatedWithScope" Value="3" />
+        <Member Name="preview" Value="4" />
       </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
@@ -16518,6 +16569,12 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="values" Type="Collection(Edm.String)" />
         <Property Name="valueType" Type="microsoft.graph.identityGovernance.valueType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="previewFailedTask">
+        <Property Name="definitionId" Type="Edm.String" Nullable="false" />
+        <Property Name="failureReason" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="taskId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="ruleBasedSubjectSet" BaseType="graph.subjectSet">
         <Property Name="rule" Type="Edm.String" Nullable="false" />
@@ -16714,6 +16771,7 @@
         <Property Name="nextScheduleRunDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="version" Type="Edm.Int32" />
         <NavigationProperty Name="executionScope" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
+        <NavigationProperty Name="previewScope" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="runs" Type="Collection(microsoft.graph.identityGovernance.run)" ContainsTarget="true" />
         <NavigationProperty Name="taskReports" Type="Collection(microsoft.graph.identityGovernance.taskReport)" ContainsTarget="true" />
         <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
@@ -16758,6 +16816,14 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="workflow" Type="microsoft.graph.identityGovernance.workflow" />
         <ReturnType Type="microsoft.graph.identityGovernance.workflow" />
+      </Action>
+      <Action Name="previewTaskFailures" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.previewFailedTask)" />
+      </Action>
+      <Action Name="previewWorkflow" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="subjects" Type="Collection(graph.directoryObject)" />
       </Action>
       <Action Name="restore" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
@@ -16893,6 +16959,21 @@
               </PropertyValue>
               <PropertyValue Property="RemovalDate" Date="2022-01-30" />
               <PropertyValue Property="Version" String="2021-07/AccessReviewReportBreakingChanges" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.acquireAccessToken(microsoft.graph.synchronization, Collection(microsoft.graph.synchronizationSecretKeyStringValuePair))">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="This action acquires an access token via Oauth Code Grant Flow. Code Grant will be completely deprecated so this action will be obsolete." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
             </Record>
           </Collection>
         </Annotation>
@@ -18887,6 +18968,34 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.previewTaskFailures(microsoft.graph.identityGovernance.workflow)">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-08-12" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-11-30" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.previewWorkflow(microsoft.graph.identityGovernance.workflow, Collection(microsoft.graph.directoryObject))">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-08-12" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-11-30" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.run">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -19222,6 +19331,20 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflow/previewScope">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-08-12" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-11-30" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.workflow/runs">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
@@ -19295,6 +19418,20 @@
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowExecutionType/preview">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-08-12" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-11-30" />
+              <PropertyValue Property="Version" String="2025-01/PrivatePreview:organizationalUnit" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.workflowTemplate">
@@ -19802,6 +19939,13 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.peopleAdminSettings/photoUpdateSettings">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.permission/grantedTo">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -20067,6 +20211,21 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.privilegedAccess">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-10-27" />
+              <PropertyValue Property="Description" String="The PIM Iteration 2 beta API is deprecated and will be removed on October 28, 2026. Please migrate to PIM Iteration 3 API." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2026-10-28" />
+              <PropertyValue Property="Version" String="2025-10/PIM_Iteration2_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.provisioningObjectSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -20559,6 +20718,51 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.synchronization/secrets">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="Use connectivityParameters for oauth flows and scim endpoint connectivity. Use SynchronizationJobSettings for job-specific settings This property will be removed." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.synchronizationSecret">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="Use connectivityParameter and SynchronizationJobSettings instead. This enum will be removed." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.synchronizationSecretKeyStringValuePair">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="Use connectivityParameterEntry instead. This type will be removed." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.teamsChannelPlanner/plans">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -21039,6 +21243,36 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.validateCredentials(Collection(microsoft.graph.synchronizationJob), Edm.String, Edm.String, Edm.Boolean, Collection(microsoft.graph.synchronizationSecretKeyStringValuePair))">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="Use validateConnectivity instead. This action will be removed." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.validateCredentials(microsoft.graph.synchronizationJob, Edm.String, Edm.String, Edm.Boolean, Collection(microsoft.graph.synchronizationSecretKeyStringValuePair))">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-02-06" />
+              <PropertyValue Property="Description" String="Use validateConnectivity instead. This action will be removed." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-07-06" />
+              <PropertyValue Property="Version" String="2026-02/SynchronizationSecret_Deprecation" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.workbook/operations">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
