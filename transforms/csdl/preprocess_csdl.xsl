@@ -2586,6 +2586,7 @@
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='servicePrincipal']/edm:NavigationProperty[@Name='homeRealmDiscoveryPolicies']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sourceCollection']/edm:NavigationProperty[@Name='custodianSources']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='sourceCollection']/edm:NavigationProperty[@Name='noncustodialSources']|
+                        edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='user']/edm:NavigationProperty[@Name='sponsors']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postAttributeCollection']|
                         edm:Schema[@Namespace='microsoft.graph']/edm:ComplexType[@Name='userFlowApiConnectorConfiguration']/edm:NavigationProperty[@Name='postFederationSignup']">
         <xsl:copy>
