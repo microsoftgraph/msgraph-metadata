@@ -88,6 +88,13 @@
         <Member Name="verticalSplit" Value="1" />
         <Member Name="unknownFutureValue" Value="10" />
       </EnumType>
+      <EnumType Name="MembershipRuleProcessingStatusDetails">
+        <Member Name="NotStarted" Value="0" />
+        <Member Name="Running" Value="1" />
+        <Member Name="Failed" Value="2" />
+        <Member Name="Succeeded" Value="3" />
+        <Member Name="UnsupportedFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="onPremisesDirectorySynchronizationDeletionPreventionType">
         <Member Name="disabled" Value="0" />
         <Member Name="enabledForCount" Value="1" />
@@ -343,6 +350,17 @@
       <ComplexType Name="enumeratedScopeSensitivityLabels" BaseType="graph.scopeSensitivityLabels">
         <Property Name="sensitivityLabels" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="evaluateDynamicMembershipResult">
+        <Property Name="membershipRule" Type="Edm.String" />
+        <Property Name="membershipRuleEvaluationDetails" Type="graph.expressionEvaluationDetails" />
+        <Property Name="membershipRuleEvaluationResult" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="expressionEvaluationDetails">
+        <Property Name="expression" Type="Edm.String" />
+        <Property Name="expressionEvaluationDetails" Type="Collection(graph.expressionEvaluationDetails)" />
+        <Property Name="expressionResult" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="propertyToEvaluate" Type="graph.propertyToEvaluate" />
+      </ComplexType>
       <ComplexType Name="extensionSchemaProperty">
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
@@ -442,6 +460,14 @@
         <Property Name="hidePrivacyAndCookies" Type="Edm.Boolean" />
         <Property Name="hideResetItNow" Type="Edm.Boolean" />
         <Property Name="hideTermsOfUse" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="membershipRuleEvaluationDetails">
+        <Property Name="membershipRuleEvaluationDetails" Type="graph.expressionEvaluationDetails" />
+      </ComplexType>
+      <ComplexType Name="membershipRuleProcessingStatus">
+        <Property Name="errorMessage" Type="Edm.String" />
+        <Property Name="lastMembershipUpdated" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.MembershipRuleProcessingStatusDetails" />
       </ComplexType>
       <ComplexType Name="noScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="objectIdentity">
@@ -568,6 +594,10 @@
       <ComplexType Name="privacyProfile">
         <Property Name="contactEmail" Type="Edm.String" />
         <Property Name="statementUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="propertyToEvaluate">
+        <Property Name="propertyName" Type="Edm.String" />
+        <Property Name="propertyValue" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="provisionedPlan">
         <Property Name="capabilityStatus" Type="Edm.String" />
@@ -1197,6 +1227,7 @@
         <Property Name="mailNickname" Type="Edm.String" />
         <Property Name="membershipRule" Type="Edm.String" />
         <Property Name="membershipRuleProcessingState" Type="Edm.String" />
+        <Property Name="membershipRuleProcessingStatus" Type="graph.membershipRuleProcessingStatus" />
         <Property Name="onPremisesDomainName" Type="Edm.String" />
         <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="onPremisesNetBiosName" Type="Edm.String" />
@@ -1220,6 +1251,7 @@
         <NavigationProperty Name="createdOnBehalfOf" Type="graph.directoryObject" />
         <NavigationProperty Name="endpoints" Type="Collection(graph.endpoint)" ContainsTarget="true" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="groupLifecyclePolicies" Type="Collection(graph.groupLifecyclePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="members" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="membersWithLicenseErrors" Type="Collection(graph.directoryObject)" />
@@ -1243,6 +1275,11 @@
             </Record>
           </Collection>
         </Annotation>
+      </EntityType>
+      <EntityType Name="groupLifecyclePolicy" BaseType="graph.entity">
+        <Property Name="alternateNotificationEmails" Type="Edm.String" />
+        <Property Name="groupLifetimeInDays" Type="Edm.Int32" />
+        <Property Name="managedGroupTypes" Type="Edm.String" />
       </EntityType>
       <EntityType Name="homeRealmDiscoveryPolicy" BaseType="graph.stsPolicy" />
       <EntityType Name="identityContainer" />
@@ -1782,6 +1819,11 @@
           </Collection>
         </Annotation>
       </EntityType>
+      <Action Name="addGroup" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.groupLifecyclePolicy" />
+        <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Action>
       <Action Name="addKey" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
         <Parameter Name="keyCredential" Type="graph.keyCredential" Nullable="false" />
@@ -1838,6 +1880,17 @@
         <Parameter Name="passwordProfile" Type="graph.passwordProfile" />
         <ReturnType Type="graph.conversionUserDetails" />
       </Action>
+      <Action Name="evaluateDynamicMembership" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.group)" />
+        <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
+        <Parameter Name="membershipRule" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.evaluateDynamicMembershipResult" />
+      </Action>
+      <Action Name="evaluateDynamicMembership" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.group" Nullable="false" />
+        <Parameter Name="memberId" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="graph.evaluateDynamicMembershipResult" />
+      </Action>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <Parameter Name="disableUserAccounts" Type="Edm.Boolean" />
@@ -1882,6 +1935,11 @@
       <Action Name="promoteToInitial" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
       </Action>
+      <Action Name="removeGroup" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.groupLifecyclePolicy" />
+        <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
+      </Action>
       <Action Name="removeKey" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
@@ -1890,6 +1948,14 @@
       <Action Name="removePassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
         <Parameter Name="keyId" Type="Edm.Guid" Nullable="false" />
+      </Action>
+      <Action Name="renew" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.group" />
+      </Action>
+      <Action Name="renewGroup" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.groupLifecyclePolicy)" Nullable="false" />
+        <Parameter Name="groupId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Edm.Boolean" Nullable="false" />
       </Action>
       <Action Name="reprocessLicenseAssignment" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
@@ -2033,6 +2099,7 @@
           <NavigationPropertyBinding Path="domainNameReferences" Target="directoryObjects" />
           <NavigationPropertyBinding Path="rootDomain" Target="domains" />
         </EntitySet>
+        <EntitySet Name="groupLifecyclePolicies" EntityType="microsoft.graph.groupLifecyclePolicy" />
         <EntitySet Name="groups" EntityType="microsoft.graph.group">
           <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
