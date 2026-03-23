@@ -373,6 +373,11 @@
         <Member Name="optional" Value="1" />
         <Member Name="resource" Value="2" />
       </EnumType>
+      <EnumType Name="attestationEnforcement">
+        <Member Name="disabled" Value="0" />
+        <Member Name="registrationOnly" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="attestationLevel">
         <Member Name="attested" Value="0" />
         <Member Name="notAttested" Value="1" />
@@ -2726,6 +2731,16 @@
         <Member Name="resellerPartnerDelegatedAdmin" Value="5" />
         <Member Name="valueAddedResellerPartnerDelegatedAdmin" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="passkeyType">
+        <Member Name="deviceBound" Value="0" />
+        <Member Name="synced" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="passkeyTypes" IsFlags="true">
+        <Member Name="deviceBound" Value="1" />
+        <Member Name="synced" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="payloadBrand">
         <Member Name="unknown" Value="0" />
@@ -9012,6 +9027,12 @@
         <NavigationProperty Name="customExtension" Type="graph.onOtpSendCustomExtension" />
       </ComplexType>
       <ComplexType Name="onOtpSendHandler" Abstract="true" />
+      <ComplexType Name="onPasswordMigrationCustomExtensionHandler" BaseType="graph.onPasswordSubmitHandler">
+        <Property Name="configuration" Type="graph.customExtensionOverwriteConfiguration" />
+        <Property Name="migrationPropertyId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="customExtension" Type="graph.onPasswordSubmitCustomExtension" />
+      </ComplexType>
+      <ComplexType Name="onPasswordSubmitHandler" Abstract="true" />
       <ComplexType Name="onPremisesAccidentalDeletionPrevention">
         <Property Name="alertThreshold" Type="Edm.Int32" />
         <Property Name="synchronizationPreventionType" Type="graph.onPremisesDirectorySynchronizationDeletionPreventionType" />
@@ -12766,6 +12787,7 @@
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <NavigationProperty Name="allMembers" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
+        <NavigationProperty Name="enabledApps" Type="Collection(graph.teamsApp)" />
         <NavigationProperty Name="filesFolder" Type="graph.driveItem" ContainsTarget="true" />
         <NavigationProperty Name="members" Type="Collection(graph.conversationMember)" ContainsTarget="true" />
         <NavigationProperty Name="messages" Type="Collection(graph.chatMessage)" ContainsTarget="true" />
@@ -12898,6 +12920,8 @@
         <Property Name="operatingSystem" Type="Edm.String" />
         <Property Name="osBuildNumber" Type="Edm.String" />
         <Property Name="osStatus" Type="graph.cloudPcDeviceImageOsStatus" />
+        <Property Name="osVersionNumber" Type="Edm.String" />
+        <Property Name="sizeInGB" Type="Edm.Int32" />
         <Property Name="sourceImageResourceId" Type="Edm.String" />
         <Property Name="status" Type="graph.cloudPcDeviceImageStatus" />
         <Property Name="version" Type="Edm.String" />
@@ -12907,6 +12931,7 @@
         <Property Name="endDate" Type="Edm.Date" />
         <Property Name="expirationDate" Type="Edm.Date" />
         <Property Name="offerName" Type="Edm.String" />
+        <Property Name="osVersionNumber" Type="Edm.String" />
         <Property Name="publisherName" Type="Edm.String" />
         <Property Name="sizeInGB" Type="Edm.Int32" />
         <Property Name="skuName" Type="Edm.String" />
@@ -14569,12 +14594,15 @@
         <Property Name="attestationLevel" Type="graph.attestationLevel" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="model" Type="Edm.String" />
+        <Property Name="passkeyType" Type="graph.passkeyType" />
       </EntityType>
       <EntityType Name="fido2AuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="defaultPasskeyProfile" Type="Edm.String" />
         <Property Name="isAttestationEnforced" Type="Edm.Boolean" />
         <Property Name="isSelfServiceRegistrationAllowed" Type="Edm.Boolean" />
         <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
-        <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
+        <NavigationProperty Name="includeTargets" Type="Collection(graph.passkeyAuthenticationMethodTarget)" ContainsTarget="true" />
+        <NavigationProperty Name="passkeyProfiles" Type="Collection(graph.passkeyProfile)" />
       </EntityType>
       <EntityType Name="fido2CombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
         <Property Name="allowedAAGUIDs" Type="Collection(Edm.String)" Nullable="false" />
@@ -16125,6 +16153,10 @@
         <NavigationProperty Name="onlineMeeting" Type="graph.onlineMeeting" Nullable="false" />
       </EntityType>
       <EntityType Name="onOtpSendCustomExtension" BaseType="graph.customAuthenticationExtension" />
+      <EntityType Name="onPasswordSubmitCustomExtension" BaseType="graph.customAuthenticationExtension" />
+      <EntityType Name="onPasswordSubmitListener" BaseType="graph.authenticationEventListener">
+        <Property Name="handler" Type="graph.onPasswordSubmitHandler" />
+      </EntityType>
       <EntityType Name="onPremisesConditionalAccessSettings" BaseType="graph.entity">
         <Property Name="enabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="excludedGroups" Type="Collection(Edm.Guid)" Nullable="false" />
@@ -16285,6 +16317,15 @@
       </EntityType>
       <EntityType Name="partners" BaseType="graph.entity">
         <NavigationProperty Name="billing" Type="microsoft.graph.partners.billing.billing" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="passkeyAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
+        <Property Name="allowedPasskeyProfiles" Type="Collection(Edm.Guid)" />
+      </EntityType>
+      <EntityType Name="passkeyProfile" BaseType="graph.entity">
+        <Property Name="attestationEnforcement" Type="graph.attestationEnforcement" Nullable="false" />
+        <Property Name="keyRestrictions" Type="graph.fido2KeyRestrictions" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="passkeyTypes" Type="graph.passkeyTypes" />
       </EntityType>
       <EntityType Name="passwordAuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="password" Type="Edm.String" />
