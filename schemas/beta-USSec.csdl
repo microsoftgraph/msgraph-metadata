@@ -3613,6 +3613,11 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="errorDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
+      <ComplexType Name="classificationLimit">
+        <Property Name="allowedLimit" Type="Edm.Int32" />
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="impactedSensitiveTypeIds" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="cloudAppSecuritySessionControl" BaseType="graph.conditionalAccessSessionControl">
         <Property Name="cloudAppSecurityType" Type="graph.cloudAppSecuritySessionControlType" />
       </ComplexType>
@@ -4069,6 +4074,7 @@
         <Property Name="restrictionAction" Type="graph.restrictionAction" />
         <Property Name="triggers" Type="Collection(graph.restrictionTrigger)" />
       </ComplexType>
+      <ComplexType Name="diagnosticMetadata" />
       <ComplexType Name="Dictionary" OpenType="true" />
       <ComplexType Name="directorySizeQuota">
         <Property Name="total" Type="Edm.Int32" />
@@ -4235,6 +4241,12 @@
         <Property Name="discoveredSensitiveTypes" Type="Collection(graph.discoveredSensitiveType)" />
       </ComplexType>
       <ComplexType Name="eventMessageDetail" Abstract="true" />
+      <ComplexType Name="exactDataMatchStoreColumn">
+        <Property Name="ignoredDelimiters" Type="Collection(Edm.String)" />
+        <Property Name="isCaseInsensitive" Type="Edm.Boolean" />
+        <Property Name="isSearchable" Type="Edm.Boolean" />
+        <Property Name="name" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="exactMatchClassificationRequest">
         <Property Name="contentClassifications" Type="Collection(graph.contentClassification)" />
         <Property Name="sensitiveTypeIds" Type="Collection(Edm.String)" />
@@ -4246,6 +4258,11 @@
         <Property Name="errors" Type="Collection(graph.classificationError)" />
       </ComplexType>
       <ComplexType Name="exactMatchDetectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase" />
+      <ComplexType Name="exactMatchDiagnostic">
+        <Property Name="classificationId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="classificationLimits" Type="Collection(graph.classificationLimit)" Nullable="false" />
+        <Property Name="unmatchedItems" Type="Collection(graph.unmatched)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="excludeTarget">
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
@@ -6805,6 +6822,13 @@
         <Property Name="condition" Type="Edm.String" />
         <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="unmatched">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="corroborativeEvidences" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="idMatch" Type="Edm.String" />
+        <Property Name="length" Type="Edm.Int32" />
+        <Property Name="offset" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="unrestrictedAudience" BaseType="graph.signInAudienceRestrictionsBase" />
       <ComplexType Name="updateAllowedCombinationsResult">
         <Property Name="additionalInformation" Type="Edm.String" />
@@ -8848,11 +8872,14 @@
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
         <Property Name="responseType" Type="graph.responseType" />
       </EntityType>
-      <EntityType Name="exactMatchDataStore" BaseType="graph.entity">
+      <EntityType Name="exactMatchDataStore" BaseType="graph.exactMatchDataStoreBase">
+        <NavigationProperty Name="sessions" Type="Collection(graph.exactMatchSession)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="exactMatchDataStoreBase" BaseType="graph.entity">
+        <Property Name="columns" Type="Collection(graph.exactDataMatchStoreColumn)" />
         <Property Name="dataLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
-        <NavigationProperty Name="sessions" Type="Collection(graph.exactMatchSession)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchJobBase" BaseType="graph.entity" Abstract="true">
         <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
@@ -8865,23 +8892,25 @@
         <Property Name="state" Type="Edm.String" />
         <NavigationProperty Name="matchingRows" Type="Collection(graph.lookupResultRow)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchJobBase">
+      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchSessionBase">
         <Property Name="checksum" Type="Edm.String" />
-        <Property Name="datastoreId" Type="Edm.String" />
         <Property Name="dataUploadURI" Type="Edm.String" />
         <Property Name="fields" Type="Collection(Edm.String)" />
         <Property Name="fileName" Type="Edm.String" />
+        <Property Name="rowsPerBlock" Type="Edm.Int32" />
+        <Property Name="salt" Type="Edm.String" />
+        <Property Name="uploadAgentId" Type="Edm.String" />
+        <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="exactMatchSessionBase" BaseType="graph.exactMatchJobBase">
+        <Property Name="dataStoreId" Type="Edm.String" />
         <Property Name="processingCompletionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="remainingBlockCount" Type="Edm.Int32" />
         <Property Name="remainingJobCount" Type="Edm.Int32" />
-        <Property Name="rowsPerBlock" Type="Edm.Int32" />
-        <Property Name="salt" Type="Edm.String" />
         <Property Name="state" Type="Edm.String" />
         <Property Name="totalBlockCount" Type="Edm.Int32" />
         <Property Name="totalJobCount" Type="Edm.Int32" />
-        <Property Name="uploadAgentId" Type="Edm.String" />
         <Property Name="uploadCompletionDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchUploadAgent" BaseType="graph.entity">
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
