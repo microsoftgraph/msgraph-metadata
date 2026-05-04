@@ -1,0 +1,78 @@
+# Validates that PRs don't introduce unintentional casing changes to type/enum names,
+# members, or properties in CSDL schema files. After a PR merges, automatically
+# regenerates the type-mapping baseline files to keep them current.
+
+name: Check type and enum casing changes
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'schemas/*-Prod.csdl'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'schemas/*-Prod.csdl'
+
+jobs:
+  # Runs on PRs: compares modified CSDL files against the committed type-mapping
+  # JSON baselines. Fails if any name matches case-insensitively but differs
+  # case-sensitively (e.g., "accessLevel" -> "AccessLevel"). New types are allowed.
+  check-casing:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Determine modified Prod CSDL files
+      id: changed-files
+      run: |
+        FILES=$(git diff --diff-filter=ACMR --name-only origin/${{ github.base_ref }}...HEAD -- 'schemas/*-Prod.csdl' | tr '\n' ',' | sed 's/,$//')
+        echo "files=$FILES" >> $GITHUB_OUTPUT
+        echo "Modified CSDL files: $FILES"
+
+    - name: Check for casing changes
+      if: steps.changed-files.outputs.files != ''
+      shell: pwsh
+      run: |
+        $files = "${{ steps.changed-files.outputs.files }}" -split ','
+        ./scripts/check-casing-changes.ps1 -CsdlFiles $files
+
+  # Runs on push to master (after PR merge): regenerates the type-mapping baseline
+  # JSON files from the updated CSDL schemas and auto-commits them if changed.
+  # This keeps baselines current so future PRs are checked against the latest state.
+  update-baselines:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Regenerate type mapping baselines
+      shell: pwsh
+      run: ./scripts/generate-type-mappings.ps1
+
+    - name: Check for changes
+      id: check-changes
+      run: |
+        if git diff --quiet schemas/type-mappings/; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "No baseline changes detected."
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "Baseline changes detected."
+        fi
+
+    - name: Commit updated baselines
+      if: steps.check-changes.outputs.changed == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add schemas/type-mappings/
+        git commit -m "Update type mapping baselines
+
+        Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+        git push
