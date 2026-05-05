@@ -88,7 +88,7 @@ function Test-EnumTypeCasing {
             # Check enum type name
             $violation = Find-CasingViolation -CurrentName $enumName -BaselineNames $baselineTypeNames
             if ($null -ne $violation) {
-                Write-Host "  VIOLATION: EnumType name casing changed in [$namespace]: '$violation' -> '$enumName'" -ForegroundColor Red
+                Write-Host "  VIOLATION: EnumType name casing changed in [$Version][$namespace]: '$violation' -> '$enumName'" -ForegroundColor Red
                 $violations++
             }
 
@@ -109,7 +109,7 @@ function Test-EnumTypeCasing {
                     $memberViolation = Find-CasingViolation -CurrentName $memberName -BaselineNames $baselineMembers
                     if ($null -ne $memberViolation) {
                         $displayEnumName = if ($null -ne $violation) { $violation } else { $enumName }
-                        Write-Host "  VIOLATION: Enum member casing changed in [$namespace].${displayEnumName}: '$memberViolation' -> '$memberName'" -ForegroundColor Red
+                        Write-Host "  VIOLATION: Enum member casing changed in [$Version][$namespace].${displayEnumName}: '$memberViolation' -> '$memberName'" -ForegroundColor Red
                         $violations++
                     }
                 }
@@ -157,7 +157,7 @@ function Test-TypeCasing {
             # Check type name
             $violation = Find-CasingViolation -CurrentName $typeName -BaselineNames $baselineTypeNames
             if ($null -ne $violation) {
-                Write-Host "  VIOLATION: $TypeKind name casing changed in [$namespace]: '$violation' -> '$typeName'" -ForegroundColor Red
+                Write-Host "  VIOLATION: $TypeKind name casing changed in [$Version][$namespace]: '$violation' -> '$typeName'" -ForegroundColor Red
                 $violations++
             }
 
@@ -178,7 +178,7 @@ function Test-TypeCasing {
                     $propViolation = Find-CasingViolation -CurrentName $propName -BaselineNames $baselineProps
                     if ($null -ne $propViolation) {
                         $displayTypeName = if ($null -ne $violation) { $violation } else { $typeName }
-                        Write-Host "  VIOLATION: Property casing changed in [$namespace].${displayTypeName}: '$propViolation' -> '$propName'" -ForegroundColor Red
+                        Write-Host "  VIOLATION: Property casing changed in [$Version][$namespace].${displayTypeName}: '$propViolation' -> '$propName'" -ForegroundColor Red
                         $violations++
                     }
                 }
@@ -191,7 +191,7 @@ function Test-TypeCasing {
                     $navPropViolation = Find-CasingViolation -CurrentName $navPropName -BaselineNames $baselineNavProps
                     if ($null -ne $navPropViolation) {
                         $displayTypeName = if ($null -ne $violation) { $violation } else { $typeName }
-                        Write-Host "  VIOLATION: NavigationProperty casing changed in [$namespace].${displayTypeName}: '$navPropViolation' -> '$navPropName'" -ForegroundColor Red
+                        Write-Host "  VIOLATION: NavigationProperty casing changed in [$Version][$namespace].${displayTypeName}: '$navPropViolation' -> '$navPropName'" -ForegroundColor Red
                         $violations++
                     }
                 }
