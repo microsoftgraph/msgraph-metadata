@@ -229,6 +229,11 @@
         <Member Name="notProvisioned" Value="0" />
         <Member Name="provisioned" Value="1" />
       </EnumType>
+      <EnumType Name="changeType">
+        <Member Name="created" Value="0" />
+        <Member Name="updated" Value="1" />
+        <Member Name="deleted" Value="2" />
+      </EnumType>
       <EnumType Name="complianceState">
         <Member Name="unknown" Value="0" />
         <Member Name="compliant" Value="1" />
@@ -631,6 +636,11 @@
         <Member Name="default" Value="0" />
         <Member Name="verticalSplit" Value="1" />
         <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
+      <EnumType Name="lifecycleEventType">
+        <Member Name="missed" Value="0" />
+        <Member Name="subscriptionRemoved" Value="1" />
+        <Member Name="reauthorizationRequired" Value="2" />
       </EnumType>
       <EnumType Name="locationType">
         <Member Name="default" Value="0" />
@@ -1839,6 +1849,29 @@
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="issuerSki" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="changeNotification">
+        <Property Name="changeType" Type="graph.changeType" Nullable="false" />
+        <Property Name="clientState" Type="Edm.String" />
+        <Property Name="encryptedContent" Type="graph.changeNotificationEncryptedContent" />
+        <Property Name="id" Type="Edm.String" />
+        <Property Name="lifecycleEvent" Type="graph.lifecycleEventType" />
+        <Property Name="resource" Type="Edm.String" Nullable="false" />
+        <Property Name="resourceData" Type="graph.resourceData" />
+        <Property Name="subscriptionExpirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="subscriptionId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="tenantId" Type="Edm.Guid" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="changeNotificationCollection">
+        <Property Name="validationTokens" Type="Collection(Edm.String)" />
+        <Property Name="value" Type="Collection(graph.changeNotification)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="changeNotificationEncryptedContent">
+        <Property Name="data" Type="Edm.String" Nullable="false" />
+        <Property Name="dataKey" Type="Edm.String" Nullable="false" />
+        <Property Name="dataSignature" Type="Edm.String" Nullable="false" />
+        <Property Name="encryptionCertificateId" Type="Edm.String" Nullable="false" />
+        <Property Name="encryptionCertificateThumbprint" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="ComplexExtensionValue" OpenType="true" />
       <ComplexType Name="complianceManagementPartnerAssignment">
         <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget" />
@@ -2745,6 +2778,7 @@
         <Property Name="allowedResourceActions" Type="Collection(Edm.String)" />
         <Property Name="notAllowedResourceActions" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="resourceData" OpenType="true" />
       <ComplexType Name="resourcePermission">
         <Property Name="type" Type="Edm.String" Nullable="false" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
@@ -5721,6 +5755,20 @@
         <Property Name="skuPartNumber" Type="Edm.String" />
         <Property Name="subscriptionIds" Type="Collection(Edm.String)" />
       </EntityType>
+      <EntityType Name="subscription" BaseType="graph.entity">
+        <Property Name="applicationId" Type="Edm.String" />
+        <Property Name="changeType" Type="Edm.String" Nullable="false" />
+        <Property Name="clientState" Type="Edm.String" />
+        <Property Name="creatorId" Type="Edm.String" />
+        <Property Name="encryptionCertificate" Type="Edm.String" />
+        <Property Name="encryptionCertificateId" Type="Edm.String" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="includeResourceData" Type="Edm.Boolean" />
+        <Property Name="latestSupportedTlsVersion" Type="Edm.String" />
+        <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
+        <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="resource" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="targetDeviceGroup" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
@@ -7648,6 +7696,9 @@
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
         <ReturnType Type="Edm.Boolean" />
       </Action>
+      <Action Name="reauthorize" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.subscription" />
+      </Action>
       <Action Name="rebootNow" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
       </Action>
@@ -8139,6 +8190,7 @@
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
         <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku" />
+        <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription" />
         <EntitySet Name="users" EntityType="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -16762,6 +16814,40 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.subscription">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.syncLicenses(microsoft.graph.vppToken)">
