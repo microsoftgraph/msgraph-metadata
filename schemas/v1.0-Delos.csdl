@@ -108,6 +108,11 @@
         <Member Name="failed" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="appManagementRestrictionState">
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="attachmentType">
         <Member Name="file" Value="0" />
         <Member Name="item" Value="1" />
@@ -263,6 +268,10 @@
         <Member Name="group" Value="2" />
         <Member Name="application" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="customSecurityAttributeComparisonOperator">
+        <Member Name="equals" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
@@ -1750,10 +1759,15 @@
         <Property Name="decryptionKey" Type="Edm.String" />
         <Property Name="downloadUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="appManagementApplicationConfiguration" BaseType="graph.appManagementConfiguration" />
+      <ComplexType Name="appManagementApplicationConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
       <ComplexType Name="appManagementConfiguration" Abstract="true">
         <Property Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" />
         <Property Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" />
+      </ComplexType>
+      <ComplexType Name="appManagementPolicyActorExemptions">
+        <Property Name="customSecurityAttributes" Type="Collection(graph.customSecurityAttributeExemption)" />
       </ComplexType>
       <ComplexType Name="appManagementServicePrincipalConfiguration" BaseType="graph.appManagementConfiguration" />
       <ComplexType Name="appRole">
@@ -1918,7 +1932,19 @@
       <ComplexType Name="crossTenantUserSyncInbound">
         <Property Name="isSyncAllowed" Type="Edm.Boolean" />
       </ComplexType>
-      <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration" />
+      <ComplexType Name="customAppManagementApplicationConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
+      <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="applicationRestrictions" Type="graph.customAppManagementApplicationConfiguration" />
+      </ComplexType>
+      <ComplexType Name="customSecurityAttributeExemption" Abstract="true">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="operator" Type="graph.customSecurityAttributeComparisonOperator" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="customSecurityAttributeStringValueExemption" BaseType="graph.customSecurityAttributeExemption">
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="customSecurityAttributeValue" OpenType="true" />
       <ComplexType Name="customTimeZone" BaseType="graph.timeZoneBase">
         <Property Name="bias" Type="Edm.Int32" />
@@ -2139,6 +2165,18 @@
       <ComplexType Name="groupAssignmentTarget" BaseType="graph.deviceAndAppManagementAssignmentTarget">
         <Property Name="groupId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="identifierUriConfiguration">
+        <Property Name="nonDefaultUriAddition" Type="graph.identifierUriRestriction" />
+        <Property Name="uriAdditionWithoutUniqueTenantIdentifier" Type="graph.identifierUriRestriction" />
+      </ComplexType>
+      <ComplexType Name="identifierUriRestriction">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
+        <Property Name="excludeAppsReceivingV2Tokens" Type="Edm.Boolean" />
+        <Property Name="excludeSaml" Type="Edm.Boolean" />
+        <Property Name="isStateSetByMicrosoft" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="identity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
@@ -2200,6 +2238,11 @@
       <ComplexType Name="invitationRedemptionIdentityProviderConfiguration">
         <Property Name="fallbackIdentityProvider" Type="graph.b2bIdentityProvidersType" />
         <Property Name="primaryIdentityProviderPrecedenceOrder" Type="Collection(graph.b2bIdentityProvidersType)" />
+      </ComplexType>
+      <ComplexType Name="invitedUserMessageInfo">
+        <Property Name="ccRecipients" Type="Collection(graph.recipient)" />
+        <Property Name="customizedMessageBody" Type="Edm.String" />
+        <Property Name="messageLanguage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="iosDeviceType">
         <Property Name="iPad" Type="Edm.Boolean" Nullable="false" />
@@ -2296,9 +2339,11 @@
         <Property Name="usage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="keyCredentialConfiguration">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
       </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String" />
@@ -2650,9 +2695,11 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="passwordCredentialConfiguration">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
       </ComplexType>
       <ComplexType Name="passwordProfile">
         <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean" />
@@ -4427,6 +4474,7 @@
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean" />
         <Property Name="hideFromAddressLists" Type="Edm.Boolean" />
         <Property Name="hideFromOutlookClients" Type="Edm.Boolean" />
+        <Property Name="infoCatalogs" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="isAssignableToRole" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isSubscribedByMail" Type="Edm.Boolean" />
@@ -4554,6 +4602,18 @@
         <Property Name="promptLoginBehavior" Type="graph.promptLoginBehavior" />
         <Property Name="signingCertificateUpdateStatus" Type="graph.signingCertificateUpdateStatus" />
         <Property Name="signOutUri" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="invitation" BaseType="graph.entity">
+        <Property Name="invitedUserDisplayName" Type="Edm.String" />
+        <Property Name="invitedUserEmailAddress" Type="Edm.String" Nullable="false" />
+        <Property Name="invitedUserMessageInfo" Type="graph.invitedUserMessageInfo" />
+        <Property Name="invitedUserType" Type="Edm.String" />
+        <Property Name="inviteRedeemUrl" Type="Edm.String" />
+        <Property Name="inviteRedirectUrl" Type="Edm.String" Nullable="false" />
+        <Property Name="resetRedemption" Type="Edm.Boolean" />
+        <Property Name="sendInvitationMessage" Type="Edm.Boolean" />
+        <Property Name="status" Type="Edm.String" />
+        <NavigationProperty Name="invitedUser" Type="graph.user" />
       </EntityType>
       <EntityType Name="iosCertificateProfile" BaseType="graph.deviceConfiguration" Abstract="true" />
       <EntityType Name="iosCompliancePolicy" BaseType="graph.deviceCompliancePolicy">
@@ -8172,6 +8232,9 @@
         </EntitySet>
         <EntitySet Name="groupSettings" EntityType="microsoft.graph.groupSetting" />
         <EntitySet Name="groupSettingTemplates" EntityType="microsoft.graph.groupSettingTemplate" />
+        <EntitySet Name="invitations" EntityType="microsoft.graph.invitation">
+          <NavigationPropertyBinding Path="invitedUser" Target="users" />
+        </EntitySet>
         <EntitySet Name="oauth2PermissionGrants" EntityType="microsoft.graph.oAuth2PermissionGrant" />
         <EntitySet Name="organization" EntityType="microsoft.graph.organization">
           <NavigationPropertyBinding Path="certificateBasedAuthConfiguration" Target="certificateBasedAuthConfiguration" />
@@ -12381,6 +12444,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.groupAssignmentTarget/groupId">
         <Annotation Term="Org.OData.Core.V1.Description" String="The group Id that is the target of the assignment." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identifierUriRestriction/isStateSetByMicrosoft">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.importedWindowsAutopilotDeviceIdentity">
         <Annotation Term="Org.OData.Core.V1.Description" String="Imported windows autopilot devices." />
