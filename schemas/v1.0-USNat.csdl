@@ -218,6 +218,11 @@
         <Member Name="reportOnlyNotApplied" Value="8" />
         <Member Name="reportOnlyInterrupted" Value="9" />
       </EnumType>
+      <EnumType Name="appManagementRestrictionState">
+        <Member Name="enabled" Value="1" />
+        <Member Name="disabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="approvalFilterByCurrentUserOptions">
         <Member Name="target" Value="0" />
         <Member Name="createdBy" Value="1" />
@@ -716,6 +721,10 @@
         <Member Name="callbackTimedOut" Value="4" />
         <Member Name="waitingForCallback" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="customSecurityAttributeComparisonOperator">
+        <Member Name="equals" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="dayOfWeek">
         <Member Name="sunday" Value="0" />
@@ -2321,10 +2330,17 @@
         <Property Name="id" Type="Edm.String" />
         <Property Name="result" Type="graph.appliedConditionalAccessPolicyResult" />
       </ComplexType>
-      <ComplexType Name="appManagementConfiguration">
+      <ComplexType Name="appManagementApplicationConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
+      <ComplexType Name="appManagementConfiguration" Abstract="true">
         <Property Name="keyCredentials" Type="Collection(graph.keyCredentialConfiguration)" />
         <Property Name="passwordCredentials" Type="Collection(graph.passwordCredentialConfiguration)" />
       </ComplexType>
+      <ComplexType Name="appManagementPolicyActorExemptions">
+        <Property Name="customSecurityAttributes" Type="Collection(graph.customSecurityAttributeExemption)" />
+      </ComplexType>
+      <ComplexType Name="appManagementServicePrincipalConfiguration" BaseType="graph.appManagementConfiguration" />
       <ComplexType Name="appRole">
         <Property Name="allowedMemberTypes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -2515,6 +2531,7 @@
       <ComplexType Name="azureADJoinPolicy">
         <Property Name="allowedToJoin" Type="graph.deviceRegistrationMembership" />
         <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
+        <Property Name="localAdmins" Type="graph.localAdminSettings" />
       </ComplexType>
       <ComplexType Name="azureAdPopTokenAuthentication" BaseType="graph.customExtensionAuthenticationConfiguration" />
       <ComplexType Name="azureADRegistrationPolicy">
@@ -2944,6 +2961,12 @@
         <Property Name="applicationMode" Type="graph.applicationMode" />
         <Property Name="id" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="customAppManagementApplicationConfiguration">
+        <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
+      </ComplexType>
+      <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration">
+        <Property Name="applicationRestrictions" Type="graph.customAppManagementApplicationConfiguration" />
+      </ComplexType>
       <ComplexType Name="customExtensionAuthenticationConfiguration" Abstract="true" />
       <ComplexType Name="customExtensionCallbackConfiguration" Abstract="true">
         <Property Name="timeoutDuration" Type="Edm.Duration" />
@@ -2971,6 +2994,13 @@
       </ComplexType>
       <ComplexType Name="customExtensionData" Abstract="true" />
       <ComplexType Name="customExtensionEndpointConfiguration" Abstract="true" />
+      <ComplexType Name="customSecurityAttributeExemption" Abstract="true">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="operator" Type="graph.customSecurityAttributeComparisonOperator" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="customSecurityAttributeStringValueExemption" BaseType="graph.customSecurityAttributeExemption">
+        <Property Name="value" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="customSecurityAttributeValue" OpenType="true" />
       <ComplexType Name="customTimeZone" BaseType="graph.timeZoneBase">
         <Property Name="bias" Type="Edm.Int32" />
@@ -3360,6 +3390,18 @@
       <ComplexType Name="hyperlinkOrPictureColumn">
         <Property Name="isPicture" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="identifierUriConfiguration">
+        <Property Name="nonDefaultUriAddition" Type="graph.identifierUriRestriction" />
+        <Property Name="uriAdditionWithoutUniqueTenantIdentifier" Type="graph.identifierUriRestriction" />
+      </ComplexType>
+      <ComplexType Name="identifierUriRestriction">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
+        <Property Name="excludeAppsReceivingV2Tokens" Type="Edm.Boolean" />
+        <Property Name="excludeSaml" Type="Edm.Boolean" />
+        <Property Name="isStateSetByMicrosoft" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="identity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.String" />
@@ -3483,9 +3525,11 @@
         <Property Name="usage" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="keyCredentialConfiguration">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appKeyCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
       </ComplexType>
       <ComplexType Name="keyValue">
         <Property Name="key" Type="Edm.String" />
@@ -3529,6 +3573,10 @@
       </ComplexType>
       <ComplexType Name="localAdminPasswordSettings">
         <Property Name="isEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="localAdminSettings">
+        <Property Name="enableGlobalAdmins" Type="Edm.Boolean" />
+        <Property Name="registeringUsers" Type="graph.deviceRegistrationMembership" />
       </ComplexType>
       <ComplexType Name="localeInfo">
         <Property Name="displayName" Type="Edm.String" />
@@ -3952,9 +4000,11 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="passwordCredentialConfiguration">
+        <Property Name="excludeActors" Type="graph.appManagementPolicyActorExemptions" />
         <Property Name="maxLifetime" Type="Edm.Duration" />
         <Property Name="restrictForAppsCreatedAfterDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="restrictionType" Type="graph.appCredentialRestrictionType" />
+        <Property Name="state" Type="graph.appManagementRestrictionState" Nullable="false" />
       </ComplexType>
       <ComplexType Name="passwordProfile">
         <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean" />
@@ -5609,7 +5659,7 @@
       </EntityType>
       <EntityType Name="appManagementPolicy" BaseType="graph.policyBase">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="restrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="restrictions" Type="graph.customAppManagementConfiguration" />
         <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="appRoleAssignment" BaseType="graph.directoryObject">
@@ -6742,6 +6792,7 @@
         <Property Name="hasMembersWithLicenseErrors" Type="Edm.Boolean" />
         <Property Name="hideFromAddressLists" Type="Edm.Boolean" />
         <Property Name="hideFromOutlookClients" Type="Edm.Boolean" />
+        <Property Name="infoCatalogs" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isAssignableToRole" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
@@ -8263,9 +8314,9 @@
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="tenantAppManagementPolicy" BaseType="graph.policyBase">
-        <Property Name="applicationRestrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="applicationRestrictions" Type="graph.appManagementApplicationConfiguration" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="servicePrincipalRestrictions" Type="graph.appManagementConfiguration" />
+        <Property Name="servicePrincipalRestrictions" Type="graph.appManagementServicePrincipalConfiguration" />
       </EntityType>
       <EntityType Name="tenantRelationship" />
       <EntityType Name="termsOfUseContainer" BaseType="graph.entity">
@@ -15138,6 +15189,9 @@
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identifierUriRestriction/isStateSetByMicrosoft">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.identityContainer/conditionalAccess">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
