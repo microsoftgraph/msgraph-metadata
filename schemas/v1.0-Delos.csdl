@@ -875,6 +875,11 @@
         <Member Name="unresponsive" Value="3" />
         <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
+      <EnumType Name="multiFactorAuthConfiguration">
+        <Member Name="notRequired" Value="0" />
+        <Member Name="required" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="notificationTemplateBrandingOptions" IsFlags="true">
         <Member Name="none" Value="0" />
         <Member Name="includeCompanyLogo" Value="1" />
@@ -1324,6 +1329,12 @@
         <Member Name="hide" Value="1" />
         <Member Name="show" Value="2" />
       </EnumType>
+      <EnumType Name="volumeType">
+        <Member Name="operatingSystemVolume" Value="1" />
+        <Member Name="fixedDataVolume" Value="2" />
+        <Member Name="removableDataVolume" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="vppTokenAccountType">
         <Member Name="business" Value="0" />
         <Member Name="education" Value="1" />
@@ -1704,6 +1715,7 @@
         <Property Name="type" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="allAllowedScopes" BaseType="graph.inheritableScopes" />
+      <ComplexType Name="allDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
       <ComplexType Name="allDevicesAssignmentTarget" BaseType="graph.deviceAndAppManagementAssignmentTarget" />
       <ComplexType Name="allLicensedUsersAssignmentTarget" BaseType="graph.deviceAndAppManagementAssignmentTarget" />
       <ComplexType Name="alternativeSecurityId">
@@ -1844,6 +1856,15 @@
         <Property Name="scheduledEndDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="scheduledStartDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.automaticRepliesStatus" />
+      </ComplexType>
+      <ComplexType Name="azureADJoinPolicy">
+        <Property Name="allowedToJoin" Type="graph.deviceRegistrationMembership" />
+        <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
+        <Property Name="localAdmins" Type="graph.localAdminSettings" />
+      </ComplexType>
+      <ComplexType Name="azureADRegistrationPolicy">
+        <Property Name="allowedToRegister" Type="graph.deviceRegistrationMembership" />
+        <Property Name="isAdminConfigurable" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="bitLockerRemovableDrivePolicy">
         <Property Name="blockCrossOrganizationWriteAccess" Type="Edm.Boolean" Nullable="false" />
@@ -2071,6 +2092,12 @@
         <Property Name="virtualSecureMode" Type="Edm.String" />
         <Property Name="windowsPE" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="deviceLocalCredential">
+        <Property Name="accountName" Type="Edm.String" Nullable="false" />
+        <Property Name="accountSid" Type="Edm.String" Nullable="false" />
+        <Property Name="backupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="passwordBase64" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deviceManagementPartnerAssignment">
         <Property Name="target" Type="graph.deviceAndAppManagementAssignmentTarget" />
       </ComplexType>
@@ -2106,6 +2133,7 @@
         <Property Name="totalReportedDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="unknownStateThreatAgentDeviceCount" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="deviceRegistrationMembership" />
       <ComplexType Name="domainState">
         <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="operation" Type="Edm.String" />
@@ -2125,6 +2153,10 @@
       <ComplexType Name="employeeOrgData">
         <Property Name="costCenter" Type="Edm.String" />
         <Property Name="division" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="enumeratedDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership">
+        <Property Name="groups" Type="Collection(Edm.String)" />
+        <Property Name="users" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="enumeratedScopes" BaseType="graph.inheritableScopes">
         <Property Name="scopes" Type="Collection(Edm.String)" Nullable="false" />
@@ -2369,6 +2401,13 @@
         <Property Name="suspended" Type="Edm.Int32" />
         <Property Name="warning" Type="Edm.Int32" />
       </ComplexType>
+      <ComplexType Name="localAdminPasswordSettings">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="localAdminSettings">
+        <Property Name="enableGlobalAdmins" Type="Edm.Boolean" />
+        <Property Name="registeringUsers" Type="graph.deviceRegistrationMembership" />
+      </ComplexType>
       <ComplexType Name="localeInfo">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="locale" Type="Edm.String" />
@@ -2557,6 +2596,7 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="useLocalTime" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="noDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
       <ComplexType Name="noScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="objectIdentity">
         <Property Name="issuer" Type="Edm.String" />
@@ -3574,6 +3614,15 @@
         <Property Name="defaultUserRolePermissions" Type="graph.defaultUserRolePermissions" Nullable="false" />
         <Property Name="guestUserRoleId" Type="Edm.Guid" />
       </EntityType>
+      <EntityType Name="bitlocker" BaseType="graph.entity">
+        <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="bitlockerRecoveryKey" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="key" Type="Edm.String" Nullable="false" />
+        <Property Name="volumeType" Type="graph.volumeType" />
+      </EntityType>
       <EntityType Name="calendar" BaseType="graph.entity">
         <Property Name="allowedOnlineMeetingProviders" Type="Collection(graph.onlineMeetingProviderType)" />
         <Property Name="canEdit" Type="Edm.Boolean" />
@@ -4099,6 +4148,12 @@
         <Property Name="osVersion" Type="Edm.String" />
         <Property Name="userName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="deviceLocalCredentialInfo" BaseType="graph.entity">
+        <Property Name="credentials" Type="Collection(graph.deviceLocalCredential)" Nullable="false" />
+        <Property Name="deviceName" Type="Edm.String" Nullable="false" />
+        <Property Name="lastBackupDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="refreshDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
       <EntityType Name="deviceLogCollectionResponse" BaseType="graph.entity">
         <Property Name="enrolledByUser" Type="Edm.String" />
         <Property Name="expirationDateTimeUTC" Type="Edm.DateTimeOffset" />
@@ -4216,11 +4271,21 @@
         <Property Name="correlationId" Type="Edm.String" />
         <Property Name="eventDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </EntityType>
+      <EntityType Name="deviceRegistrationPolicy" BaseType="graph.entity">
+        <Property Name="azureADJoin" Type="graph.azureADJoinPolicy" />
+        <Property Name="azureADRegistration" Type="graph.azureADRegistrationPolicy" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="localAdminPassword" Type="graph.localAdminPasswordSettings" />
+        <Property Name="multiFactorAuthConfiguration" Type="graph.multiFactorAuthConfiguration" Nullable="false" />
+        <Property Name="userDeviceQuota" Type="Edm.Int32" Nullable="false" />
+      </EntityType>
       <EntityType Name="directory">
         <NavigationProperty Name="administrativeUnits" Type="Collection(graph.administrativeUnit)" ContainsTarget="true" />
         <NavigationProperty Name="attributeSets" Type="Collection(graph.attributeSet)" ContainsTarget="true" />
         <NavigationProperty Name="customSecurityAttributeDefinitions" Type="Collection(graph.customSecurityAttributeDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+        <NavigationProperty Name="deviceLocalCredentials" Type="Collection(graph.deviceLocalCredentialInfo)" ContainsTarget="true" />
         <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="onPremisesSynchronization" Type="Collection(graph.onPremisesDirectorySynchronization)" ContainsTarget="true" />
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true" />
@@ -4585,6 +4650,9 @@
       <EntityType Name="inferenceClassificationOverride" BaseType="graph.entity">
         <Property Name="classifyAs" Type="graph.inferenceClassificationType" />
         <Property Name="senderEmailAddress" Type="graph.emailAddress" />
+      </EntityType>
+      <EntityType Name="informationProtection">
+        <NavigationProperty Name="bitlocker" Type="graph.bitlocker" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="inheritablePermission">
         <Key>
@@ -5519,6 +5587,7 @@
         <NavigationProperty Name="claimsMappingPolicies" Type="Collection(graph.claimsMappingPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
         <NavigationProperty Name="defaultAppManagementPolicy" Type="graph.tenantAppManagementPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
@@ -5911,11 +5980,13 @@
         <NavigationProperty Name="inheritsPermissionsFrom" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="user" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="aboutMe" Type="Edm.String" />
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="ageGroup" Type="Edm.String" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" Nullable="false" />
         <Property Name="assignedPlans" Type="Collection(graph.assignedPlan)" Nullable="false" />
         <Property Name="authorizationInfo" Type="graph.authorizationInfo" />
+        <Property Name="birthday" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="businessPhones" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="city" Type="Edm.String" />
         <Property Name="companyName" Type="Edm.String" />
@@ -5936,9 +6007,11 @@
         <Property Name="externalUserStateChangeDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="faxNumber" Type="Edm.String" />
         <Property Name="givenName" Type="Edm.String" />
+        <Property Name="hireDate" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="identities" Type="Collection(graph.objectIdentity)" />
         <Property Name="identityParentId" Type="Edm.String" />
         <Property Name="imAddresses" Type="Collection(Edm.String)" />
+        <Property Name="interests" Type="Collection(Edm.String)" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isResourceAccount" Type="Edm.Boolean" />
         <Property Name="jobTitle" Type="Edm.String" />
@@ -5949,6 +6022,7 @@
         <Property Name="mailboxSettings" Type="graph.mailboxSettings" />
         <Property Name="mailNickname" Type="Edm.String" />
         <Property Name="mobilePhone" Type="Edm.String" />
+        <Property Name="mySite" Type="Edm.String" />
         <Property Name="officeLocation" Type="Edm.String" />
         <Property Name="onPremisesDistinguishedName" Type="Edm.String" />
         <Property Name="onPremisesDomainName" Type="Edm.String" />
@@ -5963,14 +6037,19 @@
         <Property Name="otherMails" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="passwordPolicies" Type="Edm.String" />
         <Property Name="passwordProfile" Type="graph.passwordProfile" />
+        <Property Name="pastProjects" Type="Collection(Edm.String)" />
         <Property Name="postalCode" Type="Edm.String" />
         <Property Name="preferredDataLocation" Type="Edm.String" />
         <Property Name="preferredLanguage" Type="Edm.String" />
+        <Property Name="preferredName" Type="Edm.String" />
         <Property Name="provisionedPlans" Type="Collection(graph.provisionedPlan)" Nullable="false" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="responsibilities" Type="Collection(Edm.String)" />
+        <Property Name="schools" Type="Collection(Edm.String)" />
         <Property Name="securityIdentifier" Type="Edm.String" />
         <Property Name="showInAddressList" Type="Edm.Boolean" />
         <Property Name="signInSessionsValidFromDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="skills" Type="Collection(Edm.String)" />
         <Property Name="state" Type="Edm.String" />
         <Property Name="streetAddress" Type="Edm.String" />
         <Property Name="surname" Type="Edm.String" />
@@ -8271,6 +8350,7 @@
           <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
         </Singleton>
         <Singleton Name="identityProtection" Type="microsoft.graph.identityProtectionRoot" />
+        <Singleton Name="informationProtection" Type="microsoft.graph.informationProtection" />
         <Singleton Name="me" Type="microsoft.graph.user">
           <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="directReports" Target="directoryObjects" />
@@ -9259,6 +9339,50 @@
       <Annotations Target="microsoft.graph.beginOnboarding(microsoft.graph.remoteAssistancePartner)">
         <Annotation Term="Org.OData.Core.V1.Description" String="A request to start onboarding.  Must be coupled with the appropriate TeamViewer account information" />
       </Annotations>
+      <Annotations Target="microsoft.graph.bitlocker">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.bitLockerEncryptionMethod">
         <Annotation Term="Org.OData.Core.V1.Description" String="BitLockerEncryptionMethod types" />
       </Annotations>
@@ -9273,6 +9397,57 @@
       </Annotations>
       <Annotations Target="microsoft.graph.bitLockerEncryptionMethod/xtsAes256">
         <Annotation Term="Org.OData.Core.V1.Description" String="XTS-AES 256-bit." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.bitlockerRecoveryKey">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>createdDateTime</PropertyPath>
+                <PropertyPath>key</PropertyPath>
+                <PropertyPath>volumeType</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.bitLockerRemovableDrivePolicy">
         <Annotation Term="Org.OData.Core.V1.Description" String="BitLocker Removable Drive Policies." />
@@ -11637,6 +11812,19 @@
       </Annotations>
       <Annotations Target="microsoft.graph.diagnosticDataSubmissionMode/userDefined">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allow the user to set." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/deviceLocalCredentials">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.directoryObject">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -15811,6 +15999,50 @@
       </Annotations>
       <Annotations Target="microsoft.graph.policyPlatformType/windowsPhone81">
         <Annotation Term="Org.OData.Core.V1.Description" String="WindowsPhone 8.1." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.policyRoot/deviceRegistrationPolicy">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.post/attachments">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">

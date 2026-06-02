@@ -2064,6 +2064,20 @@
         <Member Name="succeeded" Value="2" />
         <Member Name="failed" Value="3" />
       </EnumType>
+      <EnumType Name="workLocationSource">
+        <Member Name="none" Value="0" />
+        <Member Name="manual" Value="1" />
+        <Member Name="scheduled" Value="2" />
+        <Member Name="automatic" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="workLocationType">
+        <Member Name="unspecified" Value="0" />
+        <Member Name="office" Value="1" />
+        <Member Name="remote" Value="2" />
+        <Member Name="timeOff" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="x509CertificateAffinityLevel">
         <Member Name="low" Value="0" />
         <Member Name="high" Value="1" />
@@ -5063,6 +5077,11 @@
         <Property Name="externalUserType" Type="graph.conditionalAccessGuestOrExternalUserTypes" Nullable="false" />
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="userWorkLocation">
+        <Property Name="placeId" Type="Edm.String" />
+        <Property Name="source" Type="graph.workLocationSource" Nullable="false" />
+        <Property Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
@@ -7502,6 +7521,7 @@
         <Property Name="activity" Type="Edm.String" />
         <Property Name="availability" Type="Edm.String" />
         <Property Name="statusMessage" Type="graph.presenceStatusMessage" />
+        <Property Name="workLocation" Type="graph.userWorkLocation" />
       </EntityType>
       <EntityType Name="privilegedAccessGroup" BaseType="graph.entity">
         <NavigationProperty Name="assignmentApprovals" Type="Collection(graph.approval)" ContainsTarget="true" />
@@ -9649,8 +9669,14 @@
       <Action Name="clear" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookTableSort" />
       </Action>
+      <Action Name="clearAutomaticLocation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.presence" />
+      </Action>
       <Action Name="clearFilters" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
+      </Action>
+      <Action Name="clearLocation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.presence" />
       </Action>
       <Action Name="clearPresence" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.presence" />
@@ -11878,10 +11904,20 @@
         <Parameter Name="coefficients" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
+      <Action Name="setAutomaticLocation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.presence" />
+        <Parameter Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
+        <Parameter Name="placeId" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="setData" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookChart" />
         <Parameter Name="sourceData" Type="graph.Json" />
         <Parameter Name="seriesBy" Type="Edm.String" Nullable="false" Unicode="false" />
+      </Action>
+      <Action Name="setManualLocation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.presence" />
+        <Parameter Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
+        <Parameter Name="placeId" Type="Edm.String" Unicode="false" />
       </Action>
       <Action Name="setPosition" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookChart" />
@@ -16986,6 +17022,26 @@
         <Member Name="sctp" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="correlationReason" IsFlags="true">
+        <Member Name="repeatedAlertOccurrence" Value="1" />
+        <Member Name="sameGeography" Value="2" />
+        <Member Name="similarArtifacts" Value="4" />
+        <Member Name="sameTargetedAsset" Value="8" />
+        <Member Name="sameNetworkSegment" Value="16" />
+        <Member Name="eventSequence" Value="32" />
+        <Member Name="timeFrame" Value="64" />
+        <Member Name="sameThreatSource" Value="128" />
+        <Member Name="similarTTPsOrBehavior" Value="256" />
+        <Member Name="sameActor" Value="512" />
+        <Member Name="sameCampaign" Value="1024" />
+        <Member Name="sharedIndicators" Value="2048" />
+        <Member Name="sameAsset" Value="4096" />
+        <Member Name="networkProximity" Value="8192" />
+        <Member Name="eventCasualSequence" Value="16384" />
+        <Member Name="temporalProximity" Value="32768" />
+        <Member Name="lateralMovementPath" Value="65536" />
+        <Member Name="unknownFutureValue" Value="131072" />
+      </EnumType>
       <EnumType Name="dataSourceContainerStatus">
         <Member Name="active" Value="1" />
         <Member Name="released" Value="2" />
@@ -17645,6 +17701,9 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="processes" Type="Collection(microsoft.graph.security.processEvidence)" />
       </ComplexType>
+      <ComplexType Name="mergeResponse">
+        <Property Name="targetIncidentId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="networkConnectionEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="destinationAddress" Type="microsoft.graph.security.ipEvidence" />
         <Property Name="destinationPort" Type="Edm.Int32" />
@@ -17793,6 +17852,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
         <Property Name="resourceAccessEvents" Type="Collection(microsoft.graph.security.resourceAccessEvent)" />
+        <Property Name="tenantId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userSid" Type="Edm.String" />
       </ComplexType>
@@ -18107,6 +18167,31 @@
         <Parameter Name="exportSingleItems" Type="Edm.Boolean" />
         <Parameter Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
         <Parameter Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
+      </Action>
+      <Action Name="mergeIncidents" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.incident)" />
+        <Parameter Name="incidentIds" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="incidentComment" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="mergeReasons" Type="microsoft.graph.security.correlationReason">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="microsoft.graph.security.mergeResponse" />
+      </Action>
+      <Action Name="moveAlerts" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.alert)" />
+        <Parameter Name="alertIds" Type="Collection(Edm.String)" Unicode="false" />
+        <Parameter Name="incidentId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="alertComment" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="newCorrelationReasons" Type="microsoft.graph.security.correlationReason">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="microsoft.graph.security.mergeResponse" />
       </Action>
       <Action Name="purgeData" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
