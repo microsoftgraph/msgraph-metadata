@@ -2712,6 +2712,19 @@
         <Member Name="deliverAfterCampaignEnd" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
+      <EnumType Name="notificationEventsType" IsFlags="true">
+        <Member Name="none" Value="1" />
+        <Member Name="restoreAndPolicyUpdates" Value="2" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="notificationRecipientsType" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="globalAdmins" Value="1" />
+        <Member Name="backupAdmins" Value="2" />
+        <Member Name="custom" Value="4" />
+        <Member Name="allAdmins" Value="8" />
+        <Member Name="unknownFutureValue" Value="16" />
+      </EnumType>
       <EnumType Name="notificationTemplateBrandingOptions" IsFlags="true">
         <Member Name="none" Value="0" />
         <Member Name="includeCompanyLogo" Value="1" />
@@ -4694,6 +4707,15 @@
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="rootDomains">
+        <Member Name="none" Value="0" />
+        <Member Name="all" Value="1" />
+        <Member Name="allFederated" Value="2" />
+        <Member Name="allManaged" Value="3" />
+        <Member Name="enumerated" Value="4" />
+        <Member Name="allManagedAndEnumeratedFederated" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
       <EnumType Name="routingMode">
         <Member Name="oneToOne" Value="0" />
         <Member Name="multicast" Value="1" />
@@ -6498,6 +6520,7 @@
       <ComplexType Name="allAllowedScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="allDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
       <ComplexType Name="allDevicesAssignmentTarget" BaseType="graph.deviceAndAppManagementAssignmentTarget" />
+      <ComplexType Name="allDomains" BaseType="graph.validatingDomains" />
       <ComplexType Name="allLicensedUsersAssignmentTarget" BaseType="graph.deviceAndAppManagementAssignmentTarget" />
       <ComplexType Name="alterationResponse">
         <Property Name="originalQueryString" Type="Edm.String" />
@@ -8387,6 +8410,9 @@
         <Property Name="groups" Type="Collection(Edm.String)" />
         <Property Name="users" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="enumeratedDomains" BaseType="graph.validatingDomains">
+        <Property Name="domainNames" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="enumeratedScopes" BaseType="graph.inheritableScopes">
         <Property Name="scopes" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
@@ -9320,6 +9346,10 @@
       <ComplexType Name="notebookLinks">
         <Property Name="oneNoteClientUrl" Type="graph.externalLink" />
         <Property Name="oneNoteWebUrl" Type="graph.externalLink" />
+      </ComplexType>
+      <ComplexType Name="notificationRecipients">
+        <Property Name="customRecipients" Type="Collection(graph.emailIdentity)" Nullable="false" />
+        <Property Name="role" Type="graph.notificationRecipientsType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="noTrainingNotificationSetting" BaseType="graph.endUserNotificationSetting">
         <Property Name="simulationNotification" Type="graph.simulationNotification" />
@@ -11513,6 +11543,9 @@
         <Property Name="source" Type="graph.workLocationSource" Nullable="false" />
         <Property Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="validatingDomains" Abstract="true">
+        <Property Name="rootDomains" Type="graph.rootDomains" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String" />
         <Property Name="isDefault" Type="Edm.Boolean" />
@@ -12969,6 +13002,7 @@
         <NavigationProperty Name="driveInclusionRules" Type="Collection(graph.driveProtectionRule)" ContainsTarget="true" />
         <NavigationProperty Name="driveProtectionUnits" Type="Collection(graph.driveProtectionUnit)" ContainsTarget="true" />
         <NavigationProperty Name="driveProtectionUnitsBulkAdditionJobs" Type="Collection(graph.driveProtectionUnitsBulkAdditionJob)" ContainsTarget="true" />
+        <NavigationProperty Name="emailNotificationsSetting" Type="graph.emailNotificationsSetting" ContainsTarget="true" />
         <NavigationProperty Name="exchangeProtectionPolicies" Type="Collection(graph.exchangeProtectionPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="exchangeRestoreSessions" Type="Collection(graph.exchangeRestoreSession)" ContainsTarget="true" />
         <NavigationProperty Name="mailboxInclusionRules" Type="Collection(graph.mailboxProtectionRule)" ContainsTarget="true" />
@@ -14942,6 +14976,11 @@
         <Property Name="destinationRoutingReason" Type="graph.mailDestinationRoutingReason" />
         <Property Name="recipientEmail" Type="Edm.String" Nullable="false" />
       </EntityType>
+      <EntityType Name="emailNotificationsSetting" BaseType="graph.entity">
+        <Property Name="additionalEvents" Type="graph.notificationEventsType" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="recipients" Type="graph.notificationRecipients" Nullable="false" />
+      </EntityType>
       <EntityType Name="emergencyCallEvent" BaseType="graph.callEvent">
         <Property Name="callerInfo" Type="graph.emergencyCallerInfo" />
         <Property Name="emergencyNumberDialed" Type="Edm.String" />
@@ -15237,6 +15276,9 @@
             </Record>
           </Collection>
         </Annotation>
+      </EntityType>
+      <EntityType Name="federatedTokenValidationPolicy" BaseType="graph.directoryObject">
+        <Property Name="validatingDomains" Type="graph.validatingDomains" Nullable="false" />
       </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
@@ -17248,6 +17290,7 @@
         <NavigationProperty Name="defaultAppManagementPolicy" Type="graph.tenantAppManagementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedTokenValidationPolicy" Type="graph.federatedTokenValidationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="ownerlessGroupPolicy" Type="graph.ownerlessGroupPolicy" ContainsTarget="true" />
@@ -47110,6 +47153,7 @@
         <Member Name="microsoftSentinel" Value="512" />
         <Member Name="microsoftInsiderRiskManagement" Value="1024" />
         <Member Name="microsoftThreatIntelligence" Value="2048" />
+        <Member Name="microsoftSecurityForAI" Value="4096" />
       </EnumType>
       <EnumType Name="serviceStatus">
         <Member Name="stopped" Value="1" />

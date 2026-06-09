@@ -11,6 +11,12 @@
         <Member Name="failed" Value="5" />
         <Member Name="notSupported" Value="6" />
       </EnumType>
+      <EnumType Name="activityDomain">
+        <Member Name="unknown" Value="0" />
+        <Member Name="work" Value="1" />
+        <Member Name="personal" Value="2" />
+        <Member Name="unrestricted" Value="3" />
+      </EnumType>
       <EnumType Name="activityType">
         <Member Name="signin" Value="0" />
         <Member Name="user" Value="1" />
@@ -947,6 +953,12 @@
         <Member Name="pager" Value="8" />
         <Member Name="radio" Value="9" />
       </EnumType>
+      <EnumType Name="physicalAddressType">
+        <Member Name="unknown" Value="0" />
+        <Member Name="home" Value="1" />
+        <Member Name="business" Value="2" />
+        <Member Name="other" Value="3" />
+      </EnumType>
       <EnumType Name="policyPlatformType">
         <Member Name="android" Value="0" />
         <Member Name="androidForWork" Value="1" />
@@ -1265,6 +1277,15 @@
         <Member Name="medium" Value="3" />
         <Member Name="mediumHigh" Value="4" />
         <Member Name="high" Value="5" />
+      </EnumType>
+      <EnumType Name="stagedFeatureName">
+        <Member Name="passthroughAuthentication" Value="0" />
+        <Member Name="seamlessSso" Value="1" />
+        <Member Name="passwordHashSync" Value="2" />
+        <Member Name="emailAsAlternateId" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="certificateBasedAuthentication" Value="5" />
+        <Member Name="multiFactorAuthentication" Value="6" />
       </EnumType>
       <EnumType Name="stateManagementSetting">
         <Member Name="notConfigured" Value="0" />
@@ -1815,6 +1836,10 @@
       <ComplexType Name="attendee" BaseType="graph.attendeeBase">
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
         <Property Name="status" Type="graph.responseStatus" />
+      </ComplexType>
+      <ComplexType Name="attendeeAvailability">
+        <Property Name="attendee" Type="graph.attendeeBase" />
+        <Property Name="availability" Type="graph.freeBusyStatus" />
       </ComplexType>
       <ComplexType Name="attendeeBase" BaseType="graph.recipient">
         <Property Name="type" Type="graph.attendeeType" />
@@ -2425,6 +2450,14 @@
         <Property Name="uniqueId" Type="Edm.String" />
         <Property Name="uniqueIdType" Type="graph.locationUniqueIdType" />
       </ComplexType>
+      <ComplexType Name="locationConstraint">
+        <Property Name="isRequired" Type="Edm.Boolean" />
+        <Property Name="locations" Type="Collection(graph.locationConstraintItem)" />
+        <Property Name="suggestLocation" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="locationConstraintItem" BaseType="graph.location">
+        <Property Name="resolveAvailability" Type="Edm.Boolean" />
+      </ComplexType>
       <ComplexType Name="loginPageLayoutConfiguration">
         <Property Name="isFooterShown" Type="Edm.Boolean" />
         <Property Name="isHeaderShown" Type="Edm.Boolean" />
@@ -2536,6 +2569,19 @@
       <ComplexType Name="mediaContentRatingUnitedStates">
         <Property Name="movieRating" Type="graph.ratingUnitedStatesMoviesType" Nullable="false" />
         <Property Name="tvRating" Type="graph.ratingUnitedStatesTelevisionType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="meetingTimeSuggestion">
+        <Property Name="attendeeAvailability" Type="Collection(graph.attendeeAvailability)" />
+        <Property Name="confidence" Type="Edm.Double" />
+        <Property Name="locations" Type="Collection(graph.location)" />
+        <Property Name="meetingTimeSlot" Type="graph.timeSlot" />
+        <Property Name="order" Type="Edm.Int32" />
+        <Property Name="organizerAvailability" Type="graph.freeBusyStatus" />
+        <Property Name="suggestionReason" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="meetingTimeSuggestionsResult">
+        <Property Name="emptySuggestionsReason" Type="Edm.String" />
+        <Property Name="meetingTimeSuggestions" Type="Collection(graph.meetingTimeSuggestion)" />
       </ComplexType>
       <ComplexType Name="messageRuleActions">
         <Property Name="assignCategories" Type="Collection(Edm.String)" />
@@ -2980,6 +3026,10 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="federationBrandName" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="timeConstraint">
+        <Property Name="activityDomain" Type="graph.activityDomain" />
+        <Property Name="timeSlots" Type="Collection(graph.timeSlot)" />
       </ComplexType>
       <ComplexType Name="timeSlot">
         <Property Name="end" Type="graph.dateTimeTimeZone" Nullable="false" />
@@ -4499,6 +4549,14 @@
         <Property Name="targetObjects" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="externalDomainName" BaseType="graph.entity" />
+      <EntityType Name="featureRolloutPolicy" BaseType="graph.entity">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="feature" Type="graph.stagedFeatureName" Nullable="false" />
+        <Property Name="isAppliedToOrganization" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="appliesTo" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="federatedIdentityCredential" BaseType="graph.entity">
         <Property Name="audiences" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -4584,6 +4642,8 @@
         <NavigationProperty Name="onPremisesSyncBehavior" Type="graph.onPremisesSyncBehavior" ContainsTarget="true" />
         <NavigationProperty Name="owners" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="permissionGrants" Type="Collection(graph.resourceSpecificPermissionGrant)" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
+        <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="rejectedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="Collection(graph.groupSetting)" ContainsTarget="true" />
         <NavigationProperty Name="threads" Type="Collection(graph.conversationThread)" ContainsTarget="true" />
@@ -4660,6 +4720,10 @@
         </Key>
         <Property Name="inheritableScopes" Type="graph.inheritableScopes" />
         <Property Name="resourceAppId" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="insightsSettings" BaseType="graph.entity">
+        <Property Name="disabledForGroup" Type="Edm.String" />
+        <Property Name="isEnabledInOrganization" Type="Edm.Boolean" />
       </EntityType>
       <EntityType Name="internalDomainFederation" BaseType="graph.samlOrWsFedProvider">
         <Property Name="activeSignInUri" Type="Edm.String" />
@@ -5541,6 +5605,9 @@
       <EntityType Name="outlookUser" BaseType="graph.entity">
         <NavigationProperty Name="masterCategories" Type="Collection(graph.outlookCategory)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="peopleAdminSettings" BaseType="graph.entity">
+        <NavigationProperty Name="itemInsights" Type="graph.insightsSettings" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="permissionGrantConditionSet" BaseType="graph.entity">
         <Property Name="clientApplicationIds" Type="Collection(Edm.String)" />
         <Property Name="clientApplicationPublisherIds" Type="Collection(Edm.String)" />
@@ -5588,6 +5655,7 @@
         <NavigationProperty Name="crossTenantAccessPolicy" Type="graph.crossTenantAccessPolicy" ContainsTarget="true" />
         <NavigationProperty Name="defaultAppManagementPolicy" Type="graph.tenantAppManagementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
+        <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="tokenIssuancePolicies" Type="Collection(graph.tokenIssuancePolicy)" ContainsTarget="true" />
@@ -6082,6 +6150,8 @@
         <NavigationProperty Name="ownedDevices" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="people" Type="Collection(graph.person)" ContainsTarget="true" />
+        <NavigationProperty Name="photo" Type="graph.profilePhoto" ContainsTarget="true" />
+        <NavigationProperty Name="photos" Type="Collection(graph.profilePhoto)" ContainsTarget="true" />
         <NavigationProperty Name="registeredDevices" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="scopedRoleMemberOf" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
@@ -6351,12 +6421,18 @@
         <Property Name="windowsScore" Type="Edm.Double" Nullable="false" />
         <Property Name="workFromAnywhereScore" Type="Edm.Double" Nullable="false" />
       </EntityType>
+      <EntityType Name="userInsightsSettings" BaseType="graph.entity">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
       <EntityType Name="userInstallStateSummary" BaseType="graph.entity">
         <Property Name="failedDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="installedDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="notInstalledDeviceCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="userName" Type="Edm.String" />
         <NavigationProperty Name="deviceStates" Type="Collection(graph.deviceInstallState)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="userSettings" BaseType="graph.entity">
+        <NavigationProperty Name="itemInsights" Type="graph.userInsightsSettings" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="vppToken" BaseType="graph.entity">
         <Property Name="appleId" Type="Edm.String" />
@@ -7233,6 +7309,18 @@
       <Action Name="enableApplicableArchitectures" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.win32LobApp" />
         <Parameter Name="applicableArchitectures" Type="graph.windowsArchitecture" Nullable="false" />
+      </Action>
+      <Action Name="findMeetingTimes" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.user" />
+        <Parameter Name="attendees" Type="Collection(graph.attendeeBase)" />
+        <Parameter Name="locationConstraint" Type="graph.locationConstraint" />
+        <Parameter Name="timeConstraint" Type="graph.timeConstraint" />
+        <Parameter Name="meetingDuration" Type="Edm.Duration" />
+        <Parameter Name="maxCandidates" Type="Edm.Int32" />
+        <Parameter Name="isOrganizerOptional" Type="Edm.Boolean" />
+        <Parameter Name="returnSuggestionReasons" Type="Edm.Boolean" />
+        <Parameter Name="minimumAttendeePercentage" Type="Edm.Double" />
+        <ReturnType Type="graph.meetingTimeSuggestionsResult" />
       </Action>
       <Action Name="forceDelete" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.domain" Nullable="false" />
@@ -12588,6 +12676,70 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.group/photo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.group/photos">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.group/rejectedSenders">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -17537,6 +17689,70 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/photo">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/photos">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
