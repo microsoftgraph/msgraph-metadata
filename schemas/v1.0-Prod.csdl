@@ -2,6 +2,11 @@
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
   <edmx:DataServices>
     <Schema Namespace="microsoft.graph" Alias="graph" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="accessEntityType">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="accessPackageAssignmentFilterByCurrentUserOptions">
         <Member Name="target" Value="1" />
         <Member Name="createdBy" Value="2" />
@@ -2140,6 +2145,13 @@
         <Member Name="moderate" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="groupAccessType">
+        <Member Name="none" Value="0" />
+        <Member Name="private" Value="1" />
+        <Member Name="secret" Value="2" />
+        <Member Name="public" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="groupType">
         <Member Name="unifiedGroups" Value="0" />
         <Member Name="azureAD" Value="1" />
@@ -2889,6 +2901,19 @@
       <EnumType Name="outlierMemberType">
         <Member Name="user" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
+      </EnumType>
+      <EnumType Name="packageStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="some" Value="1" />
+        <Member Name="all" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="packageType">
+        <Member Name="microsoft" Value="0" />
+        <Member Name="external" Value="1" />
+        <Member Name="shared" Value="2" />
+        <Member Name="custom" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="pageLayoutType">
         <Member Name="microsoftReserved" Value="0" />
@@ -4724,6 +4749,13 @@
         <Member Name="createdBy" Value="2" />
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="roleType">
+        <Member Name="active" Value="0" />
+        <Member Name="eligible" Value="1" />
+        <Member Name="application" Value="2" />
+        <Member Name="delegated" Value="3" />
+        <Member Name="unknownFutureValue" Value="99" />
       </EnumType>
       <EnumType Name="rootDomains">
         <Member Name="none" Value="0" />
@@ -9671,6 +9703,18 @@
       <ComplexType Name="package">
         <Property Name="type" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="packageAccessEntity">
+        <Property Name="resourceId" Type="Edm.String" Nullable="false" />
+        <Property Name="resourceType" Type="graph.accessEntityType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="packageElement">
+        <Property Name="definition" Type="graph.Json" />
+        <Property Name="id" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="packageElementDetail">
+        <Property Name="elements" Type="Collection(graph.packageElement)" Nullable="false" />
+        <Property Name="elementType" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="pageLinks">
         <Property Name="oneNoteClientUrl" Type="graph.externalLink" />
         <Property Name="oneNoteWebUrl" Type="graph.externalLink" />
@@ -12198,6 +12242,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="originId" Type="Edm.String" />
         <Property Name="originSystem" Type="Edm.String" />
+        <Property Name="type" Type="graph.roleType" />
         <NavigationProperty Name="resource" Type="graph.accessPackageResource" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageResourceRoleScope" BaseType="graph.entity">
@@ -13942,7 +13987,11 @@
         <NavigationProperty Name="posts" Type="Collection(graph.post)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="copilotAdmin" BaseType="graph.entity">
+        <NavigationProperty Name="catalog" Type="graph.copilotAdminCatalog" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="graph.copilotAdminSetting" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="copilotAdminCatalog" BaseType="graph.entity">
+        <NavigationProperty Name="packages" Type="Collection(graph.copilotPackageDetail)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="copilotAdminLimitedMode" BaseType="graph.entity">
         <Property Name="groupId" Type="Edm.String" />
@@ -13950,6 +13999,34 @@
       </EntityType>
       <EntityType Name="copilotAdminSetting" BaseType="graph.entity">
         <NavigationProperty Name="limitedMode" Type="graph.copilotAdminLimitedMode" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="copilotPackage" BaseType="graph.entity">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="assetId" Type="Edm.String" />
+        <Property Name="availableTo" Type="graph.packageStatus" Nullable="false" />
+        <Property Name="deployedTo" Type="graph.packageStatus" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="elementTypes" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="isBlocked" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="manifestId" Type="Edm.String" />
+        <Property Name="manifestVersion" Type="Edm.String" />
+        <Property Name="ownerId" Type="Edm.String" />
+        <Property Name="platform" Type="Edm.String" />
+        <Property Name="publisher" Type="Edm.String" />
+        <Property Name="shortDescription" Type="Edm.String" />
+        <Property Name="supportedHosts" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="type" Type="graph.packageType" Nullable="false" />
+        <Property Name="version" Type="Edm.String" />
+        <Property Name="zipFile" Type="Edm.Stream" />
+      </EntityType>
+      <EntityType Name="copilotPackageDetail" BaseType="graph.copilotPackage">
+        <Property Name="acquireUsersAndGroups" Type="Collection(graph.packageAccessEntity)" Nullable="false" />
+        <Property Name="allowedUsersAndGroups" Type="Collection(graph.packageAccessEntity)" Nullable="false" />
+        <Property Name="categories" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="elementDetails" Type="Collection(graph.packageElementDetail)" Nullable="false" />
+        <Property Name="longDescription" Type="Edm.String" />
+        <Property Name="sensitivity" Type="Edm.String" />
       </EntityType>
       <EntityType Name="copilotReportRoot" BaseType="graph.entity" />
       <EntityType Name="copilotRoot">
@@ -15454,6 +15531,7 @@
         <Property Name="siteId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="group" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="accessType" Type="graph.groupAccessType" />
         <Property Name="allowExternalSenders" Type="Edm.Boolean" />
         <Property Name="assignedLabels" Type="Collection(graph.assignedLabel)" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" />
@@ -15470,6 +15548,7 @@
         <Property Name="infoCatalogs" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isAssignableToRole" Type="Edm.Boolean" />
+        <Property Name="isFavorite" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isSubscribedByMail" Type="Edm.Boolean" />
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState" />
@@ -15497,7 +15576,9 @@
         <Property Name="serviceProvisioningErrors" Type="Collection(graph.serviceProvisioningError)" />
         <Property Name="theme" Type="Edm.String" />
         <Property Name="uniqueName" Type="Edm.String" />
+        <Property Name="unseenConversationsCount" Type="Edm.Int32" />
         <Property Name="unseenCount" Type="Edm.Int32" />
+        <Property Name="unseenMessagesCount" Type="Edm.Int32" />
         <Property Name="visibility" Type="Edm.String" />
         <Property Name="welcomeMessageEnabled" Type="Edm.Boolean" />
         <NavigationProperty Name="acceptedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
@@ -27878,6 +27959,7 @@
         <Member Name="personLanguages" Value="54" />
         <Member Name="personPublications" Value="55" />
         <Member Name="personPatents" Value="56" />
+        <Member Name="personWorkPositions" Value="57" />
       </EnumType>
       <EnumType Name="propertyType">
         <Member Name="string" Value="0" />
@@ -31194,6 +31276,54 @@
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotAdminCatalog/packages">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="FilterExpressionRestrictions">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="ge le" />
+                  <PropertyValue Property="Property" PropertyPath="lastModifiedDateTime" />
+                </Record>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="any" />
+                  <PropertyValue Property="Property" PropertyPath="elementTypes" />
+                </Record>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="any" />
+                  <PropertyValue Property="Property" PropertyPath="supportedHosts" />
+                </Record>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="eq" />
+                  <PropertyValue Property="Property" PropertyPath="platform" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipTokenSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -36631,6 +36761,9 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.Json">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Standard way to represent a Json blob on Graph." />
       </Annotations>
       <Annotations Target="microsoft.graph.levelMap/fixtures">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -46653,6 +46786,7 @@
         <Member Name="messageConversationExpansion" Value="64" />
         <Member Name="locationsWithoutHits" Value="256" />
         <Member Name="allItemsInFolder" Value="512" />
+        <Member Name="cloudNativeHtmlConversion" Value="1024" />
       </EnumType>
       <EnumType Name="additionalOptions" IsFlags="true">
         <Member Name="none" Value="0" />
