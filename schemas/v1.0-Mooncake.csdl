@@ -4837,6 +4837,7 @@
         <Property Name="accidentalDeletionPrevention" Type="graph.onPremisesAccidentalDeletionPrevention" />
       </ComplexType>
       <ComplexType Name="onPremisesDirectorySynchronizationFeature">
+        <Property Name="allowOnPremUpdateOfOnPremisesObjectIdentifierEnabled" Type="Edm.Boolean" />
         <Property Name="blockCloudObjectTakeoverThroughHardMatchEnabled" Type="Edm.Boolean" />
         <Property Name="blockSoftMatchEnabled" Type="Edm.Boolean" />
         <Property Name="bypassDirSyncOverridesEnabled" Type="Edm.Boolean" />
@@ -8238,7 +8239,7 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="issuer" Type="Edm.String" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
-        <Property Name="subject" Type="Edm.String" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" />
         <Annotation Term="Org.OData.Core.V1.AlternateKeys">
           <Collection>
             <Record Type="Org.OData.Core.V1.AlternateKey">
@@ -13865,11 +13866,24 @@
         <Member Name="canceled" Value="4" />
         <Member Name="failed" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+        <Member Name="quarantined" Value="8" />
+      </EnumType>
+      <EnumType Name="matchMode">
+        <Member Name="any" Value="0" />
+        <Member Name="all" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="membershipChangeType">
         <Member Name="add" Value="1" />
         <Member Name="remove" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="quarantineType">
+        <Member Name="notQuarantined" Value="0" />
+        <Member Name="countBasedThresholdExceeded" Value="1" />
+        <Member Name="percentageBasedThresholdExceeded" Value="2" />
+        <Member Name="multipleConditionsExceeded" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="valueType">
         <Member Name="enum" Value="0" />
@@ -13883,6 +13897,7 @@
         <Member Name="onDemand" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="activatedWithScope" Value="3" />
+        <Member Name="preview" Value="4" />
       </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
@@ -13909,6 +13924,9 @@
       <ComplexType Name="attributeChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="triggerAttributes" Type="Collection(microsoft.graph.identityGovernance.triggerAttribute)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="countBasedQuarantineCondition" BaseType="microsoft.graph.identityGovernance.quarantineCondition">
+        <Property Name="threshold" Type="Edm.Int64" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="customTaskExtensionCallbackConfiguration" BaseType="graph.customExtensionCallbackConfiguration">
         <NavigationProperty Name="authorizedApps" Type="Collection(graph.application)" />
       </ComplexType>
@@ -13932,6 +13950,25 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="values" Type="Collection(Edm.String)" />
         <Property Name="valueType" Type="microsoft.graph.identityGovernance.valueType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="percentageBasedQuarantineCondition" BaseType="microsoft.graph.identityGovernance.quarantineCondition">
+        <Property Name="percentage" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="previewFailedTask">
+        <Property Name="definitionId" Type="Edm.String" Nullable="false" />
+        <Property Name="failureReason" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="taskId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="quarantineCondition" Abstract="true" />
+      <ComplexType Name="quarantineConfiguration">
+        <Property Name="conditions" Type="Collection(microsoft.graph.identityGovernance.quarantineCondition)" Nullable="false" />
+        <Property Name="matchMode" Type="microsoft.graph.identityGovernance.matchMode" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="quarantineDetails">
+        <Property Name="quarantinedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="quarantineReason" Type="Edm.String" />
+        <Property Name="quarantineType" Type="microsoft.graph.identityGovernance.quarantineType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="ruleBasedSubjectSet" BaseType="graph.subjectSet">
         <Property Name="rule" Type="Edm.String" Nullable="false" />
@@ -14002,6 +14039,9 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowSetting">
+        <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
+      </ComplexType>
       <ComplexType Name="workflowsInsightsByCategory">
         <Property Name="failedJoinerRuns" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedLeaverRuns" Type="Edm.Int32" Nullable="false" />
@@ -14034,6 +14074,7 @@
       <EntityType Name="insights" BaseType="graph.entity" />
       <EntityType Name="lifecycleManagementSettings" BaseType="graph.entity">
         <Property Name="emailSettings" Type="graph.emailSettings" Nullable="false" />
+        <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
         <Property Name="workflowScheduleIntervalInHours" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <EntityType Name="lifecycleWorkflowsContainer" BaseType="graph.entity">
@@ -14086,6 +14127,7 @@
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="failureReason" Type="Edm.String" />
+        <Property Name="processingInfo" Type="Edm.String" />
         <Property Name="processingStatus" Type="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus" Nullable="false" />
         <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
         <NavigationProperty Name="subject" Type="graph.user" Nullable="false" />
@@ -14126,8 +14168,11 @@
         <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="nextScheduleRunDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="quarantineDetails" Type="microsoft.graph.identityGovernance.quarantineDetails" Nullable="false" />
+        <Property Name="settings" Type="microsoft.graph.identityGovernance.workflowSetting" Nullable="false" />
         <Property Name="version" Type="Edm.Int32" />
         <NavigationProperty Name="executionScope" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" />
+        <NavigationProperty Name="previewScope" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="runs" Type="Collection(microsoft.graph.identityGovernance.run)" ContainsTarget="true" />
         <NavigationProperty Name="taskReports" Type="Collection(microsoft.graph.identityGovernance.taskReport)" ContainsTarget="true" />
         <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
@@ -14158,6 +14203,7 @@
         <Key>
           <PropertyRef Name="versionNumber" />
         </Key>
+        <Property Name="settings" Type="microsoft.graph.identityGovernance.workflowSetting" Nullable="false" />
         <Property Name="versionNumber" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <Action Name="activate" IsBound="true">
@@ -14168,10 +14214,22 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="scope" Type="microsoft.graph.identityGovernance.activationScope" />
       </Action>
+      <Action Name="clearQuarantine" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <ReturnType Type="microsoft.graph.identityGovernance.workflow" />
+      </Action>
       <Action Name="createNewVersion" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="workflow" Type="microsoft.graph.identityGovernance.workflow" />
         <ReturnType Type="microsoft.graph.identityGovernance.workflow" />
+      </Action>
+      <Action Name="previewTaskFailures" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <ReturnType Type="Collection(microsoft.graph.identityGovernance.previewFailedTask)" />
+      </Action>
+      <Action Name="previewWorkflow" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
+        <Parameter Name="subjects" Type="Collection(graph.directoryObject)" />
       </Action>
       <Action Name="restore" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
