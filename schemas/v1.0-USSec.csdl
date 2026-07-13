@@ -6,12 +6,18 @@
         <Member Name="target" Value="1" />
         <Member Name="createdBy" Value="2" />
         <Member Name="unknownFutureValue" Value="99" />
+        <Member Name="targetManager" Value="100" />
+        <Member Name="targetAgentIdentitySponsorOrOwner" Value="101" />
       </EnumType>
       <EnumType Name="accessPackageAssignmentRequestFilterByCurrentUserOptions">
         <Member Name="target" Value="1" />
         <Member Name="createdBy" Value="2" />
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="99" />
+        <Member Name="targetOrRequestor" Value="100" />
+        <Member Name="targetManager" Value="101" />
+        <Member Name="requestForOthers" Value="102" />
+        <Member Name="targetAgentIdentitySponsorOrOwner" Value="103" />
       </EnumType>
       <EnumType Name="accessPackageAssignmentState">
         <Member Name="delivering" Value="0" />
@@ -171,6 +177,7 @@
         <Member Name="allDirectoryServicePrincipals" Value="6" />
         <Member Name="allConfiguredConnectedOrganizationUsers" Value="7" />
         <Member Name="allExternalUsers" Value="8" />
+        <Member Name="allDirectoryAgentIdentities" Value="9" />
         <Member Name="unknownFutureValue" Value="10" />
       </EnumType>
       <EnumType Name="allowInvitesFrom">
@@ -880,6 +887,13 @@
         <Member Name="moderate" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="groupAccessType">
+        <Member Name="none" Value="0" />
+        <Member Name="private" Value="1" />
+        <Member Name="secret" Value="2" />
+        <Member Name="public" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="groupType">
         <Member Name="unifiedGroups" Value="0" />
         <Member Name="azureAD" Value="1" />
@@ -1505,6 +1519,15 @@
         <Member Name="createdBy" Value="2" />
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="rootDomains">
+        <Member Name="none" Value="0" />
+        <Member Name="all" Value="1" />
+        <Member Name="allFederated" Value="2" />
+        <Member Name="allManaged" Value="3" />
+        <Member Name="enumerated" Value="4" />
+        <Member Name="allManagedAndEnumeratedFederated" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="routingType">
         <Member Name="forwarded" Value="0" />
@@ -2321,6 +2344,7 @@
       </ComplexType>
       <ComplexType Name="allAllowedScopes" BaseType="graph.inheritableScopes" />
       <ComplexType Name="allDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership" />
+      <ComplexType Name="allDomains" BaseType="graph.validatingDomains" />
       <ComplexType Name="alternativeSecurityId">
         <Property Name="identityProvider" Type="Edm.String" />
         <Property Name="key" Type="Edm.Binary" />
@@ -3189,6 +3213,9 @@
       <ComplexType Name="enumeratedDeviceRegistrationMembership" BaseType="graph.deviceRegistrationMembership">
         <Property Name="groups" Type="Collection(Edm.String)" />
         <Property Name="users" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="enumeratedDomains" BaseType="graph.validatingDomains">
+        <Property Name="domainNames" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="enumeratedScopes" BaseType="graph.inheritableScopes">
         <Property Name="scopes" Type="Collection(Edm.String)" Nullable="false" />
@@ -4750,6 +4777,7 @@
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="tabId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="targetAgentIdentitySponsorsOrOwners" BaseType="graph.subjectSet" />
       <ComplexType Name="targetApplicationOwners" BaseType="graph.subjectSet" />
       <ComplexType Name="targetManager" BaseType="graph.subjectSet">
         <Property Name="managerLevel" Type="Edm.Int32" />
@@ -5087,6 +5115,9 @@
         <Property Name="placeId" Type="Edm.String" />
         <Property Name="source" Type="graph.workLocationSource" Nullable="false" />
         <Property Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="validatingDomains" Abstract="true">
+        <Property Name="rootDomains" Type="graph.rootDomains" Nullable="false" />
       </ComplexType>
       <ComplexType Name="verifiedDomain">
         <Property Name="capabilities" Type="Edm.String" />
@@ -6707,6 +6738,9 @@
           </Collection>
         </Annotation>
       </EntityType>
+      <EntityType Name="federatedTokenValidationPolicy" BaseType="graph.directoryObject">
+        <Property Name="validatingDomains" Type="graph.validatingDomains" Nullable="false" />
+      </EntityType>
       <EntityType Name="fido2AuthenticationMethod" BaseType="graph.authenticationMethod">
         <Property Name="aaGuid" Type="Edm.String" />
         <Property Name="attestationCertificates" Type="Collection(Edm.String)" />
@@ -6738,6 +6772,7 @@
         <Property Name="insightCreatedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="group" BaseType="graph.directoryObject" OpenType="true">
+        <Property Name="accessType" Type="graph.groupAccessType" />
         <Property Name="allowExternalSenders" Type="Edm.Boolean" />
         <Property Name="assignedLabels" Type="Collection(graph.assignedLabel)" />
         <Property Name="assignedLicenses" Type="Collection(graph.assignedLicense)" />
@@ -6754,6 +6789,7 @@
         <Property Name="infoCatalogs" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isAssignableToRole" Type="Edm.Boolean" />
+        <Property Name="isFavorite" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isSubscribedByMail" Type="Edm.Boolean" />
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState" />
@@ -6781,7 +6817,9 @@
         <Property Name="serviceProvisioningErrors" Type="Collection(graph.serviceProvisioningError)" />
         <Property Name="theme" Type="Edm.String" />
         <Property Name="uniqueName" Type="Edm.String" />
+        <Property Name="unseenConversationsCount" Type="Edm.Int32" />
         <Property Name="unseenCount" Type="Edm.Int32" />
+        <Property Name="unseenMessagesCount" Type="Edm.Int32" />
         <Property Name="visibility" Type="Edm.String" />
         <Property Name="welcomeMessageEnabled" Type="Edm.Boolean" />
         <NavigationProperty Name="acceptedSenders" Type="Collection(graph.directoryObject)" ContainsTarget="true" />
@@ -7486,6 +7524,7 @@
         <NavigationProperty Name="defaultAppManagementPolicy" Type="graph.tenantAppManagementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="deviceRegistrationPolicy" Type="graph.deviceRegistrationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="featureRolloutPolicies" Type="Collection(graph.featureRolloutPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="federatedTokenValidationPolicy" Type="graph.federatedTokenValidationPolicy" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" ContainsTarget="true" />
         <NavigationProperty Name="identitySecurityDefaultsEnforcementPolicy" Type="graph.identitySecurityDefaultsEnforcementPolicy" ContainsTarget="true" />
         <NavigationProperty Name="permissionGrantPolicies" Type="Collection(graph.permissionGrantPolicy)" ContainsTarget="true" />
