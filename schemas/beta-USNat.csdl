@@ -6,12 +6,18 @@
         <Member Name="target" Value="1" />
         <Member Name="createdBy" Value="2" />
         <Member Name="unknownFutureValue" Value="99" />
+        <Member Name="targetManager" Value="100" />
+        <Member Name="targetAgentIdentitySponsorOrOwner" Value="101" />
       </EnumType>
       <EnumType Name="accessPackageAssignmentRequestFilterByCurrentUserOptions">
         <Member Name="target" Value="1" />
         <Member Name="createdBy" Value="2" />
         <Member Name="approver" Value="3" />
         <Member Name="unknownFutureValue" Value="99" />
+        <Member Name="targetOrRequestor" Value="100" />
+        <Member Name="targetManager" Value="101" />
+        <Member Name="requestForOthers" Value="102" />
+        <Member Name="targetAgentIdentitySponsorOrOwner" Value="103" />
       </EnumType>
       <EnumType Name="accessPackageCustomExtensionHandlerStatus">
         <Member Name="requestSent" Value="1" />
@@ -94,6 +100,13 @@
         <Member Name="enabled" Value="1" />
         <Member Name="disabled" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="agentIdentityType">
+        <Member Name="agentIdentity" Value="0" />
+        <Member Name="agentUser" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="agentIdentityBlueprintPrincipal" Value="3" />
+        <Member Name="user" Value="4" />
       </EnumType>
       <EnumType Name="agentStatus">
         <Member Name="active" Value="0" />
@@ -1099,6 +1112,7 @@
         <Member Name="private" Value="1" />
         <Member Name="secret" Value="2" />
         <Member Name="public" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="groupPrivacy">
         <Member Name="unspecified" Value="0" />
@@ -1898,7 +1912,10 @@
         <Member Name="userChangedPasswordOnPremises" Value="15" />
         <Member Name="adminDismissedRiskForSignIn" Value="16" />
         <Member Name="adminConfirmedAccountSafe" Value="17" />
-        <Member Name="microsoftRevokedSessions" Value="18" />
+        <Member Name="adminConfirmedAgentSafe" Value="18" />
+        <Member Name="adminConfirmedAgentCompromised" Value="19" />
+        <Member Name="adminDismissedRiskForAgent" Value="20" />
+        <Member Name="microsoftRevokedSessions" Value="21" />
       </EnumType>
       <EnumType Name="riskDetectionTimingType">
         <Member Name="notDefined" Value="0" />
@@ -6037,6 +6054,7 @@
         <Property Name="appId" Type="Edm.String" />
         <Property Name="serviceArea" Type="Edm.String" />
         <Property Name="tenantId" Type="Edm.String" />
+        <Property Name="throttledRequests" Type="Edm.Int64" />
         <Property Name="usageDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="usageMB" Type="Edm.Int64" />
         <Property Name="usageRequests" Type="Edm.Int64" />
@@ -6351,6 +6369,7 @@
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="tabId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="targetAgentIdentitySponsorsOrOwners" BaseType="graph.userSet" />
       <ComplexType Name="targetResource">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="groupType" Type="graph.groupType" />
@@ -7438,6 +7457,29 @@
       </EntityType>
       <EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true">
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
+      </EntityType>
+      <EntityType Name="agentRiskDetection" BaseType="graph.entity">
+        <Property Name="activityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="additionalInfo" Type="Edm.String" />
+        <Property Name="agentDisplayName" Type="Edm.String" />
+        <Property Name="agentId" Type="Edm.String" />
+        <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="clientSessionId" Type="Edm.String" />
+        <Property Name="detectedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="identityId" Type="Edm.String" Nullable="false" />
+        <Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" />
+        <Property Name="riskEventType" Type="Edm.String" Nullable="false" />
+        <Property Name="riskEvidence" Type="Edm.String" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskState" Type="graph.riskState" Nullable="false" />
+        <Property Name="signInClientDisplayName" Type="Edm.String" />
+        <Property Name="signInCorrelationId" Type="Edm.String" />
+        <Property Name="signInRequestId" Type="Edm.String" />
+        <Property Name="source" Type="Edm.String" />
       </EntityType>
       <EntityType Name="agentUser" BaseType="graph.user" OpenType="true" />
       <EntityType Name="agreement" BaseType="graph.entity">
@@ -9225,7 +9267,9 @@
         <NavigationProperty Name="termsOfUse" Type="graph.termsOfUseContainer" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="identityProtectionRoot">
+        <NavigationProperty Name="agentRiskDetections" Type="Collection(graph.agentRiskDetection)" ContainsTarget="true" />
         <NavigationProperty Name="riskDetections" Type="Collection(graph.riskDetection)" ContainsTarget="true" />
+        <NavigationProperty Name="riskyAgents" Type="Collection(graph.riskyAgent)" ContainsTarget="true" />
         <NavigationProperty Name="riskyServicePrincipals" Type="Collection(graph.riskyServicePrincipal)" ContainsTarget="true" />
         <NavigationProperty Name="riskyUsers" Type="Collection(graph.riskyUser)" ContainsTarget="true" />
         <NavigationProperty Name="servicePrincipalRiskDetections" Type="Collection(graph.servicePrincipalRiskDetection)" ContainsTarget="true" />
@@ -10647,6 +10691,27 @@
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="riskyAgent" BaseType="graph.entity">
+        <Property Name="agentDisplayName" Type="Edm.String" />
+        <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" />
+        <Property Name="isDeleted" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isProcessing" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" />
+        <Property Name="riskLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskState" Type="graph.riskState" Nullable="false" />
+      </EntityType>
+      <EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent">
+        <NavigationProperty Name="agentIdentity" Type="graph.agentIdentity" />
+      </EntityType>
+      <EntityType Name="riskyAgentIdentityBlueprintPrincipal" BaseType="graph.riskyAgent">
+        <NavigationProperty Name="agentIdentityBlueprintPrincipal" Type="graph.agentIdentityBlueprintPrincipal" />
+      </EntityType>
+      <EntityType Name="riskyAgentUser" BaseType="graph.riskyAgent">
+        <NavigationProperty Name="agentUser" Type="graph.agentUser" />
       </EntityType>
       <EntityType Name="riskyServicePrincipal" BaseType="graph.entity">
         <Property Name="accountEnabled" Type="Edm.Boolean" />
@@ -13302,6 +13367,10 @@
         <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
       <Action Name="confirmCompromised" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyAgent)" />
+        <Parameter Name="agentIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmCompromised" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
         <Parameter Name="servicePrincipalIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
@@ -13312,6 +13381,10 @@
       <Action Name="confirmCompromised" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.signIn)" />
         <Parameter Name="requestIds" Type="Collection(Edm.String)" Unicode="false" />
+      </Action>
+      <Action Name="confirmSafe" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyAgent)" />
+        <Parameter Name="agentIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="confirmSafe" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyUser)" />
@@ -13769,6 +13842,10 @@
       <Action Name="discover" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.directoryDefinition" />
         <ReturnType Type="graph.directoryDefinition" />
+      </Action>
+      <Action Name="dismiss" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.riskyAgent)" />
+        <Parameter Name="agentIds" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="dismiss" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.riskyServicePrincipal)" />
@@ -18226,6 +18303,55 @@
       <Annotations Target="microsoft.graph.agentIdentity/agentIdentityBlueprintId">
         <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.agentRiskDetection">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentRiskDetection/agentDisplayName">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-04-28" />
+              <PropertyValue Property="Description" String="The agentDisplayName property is deprecated. Use displayName instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-04-28" />
+              <PropertyValue Property="Version" String="2026-05/beta:DisplayNameRename" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentRiskDetection/agentId">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-04-28" />
+              <PropertyValue Property="Description" String="The agentId property is deprecated. Use identityId instead." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-04-28" />
+              <PropertyValue Property="Version" String="2026-05/beta:IdentityIDRename" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.agreement">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -21715,6 +21841,23 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.riskyAgent">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.riskyServicePrincipal">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -24573,6 +24716,12 @@
       </Action>
       <Action Name="close" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+      </Action>
+      <Action Name="disablePolicy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
+      </Action>
+      <Action Name="enablePolicy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
       </Action>
       <Action Name="estimateStatistics" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
