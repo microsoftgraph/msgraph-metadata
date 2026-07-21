@@ -104,6 +104,13 @@
         <Member Name="agentIdentityBlueprintPrincipal" Value="3" />
         <Member Name="user" Value="4" />
       </EnumType>
+      <EnumType Name="agentIdRiskLevel">
+        <Member Name="none" Value="0" />
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="4" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="agentStatus">
         <Member Name="active" Value="0" />
         <Member Name="inactive" Value="1" />
@@ -649,6 +656,12 @@
       <EnumType Name="component">
         <Member Name="Label" Value="0" />
       </EnumType>
+      <EnumType Name="conditionalAccessAgentIdRiskLevels" IsFlags="true">
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="4" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="conditionalAccessClientApp">
         <Member Name="all" Value="0" />
         <Member Name="browser" Value="1" />
@@ -967,6 +980,12 @@
       <EnumType Name="escrowBehavior">
         <Member Name="Default" Value="1" />
         <Member Name="IgnoreLookupReferenceResolutionFailure" Value="2" />
+      </EnumType>
+      <EnumType Name="evaluationScopeType">
+        <Member Name="tenant" Value="0" />
+        <Member Name="agent" Value="1" />
+        <Member Name="anonymousUser" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="eventType">
         <Member Name="singleInstance" Value="0" />
@@ -2870,6 +2889,8 @@
         <Member Name="insiderRisk" Value="131072" />
         <Member Name="authenticationFlow" Value="262144" />
         <Member Name="unknownFutureValue" Value="524288" />
+        <Member Name="agentIdRisk" Value="1048576" />
+        <Member Name="agentIdentities" Value="2097152" />
       </EnumType>
       <EnumType Name="workbookOperationStatus">
         <Member Name="notStarted" Value="0" />
@@ -3089,6 +3110,9 @@
       </ComplexType>
       <ComplexType Name="addWatermark" BaseType="graph.markContent">
         <Property Name="orientation" Type="graph.pageOrientation" />
+      </ComplexType>
+      <ComplexType Name="agentSignIn" BaseType="graph.signInIdentity">
+        <Property Name="agentServicePrincipalId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="agreementFileData">
         <Property Name="data" Type="Edm.Binary" />
@@ -3761,11 +3785,15 @@
         <Property Name="transferMethods" Type="graph.conditionalAccessTransferMethods" Nullable="false" />
       </ComplexType>
       <ComplexType Name="conditionalAccessClientApplications">
+        <Property Name="agentIdServicePrincipalFilter" Type="graph.conditionalAccessFilter" />
+        <Property Name="excludeAgentIdServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="excludeServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="includeAgentIdServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="includeServicePrincipals" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="servicePrincipalFilter" Type="graph.conditionalAccessFilter" />
       </ComplexType>
       <ComplexType Name="conditionalAccessConditionSet">
+        <Property Name="agentIdRiskLevels" Type="graph.conditionalAccessAgentIdRiskLevels" />
         <Property Name="applications" Type="graph.conditionalAccessApplications" />
         <Property Name="authenticationFlows" Type="graph.conditionalAccessAuthenticationFlows" />
         <Property Name="clientApplications" Type="graph.conditionalAccessClientApplications" />
@@ -4360,6 +4388,9 @@
       <ComplexType Name="evaluateSensitivityLabelsRequest">
         <Property Name="currentLabel" Type="graph.currentLabel" />
         <Property Name="discoveredSensitiveTypes" Type="Collection(graph.discoveredSensitiveType)" />
+      </ComplexType>
+      <ComplexType Name="evaluationScope">
+        <Property Name="type" Type="graph.evaluationScopeType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="eventMessageDetail" Abstract="true" />
       <ComplexType Name="exactDataMatchStoreColumn">
@@ -5702,10 +5733,12 @@
       </ComplexType>
       <ComplexType Name="policyLocationApplication" BaseType="graph.policyLocation" />
       <ComplexType Name="policyLocationDomain" BaseType="graph.policyLocation" />
+      <ComplexType Name="policyLocationTool" BaseType="graph.policyLocation" />
       <ComplexType Name="policyLocationUrl" BaseType="graph.policyLocation" />
       <ComplexType Name="policyScopeBase" Abstract="true">
         <Property Name="activities" Type="graph.userActivityTypes" Nullable="false" />
         <Property Name="executionMode" Type="graph.executionMode" Nullable="false" />
+        <Property Name="locationExclusions" Type="Collection(graph.policyLocation)" Nullable="false" />
         <Property Name="locations" Type="Collection(graph.policyLocation)" Nullable="false" />
         <Property Name="policyActions" Type="Collection(graph.dlpActionInfo)" Nullable="false" />
       </ComplexType>
@@ -5770,6 +5803,7 @@
         <Property Name="activityMetadata" Type="graph.activityMetadata" Nullable="false" />
         <Property Name="contentEntries" Type="Collection(graph.processContentMetadataBase)" Nullable="false" />
         <Property Name="deviceMetadata" Type="graph.deviceMetadata" Nullable="false" />
+        <Property Name="evaluationScope" Type="graph.evaluationScope" />
         <Property Name="integratedAppMetadata" Type="graph.integratedApplicationMetadata" Nullable="false" />
         <Property Name="protectedAppMetadata" Type="graph.protectedApplicationMetadata" />
       </ComplexType>
@@ -5814,6 +5848,7 @@
       </ComplexType>
       <ComplexType Name="protectedApplicationMetadata" BaseType="graph.integratedApplicationMetadata">
         <Property Name="applicationLocation" Type="graph.policyLocation" />
+        <Property Name="sourceLocation" Type="graph.policyLocation" />
       </ComplexType>
       <ComplexType Name="protectedContent">
         <Property Name="cid" Type="Edm.String" />
@@ -6386,6 +6421,7 @@
         <Property Name="kind" Type="graph.kind" Nullable="false" />
       </ComplexType>
       <ComplexType Name="signInConditions">
+        <Property Name="agentIdRiskLevel" Type="graph.agentIdRiskLevel" />
         <Property Name="authenticationFlow" Type="graph.authenticationFlow" />
         <Property Name="clientAppType" Type="graph.conditionalAccessClientApp" />
         <Property Name="country" Type="Edm.String" />
@@ -13595,6 +13631,7 @@
         <Parameter Name="pivotOn" Type="graph.policyPivotProperty" />
         <Parameter Name="deviceMetadata" Type="graph.deviceMetadata" />
         <Parameter Name="integratedAppMetadata" Type="graph.integratedApplicationMetadata" />
+        <Parameter Name="evaluationScope" Type="graph.evaluationScope" />
         <ReturnType Type="Collection(graph.policyTenantScope)" />
       </Action>
       <Action Name="compute" IsBound="true">
@@ -15457,6 +15494,11 @@
         <Parameter Name="yld" Type="graph.Json" />
         <Parameter Name="basis" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="processContent" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.tenantDataSecurityAndGovernance" />
+        <Parameter Name="contentToProcess" Type="graph.processContentRequest" />
+        <ReturnType Type="graph.processContentResponse" />
       </Action>
       <Action Name="processContent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.userDataSecurityAndGovernance" />
