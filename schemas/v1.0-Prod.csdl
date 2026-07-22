@@ -1368,6 +1368,12 @@
         <Member Name="notSupported" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="customDataProvidedResourceUploadStatus">
+        <Member Name="active" Value="0" />
+        <Member Name="complete" Value="1" />
+        <Member Name="expired" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="customExtensionCalloutInstanceStatus">
         <Member Name="calloutSent" Value="1" />
         <Member Name="callbackReceived" Value="2" />
@@ -2864,6 +2870,14 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="producer" Value="3" />
         <Member Name="coorganizer" Value="4" />
+      </EnumType>
+      <EnumType Name="onlineMeetingType">
+        <Member Name="adhoc" Value="0" />
+        <Member Name="scheduled" Value="1" />
+        <Member Name="recurring" Value="2" />
+        <Member Name="broadcast" Value="3" />
+        <Member Name="meetnow" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
       <EnumType Name="onlineMeetingVideoDisabledReason" IsFlags="true">
         <Member Name="watermarkProtection" Value="1" />
@@ -7014,6 +7028,12 @@
       <ComplexType Name="authContext" BaseType="graph.signInContext">
         <Property Name="authenticationContextValue" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="authenticationAppDeviceDetails">
+        <Property Name="appVersion" Type="Edm.String" />
+        <Property Name="clientApp" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="operatingSystem" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="authenticationAttributeCollectionInputConfiguration">
         <Property Name="attribute" Type="Edm.String" Nullable="false" />
         <Property Name="defaultValue" Type="Edm.String" />
@@ -7617,6 +7637,11 @@
       <ComplexType Name="cloudPcWindowsSetting">
         <Property Name="locale" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="cloudVideoInteropInfo">
+        <Property Name="moreInfoWebUrl" Type="Edm.String" />
+        <Property Name="tenantKey" Type="Edm.String" />
+        <Property Name="videoTeleconferenceId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="coachmarkLocation">
         <Property Name="length" Type="Edm.Int32" />
         <Property Name="offset" Type="Edm.Int32" />
@@ -7889,6 +7914,13 @@
       </ComplexType>
       <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration">
         <Property Name="applicationRestrictions" Type="graph.customAppManagementApplicationConfiguration" />
+      </ComplexType>
+      <ComplexType Name="customDataProvidedResourceUploadSessionRequest">
+        <Property Name="data" Type="customDataProvidedResourcePayloads.data" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="customDataProvidedResourceUploadStats">
+        <Property Name="filesUploaded" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalBytesUploaded" Type="Edm.Int64" Nullable="false" />
       </ComplexType>
       <ComplexType Name="customExtensionAuthenticationConfiguration" Abstract="true" />
       <ComplexType Name="customExtensionBehaviorOnError" Abstract="true" />
@@ -12221,6 +12253,7 @@
         <NavigationProperty Name="environment" Type="graph.accessPackageResourceEnvironment" />
         <NavigationProperty Name="roles" Type="Collection(graph.accessPackageResourceRole)" ContainsTarget="true" />
         <NavigationProperty Name="scopes" Type="Collection(graph.accessPackageResourceScope)" ContainsTarget="true" />
+        <NavigationProperty Name="uploadSessions" Type="Collection(graph.customDataProvidedResourceUploadSession)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="accessPackageResourceEnvironment" BaseType="graph.entity">
         <Property Name="connectionInfo" Type="graph.connectionInfo" />
@@ -14108,6 +14141,24 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="endpointConfiguration" Type="graph.customExtensionEndpointConfiguration" />
       </EntityType>
+      <EntityType Name="customDataProvidedResource" BaseType="graph.accessPackageResource">
+        <Property Name="notificationEndpointConfiguration" Type="graph.customExtensionEndpointConfiguration" />
+      </EntityType>
+      <EntityType Name="customDataProvidedResourceAccessReviewUploadSession" BaseType="graph.customDataProvidedResourceUploadSession" />
+      <EntityType Name="customDataProvidedResourceFile" BaseType="graph.entity" HasStream="true">
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="size" Type="Edm.Int64" Nullable="false" />
+        <Property Name="uploadedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="customDataProvidedResourceUploadSession" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="data" Type="customDataProvidedResourcePayloads.data" />
+        <Property Name="isUploadDone" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="referenceId" Type="Edm.String" />
+        <Property Name="stats" Type="graph.customDataProvidedResourceUploadStats" Nullable="false" />
+        <Property Name="status" Type="graph.customDataProvidedResourceUploadStatus" Nullable="false" />
+        <NavigationProperty Name="files" Type="Collection(graph.customDataProvidedResourceFile)" />
+      </EntityType>
       <EntityType Name="customExtensionStageSetting" BaseType="graph.entity">
         <Property Name="stage" Type="graph.accessPackageCustomExtensionStage" Nullable="false" />
         <NavigationProperty Name="customExtension" Type="graph.customCalloutExtension" />
@@ -14668,6 +14719,7 @@
         <NavigationProperty Name="onPremisesSynchronization" Type="Collection(graph.onPremisesDirectorySynchronization)" ContainsTarget="true" />
         <NavigationProperty Name="publicKeyInfrastructure" Type="graph.publicKeyInfrastructureRoot" ContainsTarget="true" />
         <NavigationProperty Name="recovery" Type="entraRecoveryServices.recovery" ContainsTarget="true" />
+        <NavigationProperty Name="remoteTenantGroups" Type="Collection(graph.remoteTenantGroup)" ContainsTarget="true" />
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
@@ -15688,6 +15740,7 @@
       <EntityType Name="identityGovernance">
         <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
+        <NavigationProperty Name="catalogs" Type="Collection(graph.accessPackageCatalog)" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
         <NavigationProperty Name="lifecycleWorkflows" Type="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer" ContainsTarget="true" />
         <NavigationProperty Name="privilegedAccess" Type="graph.privilegedAccessRoot" ContainsTarget="true" />
@@ -17019,6 +17072,7 @@
         <Property Name="audioConferencing" Type="graph.audioConferencing" />
         <Property Name="chatInfo" Type="graph.chatInfo" />
         <Property Name="chatRestrictions" Type="graph.chatRestrictions" />
+        <Property Name="cloudVideoInteropInfo" Type="graph.cloudVideoInteropInfo" />
         <Property Name="expiryDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="isEndToEndEncryptionEnabled" Type="Edm.Boolean" />
         <Property Name="isEntryExitAnnounced" Type="Edm.Boolean" />
@@ -17028,6 +17082,7 @@
         <Property Name="lobbyBypassSettings" Type="graph.lobbyBypassSettings" />
         <Property Name="meetingOptionsWebUrl" Type="Edm.String" />
         <Property Name="meetingSpokenLanguageTag" Type="Edm.String" />
+        <Property Name="meetingType" Type="graph.onlineMeetingType" />
         <Property Name="recordAutomatically" Type="Edm.Boolean" />
         <Property Name="sensitivityLabelAssignment" Type="graph.onlineMeetingSensitivityLabelAssignment" />
         <Property Name="shareMeetingChatHistoryDefault" Type="graph.meetingChatHistoryDefaultMode" />
@@ -17898,6 +17953,13 @@
         <NavigationProperty Name="approvedClientApps" Type="Collection(graph.approvedClientApp)" ContainsTarget="true" />
         <NavigationProperty Name="targetDeviceGroups" Type="Collection(graph.targetDeviceGroup)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="remoteTenantGroup" BaseType="graph.directoryObject">
+        <Property Name="remoteGroupDisplayName" Type="Edm.String" />
+        <Property Name="remoteGroupId" Type="Edm.Guid" />
+        <Property Name="remoteTenantDisplayName" Type="Edm.String" />
+        <Property Name="remoteTenantId" Type="Edm.Guid" />
+        <Property Name="remoteTenantPrimaryDomain" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="reportRoot">
         <NavigationProperty Name="authenticationMethods" Type="graph.authenticationMethodsRoot" ContainsTarget="true" />
         <NavigationProperty Name="dailyPrintUsageByPrinter" Type="Collection(graph.printUsageByPrinter)" ContainsTarget="true" />
@@ -18548,23 +18610,29 @@
         <Property Name="appDisplayName" Type="Edm.String" />
         <Property Name="appId" Type="Edm.String" />
         <Property Name="appliedConditionalAccessPolicies" Type="Collection(graph.appliedConditionalAccessPolicy)" />
+        <Property Name="authenticationAppDeviceDetails" Type="graph.authenticationAppDeviceDetails" />
         <Property Name="clientAppUsed" Type="Edm.String" />
         <Property Name="conditionalAccessStatus" Type="graph.conditionalAccessStatus" />
         <Property Name="correlationId" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="deviceDetail" Type="graph.deviceDetail" />
+        <Property Name="homeTenantId" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String" />
         <Property Name="isInteractive" Type="Edm.Boolean" />
         <Property Name="location" Type="graph.signInLocation" />
         <Property Name="resourceDisplayName" Type="Edm.String" />
         <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="resourceTenantId" Type="Edm.String" />
         <Property Name="riskDetail" Type="graph.riskDetail" />
         <Property Name="riskEventTypes" Type="Collection(graph.riskEventType)" />
         <Property Name="riskEventTypes_v2" Type="Collection(Edm.String)" />
         <Property Name="riskLevelAggregated" Type="graph.riskLevel" />
         <Property Name="riskLevelDuringSignIn" Type="graph.riskLevel" />
         <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+        <Property Name="servicePrincipalName" Type="Edm.String" />
         <Property Name="status" Type="graph.signInStatus" />
+        <Property Name="userAgent" Type="Edm.String" />
         <Property Name="userDisplayName" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" Nullable="false" />
         <Property Name="userPrincipalName" Type="Edm.String" />
@@ -19869,6 +19937,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="endDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="externalEventInformation" Type="Collection(graph.virtualEventExternalInformation)" />
+        <Property Name="isRegistrationRequired" Type="Edm.Boolean" />
         <Property Name="settings" Type="graph.virtualEventSettings" />
         <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="status" Type="graph.virtualEventStatus" />
@@ -19920,6 +19989,8 @@
       </EntityType>
       <EntityType Name="virtualEventRegistrationConfiguration" BaseType="graph.entity">
         <Property Name="capacity" Type="Edm.Int32" />
+        <Property Name="isManualApprovalEnabled" Type="Edm.Boolean" />
+        <Property Name="isWaitlistEnabled" Type="Edm.Boolean" />
         <Property Name="registrationWebUrl" Type="Edm.String" />
         <NavigationProperty Name="questions" Type="Collection(graph.virtualEventRegistrationQuestionBase)" ContainsTarget="true" />
       </EntityType>
@@ -19935,6 +20006,7 @@
         <Property Name="isRequired" Type="Edm.Boolean" />
       </EntityType>
       <EntityType Name="virtualEventSession" BaseType="graph.onlineMeetingBase">
+        <Property Name="capacity" Type="Edm.Int32" />
         <Property Name="endDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="startDateTime" Type="graph.dateTimeTimeZone" />
         <Property Name="videoOnDemandWebUrl" Type="Edm.String" />
@@ -19946,20 +20018,21 @@
       </EntityType>
       <EntityType Name="virtualEventTownhall" BaseType="graph.virtualEvent">
         <Property Name="audience" Type="graph.meetingAudience" />
+        <Property Name="capacity" Type="Edm.Int32" />
         <Property Name="coOrganizers" Type="Collection(graph.communicationsUserIdentity)" />
         <Property Name="invitedAttendees" Type="Collection(graph.identity)" />
         <Property Name="isInviteOnly" Type="Edm.Boolean" />
+        <NavigationProperty Name="registrationConfiguration" Type="graph.virtualEventTownhallRegistrationConfiguration" ContainsTarget="true" />
+        <NavigationProperty Name="registrations" Type="Collection(graph.virtualEventRegistration)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="virtualEventTownhallRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="virtualEventWebinar" BaseType="graph.virtualEvent">
         <Property Name="audience" Type="graph.meetingAudience" />
         <Property Name="coOrganizers" Type="Collection(graph.communicationsUserIdentity)" />
         <NavigationProperty Name="registrationConfiguration" Type="graph.virtualEventWebinarRegistrationConfiguration" ContainsTarget="true" />
         <NavigationProperty Name="registrations" Type="Collection(graph.virtualEventRegistration)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration">
-        <Property Name="isManualApprovalEnabled" Type="Edm.Boolean" />
-        <Property Name="isWaitlistEnabled" Type="Edm.Boolean" />
-      </EntityType>
+      <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="voiceAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="isOfficePhoneAllowed" Type="Edm.Boolean" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
@@ -25529,6 +25602,10 @@
         <Parameter Name="password" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.identityApiConnector" />
       </Action>
+      <Action Name="uploadFile" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.customDataProvidedResourceUploadSession" />
+        <ReturnType Type="graph.customDataProvidedResourceUploadSession" />
+      </Action>
       <Action Name="upper" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="text" Type="graph.Json" />
@@ -27858,6 +27935,15 @@
         <Parameter Name="toDateTime" Type="Edm.DateTimeOffset" />
         <ReturnType Type="Collection(microsoft.graph.callRecords.pstnCallLogRow)" />
       </Function>
+    </Schema>
+    <Schema Namespace="microsoft.graph.customDataProvidedResourcePayloads" Alias="customDataProvidedResourcePayloads" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <ComplexType Name="accessReviewContextData" BaseType="customDataProvidedResourcePayloads.accessReviewContextDataBase" />
+      <ComplexType Name="accessReviewContextDataBase" BaseType="customDataProvidedResourcePayloads.data" Abstract="true">
+        <Property Name="reviewDefinitionId" Type="Edm.String" Nullable="false" />
+        <Property Name="reviewInstanceId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="applyDecisionContextData" BaseType="customDataProvidedResourcePayloads.accessReviewContextDataBase" />
+      <ComplexType Name="data" Abstract="true" />
     </Schema>
     <Schema Namespace="microsoft.graph.entraRecoveryServices" Alias="entraRecoveryServices" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="recoveryAction">
@@ -33624,6 +33710,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/remoteTenantGroups">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-12-02" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2028-12-07" />
+              <PropertyValue Property="Version" String="2025-03/PrivatePreview:remoteTenantGroupsAPI" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.directoryAudit">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -40522,6 +40622,20 @@
       </Annotations>
       <Annotations Target="microsoft.graph.remoteLockActionResult/unlockPin">
         <Annotation Term="Org.OData.Core.V1.Description" String="Pin to unlock the client" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.remoteTenantGroup">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2025-12-02" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2028-12-07" />
+              <PropertyValue Property="Version" String="2025-03/PrivatePreview:remoteTenantGroupsAPI" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.removeAllDevicesFromManagement(microsoft.graph.user)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Retire all devices from management for this user" />
