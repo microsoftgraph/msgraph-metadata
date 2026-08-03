@@ -1331,6 +1331,11 @@
         <Member Name="other" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="contentCategory">
+        <Member Name="none" Value="0" />
+        <Member Name="ai" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="contentProcessingErrorType">
         <Member Name="transient" Value="0" />
         <Member Name="permanent" Value="1" />
@@ -5645,6 +5650,10 @@
         <Member Name="downloadText" Value="3" />
         <Member Name="downloadFile" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="copyToClipboard" Value="6" />
+        <Member Name="pasteFromClipboard" Value="7" />
+        <Member Name="print" Value="8" />
+        <Member Name="accessDebugTools" Value="9" />
       </EnumType>
       <EnumType Name="userActivityTypes" IsFlags="true">
         <Member Name="none" Value="0" />
@@ -5653,6 +5662,10 @@
         <Member Name="downloadText" Value="4" />
         <Member Name="downloadFile" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
+        <Member Name="copyToClipboard" Value="32" />
+        <Member Name="pasteFromClipboard" Value="64" />
+        <Member Name="print" Value="128" />
+        <Member Name="accessDebugTools" Value="256" />
       </EnumType>
       <EnumType Name="userDefaultAuthenticationMethod">
         <Member Name="push" Value="0" />
@@ -10135,6 +10148,7 @@
       </ComplexType>
       <ComplexType Name="processContentMetadataBase" Abstract="true">
         <Property Name="content" Type="graph.contentBase" />
+        <Property Name="contentCategory" Type="graph.contentCategory" />
         <Property Name="correlationId" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="identifier" Type="Edm.String" Nullable="false" />
@@ -14122,6 +14136,7 @@
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <Property Name="tenantRestrictions" Type="graph.crossTenantAccessPolicyTenantRestrictions" />
         <NavigationProperty Name="identitySynchronization" Type="graph.crossTenantIdentitySyncPolicyPartner" ContainsTarget="true" />
+        <NavigationProperty Name="serviceProviderConstraints" Type="graph.serviceProviderConstraints" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="crossTenantIdentitySyncPolicyPartner">
         <Key>
@@ -14247,6 +14262,11 @@
       <EntityType Name="delegatedAdminServiceManagementDetail" BaseType="graph.entity">
         <Property Name="serviceManagementUrl" Type="Edm.String" Nullable="false" />
         <Property Name="serviceName" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="delegatedAdminServiceProviderConstraints" BaseType="graph.serviceProviderConstraints">
+        <Property Name="allowedRoleTemplateIds" Type="Collection(Edm.String)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </EntityType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="classification" Type="graph.permissionClassificationType" />
@@ -15630,6 +15650,7 @@
         <Property Name="onPremisesSamAccountName" Type="Edm.String" />
         <Property Name="onPremisesSecurityIdentifier" Type="Edm.String" />
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean" />
+        <Property Name="organizationId" Type="Edm.String" />
         <Property Name="preferredDataLocation" Type="Edm.String" />
         <Property Name="preferredLanguage" Type="Edm.String" />
         <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" />
@@ -18424,6 +18445,7 @@
         <Property Name="source" Type="Edm.String" />
         <Property Name="tokenIssuerType" Type="graph.tokenIssuerType" />
       </EntityType>
+      <EntityType Name="serviceProviderConstraints" BaseType="graph.entity" />
       <EntityType Name="serviceStorageQuotaBreakdown" BaseType="graph.storageQuotaBreakdown" />
       <EntityType Name="serviceUpdateMessage" BaseType="graph.serviceAnnouncementBase">
         <Property Name="actionRequiredByDateTime" Type="Edm.DateTimeOffset" />
@@ -19241,6 +19263,7 @@
         <Property Name="condition" Type="Edm.String" />
         <Property Name="directoryScopeId" Type="Edm.String" />
         <Property Name="principalId" Type="Edm.String" />
+        <Property Name="principalOrganizationId" Type="Edm.String" />
         <Property Name="roleDefinitionId" Type="Edm.String" />
         <NavigationProperty Name="appScope" Type="graph.appScope" ContainsTarget="true" />
         <NavigationProperty Name="directoryScope" Type="graph.directoryObject" />
@@ -19543,6 +19566,7 @@
         <NavigationProperty Name="scopedRoleMemberOf" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="graph.userSettings" ContainsTarget="true" />
         <NavigationProperty Name="solutions" Type="graph.userSolutionRoot" ContainsTarget="true" />
+        <NavigationProperty Name="sponsorOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="teamwork" Type="graph.userTeamwork" ContainsTarget="true" />
         <NavigationProperty Name="todo" Type="graph.todo" ContainsTarget="true" />
@@ -24722,6 +24746,12 @@
         <Parameter Name="newPassword" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.passwordResetResponse" />
       </Action>
+      <Action Name="resetToDefaultSettings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.multiTenantOrganizationIdentitySyncPolicyTemplate" Nullable="false" />
+      </Action>
+      <Action Name="resetToDefaultSettings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.multiTenantOrganizationPartnerConfigurationTemplate" Nullable="false" />
+      </Action>
       <Action Name="resetToSystemDefault" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.crossTenantAccessPolicyConfigurationDefault" Nullable="false" />
       </Action>
@@ -27446,6 +27476,7 @@
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="sponsorOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
@@ -27501,6 +27532,7 @@
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="sponsorOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </Singleton>
@@ -28201,6 +28233,9 @@
         <Property Name="type" Type="microsoft.graph.externalConnectors.externalItemContentType" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="externalItemInformationProtectionLabel">
+        <Property Name="sensitivityLabelId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="itemIdResolver" BaseType="microsoft.graph.externalConnectors.urlToItemResolverBase">
         <Property Name="itemId" Type="Edm.String" Nullable="false" />
         <Property Name="urlMatchInfo" Type="microsoft.graph.externalConnectors.urlMatchInfo" />
@@ -28279,6 +28314,7 @@
       <EntityType Name="externalItem" BaseType="graph.entity">
         <Property Name="acl" Type="Collection(microsoft.graph.externalConnectors.acl)" />
         <Property Name="content" Type="microsoft.graph.externalConnectors.externalItemContent" />
+        <Property Name="informationProtectionLabel" Type="microsoft.graph.externalConnectors.externalItemInformationProtectionLabel" />
         <Property Name="properties" Type="microsoft.graph.externalConnectors.properties" />
         <NavigationProperty Name="activities" Type="Collection(microsoft.graph.externalConnectors.externalActivity)" ContainsTarget="true" />
       </EntityType>
@@ -31874,6 +31910,28 @@
       </Annotations>
       <Annotations Target="microsoft.graph.defenderThreatAction/userDefined">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allow the user to determine the action to take with the detected threat." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.delegatedAdminServiceProviderConstraints">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.deletedItemContainer/workflows">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -42941,6 +42999,28 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.serviceProviderConstraints">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.setMobileDeviceManagementAuthority(microsoft.graph.organization)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Set mobile device management authority" />
