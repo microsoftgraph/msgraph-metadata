@@ -1331,6 +1331,11 @@
         <Member Name="other" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
+      <EnumType Name="contentCategory">
+        <Member Name="none" Value="0" />
+        <Member Name="ai" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="contentProcessingErrorType">
         <Member Name="transient" Value="0" />
         <Member Name="permanent" Value="1" />
@@ -1367,6 +1372,12 @@
         <Member Name="selfAssessment" Value="5" />
         <Member Name="notSupported" Value="6" />
         <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="customDataProvidedResourceUploadStatus">
+        <Member Name="active" Value="0" />
+        <Member Name="complete" Value="1" />
+        <Member Name="expired" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="customExtensionCalloutInstanceStatus">
         <Member Name="calloutSent" Value="1" />
@@ -2864,6 +2875,14 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="producer" Value="3" />
         <Member Name="coorganizer" Value="4" />
+      </EnumType>
+      <EnumType Name="onlineMeetingType">
+        <Member Name="adhoc" Value="0" />
+        <Member Name="scheduled" Value="1" />
+        <Member Name="recurring" Value="2" />
+        <Member Name="broadcast" Value="3" />
+        <Member Name="meetnow" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
       <EnumType Name="onlineMeetingVideoDisabledReason" IsFlags="true">
         <Member Name="watermarkProtection" Value="1" />
@@ -5631,6 +5650,10 @@
         <Member Name="downloadText" Value="3" />
         <Member Name="downloadFile" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="copyToClipboard" Value="6" />
+        <Member Name="pasteFromClipboard" Value="7" />
+        <Member Name="print" Value="8" />
+        <Member Name="accessDebugTools" Value="9" />
       </EnumType>
       <EnumType Name="userActivityTypes" IsFlags="true">
         <Member Name="none" Value="0" />
@@ -5639,6 +5662,10 @@
         <Member Name="downloadText" Value="4" />
         <Member Name="downloadFile" Value="8" />
         <Member Name="unknownFutureValue" Value="16" />
+        <Member Name="copyToClipboard" Value="32" />
+        <Member Name="pasteFromClipboard" Value="64" />
+        <Member Name="print" Value="128" />
+        <Member Name="accessDebugTools" Value="256" />
       </EnumType>
       <EnumType Name="userDefaultAuthenticationMethod">
         <Member Name="push" Value="0" />
@@ -6607,6 +6634,9 @@
         </NavigationProperty>
         <NavigationProperty Name="scopes" Type="Collection(graph.accessPackageResourceScope)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Nullable. Supports $expand." />
+        </NavigationProperty>
+        <NavigationProperty Name="uploadSessions" Type="Collection(graph.customDataProvidedResourceUploadSession)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The upload sessions for uploading external access data to this resource through the Bring Your Own Data (BYOD) flow." />
         </NavigationProperty>
       </EntityType>
       <EntityType Name="accessPackageResourceEnvironment" BaseType="graph.entity">
@@ -11268,6 +11298,7 @@
         <NavigationProperty Name="identitySynchronization" Type="graph.crossTenantIdentitySyncPolicyPartner" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Defines the cross-tenant policy for the synchronization of users from a partner tenant. Use this user synchronization policy to streamline collaboration between users in a multitenant organization by automating the creation, update, and deletion of users from one tenant to another." />
         </NavigationProperty>
+        <NavigationProperty Name="serviceProviderConstraints" Type="graph.serviceProviderConstraints" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="crossTenantIdentitySyncPolicyPartner">
         <Property Name="displayName" Type="Edm.String">
@@ -11304,6 +11335,46 @@
         <Property Name="endpointConfiguration" Type="graph.customExtensionEndpointConfiguration">
           <Annotation Term="Org.OData.Core.V1.Description" String="The type and details for configuring the endpoint to call the logic app's workflow." />
         </Property>
+      </EntityType>
+      <EntityType Name="customDataProvidedResource" BaseType="graph.accessPackageResource">
+        <Property Name="notificationEndpointConfiguration" Type="graph.customExtensionEndpointConfiguration">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The endpoint configuration of the logic app that is triggered when the access review for this resource goes into an initializing state." />
+        </Property>
+      </EntityType>
+      <EntityType Name="customDataProvidedResourceAccessReviewUploadSession" BaseType="graph.customDataProvidedResourceUploadSession" />
+      <EntityType Name="customDataProvidedResourceFile" BaseType="graph.entity" HasStream="true">
+        <Property Name="name" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Name of the uploaded file, including the file extension. Required.  Supports $filter (eq, ne)  and $orderby." />
+        </Property>
+        <Property Name="size" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Size of the file in bytes. Read-only.  Supports $filter (eq, ne, gt, ge, lt, le) and $orderby." />
+        </Property>
+        <Property Name="uploadedDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp when the file was uploaded. Read-only.  Supports $filter (eq, ne, gt, ge, lt, le) and $orderby." />
+        </Property>
+      </EntityType>
+      <EntityType Name="customDataProvidedResourceUploadSession" BaseType="graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="DateTime when the upload session was created. Read-only. Supports $orderby." />
+        </Property>
+        <Property Name="data" Type="customDataProvidedResourcePayloads.data">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An object containing the context for which this data is being uploaded." />
+        </Property>
+        <Property Name="isUploadDone" Type="Edm.Boolean" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates if all the necessary files have been uploaded to this session." />
+        </Property>
+        <Property Name="referenceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The ID of the context for which data is being uploaded, for example, the Access Review instance ID. Supports $filter (eq)." />
+        </Property>
+        <Property Name="stats" Type="graph.customDataProvidedResourceUploadStats" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Metadata about the files uploaded in this upload session thus far." />
+        </Property>
+        <Property Name="status" Type="graph.customDataProvidedResourceUploadStatus" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Status of the upload session. The possible values are: active, complete, expired, unknownFutureValue. Supports $filter (eq)." />
+        </Property>
+        <NavigationProperty Name="files" Type="Collection(graph.customDataProvidedResourceFile)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The files uploaded during this upload session. Supports $expand and $expand with nested $filter and $orderby." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="customExtensionStageSetting" BaseType="graph.entity">
         <Property Name="stage" Type="graph.accessPackageCustomExtensionStage" Nullable="false">
@@ -11521,6 +11592,11 @@
         <Property Name="serviceName" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The name of a managed service. Read-only." />
         </Property>
+      </EntityType>
+      <EntityType Name="delegatedAdminServiceProviderConstraints" BaseType="graph.serviceProviderConstraints">
+        <Property Name="allowedRoleTemplateIds" Type="Collection(Edm.String)" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </EntityType>
       <EntityType Name="delegatedPermissionClassification" BaseType="graph.entity">
         <Property Name="classification" Type="graph.permissionClassificationType">
@@ -12733,6 +12809,9 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of public key infrastructure instances for the certificate-based authentication feature for users in a Microsoft Entra tenant." />
         </NavigationProperty>
         <NavigationProperty Name="recovery" Type="entraRecoveryServices.recovery" ContainsTarget="true" />
+        <NavigationProperty Name="remoteTenantGroups" Type="Collection(graph.remoteTenantGroup)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Collection of groups in remote Microsoft Entra tenants that are available in the directory." />
+        </NavigationProperty>
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="List of commercial subscriptions that an organization acquired." />
         </NavigationProperty>
@@ -15037,6 +15116,7 @@
         <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never synced from an on-premises directory (default). Returned by default. Read-only. Supports $filter (eq, ne, not, in, and eq on null values)." />
         </Property>
+        <Property Name="organizationId" Type="Edm.String" />
         <Property Name="preferredDataLocation" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The preferred data location for the Microsoft 365 group. By default, the group inherits the group creator's preferred data location. To set this property, the calling app must be granted the Directory.ReadWrite.All permission and the user be assigned at least one of the following Microsoft Entra roles: User Account Administrator Directory Writer  Exchange Administrator  SharePoint Administrator  For more information about this property, see OneDrive Online Multi-Geo. Nullable. Returned by default." />
         </Property>
@@ -15544,6 +15624,7 @@
       <EntityType Name="identityGovernance">
         <NavigationProperty Name="accessReviews" Type="graph.accessReviewSet" ContainsTarget="true" />
         <NavigationProperty Name="appConsent" Type="graph.appConsentApprovalRoute" ContainsTarget="true" />
+        <NavigationProperty Name="catalogs" Type="Collection(graph.accessPackageCatalog)" ContainsTarget="true" />
         <NavigationProperty Name="entitlementManagement" Type="graph.entitlementManagement" ContainsTarget="true" />
         <NavigationProperty Name="lifecycleWorkflows" Type="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer" ContainsTarget="true" />
         <NavigationProperty Name="privilegedAccess" Type="graph.privilegedAccessRoot" ContainsTarget="true" />
@@ -16784,7 +16865,9 @@
         <NavigationProperty Name="operations" Type="Collection(graph.richLongRunningOperation)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of long-running operations on the list." />
         </NavigationProperty>
-        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
+        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The set of permissions for the item. Read-only. Nullable." />
+        </NavigationProperty>
         <NavigationProperty Name="subscriptions" Type="Collection(graph.subscription)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The set of subscriptions on the list." />
         </NavigationProperty>
@@ -16811,7 +16894,9 @@
         <NavigationProperty Name="fields" Type="graph.fieldValueSet" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The values of the columns set on this list item." />
         </NavigationProperty>
-        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true" />
+        <NavigationProperty Name="permissions" Type="Collection(graph.permission)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The set of permissions for the item. Read-only. Nullable." />
+        </NavigationProperty>
         <NavigationProperty Name="versions" Type="Collection(graph.listItemVersion)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The list of previous versions of the list item." />
         </NavigationProperty>
@@ -18849,6 +18934,9 @@
         <Property Name="chatRestrictions" Type="graph.chatRestrictions">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the configuration settings for meeting chat restrictions." />
         </Property>
+        <Property Name="cloudVideoInteropInfo" Type="graph.cloudVideoInteropInfo">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Conferencing device integration settings for Cloud Video Interop (CVI). Read-only." />
+        </Property>
         <Property Name="expiryDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the date and time when the meeting resource expires. The timestamp type represents date and time information using ISO 8601 format and is always in UTC. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z." />
         </Property>
@@ -18875,6 +18963,9 @@
         </Property>
         <Property Name="meetingSpokenLanguageTag" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Specifies the spoken language used during the meeting for recording and transcription purposes." />
+        </Property>
+        <Property Name="meetingType" Type="graph.onlineMeetingType">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The type of the online meeting. The possible values are: adhoc, scheduled, recurring, broadcast, meetnow, unknownFutureValue. Read-only." />
         </Property>
         <Property Name="recordAutomatically" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether to record the meeting automatically." />
@@ -21231,6 +21322,23 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The collection of target device groups that are associated with the RDS security configuration that will be enabled for SSO when a client connects to the target device over RDP using the new Microsoft Entra ID RDS authentication protocol." />
         </NavigationProperty>
       </EntityType>
+      <EntityType Name="remoteTenantGroup" BaseType="graph.directoryObject">
+        <Property Name="remoteGroupDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the group in the remote tenant." />
+        </Property>
+        <Property Name="remoteGroupId" Type="Edm.Guid">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the group in the remote tenant." />
+        </Property>
+        <Property Name="remoteTenantDisplayName" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the remote tenant." />
+        </Property>
+        <Property Name="remoteTenantId" Type="Edm.Guid">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Unique identifier of the remote tenant." />
+        </Property>
+        <Property Name="remoteTenantPrimaryDomain" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Primary domain name of the remote tenant." />
+        </Property>
+      </EntityType>
       <EntityType Name="reportRoot">
         <NavigationProperty Name="authenticationMethods" Type="graph.authenticationMethodsRoot" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="Container for navigation properties for Microsoft Entra authentication methods resources." />
@@ -22485,6 +22593,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of token issuer for the detected sign-in risk. The possible values are: AzureAD." />
         </Property>
       </EntityType>
+      <EntityType Name="serviceProviderConstraints" BaseType="graph.entity" />
       <EntityType Name="serviceStorageQuotaBreakdown" BaseType="graph.storageQuotaBreakdown" />
       <EntityType Name="serviceUpdateMessage" BaseType="graph.serviceAnnouncementBase">
         <Property Name="actionRequiredByDateTime" Type="Edm.DateTimeOffset">
@@ -22935,6 +23044,7 @@
         <Property Name="appliedConditionalAccessPolicies" Type="Collection(graph.appliedConditionalAccessPolicy)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Provides a list of conditional access policies that the corresponding sign-in activity triggers. Apps need more Conditional Access-related privileges to read the details of this property. For more information, see Permissions for viewing applied conditional access (CA) policies in sign-ins." />
         </Property>
+        <Property Name="authenticationAppDeviceDetails" Type="graph.authenticationAppDeviceDetails" />
         <Property Name="clientAppUsed" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifies the client used for the sign-in activity. Modern authentication clients include Browser, modern clients. Legacy authentication clients include Exchange ActiveSync, IMAP, MAPI, SMTP, POP, and other clients.  Supports $filter (eq)." />
         </Property>
@@ -22950,6 +23060,7 @@
         <Property Name="deviceDetail" Type="graph.deviceDetail">
           <Annotation Term="Org.OData.Core.V1.Description" String="Device information from where the sign-in occurred; includes device ID, operating system, and browser.  Supports $filter (eq, startsWith) on browser and operatingSytem properties." />
         </Property>
+        <Property Name="homeTenantId" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="IP address of the client used to sign in.  Supports $filter (eq, startsWith)." />
         </Property>
@@ -22965,6 +23076,7 @@
         <Property Name="resourceId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="ID of the resource that the user signed into.  Supports $filter (eq)." />
         </Property>
+        <Property Name="resourceTenantId" Type="Edm.String" />
         <Property Name="riskDetail" Type="graph.riskDetail">
           <Annotation Term="Org.OData.Core.V1.Description" String="The reason behind a specific state of a risky user, sign-in, or a risk event. The value none means that Microsoft Entra risk detection did not flag the user or the sign-in as a risky event so far.  Supports $filter (eq). Note: Details for this property are only available for Microsoft Entra ID P2 customers. All other customers are returned hidden." />
         </Property>
@@ -22981,9 +23093,12 @@
         <Property Name="riskState" Type="graph.riskState">
           <Annotation Term="Org.OData.Core.V1.Description" String="Reports status of the risky user, sign-in, or a risk event. The possible values are: none, confirmedSafe, remediated, dismissed, atRisk, confirmedCompromised, unknownFutureValue.  Supports $filter (eq)." />
         </Property>
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+        <Property Name="servicePrincipalName" Type="Edm.String" />
         <Property Name="status" Type="graph.signInStatus">
           <Annotation Term="Org.OData.Core.V1.Description" String="Sign-in status. Includes the error code and description of the error (if a sign-in failure occurs).  Supports $filter (eq) on errorCode property." />
         </Property>
+        <Property Name="userAgent" Type="Edm.String" />
         <Property Name="userDisplayName" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Display name of the user that initiated the sign-in.  Supports $filter (eq, startsWith)." />
         </Property>
@@ -24427,6 +24542,7 @@
         <Property Name="principalId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the principal to which the assignment is granted. Supported principals are users, role-assignable groups, and service principals. Supports $filter (eq, in)." />
         </Property>
+        <Property Name="principalOrganizationId" Type="Edm.String" />
         <Property Name="roleDefinitionId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the unifiedRoleDefinition the assignment is for. Read-only. Supports $filter (eq, in)." />
         </Property>
@@ -25497,6 +25613,9 @@
         <NavigationProperty Name="solutions" Type="graph.userSolutionRoot" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="The identifier that relates the user to the working time schedule triggers. Read-Only. Nullable" />
         </NavigationProperty>
+        <NavigationProperty Name="sponsorOf" Type="Collection(graph.directoryObject)">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Directory objects that this user sponsors, such as guest users, agent users, agent blueprints, agent blueprint principals, and agent identities. If the user is a member of a group that's a sponsor, the objects sponsored by that group are also included. Read-only. Nullable. Supports $filter, $count, $select, $expand, $top, and $skip." />
+        </NavigationProperty>
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)">
           <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
             <Record>
@@ -26487,6 +26606,9 @@
         <Property Name="externalEventInformation" Type="Collection(graph.virtualEventExternalInformation)">
           <Annotation Term="Org.OData.Core.V1.Description" String="The external information of a virtual event. Returned only for event organizers or coorganizers; otherwise, null." />
         </Property>
+        <Property Name="isRegistrationRequired" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether attendee registration is enabled for the virtual event." />
+        </Property>
         <Property Name="settings" Type="graph.virtualEventSettings">
           <Annotation Term="Org.OData.Core.V1.Description" String="The virtual event settings." />
         </Property>
@@ -26580,6 +26702,12 @@
         <Property Name="capacity" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Total capacity of the virtual event." />
         </Property>
+        <Property Name="isManualApprovalEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether registrations require organizer approval before a participant is confirmed." />
+        </Property>
+        <Property Name="isWaitlistEnabled" Type="Edm.Boolean">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether more registrants are automatically placed on a waitlist when capacity is reached." />
+        </Property>
         <Property Name="registrationWebUrl" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="Registration URL of the virtual event." />
         </Property>
@@ -26609,6 +26737,9 @@
         </Property>
       </EntityType>
       <EntityType Name="virtualEventSession" BaseType="graph.onlineMeetingBase">
+        <Property Name="capacity" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the expected number of attendees for the virtual event session." />
+        </Property>
         <Property Name="endDateTime" Type="graph.dateTimeTimeZone">
           <Annotation Term="Org.OData.Core.V1.Description" String="The virtual event session end time." />
         </Property>
@@ -26632,6 +26763,9 @@
         <Property Name="audience" Type="graph.meetingAudience">
           <Annotation Term="Org.OData.Core.V1.Description" String="The audience to whom the town hall is visible. The possible values are: everyone, organization, and unknownFutureValue." />
         </Property>
+        <Property Name="capacity" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Represents the expected number of attendees for the town hall." />
+        </Property>
         <Property Name="coOrganizers" Type="Collection(graph.communicationsUserIdentity)">
           <Annotation Term="Org.OData.Core.V1.Description" String="Identity information of the coorganizers of the town hall." />
         </Property>
@@ -26641,7 +26775,14 @@
         <Property Name="isInviteOnly" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the town hall is only open to invited people and groups within your organization. The isInviteOnly property can only be true if the value of the audience property is set to organization." />
         </Property>
+        <NavigationProperty Name="registrationConfiguration" Type="graph.virtualEventTownhallRegistrationConfiguration" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Registration configuration of the town hall." />
+        </NavigationProperty>
+        <NavigationProperty Name="registrations" Type="Collection(graph.virtualEventRegistration)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Registration records of the town hall." />
+        </NavigationProperty>
       </EntityType>
+      <EntityType Name="virtualEventTownhallRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="virtualEventWebinar" BaseType="graph.virtualEvent">
         <Property Name="audience" Type="graph.meetingAudience">
           <Annotation Term="Org.OData.Core.V1.Description" String="To whom the webinar is visible. The possible values are: everyone, organization, and unknownFutureValue." />
@@ -26656,10 +26797,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Registration records of the webinar." />
         </NavigationProperty>
       </EntityType>
-      <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration">
-        <Property Name="isManualApprovalEnabled" Type="Edm.Boolean" />
-        <Property Name="isWaitlistEnabled" Type="Edm.Boolean" />
-      </EntityType>
+      <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="voiceAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="isOfficePhoneAllowed" Type="Edm.Boolean">
           <Annotation Term="Org.OData.Core.V1.Description" String="true if users can register office phones, otherwise, false." />
@@ -30884,6 +31022,12 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Supported values are c1 through c99." />
         </Property>
       </ComplexType>
+      <ComplexType Name="authenticationAppDeviceDetails">
+        <Property Name="appVersion" Type="Edm.String" />
+        <Property Name="clientApp" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="operatingSystem" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="authenticationAttributeCollectionInputConfiguration">
         <Property Name="attribute" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The built-in or custom attribute for which a value is being collected." />
@@ -32205,6 +32349,17 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="The Windows language or region tag to use for language pack configuration and localization of the Cloud PC. The default value is en-US, which corresponds to English (United States)." />
         </Property>
       </ComplexType>
+      <ComplexType Name="cloudVideoInteropInfo">
+        <Property Name="moreInfoWebUrl" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Provides other video teleconferencing (VTC) dial-in options. Read-only." />
+        </Property>
+        <Property Name="tenantKey" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The tenant key that is used to dial into the interactive voice response (IVR) of the partner CVI service." />
+        </Property>
+        <Property Name="videoTeleconferenceId" Type="Edm.String">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The video teleconferencing ID. Read-only." />
+        </Property>
+      </ComplexType>
       <ComplexType Name="coachmarkLocation">
         <Property Name="length" Type="Edm.Int32">
           <Annotation Term="Org.OData.Core.V1.Description" String="Length of coachmark." />
@@ -32738,6 +32893,19 @@
       <ComplexType Name="customAppManagementConfiguration" BaseType="graph.appManagementConfiguration">
         <Property Name="applicationRestrictions" Type="graph.customAppManagementApplicationConfiguration">
           <Annotation Term="Org.OData.Core.V1.Description" String="Restrictions that are applicable only to application objects to which the policy is attached." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="customDataProvidedResourceUploadSessionRequest">
+        <Property Name="data" Type="customDataProvidedResourcePayloads.data" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="An object containing the context for which this data is being uploaded. For access review upload sessions, use microsoft.graph.customDataProvidedResourcePayloads.accessReviewContextData. Required." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="customDataProvidedResourceUploadStats">
+        <Property Name="filesUploaded" Type="Edm.Int32" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Number of files uploaded in this session." />
+        </Property>
+        <Property Name="totalBytesUploaded" Type="Edm.Int64" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="Total bytes uploaded in this session." />
         </Property>
       </ComplexType>
       <ComplexType Name="customExtensionAuthenticationConfiguration" Abstract="true" />
@@ -37523,6 +37691,7 @@
         <Property Name="content" Type="graph.contentBase">
           <Annotation Term="Org.OData.Core.V1.Description" String="Represents the actual content, either as text (textContent) or binary data (binaryContent). Optional if metadata alone is sufficient for policy evaluation. Do not use for contentActivities." />
         </Property>
+        <Property Name="contentCategory" Type="graph.contentCategory" />
         <Property Name="correlationId" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="An identifier used to group multiple related content entries (for example, different parts of the same file upload, messages in a conversation)." />
         </Property>
@@ -41906,6 +42075,7 @@
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="sponsorOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </EntitySet>
@@ -41961,6 +42131,7 @@
           <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects" />
           <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="sponsorOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="sponsors" Target="directoryObjects" />
           <NavigationPropertyBinding Path="transitiveMemberOf" Target="directoryObjects" />
         </Singleton>
@@ -52750,6 +52921,40 @@
           </Collection>
         </Annotation>
       </Action>
+      <Action Name="resetToDefaultSettings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.multiTenantOrganizationIdentitySyncPolicyTemplate" Nullable="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="multiTenantOrganizationIdentitySyncPolicyTemplate: resetToDefaultSettings" />
+            <PropertyValue Property="LongDescription" String="Reset the cross-tenant access policy template with user synchronization settings for a multitenant organization to the default values. In its reset state, the template has no impact on user synchronization settings, other than that unconfigured user synchronization settings are created if needed, for every multitenant organization tenant." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/multitenantorganizationidentitysyncpolicytemplate-resettodefaultsettings?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
+      <Action Name="resetToDefaultSettings" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.multiTenantOrganizationPartnerConfigurationTemplate" Nullable="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="multiTenantOrganizationPartnerConfigurationTemplate: resetToDefaultSettings" />
+            <PropertyValue Property="LongDescription" String="Reset the cross-tenant access policy template with inbound and outbound partner configuration settings for a multitenant organization to the default values. In its reset state, the template has no impact on partner configuration settings, other than that an unconfigured partner configuration is created if needed, for every multitenant organization tenant." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/multitenantorganizationpartnerconfigurationtemplate-resettodefaultsettings?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
       <Action Name="resetToSystemDefault" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.crossTenantAccessPolicyConfigurationDefault" Nullable="false" />
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -54811,6 +55016,24 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
               <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/identityapiconnector-uploadclientcertificate?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Action>
+      <Action Name="uploadFile" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.customDataProvidedResourceUploadSession" />
+        <ReturnType Type="graph.customDataProvidedResourceUploadSession" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="customDataProvidedResourceUploadSession: uploadFile" />
+            <PropertyValue Property="LongDescription" String="Upload a file in a customDataProvidedResourceUploadSession created for an accessPackageResource." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/customdataprovidedresourceuploadsession-uploadfile?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
@@ -60834,6 +61057,22 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/sites/lists/items/permissions">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List permissions on a listItem" />
+            <PropertyValue Property="LongDescription" String="Get a list of the permission objects associated with a listItem." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/listitem-list-permissions?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/sites/lists/items/versions">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -60858,6 +61097,48 @@
               <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/listitemversion-get?view=graph-rest-1.0" />
             </Record>
           </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/sites/lists/items/1/permissions">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create permission on a listItem" />
+            <PropertyValue Property="LongDescription" String="Create a new permission object on a listItem." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/listitem-post-permissions?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/sites/lists/permissions">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List permissions on a list" />
+            <PropertyValue Property="LongDescription" String="Get a list of the permission objects associated with a list." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/list-list-permissions?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/list-post-permissions?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Create permission on a list" />
+            <PropertyValue Property="LongDescription" String="Create a new permission object on a list." />
+          </Record>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/sites/operations">
@@ -66783,6 +67064,32 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/directory/remoteTenantGroups">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="List remoteTenantGroup objects" />
+            <PropertyValue Property="LongDescription" String="Get a list of the remoteTenantGroup objects and their properties." />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Get remoteTenantGroup" />
+                <PropertyValue Property="LongDescription" String="Read the properties and relationships of a remoteTenantGroup object." />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/directory-list-remotetenantgroups?view=graph-rest-1.0" />
+            </Record>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/remotetenantgroup-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/directory/subscriptions">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -71019,22 +71326,6 @@
             <PropertyValue Property="Description" String="Update customDataProvidedResourceUploadSession" />
             <PropertyValue Property="LongDescription" String="Update the properties of a customDataProvidedResourceUploadSession created for an accessPackageResource object." />
           </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/identityGovernance/entitlementManagement/catalogs/resources/uploadSessions/uploadFile">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="customDataProvidedResourceUploadSession: uploadFile" />
-            <PropertyValue Property="LongDescription" String="Upload a file in a customDataProvidedResourceUploadSession created for an accessPackageResource." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/customdataprovidedresourceuploadsession-uploadfile?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/identityGovernance/entitlementManagement/connectedOrganizations">
@@ -78626,22 +78917,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/policies/crossTenantAccessPolicy/templates/multiTenantOrganizationIdentitySynchronization/resetToDefaultSettings">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="multiTenantOrganizationIdentitySyncPolicyTemplate: resetToDefaultSettings" />
-            <PropertyValue Property="LongDescription" String="Reset the cross-tenant access policy template with user synchronization settings for a multitenant organization to the default values. In its reset state, the template has no impact on user synchronization settings, other than that unconfigured user synchronization settings are created if needed, for every multitenant organization tenant." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/multitenantorganizationidentitysyncpolicytemplate-resettodefaultsettings?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/policies/crossTenantAccessPolicy/templates/multiTenantOrganizationPartnerConfiguration">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -78666,22 +78941,6 @@
             <PropertyValue Property="Description" String="Update multiTenantOrganizationPartnerConfigurationTemplate" />
             <PropertyValue Property="LongDescription" String="Update the cross-tenant access policy template with inbound and outbound partner configuration settings for a multitenant organization." />
           </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.GraphService/policies/crossTenantAccessPolicy/templates/multiTenantOrganizationPartnerConfiguration/resetToDefaultSettings">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Description" String="multiTenantOrganizationPartnerConfigurationTemplate: resetToDefaultSettings" />
-            <PropertyValue Property="LongDescription" String="Reset the cross-tenant access policy template with inbound and outbound partner configuration settings for a multitenant organization to the default values. In its reset state, the template has no impact on partner configuration settings, other than that an unconfigured partner configuration is created if needed, for every multitenant organization tenant." />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Links">
-          <Collection>
-            <Record>
-              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/create" />
-              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/multitenantorganizationpartnerconfigurationtemplate-resettodefaultsettings?view=graph-rest-1.0" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/policies/defaultAppManagementPolicy">
@@ -85404,6 +85663,22 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/solutions/virtualEvents/townhalls/registrationConfiguration">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Get virtualEventTownhallRegistrationConfiguration" />
+            <PropertyValue Property="LongDescription" String="Read the properties and relationships of a virtualEventTownhallRegistrationConfiguration object." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/list" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/virtualeventtownhallregistrationconfiguration-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/solutions/virtualEvents/townhalls/sessions/attendanceReports">
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
@@ -85512,7 +85787,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List questions" />
-            <PropertyValue Property="LongDescription" String="Get a list of all registration questions for a webinar. The list can include either predefined registration questions or custom registration questions." />
+            <PropertyValue Property="LongDescription" String="Get a list of all registration questions for a webinar or town hall. The list can include either predefined registration questions or custom registration questions." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
@@ -85534,13 +85809,13 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create virtualEventRegistrationCustomQuestion" />
-            <PropertyValue Property="LongDescription" String="Create a registration question for a webinar. You can create either a predefined registration question or a custom registration question." />
+            <PropertyValue Property="LongDescription" String="Create a registration question for a webinar or town hall. You can create either a predefined registration question or a custom registration question." />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Delete virtualEventRegistrationQuestionBase" />
-            <PropertyValue Property="LongDescription" String="Delete a registration question from a webinar. The question can either be a predefined registration question or a custom registration question. " />
+            <PropertyValue Property="LongDescription" String="Delete a registration question from a webinar or town hall. The question can either be a predefined registration question or a custom registration question. " />
           </Record>
         </Annotation>
       </Annotations>
@@ -85548,7 +85823,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List virtualEventRegistrations" />
-            <PropertyValue Property="LongDescription" String="Get a list of all registration records of a webinar." />
+            <PropertyValue Property="LongDescription" String="Get a list of all registration records of a webinar or town hall." />
             <PropertyValue Property="ReadByKeyRestrictions">
               <Record>
                 <PropertyValue Property="Description" String="Get virtualEventRegistration" />
@@ -85576,7 +85851,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="Create virtualEventRegistration" />
-            <PropertyValue Property="LongDescription" String="Create a registration record for a registrant of a webinar. This method registers the person for the webinar. " />
+            <PropertyValue Property="LongDescription" String="Create a registration record for a registrant of a webinar or town hall. This method registers the person for the webinar or town hall. " />
           </Record>
         </Annotation>
       </Annotations>
@@ -85584,7 +85859,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Description" String="virtualEventRegistration: cancel" />
-            <PropertyValue Property="LongDescription" String="Cancel a registrant's registration record for a webinar. " />
+            <PropertyValue Property="LongDescription" String="Cancel a registrant's registration record for a webinar or town hall. " />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
@@ -85600,7 +85875,7 @@
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Description" String="List sessions for a virtual event registration" />
-            <PropertyValue Property="LongDescription" String="Get a list of sessions summaries that a registrant registered for in a webinar. A session summary contains only the endDateTime, id, joinWebUrl, startDateTime, and subject of a virtual event session. The remaining session properties are null. To get all the properties of a virtualEventSession, use the Get virtualEventSession method. " />
+            <PropertyValue Property="LongDescription" String="Get a list of sessions summaries that a registrant registered for in a webinar or town hall. A session summary contains only the endDateTime, id, joinWebUrl, startDateTime, and subject of a virtual event session. The remaining session properties are null. To get all the properties of a virtualEventSession, use the Get virtualEventSession method. " />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Links">
@@ -87779,6 +88054,19 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
     </Schema>
+    <Schema Namespace="microsoft.graph.customDataProvidedResourcePayloads" Alias="customDataProvidedResourcePayloads" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <ComplexType Name="accessReviewContextData" BaseType="customDataProvidedResourcePayloads.accessReviewContextDataBase" />
+      <ComplexType Name="accessReviewContextDataBase" BaseType="customDataProvidedResourcePayloads.data" Abstract="true">
+        <Property Name="reviewDefinitionId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the access review definition that this data is associated with." />
+        </Property>
+        <Property Name="reviewInstanceId" Type="Edm.String" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the access review instance that this data is associated with." />
+        </Property>
+      </ComplexType>
+      <ComplexType Name="applyDecisionContextData" BaseType="customDataProvidedResourcePayloads.accessReviewContextDataBase" />
+      <ComplexType Name="data" Abstract="true" />
+    </Schema>
     <Schema Namespace="microsoft.graph.entraRecoveryServices" Alias="entraRecoveryServices" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="recoveryAction">
         <Member Name="softDelete" Value="0" />
@@ -88089,6 +88377,7 @@
         <Property Name="content" Type="microsoft.graph.externalConnectors.externalItemContent">
           <Annotation Term="Org.OData.Core.V1.Description" String="A plain-text  representation of the contents of the item. The text in this property is full-text indexed. Optional." />
         </Property>
+        <Property Name="informationProtectionLabel" Type="microsoft.graph.externalConnectors.externalItemInformationProtectionLabel" />
         <Property Name="properties" Type="microsoft.graph.externalConnectors.properties">
           <Annotation Term="Org.OData.Core.V1.Description" String="A property bag with the properties of the item. The properties MUST conform to the schema defined for the externalConnection. Required." />
         </Property>
@@ -88151,6 +88440,9 @@
         <Property Name="value" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The content for the externalItem. Required." />
         </Property>
+      </ComplexType>
+      <ComplexType Name="externalItemInformationProtectionLabel">
+        <Property Name="sensitivityLabelId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="itemIdResolver" BaseType="microsoft.graph.externalConnectors.urlToItemResolverBase">
         <Property Name="itemId" Type="Edm.String" Nullable="false">
@@ -92383,6 +92675,28 @@
       <Annotations Target="microsoft.graph.defenderThreatAction/userDefined">
         <Annotation Term="Org.OData.Core.V1.Description" String="Allow the user to determine the action to take with the detected threat." />
       </Annotations>
+      <Annotations Target="microsoft.graph.delegatedAdminServiceProviderConstraints">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.deletedItemContainer/workflows">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
@@ -94218,6 +94532,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.directory/remoteTenantGroups">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Date="2025-12-02" Property="Date" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Date="2028-12-07" Property="RemovalDate" />
+              <PropertyValue Property="Version" String="2025-03/PrivatePreview:remoteTenantGroupsAPI" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.directoryAudit">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -101055,6 +101383,20 @@
       <Annotations Target="microsoft.graph.remoteLockActionResult/unlockPin">
         <Annotation Term="Org.OData.Core.V1.Description" String="Pin to unlock the client" />
       </Annotations>
+      <Annotations Target="microsoft.graph.remoteTenantGroup">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Date="2025-12-02" Property="Date" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Date="2028-12-07" Property="RemovalDate" />
+              <PropertyValue Property="Version" String="2025-03/PrivatePreview:remoteTenantGroupsAPI" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.removeAllDevicesFromManagement(microsoft.graph.user)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Retire all devices from management for this user" />
       </Annotations>
@@ -103326,6 +103668,28 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.serviceProviderConstraints">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.setMobileDeviceManagementAuthority(microsoft.graph.organization)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Set mobile device management authority" />
