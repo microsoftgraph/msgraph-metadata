@@ -3222,6 +3222,20 @@
         <Member Name="prebuiltReceiptModel" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
+      <EnumType Name="contentModality">
+        <Member Name="audio" Value="0" />
+        <Member Name="video" Value="1" />
+        <Member Name="image" Value="2" />
+        <Member Name="text" Value="3" />
+        <Member Name="multimodal" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="detectionSeverity">
+        <Member Name="low" Value="0" />
+        <Member Name="medium" Value="1" />
+        <Member Name="high" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="contentProcessingErrorType">
         <Member Name="transient" Value="0" />
         <Member Name="permanent" Value="1" />
@@ -40088,6 +40102,7 @@
         <Property Name="rosterSequenceNumber" Type="Edm.Int64">
           <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the roster sequence number the participant was last updated in." />
         </Property>
+        <Property Name="syntheticMediaDetection" Type="graph.syntheticMediaDetectionInfo" />
       </EntityType>
       <EntityType Name="participantJoiningNotification" BaseType="graph.entity">
         <NavigationProperty Name="call" Type="graph.call" ContainsTarget="true" />
@@ -70345,6 +70360,49 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Path to the prompt to be played. Currently only Wave file (.wav) format, single-channel, 16-bit samples with a 16,000 (16 KHz) sampling rate is only supported." />
         </Property>
       </ComplexType>
+      <ComplexType Name="mediaMetadata">
+        <Property Name="modality" Type="graph.contentModality" Nullable="false" />
+        <Property Name="isRealTime" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="mimeType" Type="Edm.String" Nullable="false" />
+        <Property Name="byteSize" Type="Edm.Int64" Nullable="false" />
+        <Property Name="duration" Type="Edm.Int32" Nullable="false" />
+        <Property Name="videoMetadata" Type="graph.videoMetadata" />
+        <Property Name="audioMetadata" Type="graph.audioMetadata" />
+        <Property Name="streamingMetadata" Type="graph.streamingMetadata" />
+      </ComplexType>
+      <ComplexType Name="videoMetadata">
+        <Property Name="codec" Type="Edm.String" Nullable="false" />
+        <Property Name="frameRate" Type="Edm.Double" Nullable="false" />
+        <Property Name="bitrateKbps" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="audioMetadata">
+        <Property Name="sampleRateHz" Type="Edm.Int32" Nullable="false" />
+        <Property Name="bitDepth" Type="Edm.Int32" Nullable="false" />
+        <Property Name="channels" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="streamingMetadata">
+        <Property Name="latencyMs" Type="Edm.Int32" Nullable="false" />
+        <Property Name="frameDropRate" Type="Edm.Double" Nullable="false" />
+        <Property Name="networkJitterMs" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="syntheticMediaDetectionDetail">
+        <Property Name="modelName" Type="Edm.String" Nullable="false" />
+        <Property Name="modality" Type="graph.contentModality" Nullable="false" />
+        <Property Name="modelTasks" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="segment" Type="graph.mediaSegment" Nullable="false" />
+        <Property Name="confidence" Type="Edm.Double" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="mediaSegment">
+        <Property Name="startTimeSec" Type="Edm.Int32" Nullable="false" />
+        <Property Name="endTimeSec" Type="Edm.Int32" Nullable="false" />
+        <Property Name="frameIndices" Type="Collection(Edm.Int32)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="syntheticMediaDetectionInfo">
+        <Property Name="detectionId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="syntheticConfidence" Type="Edm.Double" Nullable="false" />
+        <Property Name="detectorBot" Type="Edm.String" Nullable="false" />
+        <Property Name="isParticipantTrusted" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="mediaPrompt" BaseType="graph.prompt">
         <Property Name="loop" Type="Edm.Int32" />
         <Property Name="mediaInfo" Type="graph.mediaInfo" Nullable="false">
@@ -97445,6 +97503,16 @@
         <Parameter Name="ReportAction" Type="graph.reportAction" Nullable="false" />
         <Parameter Name="IsMessageMoveRequested" Type="Edm.Boolean" />
         <ReturnType Type="graph.message" />
+      </Action>
+      <Action Name="reportSyntheticMedia" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.participant" />
+        <Parameter Name="id" Type="Edm.Guid" Nullable="false" />
+        <Parameter Name="severity" Type="graph.detectionSeverity" />
+        <Parameter Name="overallConfidence" Type="Edm.Double" Nullable="false" />
+        <Parameter Name="isMalicious" Type="Edm.Boolean" Nullable="false" />
+        <Parameter Name="detectionDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="contentMetadata" Type="graph.mediaMetadata" Nullable="false" />
+        <Parameter Name="detections" Type="Collection(graph.syntheticMediaDetectionDetail)" Nullable="false" />
       </Action>
       <Action Name="reprocess" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.accessPackageAssignment" />
