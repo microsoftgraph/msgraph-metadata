@@ -9864,7 +9864,9 @@
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true">
           <Annotation Term="Org.OData.Core.V1.Description" String="A collection of all the tabs in the chat. Nullable." />
         </NavigationProperty>
-        <NavigationProperty Name="targetedMessages" Type="Collection(graph.targetedChatMessage)" ContainsTarget="true" />
+        <NavigationProperty Name="targetedMessages" Type="Collection(graph.targetedChatMessage)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Core.V1.Description" String="A collection of targeted messages in the chat that are visible only to specific users. Nullable. You can't expand this relationship using $expand. Targeted messages can also be retrieved via the userTeamwork: getAllTargetedMessages API." />
+        </NavigationProperty>
       </EntityType>
       <EntityType Name="chatMessage" BaseType="graph.entity">
         <Property Name="attachments" Type="Collection(graph.chatMessageAttachment)">
@@ -9895,7 +9897,7 @@
           <Annotation Term="Org.OData.Core.V1.Description" String="Details of the sender of the chat message. Can only be set during migration." />
         </Property>
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false">
-          <Annotation Term="Org.OData.Core.V1.Description" String="The importance of the chat message. The possible values are: normal, high, urgent." />
+          <Annotation Term="Org.OData.Core.V1.Description" String="The importance of the message. The possible values are: normal, high, urgent, unknownFutureValue." />
         </Property>
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset">
           <Annotation Term="Org.OData.Core.V1.Description" String="Read-only. Timestamp when edits to the chat message were made. Triggers an 'Edited' flag in the Teams UI. If no edits are made the value is null." />
@@ -23798,7 +23800,9 @@
         </Property>
       </EntityType>
       <EntityType Name="targetedChatMessage" BaseType="graph.chatMessage">
-        <Property Name="recipient" Type="graph.identity" />
+        <Property Name="recipient" Type="graph.identity">
+          <Annotation Term="Org.OData.Core.V1.Description" String="The intended recipient of the targeted message." />
+        </Property>
       </EntityType>
       <EntityType Name="targetedManagedAppConfiguration" BaseType="graph.managedAppConfiguration">
         <Property Name="deployedAppCount" Type="Edm.Int32" Nullable="false">
@@ -43759,6 +43763,20 @@
       <Function Name="getAllRetainedTargetedMessages" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.userTeamwork" />
         <ReturnType Type="Collection(graph.targetedChatMessage)" />
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="userTeamwork: getAllRetainedTargetedMessages" />
+            <PropertyValue Property="LongDescription" String="Get all retained targeted messages sent to a specific user in group chats and channels." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/function" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/userteamwork-getallretainedtargetedmessages?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Function>
       <Function Name="getAllSites" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.site)" />
@@ -43781,6 +43799,20 @@
       <Function Name="getAllTargetedMessages" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.userTeamwork" />
         <ReturnType Type="Collection(graph.targetedChatMessage)" />
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="userTeamwork: getAllTargetedMessages" />
+            <PropertyValue Property="LongDescription" String="Get all targeted messages sent to a specific user in group chats and channels." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/function" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/userteamwork-getalltargetedmessages?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Function>
       <Function EntitySetPath="bindingParameter/transcripts" Name="getAllTranscripts" IsBound="true" IsComposable="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.adhocCall)" />
@@ -49217,6 +49249,20 @@
         <Parameter Name="teamId" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="channelId" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="messageId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="userTeamwork: deleteTargetedMessage" />
+            <PropertyValue Property="LongDescription" String="Delete a specific targeted message from a channel context. Teams administrators can use this API to remove targeted messages by providing the message ID, team ID, and channel ID." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/action" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/userteamwork-deletetargetedmessage?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Action>
       <Action Name="deleteUserFromSharedAppleDevice" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
@@ -63795,6 +63841,22 @@
             <Record>
               <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/get" />
               <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/chat-get?view=graph-rest-1.0" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/users/chats/19/children">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Delete targetedChatMessage" />
+            <PropertyValue Property="LongDescription" String="Delete a specific targeted message from a chat context. Teams administrators can use this API to remove targeted messages from group chats." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Links">
+          <Collection>
+            <Record>
+              <PropertyValue Property="rel" String="https://graph.microsoft.com/rels/docs/delete" />
+              <PropertyValue Property="href" String="https://learn.microsoft.com/graph/api/chat-delete-targetedmessages?view=graph-rest-1.0" />
             </Record>
           </Collection>
         </Annotation>
