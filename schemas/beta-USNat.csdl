@@ -107,6 +107,7 @@
         <Member Name="unknownFutureValue" Value="2" />
         <Member Name="agentIdentityBlueprintPrincipal" Value="3" />
         <Member Name="user" Value="4" />
+        <Member Name="discoveredAgentIdentity" Value="5" />
       </EnumType>
       <EnumType Name="agentIdRiskLevel">
         <Member Name="none" Value="0" />
@@ -3580,6 +3581,18 @@
         <Property Name="contentType" Type="graph.bodyType" />
         <Property Name="messageBodyContentType" Type="graph.chatMessageBodyContentType" />
       </ComplexType>
+      <ComplexType Name="chatMessageCitation">
+        <Property Name="excerpt" Type="Edm.String" />
+        <Property Name="iconType" Type="Edm.String" />
+        <Property Name="id" Type="Edm.Int32" />
+        <Property Name="sensitivityLabel" Type="graph.chatMessageCitationSensitivityLabel" />
+        <Property Name="title" Type="Edm.String" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="chatMessageCitationSensitivityLabel">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="chatMessageFromIdentitySet" BaseType="graph.identitySet" OpenType="true" />
       <ComplexType Name="chatMessageHistoryItem">
         <Property Name="actions" Type="graph.chatMessageActions" Nullable="false" />
@@ -4409,11 +4422,7 @@
         <Property Name="itemDefaultSensitivityLabelId" Type="Edm.String" />
         <Property Name="itemMajorVersionLimit" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="fileStorageContainerTypeAgentSettings">
-        <Property Name="chatEmbedAllowedHosts" Type="Collection(Edm.String)" Nullable="false" />
-      </ComplexType>
       <ComplexType Name="fileStorageContainerTypeRegistrationSettings">
-        <Property Name="agent" Type="graph.fileStorageContainerTypeAgentSettings" />
         <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
         <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
         <Property Name="isSearchEnabled" Type="Edm.Boolean" />
@@ -4424,7 +4433,6 @@
         <Property Name="urlTemplate" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="fileStorageContainerTypeSettings">
-        <Property Name="agent" Type="graph.fileStorageContainerTypeAgentSettings" />
         <Property Name="consumingTenantOverridables" Type="graph.fileStorageContainerTypeSettingsOverride" />
         <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
         <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
@@ -5270,6 +5278,7 @@
         <Property Name="isAccessibleViaZTNAClient" Type="Edm.Boolean" />
         <Property Name="isBackendCertificateValidationEnabled" Type="Edm.Boolean" />
         <Property Name="isContinuousAccessEvaluationEnabled" Type="Edm.Boolean" />
+        <Property Name="isDeviceAccessEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isDnsResolutionEnabled" Type="Edm.Boolean" />
         <Property Name="isHttpOnlyCookieEnabled" Type="Edm.Boolean" />
         <Property Name="isOnPremPublishingEnabled" Type="Edm.Boolean" />
@@ -7595,6 +7604,9 @@
       <EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true">
         <Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
+        <NavigationProperty Name="inheritedAppRoleAssignments" Type="Collection(graph.appRoleAssignment)" />
+        <NavigationProperty Name="inheritedOauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="agentIdentityBlueprint" BaseType="graph.application" OpenType="true">
@@ -7603,6 +7615,7 @@
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true">
+        <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="agentRiskDetection" BaseType="graph.entity">
@@ -8207,11 +8220,13 @@
         <Property Name="body" Type="graph.chatMessageBody" Nullable="false" />
         <Property Name="channelIdentity" Type="graph.channelIdentity" />
         <Property Name="chatId" Type="Edm.String" />
+        <Property Name="citations" Type="Collection(graph.chatMessageCitation)" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="etag" Type="Edm.String" />
         <Property Name="eventDetail" Type="graph.eventMessageDetail" />
         <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
+        <Property Name="hasReplies" Type="Edm.Boolean" Nullable="false" />
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false" />
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -10312,7 +10327,7 @@
           </Collection>
         </Annotation>
       </EntityType>
-      <EntityType Name="planner" BaseType="graph.entity">
+      <EntityType Name="planner">
         <NavigationProperty Name="buckets" Type="Collection(graph.plannerBucket)" ContainsTarget="true" />
         <NavigationProperty Name="goals" Type="Collection(graph.plannerGoal)" ContainsTarget="true" />
         <NavigationProperty Name="plans" Type="Collection(graph.plannerPlan)" ContainsTarget="true" />
@@ -10866,6 +10881,7 @@
         <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
         <Property Name="riskState" Type="graph.riskState" Nullable="false" />
       </EntityType>
+      <EntityType Name="riskyAgentDiscoveredAgentIdentity" BaseType="graph.riskyAgent" />
       <EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent">
         <NavigationProperty Name="agentIdentity" Type="graph.agentIdentity" />
       </EntityType>
@@ -11769,7 +11785,7 @@
         <Property Name="shortDescription" Type="Edm.String" />
         <NavigationProperty Name="teamDefinition" Type="graph.team" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="teamwork" BaseType="graph.entity">
+      <EntityType Name="teamwork">
         <Property Name="isTeamsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="region" Type="Edm.String" />
         <NavigationProperty Name="deletedChats" Type="Collection(graph.deletedChat)" ContainsTarget="true" />
@@ -17948,6 +17964,11 @@
         <Member Name="multipleConditionsExceeded" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="subjectType" IsFlags="true">
+        <Member Name="user" Value="1" />
+        <Member Name="unknownFutureValue" Value="8" />
+        <Member Name="provisioningObject" Value="16" />
+      </EnumType>
       <EnumType Name="valueType">
         <Member Name="enum" Value="0" />
         <Member Name="string" Value="1" />
@@ -18018,6 +18039,9 @@
         <Property Name="statusReasons" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="targetSubject" Type="microsoft.graph.identityGovernance.workflowSubject" />
       </ComplexType>
+      <ComplexType Name="directoryObjectWorkflowSubject" BaseType="microsoft.graph.identityGovernance.workflowSubject">
+        <NavigationProperty Name="directoryObject" Type="graph.directoryObject" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="groupBasedSubjectSet" BaseType="graph.subjectSet">
         <NavigationProperty Name="groups" Type="Collection(graph.group)" />
       </ComplexType>
@@ -18064,6 +18088,13 @@
         <Property Name="totalRuns" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="subjectSummary">
+        <Property Name="failedSubjects" Type="Edm.Int32" Nullable="false" />
+        <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
+        <Property Name="successfulSubjects" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalSubjects" Type="Edm.Int32" Nullable="false" />
+        <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="taskReportSummary">
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
@@ -18198,6 +18229,7 @@
         <Property Name="scheduledDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="subject" Type="microsoft.graph.identityGovernance.workflowSubject" Nullable="false" />
+        <Property Name="subjectType" Type="microsoft.graph.identityGovernance.subjectType" Nullable="false" />
         <Property Name="totalTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalUnprocessedTasksCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="workflowExecutionType" Type="microsoft.graph.identityGovernance.workflowExecutionType" Nullable="false" />
@@ -18290,6 +18322,7 @@
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isSchedulingEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="targetSubjectType" Type="microsoft.graph.identityGovernance.subjectType" Nullable="false" />
         <NavigationProperty Name="administrationScopeTargets" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="createdBy" Type="graph.user" />
         <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
@@ -18354,6 +18387,12 @@
         <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <ReturnType Type="microsoft.graph.identityGovernance.runSummary" />
+      </Function>
+      <Function Name="summary" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.identityGovernance.subjectProcessingResult)" />
+        <Parameter Name="startDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <ReturnType Type="microsoft.graph.identityGovernance.subjectSummary" />
       </Function>
       <Function Name="summary" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.identityGovernance.taskReport)" />
@@ -18501,6 +18540,112 @@
       </Annotations>
       <Annotations Target="microsoft.graph.agentIdentity/agentIdentityBlueprintId">
         <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentity/inheritedAppRoleAssignments">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentity/inheritedOauth2PermissionGrants">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentity/managerApplications">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentIdentityBlueprintPrincipal/managerApplications">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.agentRiskDetection">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -24065,6 +24210,18 @@
       <ComplexType Name="containerRegistryEvidence" BaseType="microsoft.graph.security.alertEvidence">
         <Property Name="registry" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="createAlertInput">
+        <Property Name="category" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="entityDefinitions" Type="Collection(microsoft.graph.security.entityDefinition)" Nullable="false" />
+        <Property Name="isExcludedFromCorrelation" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="linkToIncident" Type="Edm.Int64" />
+        <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="recommendedActions" Type="Edm.String" />
+        <Property Name="sentinelWorkspace" Type="Edm.String" />
+        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
+        <Property Name="title" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="detectionAction">
         <Property Name="alertTemplate" Type="microsoft.graph.security.alertTemplate" Nullable="false" />
         <Property Name="organizationalScope" Type="microsoft.graph.security.organizationalScope" />
@@ -24109,6 +24266,12 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
         <Property Name="emailAddress" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="entityDefinition">
+        <Property Name="entityIdentifier" Type="Edm.String" Nullable="false" />
+        <Property Name="entityType" Type="microsoft.graph.security.manualAlertEntityType" Nullable="false" />
+        <Property Name="identifierValue" Type="Edm.String" Nullable="false" />
+        <Property Name="role" Type="microsoft.graph.security.entityDefinitionInputRole" Nullable="false" />
       </ComplexType>
       <ComplexType Name="eventPropagationResult">
         <Property Name="location" Type="Edm.String" />
@@ -25005,6 +25168,11 @@
       </Action>
       <Action Name="close" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+      </Action>
+      <Action Name="createAlert" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.alert)" />
+        <Parameter Name="createAlertInput" Type="microsoft.graph.security.createAlertInput" Nullable="false" />
+        <ReturnType Type="microsoft.graph.security.alert" />
       </Action>
       <Action Name="disablePolicy" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
