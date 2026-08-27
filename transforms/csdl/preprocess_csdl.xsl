@@ -2247,10 +2247,13 @@
     </xsl:template>
 
     <!-- Add FilterRestrictions to managedDevice entity type -->
+    <!-- Skip if the annotation is already present, so upstream metadata gaining it does not produce a duplicate -->
      <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice']">
        <xsl:copy>
          <xsl:copy-of select="@*|node()"/>
-         <xsl:call-template name="ManagedDeviceFilterRestrictionsTemplate"/>
+         <xsl:if test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.FilterRestrictions'])">
+           <xsl:call-template name="ManagedDeviceFilterRestrictionsTemplate"/>
+         </xsl:if>
        </xsl:copy>
     </xsl:template>
 
