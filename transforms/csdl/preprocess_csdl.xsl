@@ -1428,6 +1428,7 @@
                         <xsl:element name="PropertyPath">exchangeLastSuccessfulSyncDateTime</xsl:element>
                         <xsl:element name="PropertyPath">freeStorageSpaceInBytes</xsl:element>
                         <xsl:element name="PropertyPath">iccid</xsl:element>
+                        <xsl:element name="PropertyPath">id</xsl:element>
                         <xsl:element name="PropertyPath">isEncrypted</xsl:element>
                         <xsl:element name="PropertyPath">isSupervised</xsl:element>
                         <xsl:element name="PropertyPath">managedDeviceName</xsl:element>
