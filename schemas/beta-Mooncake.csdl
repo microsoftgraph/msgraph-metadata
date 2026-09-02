@@ -2964,6 +2964,14 @@
         <Member Name="Default" Value="1" />
         <Member Name="IgnoreLookupReferenceResolutionFailure" Value="2" />
       </EnumType>
+      <EnumType Name="eSimDiscoveryState">
+        <Member Name="unknown" Value="0" />
+        <Member Name="requested" Value="1" />
+        <Member Name="executing" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="failed" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="eSimProfileErrorDetail">
         <Member Name="none" Value="0" />
         <Member Name="cardGeneralFailure" Value="1" />
@@ -4280,7 +4288,8 @@
         <Member Name="unresponsive" Value="3" />
         <Member Name="notSetUp" Value="4" />
         <Member Name="error" Value="5" />
-        <Member Name="unknownFutureValue" Value="6" />
+        <Member Name="neverConfigured" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
       <EnumType Name="msiType">
         <Member Name="none" Value="0" />
@@ -4298,6 +4307,13 @@
         <Member Name="ReadOnly" Value="1" />
         <Member Name="Immutable" Value="2" />
         <Member Name="WriteOnly" Value="3" />
+      </EnumType>
+      <EnumType Name="ndesConnectorHealthCheckMetricName">
+        <Member Name="caConnectivity" Value="0" />
+        <Member Name="caIssuancePermissions" Value="1" />
+        <Member Name="caRevocationPermissions" Value="2" />
+        <Member Name="certificateTemplate" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="ndesConnectorHealthStatus">
         <Member Name="unknown" Value="0" />
@@ -7504,6 +7520,7 @@
       </ComplexType>
       <ComplexType Name="activateDeviceEsimActionResult" BaseType="graph.deviceActionResult">
         <Property Name="carrierUrl" Type="Edm.String" />
+        <Property Name="errorCode" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="addIn">
         <Property Name="id" Type="Edm.Guid" />
@@ -11167,6 +11184,10 @@
         <Property Name="from" Type="Edm.String" />
         <Property Name="to" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="ndesConnectorHealthCheck">
+        <Property Name="metricName" Type="graph.ndesConnectorHealthCheckMetricName" Nullable="false" />
+        <Property Name="status" Type="graph.ndesConnectorHealthStatus" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="networkLocationDetail">
         <Property Name="networkNames" Type="Collection(Edm.String)" />
         <Property Name="networkType" Type="graph.networkType" />
@@ -11960,6 +11981,9 @@
         <Property Name="unlockPin" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="removeAccessApplyAction" BaseType="graph.accessReviewApplyAction" />
+      <ComplexType Name="removeDeviceEsimActionResult" BaseType="graph.deviceActionResult">
+        <Property Name="errorCode" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="renameAction">
         <Property Name="newName" Type="Edm.String" />
         <Property Name="oldName" Type="Edm.String" />
@@ -21154,7 +21178,16 @@
         <Property Name="macDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
         <Property Name="macEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="microsoftDefenderForEndpointAttachEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerDisplayName" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedAndroidVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedIosVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedMacVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedWindowsVersion" Type="Edm.String" />
         <Property Name="partnerState" Type="graph.mobileThreatPartnerTenantState" Nullable="false" />
+        <Property Name="partnerSupportsAndroidMam" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsIosCertificateSync" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsIosMam" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsWindowsMam" Type="Edm.Boolean" Nullable="false" />
         <Property Name="partnerUnresponsivenessThresholdInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="partnerUnsupportedOsVersionBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="windowsDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
@@ -22901,6 +22934,7 @@
         <Property Name="riskLevelAggregated" Type="graph.riskLevel" />
         <Property Name="riskLevelDuringSignIn" Type="graph.riskLevel" />
         <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="rootActorId" Type="Edm.String" />
         <Property Name="servicePrincipalCredentialKeyId" Type="Edm.String" />
         <Property Name="servicePrincipalCredentialThumbprint" Type="Edm.String" />
         <Property Name="servicePrincipalId" Type="Edm.String" Nullable="false" />
@@ -31815,6 +31849,9 @@
       <ComplexType Name="groupBasedSubjectSet" BaseType="graph.subjectSet">
         <NavigationProperty Name="groups" Type="Collection(graph.group)" />
       </ComplexType>
+      <ComplexType Name="guestSponsorTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="minimumRequiredSponsors" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="membershipChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="changeType" Type="microsoft.graph.identityGovernance.membershipChangeType" Nullable="false" />
       </ComplexType>
@@ -32333,6 +32370,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.activateDeviceEsimActionResult/carrierUrl">
         <Annotation Term="Org.OData.Core.V1.Description" String="Carrier Url to activate the device eSIM " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.activateDeviceEsimActionResult/errorCode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Error code of activate device eSIM action. Valid values 0 to 2147483647" />
       </Annotations>
       <Annotations Target="microsoft.graph.activeDirectoryWindowsAutopilotDeploymentProfile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Windows Autopilot Deployment Profile" />
@@ -49404,6 +49444,27 @@
       <Annotations Target="microsoft.graph.errorCode/unauthorized">
         <Annotation Term="Org.OData.Core.V1.Description" String="The current user does not have access due to lack of RBAC permissions on the resource." />
       </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Current state of the discovery operation for an eSIM download server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/completed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has completed successfully." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/executing">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation is executing." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/failed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has failed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/requested">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has been requested." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unknown state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
       <Annotations Target="microsoft.graph.eSimProfileErrorDetail">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the detailed error condition for an eSIM profile operation." />
       </Annotations>
@@ -51729,6 +51790,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.guestSponsorTrigger">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-07-07" />
+              <PropertyValue Property="Description" String="Public preview for Lifecycle Workflows guest sponsor trigger for monitoring guest sponsorship requirements." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Added</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="Version" String="2026-07/PublicPreview:guestSponsorTrigger" />
+            </Record>
+          </Collection>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/deletedItems">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -60792,8 +60867,35 @@
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/microsoftDefenderForEndpointAttachEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that configuration profile management via Microsoft Defender for Endpoint is enabled. When FALSE, indicates that configuration profile management via Microsoft Defender for Endpoint is disabled. Default value is FALSE." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerDisplayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the Mobile Threat Defense partner. This is a read-only property determined by the partner metadata." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedAndroidVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum Android version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedIosVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum iOS version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedMacVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum macOS version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedWindowsVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum Windows version supported by the Mobile Threat Defense partner." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Mobile Threat Defense partner state for this account" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsAndroidMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports Android Mobile Application Management." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsIosCertificateSync">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports iOS certificate sync." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsIosMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports iOS Mobile Application Management." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsWindowsMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports Windows Mobile Application Management." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerUnresponsivenessThresholdInDays">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the number of days without receiving a heartbeat from a Mobile Threat Defense partner before the partner is marked as unresponsive. Intune will the ignore the data from this Mobile Threat Defense Partner for next compliance calculation." />
@@ -60833,6 +60935,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/error">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector is in an error state. This can occur when the connector has a non-zero error code set due to an internal error in processing. Please see https://go.microsoft.com/fwlink/?linkid=2239039 for more information on connector states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/neverConfigured">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector catalog entry exists but the tenant has never configured it." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/notSetUp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector is not set up. This can occur when the connector is not provisioned and Intune has not received a heartbeat for the connector. Please see https://go.microsoft.com/fwlink/?linkid=2239039 for more information on connector states." />
@@ -60906,6 +61011,33 @@
       </Annotations>
       <Annotations Target="microsoft.graph.ndesConnector/state">
         <Annotation Term="Org.OData.Core.V1.Description" String="Ndes Connector Status" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents an individual health check result for an NDES connector, containing the metric name and its current status." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck/metricName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The name of the health check metric being evaluated." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck/status">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The current health status for this specific metric, based on error rate thresholds computed from recent connector uploads." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The name of the health check metric being evaluated for an NDES connector." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caConnectivity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures connectivity between the connector and the Certificate Authority." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caIssuancePermissions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the connector has the required Enroll permission on the CA." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caRevocationPermissions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the connector has the required permissions to revoke certificates on the CA." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/certificateTemplate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the configured certificate template, Intune Profile fields are all valid." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.ndesConnectorHealthStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The health status of an NDES connector or individual health check metric." />
@@ -63272,6 +63404,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.removeDeviceEsim(microsoft.graph.managedDevice, Edm.String)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Remove eSIM from the device" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.removeDeviceEsimActionResult">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Remove device eSIM action result" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.removeDeviceEsimActionResult/errorCode">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Error code of remove device eSIM action. Valid values 0 to 2147483647" />
       </Annotations>
       <Annotations Target="microsoft.graph.removeDeviceFirmwareConfigurationInterfaceManagement(microsoft.graph.managedDevice)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Remove device from Device Firmware Configuration Interface management" />
