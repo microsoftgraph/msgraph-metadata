@@ -1400,6 +1400,58 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
+    <xsl:template name="ManagedDeviceFilterRestrictionsTemplate">
+        <xsl:element name="Annotation">
+            <xsl:attribute name="Term">Org.OData.Capabilities.V1.FilterRestrictions</xsl:attribute>
+            <xsl:element name="Record" namespace="{namespace-uri()}">
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">Filterable</xsl:attribute>
+                    <xsl:attribute name="Bool">true</xsl:attribute>
+                </xsl:element>
+                <xsl:element name="PropertyValue">
+                    <xsl:attribute name="Property">NonFilterableProperties</xsl:attribute>
+                    <xsl:element name="Collection">
+                        <xsl:element name="PropertyPath">activationLockBypassCode</xsl:element>
+                        <xsl:element name="PropertyPath">androidSecurityPatchLevel</xsl:element>
+                        <xsl:element name="PropertyPath">azureADRegistered</xsl:element>
+                        <xsl:element name="PropertyPath">configurationManagerClientEnabledFeatures</xsl:element>
+                        <xsl:element name="PropertyPath">deviceActionResults</xsl:element>
+                        <xsl:element name="PropertyPath">deviceEnrollmentType</xsl:element>
+                        <xsl:element name="PropertyPath">deviceHealthAttestationState</xsl:element>
+                        <xsl:element name="PropertyPath">deviceRegistrationState</xsl:element>
+                        <xsl:element name="PropertyPath">easActivated</xsl:element>
+                        <xsl:element name="PropertyPath">easActivationDateTime</xsl:element>
+                        <xsl:element name="PropertyPath">easDeviceId</xsl:element>
+                        <xsl:element name="PropertyPath">enrollmentProfileName</xsl:element>
+                        <xsl:element name="PropertyPath">ethernetMacAddress</xsl:element>
+                        <xsl:element name="PropertyPath">exchangeAccessStateReason</xsl:element>
+                        <xsl:element name="PropertyPath">exchangeLastSuccessfulSyncDateTime</xsl:element>
+                        <xsl:element name="PropertyPath">freeStorageSpaceInBytes</xsl:element>
+                        <xsl:element name="PropertyPath">iccid</xsl:element>
+                        <xsl:element name="PropertyPath">id</xsl:element>
+                        <xsl:element name="PropertyPath">isEncrypted</xsl:element>
+                        <xsl:element name="PropertyPath">isSupervised</xsl:element>
+                        <xsl:element name="PropertyPath">managedDeviceName</xsl:element>
+                        <xsl:element name="PropertyPath">managedDeviceOwnerType</xsl:element>
+                        <xsl:element name="PropertyPath">managementCertificateExpirationDate</xsl:element>
+                        <xsl:element name="PropertyPath">meid</xsl:element>
+                        <xsl:element name="PropertyPath">notes</xsl:element>
+                        <xsl:element name="PropertyPath">partnerReportedThreatState</xsl:element>
+                        <xsl:element name="PropertyPath">physicalMemoryInBytes</xsl:element>
+                        <xsl:element name="PropertyPath">remoteAssistanceSessionErrorDetails</xsl:element>
+                        <xsl:element name="PropertyPath">remoteAssistanceSessionUrl</xsl:element>
+                        <xsl:element name="PropertyPath">requireUserEnrollmentApproval</xsl:element>
+                        <xsl:element name="PropertyPath">subscriberCarrier</xsl:element>
+                        <xsl:element name="PropertyPath">totalStorageSpaceInBytes</xsl:element>
+                        <xsl:element name="PropertyPath">udid</xsl:element>
+                        <xsl:element name="PropertyPath">userDisplayName</xsl:element>
+                        <xsl:element name="PropertyPath">userId</xsl:element>
+                        <xsl:element name="PropertyPath">wiFiMacAddress</xsl:element>
+                    </xsl:element>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
     <xsl:template name="ExpandRestrictionsTemplate">
         <xsl:param name = "expandable" />
             <xsl:attribute name="Term">Org.OData.Capabilities.V1.ExpandRestrictions</xsl:attribute>
@@ -1788,6 +1840,16 @@
                        <xsl:call-template name="FilterRestrictionsTemplate">
                            <xsl:with-param name="filterable">false</xsl:with-param>
                        </xsl:call-template>
+                    </xsl:element>
+                </xsl:when>
+            </xsl:choose>
+
+            <!-- Add FilterRestrictions to managedDevice entity type -->
+            <xsl:choose>
+                <xsl:when test="not(edm:Annotations[@Target='microsoft.graph.managedDevice'])">
+                    <xsl:element name="Annotations">
+                       <xsl:attribute name="Target">microsoft.graph.managedDevice</xsl:attribute>
+                       <xsl:call-template name="ManagedDeviceFilterRestrictionsTemplate"/>
                     </xsl:element>
                 </xsl:when>
             </xsl:choose>
@@ -2182,6 +2244,17 @@
              <xsl:call-template name="FilterRestrictionsTemplate">
                <xsl:with-param name="filterable">false</xsl:with-param>
              </xsl:call-template>
+       </xsl:copy>
+    </xsl:template>
+
+    <!-- Add FilterRestrictions to managedDevice entity type -->
+    <!-- Skip if the annotation is already present, so upstream metadata gaining it does not produce a duplicate -->
+     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.managedDevice']">
+       <xsl:copy>
+         <xsl:copy-of select="@*|node()"/>
+         <xsl:if test="not(edm:Annotation[@Term='Org.OData.Capabilities.V1.FilterRestrictions'])">
+           <xsl:call-template name="ManagedDeviceFilterRestrictionsTemplate"/>
+         </xsl:if>
        </xsl:copy>
     </xsl:template>
 
