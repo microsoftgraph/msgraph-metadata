@@ -1375,6 +1375,19 @@
         <Member Name="permanent" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="copilotPackageRequestStatus">
+        <Member Name="pending" Value="0" />
+        <Member Name="approved" Value="1" />
+        <Member Name="rejected" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="copilotPackageRequestType">
+        <Member Name="publish" Value="0" />
+        <Member Name="activate" Value="1" />
+        <Member Name="access" Value="2" />
+        <Member Name="update" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="countryLookupMethodType">
         <Member Name="clientIpAddress" Value="0" />
         <Member Name="authenticatorAppGps" Value="1" />
@@ -2044,6 +2057,7 @@
         <Member Name="quarantined" Value="6" />
         <Member Name="filteredAsSpam" Value="7" />
         <Member Name="unknownFutureValue" Value="8" />
+        <Member Name="recalled" Value="9" />
       </EnumType>
       <EnumType Name="executionMode">
         <Member Name="evaluateInline" Value="1" />
@@ -6434,6 +6448,9 @@
         <Property Name="enableTargetsToSelfRemoveAccess" Type="Edm.Boolean" />
         <Property Name="enableTargetsToSelfUpdateAccess" Type="Edm.Boolean" />
         <Property Name="onBehalfRequestors" Type="Collection(graph.subjectSet)" />
+      </ComplexType>
+      <ComplexType Name="accessPackageAssignmentRequestParameters">
+        <Property Name="bypassApproval" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
       <ComplexType Name="accessPackageAssignmentRequestRequirements">
         <Property Name="allowCustomAssignmentSchedule" Type="Edm.Boolean" />
@@ -12356,6 +12373,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="customExtensionCalloutInstances" Type="Collection(graph.customExtensionCalloutInstance)" />
         <Property Name="justification" Type="Edm.String" />
+        <Property Name="parameters" Type="graph.accessPackageAssignmentRequestParameters" />
         <Property Name="requestType" Type="graph.accessPackageRequestType" />
         <Property Name="schedule" Type="graph.entitlementManagementSchedule" />
         <Property Name="state" Type="graph.accessPackageRequestState" />
@@ -14292,6 +14310,8 @@
         <Property Name="ownerId" Type="Edm.String" />
         <Property Name="platform" Type="Edm.String" />
         <Property Name="publisher" Type="Edm.String" />
+        <Property Name="requestStatus" Type="graph.copilotPackageRequestStatus" />
+        <Property Name="requestType" Type="graph.copilotPackageRequestType" />
         <Property Name="shortDescription" Type="Edm.String" />
         <Property Name="supportedHosts" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="type" Type="graph.packageType" Nullable="false" />
@@ -31615,9 +31635,6 @@
           </Collection>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.cloudCommunications">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a container that exposes navigation properties for cloud communications resources." />
-      </Annotations>
       <Annotations Target="microsoft.graph.cloudCommunications/onlineMeetingConversations">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
@@ -32136,6 +32153,14 @@
                   <PropertyValue Property="AllowedExpressions" String="eq" />
                   <PropertyValue Property="Property" PropertyPath="platform" />
                 </Record>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="SingleValue" />
+                  <PropertyValue Property="Property" PropertyPath="requestType" />
+                </Record>
+                <Record>
+                  <PropertyValue Property="AllowedExpressions" String="SingleValue" />
+                  <PropertyValue Property="Property" PropertyPath="requestStatus" />
+                </Record>
               </Collection>
             </PropertyValue>
             <PropertyValue Property="NonFilterableProperties">
@@ -32149,6 +32174,12 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
+            <PropertyValue Property="NonInsertableProperties">
+              <Collection>
+                <PropertyPath>requestStatus</PropertyPath>
+                <PropertyPath>requestType</PropertyPath>
+              </Collection>
+            </PropertyValue>
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipTokenSupported" Bool="true" />
@@ -32158,6 +32189,8 @@
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
                 <PropertyPath>governanceMetadata</PropertyPath>
+                <PropertyPath>requestStatus</PropertyPath>
+                <PropertyPath>requestType</PropertyPath>
               </Collection>
             </PropertyValue>
             <PropertyValue Property="Sortable" Bool="true" />
@@ -32165,6 +32198,12 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
+            <PropertyValue Property="NonUpdatableProperties">
+              <Collection>
+                <PropertyPath>requestStatus</PropertyPath>
+                <PropertyPath>requestType</PropertyPath>
+              </Collection>
+            </PropertyValue>
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
@@ -32183,6 +32222,39 @@
       </Annotations>
       <Annotations Target="microsoft.graph.copilotPackageDetail/totalSessions">
         <Annotation Term="Org.OData.Core.V1.Description" String="The total number of sessions served by the package during the reporting period." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The lifecycle status of a package governance request." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestStatus/approved">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The request was approved." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestStatus/pending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The request is awaiting a decision." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestStatus/rejected">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The request was rejected." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An evolvable sentinel for future request statuses." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The type of a package governance request." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType/access">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A request to grant package access." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType/activate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A request to activate a package." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType/publish">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A request to publish a package." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An evolvable sentinel for future request types." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestType/update">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A request to update a package." />
       </Annotations>
       <Annotations Target="microsoft.graph.createSnapshot(Collection(microsoft.graph.configurationBaseline), Edm.String, Edm.String, Collection(Edm.String))">
         <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding" Bool="true" />
@@ -34350,34 +34422,19 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions" Qualifier="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
             <PropertyValue Property="Countable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions" Qualifier="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
@@ -34385,18 +34442,12 @@
             <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
           <Record>
             <PropertyValue Property="Supported" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" Qualifier="Org.OData.Capabilities.V1.SkipSupported" />
       </Annotations>
       <Annotations Target="microsoft.graph.directoryRole">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -42496,39 +42547,8 @@
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.security">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
-          <Record>
-            <PropertyValue Property="Supported" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
-        <Annotation Term="Org.OData.Core.V1.Description" String="Security singleton providing access to audit log resources." />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" Qualifier="Org.OData.Capabilities.V1.SkipSupported" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" Qualifier="Org.OData.Capabilities.V1.TopSupported" />
       </Annotations>
       <Annotations Target="microsoft.graph.security.a365AiExecuteTool">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for A365 AI Execute Tool events." />
