@@ -2457,6 +2457,7 @@
         <Member Name="windowsOsRecoveryPolicies" Value="24" />
         <Member Name="companyPortal" Value="25" />
         <Member Name="windowsRecoveryAndRemediationConfiguration" Value="26" />
+        <Member Name="maintenanceWindows" Value="27" />
       </EnumType>
       <EnumType Name="deviceManagementConfigurationWindowsSkus">
         <Member Name="unknown" Value="0" />
@@ -3162,6 +3163,17 @@
         <Member Name="immutableEntryId" Value="2" />
         <Member Name="restId" Value="3" />
         <Member Name="restImmutableEntryId" Value="4" />
+      </EnumType>
+      <EnumType Name="exchangeMessageTraceStatus">
+        <Member Name="gettingStatus" Value="1" />
+        <Member Name="pending" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="delivered" Value="4" />
+        <Member Name="expanded" Value="5" />
+        <Member Name="quarantined" Value="6" />
+        <Member Name="filteredAsSpam" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+        <Member Name="recalled" Value="9" />
       </EnumType>
       <EnumType Name="expirationPatternType">
         <Member Name="notSpecified" Value="0" />
@@ -14900,6 +14912,7 @@
       <EntityType Name="admin">
         <NavigationProperty Name="cloudLicensing" Type="microsoft.graph.cloudLicensing.adminCloudLicensing" ContainsTarget="true" />
         <NavigationProperty Name="entra" Type="graph.entra" ContainsTarget="true" />
+        <NavigationProperty Name="exchange" Type="graph.exchangeAdmin" ContainsTarget="true" />
         <NavigationProperty Name="people" Type="graph.peopleAdminSettings" ContainsTarget="true" />
         <NavigationProperty Name="serviceAnnouncement" Type="graph.serviceAnnouncement" ContainsTarget="true" />
         <NavigationProperty Name="sharepoint" Type="graph.sharepoint" ContainsTarget="true" />
@@ -19098,6 +19111,28 @@
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
         <Property Name="responseType" Type="graph.responseType" />
       </EntityType>
+      <EntityType Name="exchangeAdmin" BaseType="graph.entity">
+        <NavigationProperty Name="tracing" Type="graph.messageTracingRoot" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="exchangeMessageTrace" BaseType="graph.entity">
+        <Property Name="fromIP" Type="Edm.String" />
+        <Property Name="messageId" Type="Edm.String" />
+        <Property Name="receivedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="recipientAddress" Type="Edm.String" />
+        <Property Name="senderAddress" Type="Edm.String" />
+        <Property Name="size" Type="Edm.Int32" Nullable="false" />
+        <Property Name="status" Type="graph.exchangeMessageTraceStatus" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="toIP" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="exchangeMessageTraceDetail" BaseType="graph.entity">
+        <Property Name="action" Type="Edm.String" />
+        <Property Name="data" Type="Edm.String" />
+        <Property Name="dateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="event" Type="Edm.String" Nullable="false" />
+        <Property Name="messageId" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="extension" BaseType="graph.entity" Abstract="true" OpenType="true" />
       <EntityType Name="extensionProperty" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="appDisplayName" Type="Edm.String" />
@@ -21403,6 +21438,9 @@
         <Property Name="isReadOnly" Type="Edm.Boolean" />
         <Property Name="sequence" Type="Edm.Int32" />
       </EntityType>
+      <EntityType Name="messageTracingRoot" BaseType="graph.entity">
+        <NavigationProperty Name="messageTraces" Type="Collection(graph.exchangeMessageTrace)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="mfaCompletionMetric" BaseType="graph.entity">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="attemptsCount" Type="Edm.Int64" Nullable="false" />
@@ -22190,6 +22228,7 @@
         <Property Name="label" Type="Edm.String" />
         <Property Name="parentId" Type="Edm.String" />
         <Property Name="phone" Type="Edm.String" />
+        <Property Name="placeId" Type="Edm.String" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="checkIns" Type="Collection(graph.checkInClaim)" ContainsTarget="true" />
         <NavigationProperty Name="children" Type="Collection(graph.place)" />
@@ -22984,7 +23023,6 @@
         <Property Name="floorNumber" Type="Edm.Int32" />
         <Property Name="isTeamsEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="nickname" Type="Edm.String" Nullable="false" />
-        <Property Name="placeId" Type="Edm.String" />
         <Property Name="teamsEnabledState" Type="graph.placeFeatureEnablement" Nullable="false" />
         <Property Name="videoDeviceName" Type="Edm.String" />
       </EntityType>
@@ -23674,6 +23712,7 @@
         <Property Name="managedServiceIdentity" Type="graph.managedIdentity" />
         <Property Name="resourceDisplayName" Type="Edm.String" />
         <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="rootActorId" Type="Edm.String" />
         <Property Name="servicePrincipalId" Type="Edm.String" />
         <Property Name="servicePrincipalName" Type="Edm.String" />
         <Property Name="signInCount" Type="Edm.Int64" />
@@ -26747,7 +26786,6 @@
         <Property Name="floorNumber" Type="Edm.Int32" />
         <Property Name="mode" Type="graph.placeMode" />
         <Property Name="nickname" Type="Edm.String" Nullable="false" />
-        <Property Name="placeId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="x509CertificateCombinationConfiguration" BaseType="graph.authenticationCombinationConfiguration">
         <Property Name="allowedIssuerSkis" Type="Collection(Edm.String)" Nullable="false" />
@@ -31175,6 +31213,11 @@
       <Function Name="getCustomizedSettings" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.deviceManagementIntent" />
         <ReturnType Type="Collection(graph.deviceManagementIntentCustomizedSetting)" />
+      </Function>
+      <Function Name="getDetailsByRecipient" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.exchangeMessageTrace" />
+        <Parameter Name="recipientAddress" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="Collection(graph.exchangeMessageTraceDetail)" />
       </Function>
       <Function Name="getDevicesScheduledToRetire" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.deviceCompliancePolicy)" />
@@ -45912,6 +45955,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/enrollmentConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EnrollmentConfiguration" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/maintenanceWindows">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates Template Family for Maintenance Windows templates" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/none">
         <Annotation Term="Org.OData.Core.V1.Description" String="Default for Template Family when Policy is not linked to a Template" />
