@@ -718,6 +718,11 @@
         <Member Name="automatic" Value="1" />
         <Member Name="recommended" Value="2" />
       </EnumType>
+      <EnumType Name="applicationPermissionType">
+        <Member Name="role" Value="0" />
+        <Member Name="scope" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="applicationType">
         <Member Name="universal" Value="1" />
         <Member Name="desktop" Value="2" />
@@ -3270,6 +3275,7 @@
         <Member Name="windowsOsRecoveryPolicies" Value="24" />
         <Member Name="companyPortal" Value="25" />
         <Member Name="windowsRecoveryAndRemediationConfiguration" Value="26" />
+        <Member Name="maintenanceWindows" Value="27" />
       </EnumType>
       <EnumType Name="deviceManagementConfigurationWindowsSkus">
         <Member Name="unknown" Value="0" />
@@ -7397,6 +7403,17 @@
         <Member Name="sz" Value="11" />
         <Member Name="unknownFutureValue" Value="127" />
       </EnumType>
+      <EnumType Name="relationshipCreationType">
+        <Member Name="approvedByAdmin" Value="0" />
+        <Member Name="addOnTenant" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="relationshipStatus">
+        <Member Name="active" Value="0" />
+        <Member Name="terminated" Value="1" />
+        <Member Name="terminationRequestedByGoverningTenant" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="releaseType">
         <Member Name="preview" Value="0" />
         <Member Name="generallyAvailable" Value="1" />
@@ -7474,6 +7491,12 @@
         <Member Name="everyone" Value="0" />
         <Member Name="authorAndModerators" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="requestStatus">
+        <Member Name="pending" Value="0" />
+        <Member Name="accepted" Value="1" />
+        <Member Name="rejected" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="requiredLicenses">
         <Member Name="notApplicable" Value="0" />
@@ -10313,9 +10336,18 @@
         <Property Name="includeApplications" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
+      <ComplexType Name="applicationResourcePermission">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" />
+        <Property Name="type" Type="graph.applicationPermissionType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="applicationServicePrincipal">
         <NavigationProperty Name="application" Type="graph.application" />
         <NavigationProperty Name="servicePrincipal" Type="graph.servicePrincipal" />
+      </ComplexType>
+      <ComplexType Name="applicationsRequiredResourceAccess">
+        <Property Name="permissions" Type="Collection(graph.applicationResourcePermission)" Nullable="false" />
+        <Property Name="resourceAppId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="appliedAuthenticationEventListener">
         <Property Name="eventType" Type="graph.authenticationEventType" />
@@ -12055,6 +12087,16 @@
       </ComplexType>
       <ComplexType Name="delegatedAdminAccessDetails">
         <Property Name="unifiedRoles" Type="Collection(graph.unifiedRole)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdministrationRoleAssignment">
+        <Property Name="groupDisplayName" Type="Edm.String" />
+        <Property Name="roleTemplates" Type="Collection(graph.roleTemplate)" Nullable="false" />
+        <NavigationProperty Name="group" Type="graph.group" />
+      </ComplexType>
+      <ComplexType Name="delegatedAdministrationRoleAssignmentSnapshot">
+        <Property Name="groupDisplayName" Type="Edm.String" />
+        <Property Name="groupId" Type="Edm.String" Nullable="false" />
+        <Property Name="roleTemplates" Type="Collection(graph.roleTemplate)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="delegatedAdminRelationshipCustomerParticipant">
         <Property Name="displayName" Type="Edm.String" />
@@ -14600,6 +14642,18 @@
         <Property Name="from" Type="Edm.String" />
         <Property Name="to" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="multiTenantApplicationsToProvision">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="objectId" Type="Edm.String" Nullable="false" />
+        <Property Name="requiredResourceAccesses" Type="Collection(graph.applicationsRequiredResourceAccess)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="multiTenantApplicationsToProvisionSnapshot">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="objectId" Type="Edm.String" Nullable="false" />
+        <Property Name="requiredResourceAccesses" Type="Collection(graph.applicationsRequiredResourceAccess)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="ndesConnectorHealthCheck">
         <Property Name="metricName" Type="graph.ndesConnectorHealthCheckMetricName" Nullable="false" />
         <Property Name="status" Type="graph.ndesConnectorHealthStatus" Nullable="false" />
@@ -15811,6 +15865,13 @@
         <Property Name="relationship" Type="graph.personRelationship" />
         <Property Name="userPrincipalName" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="relationshipPolicy">
+        <Property Name="delegatedAdministrationRoleAssignments" Type="Collection(graph.delegatedAdministrationRoleAssignmentSnapshot)" Nullable="false" />
+        <Property Name="governedTenantCanTerminate" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="multiTenantApplicationsToProvision" Type="Collection(graph.multiTenantApplicationsToProvisionSnapshot)" Nullable="false" />
+        <Property Name="policyId" Type="Edm.String" Nullable="false" />
+        <Property Name="version" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="reminder">
         <Property Name="changeKey" Type="Edm.String" />
         <Property Name="eventEndTime" Type="graph.dateTimeTimeZone" />
@@ -16021,6 +16082,10 @@
       <ComplexType Name="roleScopeTagInfo">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="roleScopeTagId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="roleTemplate">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="root" />
       <ComplexType Name="rotateBitLockerKeysDeviceActionResult" BaseType="graph.deviceActionResult">
@@ -20197,6 +20262,38 @@
       <EntityType Name="azureCommunicationServicesUserConversationMember" BaseType="graph.conversationMember">
         <Property Name="azureCommunicationServicesId" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="b2bRegistrationMetrics" BaseType="graph.entity">
+        <NavigationProperty Name="initial" Type="graph.b2BRegistrationMetricsInitial" Nullable="false" />
+        <NavigationProperty Name="recent" Type="graph.b2BRegistrationMetricsRecent" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BRegistrationMetricsBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="inboundTotalUsers" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="outboundTotalUsers" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="watermarkDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BRegistrationMetricsInitial" BaseType="graph.b2BRegistrationMetricsBase">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BRegistrationMetricsRecent" BaseType="graph.b2BRegistrationMetricsBase">
+        <Property Name="updateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BSignInActivityMetrics" BaseType="graph.entity">
+        <NavigationProperty Name="initial" Type="graph.b2BSignInActivityMetricsInitial" Nullable="false" />
+        <NavigationProperty Name="recent" Type="graph.b2BSignInActivityMetricsRecent" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BSignInActivityMetricsBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="inboundMonthlyTotalApplications" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="inboundMonthlyTotalUsers" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="outboundMonthlyTotalApplications" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="outboundMonthlyTotalUsers" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="watermarkDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BSignInActivityMetricsInitial" BaseType="graph.b2BSignInActivityMetricsBase">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="b2BSignInActivityMetricsRecent" BaseType="graph.b2BSignInActivityMetricsBase">
+        <Property Name="updateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
       <EntityType Name="b2cAuthenticationMethodsPolicy" BaseType="graph.entity">
         <Property Name="isEmailPasswordAuthenticationEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isPhoneOneTimePasswordAuthenticationEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -20243,6 +20340,26 @@
         <Property Name="pageLayout" Type="graph.pageLayoutType" />
         <Property Name="publishingState" Type="graph.publicationFacet" />
         <Property Name="title" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="billingMetrics" BaseType="graph.entity">
+        <NavigationProperty Name="initial" Type="graph.billingMetricsInitial" Nullable="false" />
+        <NavigationProperty Name="recent" Type="graph.billingMetricsRecent" Nullable="false" />
+      </EntityType>
+      <EntityType Name="billingMetricsBase" BaseType="graph.entity">
+        <Property Name="foreignAssociatedTenantBillingManagementActiveCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="foreignAssociatedTenantCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="foreignAssociatedTenantProvisioningActiveCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="localAssociatedTenantBillingManagementActiveCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="localAssociatedTenantCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="localAssociatedTenantIds" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="localAssociatedTenantProvisioningActiveCount" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="watermarkDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="billingMetricsInitial" BaseType="graph.billingMetricsBase">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="billingMetricsRecent" BaseType="graph.billingMetricsBase">
+        <Property Name="updateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </EntityType>
       <EntityType Name="bitlocker" BaseType="graph.entity">
         <NavigationProperty Name="recoveryKeys" Type="Collection(graph.bitlockerRecoveryKey)" ContainsTarget="true" />
@@ -23018,6 +23135,7 @@
         <NavigationProperty Name="publicKeyInfrastructure" Type="graph.publicKeyInfrastructureRoot" ContainsTarget="true" />
         <NavigationProperty Name="recommendations" Type="Collection(graph.recommendation)" ContainsTarget="true" />
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true" />
+        <NavigationProperty Name="tenantGovernance" Type="graph.tenantGovernance" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
         <Property Name="activityDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -23613,10 +23731,39 @@
       <EntityType Name="governanceInsight" BaseType="graph.entity" Abstract="true">
         <Property Name="insightCreatedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
+      <EntityType Name="governanceInvitation" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="governedTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governedTenantName" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantName" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="governancePolicyTemplate" BaseType="graph.entity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="policy" Type="graph.governancePolicy" />
         <Property Name="settings" Type="graph.businessFlowSettings" />
+      </EntityType>
+      <EntityType Name="governanceRelationship" BaseType="graph.entity">
+        <Property Name="createdType" Type="graph.relationshipCreationType" Nullable="false" />
+        <Property Name="creationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="governedTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governedTenantName" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantName" Type="Edm.String" Nullable="false" />
+        <Property Name="policySnapshot" Type="graph.relationshipPolicy" Nullable="false" />
+        <Property Name="status" Type="graph.relationshipStatus" Nullable="false" />
+      </EntityType>
+      <EntityType Name="governanceRequest" BaseType="graph.entity">
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="governedTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governedTenantName" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="governingTenantName" Type="Edm.String" Nullable="false" />
+        <Property Name="policySnapshot" Type="graph.relationshipPolicy" Nullable="false" />
+        <Property Name="requestDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="status" Type="graph.requestStatus" Nullable="false" />
+        <NavigationProperty Name="governancePolicyTemplate" Type="graph.tenantGovernancePolicyTemplate" />
       </EntityType>
       <EntityType Name="governanceResource" BaseType="graph.entity" OpenType="true">
         <Property Name="displayName" Type="Edm.String" />
@@ -26223,6 +26370,21 @@
         <NavigationProperty Name="signUps" Type="Collection(graph.userSignUpMetric)" />
         <NavigationProperty Name="summary" Type="Collection(graph.insightSummary)" />
       </EntityType>
+      <EntityType Name="multiTenantApplicationMetrics" BaseType="graph.entity">
+        <NavigationProperty Name="initial" Type="graph.multiTenantApplicationMetricsInitial" Nullable="false" />
+        <NavigationProperty Name="recent" Type="graph.multiTenantApplicationMetricsRecent" Nullable="false" />
+      </EntityType>
+      <EntityType Name="multiTenantApplicationMetricsBase" BaseType="graph.entity">
+        <Property Name="inboundMonthlyTotalApplications" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="outboundMonthlyTotalApplications" Type="Edm.Decimal" Nullable="false" Scale="variable" />
+        <Property Name="watermarkDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="multiTenantApplicationMetricsInitial" BaseType="graph.multiTenantApplicationMetricsBase">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
+      <EntityType Name="multiTenantApplicationMetricsRecent" BaseType="graph.multiTenantApplicationMetricsBase">
+        <Property Name="updateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+      </EntityType>
       <EntityType Name="multiValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Collection(Edm.String)" />
       </EntityType>
@@ -27566,6 +27728,18 @@
         <Property Name="regionalFormatOverrides" Type="graph.regionalFormatOverrides" />
         <Property Name="translationPreferences" Type="graph.translationPreferences" />
       </EntityType>
+      <EntityType Name="relatedTenant" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="isMicrosoftInfrastructure" Type="Edm.Boolean" Nullable="false" />
+        <NavigationProperty Name="appB2BSignInActivityMetrics" Type="graph.b2BSignInActivityMetrics" />
+        <NavigationProperty Name="b2BRegistrationMetrics" Type="graph.b2bRegistrationMetrics" />
+        <NavigationProperty Name="b2BSignInActivityMetrics" Type="graph.b2BSignInActivityMetrics" />
+        <NavigationProperty Name="billingMetrics" Type="graph.billingMetrics" />
+        <NavigationProperty Name="multiTenantApplicationMetrics" Type="graph.multiTenantApplicationMetrics" />
+      </EntityType>
+      <EntityType Name="relatedTenantsRefreshRequest" BaseType="graph.entity">
+        <Property Name="location" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="relyingPartyDetailedSummary" BaseType="graph.entity">
         <Property Name="failedSignInCount" Type="Edm.Int64" Nullable="false" />
         <Property Name="migrationStatus" Type="graph.migrationStatus" Nullable="false" />
@@ -28599,6 +28773,7 @@
         <Property Name="managedServiceIdentity" Type="graph.managedIdentity" />
         <Property Name="resourceDisplayName" Type="Edm.String" />
         <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="rootActorId" Type="Edm.String" />
         <Property Name="servicePrincipalId" Type="Edm.String" />
         <Property Name="servicePrincipalName" Type="Edm.String" />
         <Property Name="signInCount" Type="Edm.Int64" />
@@ -28915,6 +29090,28 @@
       <EntityType Name="tenantAttachRBAC" BaseType="graph.entity" />
       <EntityType Name="tenantDataSecurityAndGovernance" BaseType="graph.dataSecurityAndGovernance">
         <NavigationProperty Name="protectionScopes" Type="graph.tenantProtectionScopeContainer" ContainsTarget="true" Nullable="false" />
+      </EntityType>
+      <EntityType Name="tenantGovernance" BaseType="graph.entity">
+        <NavigationProperty Name="governanceInvitations" Type="Collection(graph.governanceInvitation)" ContainsTarget="true" />
+        <NavigationProperty Name="governancePolicyTemplates" Type="Collection(graph.tenantGovernancePolicyTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="governanceRelationships" Type="Collection(graph.governanceRelationship)" ContainsTarget="true" />
+        <NavigationProperty Name="governanceRequests" Type="Collection(graph.governanceRequest)" ContainsTarget="true" />
+        <NavigationProperty Name="relatedTenants" Type="Collection(graph.relatedTenant)" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="graph.tenantGovernanceSetting" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="tenantGovernancePolicyTemplate" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="delegatedAdministrationRoleAssignments" Type="Collection(graph.delegatedAdministrationRoleAssignment)" Nullable="false" />
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="governedTenantCanTerminate" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="multiTenantApplicationsToProvision" Type="Collection(graph.multiTenantApplicationsToProvision)" Nullable="false" />
+        <Property Name="version" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="tenantGovernanceSetting" BaseType="graph.entity">
+        <Property Name="canReceiveInvitations" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isRelatedTenantsEnabled" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="tenantProtectionScopeContainer" BaseType="graph.entity" />
       <EntityType Name="tenantReference">
@@ -34042,6 +34239,9 @@
         <Parameter Name="phoneNumber" Type="Edm.String" Unicode="false" />
         <Parameter Name="footer" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="enableRelatedTenants" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.tenantGovernanceSetting" />
+      </Action>
       <Action Name="enableSmsSignIn" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.authenticationMethod" />
       </Action>
@@ -37232,6 +37432,9 @@
       </Action>
       <Action Name="reenable" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
+      </Action>
+      <Action Name="refresh" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.relatedTenant)" />
       </Action>
       <Action Name="refresh" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.unifiedRoleManagementAlert)" />
@@ -47784,12 +47987,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Apple Volume Purchase Program Token Identifier." />
       </Annotations>
       <Annotations Target="microsoft.graph.application">
-        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
-          <Record>
-            <PropertyValue Property="Supported" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking" Qualifier="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
@@ -47855,6 +48053,15 @@
       </Annotations>
       <Annotations Target="microsoft.graph.applicationGuardEnabledOptions/notConfigured">
         <Annotation Term="Org.OData.Core.V1.Description" String="Not Configured" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.applicationPermissionType/role">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a type of permission that is for an app only scenario. No user is involved." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.applicationPermissionType/scope">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a type of permission that is for an app and user scenario." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.applicationPermissionType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future-" />
       </Annotations>
       <Annotations Target="microsoft.graph.applicationSignInDetailedSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -51764,9 +51971,6 @@
       <Annotations Target="microsoft.graph.copilotFile/uri">
         <Annotation Term="Org.OData.Core.V1.Description" String="The URI of the file." />
         <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.copilotRoot">
-        <Annotation Term="Org.OData.Core.V1.Description" String="Root singleton for all Copilot APIs on Microsoft Graph." />
       </Annotations>
       <Annotations Target="microsoft.graph.copilotRoot/conversations">
         <Annotation Term="Org.OData.Core.V1.Description" String="The users conversations with Copilot Chat." />
@@ -57970,6 +58174,9 @@
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/enrollmentConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EnrollmentConfiguration" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/maintenanceWindows">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates Template Family for Maintenance Windows templates" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/none">
         <Annotation Term="Org.OData.Core.V1.Description" String="Default for Template Family when Policy is not linked to a Template" />
       </Annotations>
@@ -60007,34 +60214,19 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions" Qualifier="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
             <PropertyValue Property="Countable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions" Qualifier="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
@@ -60042,13 +60234,7 @@
             <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" Qualifier="Org.OData.Capabilities.V1.SkipSupported" />
       </Annotations>
       <Annotations Target="microsoft.graph.directoryRole">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -76339,6 +76525,34 @@
       <Annotations Target="microsoft.graph.reject(microsoft.graph.operationApprovalRequest, Edm.String, microsoft.graph.operationApprovalSource)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Rejects the requested instance of an operationApprovalRequest." />
       </Annotations>
+      <Annotations Target="microsoft.graph.relatedTenant/isMicrosoftInfrastructure">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this tenant is a Microsoft infrastructure tenant." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipCreationType/addOnTenant">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship between the add-on tenant and the tenant from which it was created." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipCreationType/approvedByAdmin">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship between two tenants that was created by an explicit approval from the governed tenant admin." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipCreationType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolvable and adding more values in the future-" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipPolicy/version">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipStatus/active">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship that is currently active." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipStatus/terminated">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship that has been terminated." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipStatus/terminationRequestedByGoverningTenant">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship that has been requested to be terminated by governing tenant." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.relationshipStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future-" />
+      </Annotations>
       <Annotations Target="microsoft.graph.relyingPartyDetailedSummary">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
@@ -76647,6 +76861,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.requestRemoteHelpSessionAccessResponse/sessionKey">
         <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier for a session" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.requestStatus/accepted">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a governance request that was accepted" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.requestStatus/pending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a governance request that is pending" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.requestStatus/rejected">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a governance request that was rejected" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.requestStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future-" />
       </Annotations>
       <Annotations Target="microsoft.graph.requiredPasswordType">
         <Annotation Term="Org.OData.Core.V1.Description" String="Possible values of required passwords." />
@@ -77521,38 +77747,8 @@
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.security">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" Qualifier="Org.OData.Capabilities.V1.SkipSupported" />
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" Qualifier="Org.OData.Capabilities.V1.TopSupported" />
       </Annotations>
       <Annotations Target="microsoft.graph.security.alert">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -78887,6 +79083,41 @@
       </Annotations>
       <Annotations Target="microsoft.graph.tenantAttachRBACState/enabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the tenant is enabled for Tenant Attach with role management.  TRUE if enabled, FALSE if the Tenant Attach with rolemanagement is disabled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.tenantGovernance/governanceInvitations">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.tenantGovernance/governancePolicyTemplates">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.tenantGovernance/governanceRelationships">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.tenantGovernance/governanceRequests">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.tenantGovernance/relatedTenants">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.tenantSecureScores(Collection(microsoft.graph.recommendation))">
         <Annotation Term="Org.OData.Core.V1.RequiresExplicitBinding" Bool="true" />
