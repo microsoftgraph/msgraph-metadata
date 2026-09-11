@@ -3765,11 +3765,6 @@
         <Property Name="code" Type="Edm.String" />
         <Property Name="errorDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
-      <ComplexType Name="classificationLimit">
-        <Property Name="allowedLimit" Type="Edm.Int32" />
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="impactedSensitiveTypeIds" Type="Collection(Edm.String)" Nullable="false" />
-      </ComplexType>
       <ComplexType Name="cloudAppSecuritySessionControl" BaseType="graph.conditionalAccessSessionControl">
         <Property Name="cloudAppSecurityType" Type="graph.cloudAppSecuritySessionControlType" />
       </ComplexType>
@@ -4177,6 +4172,7 @@
       <ComplexType Name="detectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase">
         <Property Name="classificationAttributes" Type="Collection(graph.classificationAttribute)" />
         <Property Name="classificationMethod" Type="graph.classificationMethod" />
+        <Property Name="matches" Type="Collection(graph.sensitiveContentLocation)" />
         <Property Name="scope" Type="graph.sensitiveTypeScope" />
         <Property Name="sensitiveTypeSource" Type="graph.sensitiveTypeSource" />
       </ComplexType>
@@ -4184,7 +4180,6 @@
         <Property Name="confidence" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="id" Type="Edm.Guid" />
-        <Property Name="matches" Type="Collection(graph.sensitiveContentLocation)" />
         <Property Name="recommendedConfidence" Type="Edm.Int32" />
         <Property Name="uniqueCount" Type="Edm.Int32" />
       </ComplexType>
@@ -4261,7 +4256,6 @@
         <Property Name="message" Type="Edm.String" />
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="diagnosticMetadata" />
       <ComplexType Name="Dictionary" OpenType="true" />
       <ComplexType Name="directorySizeQuota">
         <Property Name="total" Type="Edm.Int32" />
@@ -4451,11 +4445,8 @@
         <Property Name="classification" Type="Collection(graph.exactMatchDetectedSensitiveContent)" />
         <Property Name="errors" Type="Collection(graph.classificationError)" />
       </ComplexType>
-      <ComplexType Name="exactMatchDetectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase" />
-      <ComplexType Name="exactMatchDiagnostic">
-        <Property Name="classificationId" Type="Edm.Guid" Nullable="false" />
-        <Property Name="classificationLimits" Type="Collection(graph.classificationLimit)" Nullable="false" />
-        <Property Name="unmatchedItems" Type="Collection(graph.unmatched)" Nullable="false" />
+      <ComplexType Name="exactMatchDetectedSensitiveContent" BaseType="graph.detectedSensitiveContentBase">
+        <Property Name="matches" Type="Collection(graph.sensitiveContentLocation)" />
       </ComplexType>
       <ComplexType Name="excludeTarget">
         <Property Name="id" Type="Edm.String" Nullable="false" />
@@ -5792,7 +5783,6 @@
       </ComplexType>
       <ComplexType Name="policyLocationApplication" BaseType="graph.policyLocation" />
       <ComplexType Name="policyLocationDomain" BaseType="graph.policyLocation" />
-      <ComplexType Name="policyLocationTool" BaseType="graph.policyLocation" />
       <ComplexType Name="policyLocationUrl" BaseType="graph.policyLocation" />
       <ComplexType Name="policyScopeBase" Abstract="true">
         <Property Name="activities" Type="graph.userActivityTypes" Nullable="false" />
@@ -5907,7 +5897,6 @@
       </ComplexType>
       <ComplexType Name="protectedApplicationMetadata" BaseType="graph.integratedApplicationMetadata">
         <Property Name="applicationLocation" Type="graph.policyLocation" />
-        <Property Name="sourceLocation" Type="graph.policyLocation" />
       </ComplexType>
       <ComplexType Name="protectedContent">
         <Property Name="cid" Type="Edm.String" />
@@ -7164,13 +7153,6 @@
         <Property Name="allowedResourceActions" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="condition" Type="Edm.String" />
         <Property Name="excludedResourceActions" Type="Collection(Edm.String)" />
-      </ComplexType>
-      <ComplexType Name="unmatched">
-        <Property Name="code" Type="Edm.String" />
-        <Property Name="corroborativeEvidences" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="idMatch" Type="Edm.String" />
-        <Property Name="length" Type="Edm.Int32" />
-        <Property Name="offset" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="unrestrictedAudience" BaseType="graph.signInAudienceRestrictionsBase" />
       <ComplexType Name="updateAllowedCombinationsResult">
@@ -9273,14 +9255,12 @@
         <Property Name="proposedNewTime" Type="graph.timeSlot" />
         <Property Name="responseType" Type="graph.responseType" />
       </EntityType>
-      <EntityType Name="exactMatchDataStore" BaseType="graph.exactMatchDataStoreBase">
-        <NavigationProperty Name="sessions" Type="Collection(graph.exactMatchSession)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="exactMatchDataStoreBase" BaseType="graph.entity">
+      <EntityType Name="exactMatchDataStore" BaseType="graph.entity">
         <Property Name="columns" Type="Collection(graph.exactDataMatchStoreColumn)" />
         <Property Name="dataLastUpdatedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+        <NavigationProperty Name="sessions" Type="Collection(graph.exactMatchSession)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchJobBase" BaseType="graph.entity" Abstract="true">
         <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
@@ -9293,25 +9273,23 @@
         <Property Name="state" Type="Edm.String" />
         <NavigationProperty Name="matchingRows" Type="Collection(graph.lookupResultRow)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchSessionBase">
+      <EntityType Name="exactMatchSession" BaseType="graph.exactMatchJobBase">
         <Property Name="checksum" Type="Edm.String" />
+        <Property Name="dataStoreId" Type="Edm.String" />
         <Property Name="dataUploadURI" Type="Edm.String" />
         <Property Name="fields" Type="Collection(Edm.String)" />
         <Property Name="fileName" Type="Edm.String" />
-        <Property Name="rowsPerBlock" Type="Edm.Int32" />
-        <Property Name="salt" Type="Edm.String" />
-        <Property Name="uploadAgentId" Type="Edm.String" />
-        <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="exactMatchSessionBase" BaseType="graph.exactMatchJobBase">
-        <Property Name="dataStoreId" Type="Edm.String" />
         <Property Name="processingCompletionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="remainingBlockCount" Type="Edm.Int32" />
         <Property Name="remainingJobCount" Type="Edm.Int32" />
+        <Property Name="rowsPerBlock" Type="Edm.Int32" />
+        <Property Name="salt" Type="Edm.String" />
         <Property Name="state" Type="Edm.String" />
         <Property Name="totalBlockCount" Type="Edm.Int32" />
         <Property Name="totalJobCount" Type="Edm.Int32" />
+        <Property Name="uploadAgentId" Type="Edm.String" />
         <Property Name="uploadCompletionDateTime" Type="Edm.DateTimeOffset" />
+        <NavigationProperty Name="uploadAgent" Type="graph.exactMatchUploadAgent" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="exactMatchUploadAgent" BaseType="graph.entity">
         <Property Name="creationDateTime" Type="Edm.DateTimeOffset" />
@@ -18941,7 +18919,6 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.agentIdentity/inheritedOauth2PermissionGrants">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -18981,7 +18958,6 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.agentIdentity/managerApplications">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
@@ -19074,11 +19050,6 @@
             <PropertyValue Property="Filterable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -19101,11 +19072,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -19132,11 +19098,6 @@
             <PropertyValue Property="Filterable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -19159,11 +19120,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -19190,11 +19146,6 @@
             <PropertyValue Property="Filterable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -19212,11 +19163,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -19398,11 +19344,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
@@ -19425,16 +19366,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -19481,11 +19412,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -19621,11 +19547,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
@@ -19643,11 +19564,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -19676,11 +19592,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
@@ -19698,16 +19609,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -19749,11 +19650,6 @@
             <PropertyValue Property="Insertable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -19778,16 +19674,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
@@ -19805,16 +19691,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -19846,16 +19722,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
             <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
@@ -19980,11 +19846,6 @@
             <PropertyValue Property="Filterable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
@@ -20002,16 +19863,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -20033,16 +19884,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
@@ -20060,11 +19901,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -20151,11 +19987,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.directory/featureRolloutPolicies">
@@ -20206,11 +20037,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions" Qualifier="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" Qualifier="Org.OData.Capabilities.V1.SkipSupported" />
@@ -20274,21 +20100,11 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
           <Record>
             <PropertyValue Property="Navigability">
               <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
             </PropertyValue>
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -20357,16 +20173,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -20742,16 +20548,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -20840,16 +20636,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.group/photos">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -20936,11 +20722,6 @@
             <PropertyValue Property="Deletable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="Readable" Bool="false" />
@@ -20971,11 +20752,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -21095,11 +20871,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -21233,11 +21004,6 @@
             <PropertyValue Property="Searchable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -21284,11 +21050,6 @@
             <PropertyValue Property="Searchable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -21316,11 +21077,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -21352,11 +21108,6 @@
             <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -21366,11 +21117,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.taskReport/taskDefinition">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -21413,11 +21159,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -21464,11 +21205,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -21620,11 +21356,6 @@
             <PropertyValue Property="Searchable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
           <Record>
@@ -21727,16 +21458,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
           <Record>
             <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -21896,16 +21617,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -22357,28 +22068,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -22425,21 +22114,11 @@
             <PropertyValue Property="Deletable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
           <Record>
             <PropertyValue Property="Navigability">
               <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
             </PropertyValue>
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
@@ -22596,16 +22275,6 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
@@ -22630,11 +22299,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -22702,21 +22366,11 @@
             <PropertyValue Property="Filterable" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.riskyUserHistoryItem">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
       </Annotations>
@@ -22732,11 +22386,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -22756,11 +22405,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
@@ -23107,11 +22751,6 @@
             <PropertyValue Property="Filterable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
@@ -23129,16 +22768,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
-          <Record>
-            <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
-          <Record>
-            <PropertyValue Property="Selectable" Bool="false" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
@@ -23308,16 +22937,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.user/calendarGroups">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -23454,16 +23073,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.user/joinedGroups">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -23542,16 +23151,6 @@
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
@@ -23599,16 +23198,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
             <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
