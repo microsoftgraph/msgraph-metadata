@@ -4996,6 +4996,14 @@
         <Member Name="Default" Value="1" />
         <Member Name="IgnoreLookupReferenceResolutionFailure" Value="2" />
       </EnumType>
+      <EnumType Name="eSimDiscoveryState">
+        <Member Name="unknown" Value="0" />
+        <Member Name="requested" Value="1" />
+        <Member Name="executing" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="failed" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="eSimProfileErrorDetail">
         <Member Name="none" Value="0" />
         <Member Name="cardGeneralFailure" Value="1" />
@@ -6705,7 +6713,8 @@
         <Member Name="unresponsive" Value="3" />
         <Member Name="notSetUp" Value="4" />
         <Member Name="error" Value="5" />
-        <Member Name="unknownFutureValue" Value="6" />
+        <Member Name="neverConfigured" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
       </EnumType>
       <EnumType Name="modality">
         <Member Name="unknown" Value="0" />
@@ -6774,6 +6783,13 @@
         <Member Name="none" Value="0" />
         <Member Name="all" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="ndesConnectorHealthCheckMetricName">
+        <Member Name="caConnectivity" Value="0" />
+        <Member Name="caIssuancePermissions" Value="1" />
+        <Member Name="caRevocationPermissions" Value="2" />
+        <Member Name="certificateTemplate" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="ndesConnectorHealthStatus">
         <Member Name="unknown" Value="0" />
@@ -18207,15 +18223,6 @@
         <Property Name="reviewLinkAbilities" Type="graph.linkRoleAbilities" />
         <Property Name="submitOnlyLinkAbilities" Type="graph.linkRoleAbilities" />
       </ComplexType>
-      <ComplexType Name="linkStatistics">
-        <Property Name="correlatedAssigned" Type="Edm.Int64" />
-        <Property Name="correlatedNotAssigned" Type="Edm.Int64" />
-        <Property Name="failToCorrelate" Type="Edm.Int64" />
-        <Property Name="mapping" Type="graph.correlatedObjectLinkMapping" />
-        <Property Name="total" Type="Edm.Int64" />
-        <Property Name="uncorrelated" Type="Edm.Int64" />
-        <Property Name="unresolvedTarget" Type="Edm.Int64" />
-      </ComplexType>
       <ComplexType Name="listInfo">
         <Property Name="contentTypesEnabled" Type="Edm.Boolean" />
         <Property Name="hidden" Type="Edm.Boolean" />
@@ -19038,6 +19045,10 @@
         <Property Name="status" Type="graph.multiTenantOrganizationMemberProcessingStatus" />
       </ComplexType>
       <ComplexType Name="mutualTLSSecurityScheme" BaseType="graph.securityScheme" />
+      <ComplexType Name="ndesConnectorHealthCheck">
+        <Property Name="metricName" Type="graph.ndesConnectorHealthCheckMetricName" Nullable="false" />
+        <Property Name="status" Type="graph.ndesConnectorHealthStatus" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="networkConnection">
         <Property Name="applicationName" Type="Edm.String" />
         <Property Name="destinationAddress" Type="Edm.String" />
@@ -20814,8 +20825,8 @@
       </ComplexType>
       <ComplexType Name="relatedTenantsRefreshStatus">
         <Property Name="isFirstRefresh" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="mostRecentRefreshDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="mostRecentRefreshRequestStatus" Type="Edm.String" Nullable="false" />
-        <Property Name="mostRecentRefreshTime" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="relationshipPolicy">
         <Property Name="delegatedAdministrationRoleAssignments" Type="Collection(graph.delegatedAdministrationRoleAssignmentSnapshot)" Nullable="false" />
@@ -24510,8 +24521,6 @@
         <NavigationProperty Name="updatableAssets" Type="Collection(microsoft.graph.windowsUpdates.updatableAsset)" ContainsTarget="true" />
         <NavigationProperty Name="updatePolicies" Type="Collection(microsoft.graph.windowsUpdates.updatePolicy)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="admitAllFromLobbyOperation" BaseType="graph.commsOperation" OpenType="true" />
-      <EntityType Name="admitFromLobbyOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="advancedThreatProtectionOnboardingDeviceSettingState" BaseType="graph.entity">
         <Property Name="complianceGracePeriodExpirationDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="deviceId" Type="Edm.String" />
@@ -25771,6 +25780,9 @@
         <Property Name="ssid" Type="Edm.String" Nullable="false" />
         <Property Name="wiFiSecurityType" Type="graph.androidWiFiSecurityType" Nullable="false" />
       </EntityType>
+      <EntityType Name="anonymousCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="anonymousGuestConversationMember" BaseType="graph.conversationMember">
         <Property Name="anonymousGuestId" Type="Edm.String" />
       </EntityType>
@@ -28336,6 +28348,7 @@
         <Property Name="deployedTo" Type="graph.packageStatus" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="elementTypes" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="governanceMetadata" Type="graph.Json" />
         <Property Name="isBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="manifestId" Type="Edm.String" />
@@ -28879,7 +28892,6 @@
       </EntityType>
       <EntityType Name="deletedChat" BaseType="graph.entity" />
       <EntityType Name="deletedItemContainer" BaseType="graph.entity">
-        <NavigationProperty Name="lifecyclePolicies" Type="Collection(microsoft.graph.identityGovernance.lifecyclePolicy)" ContainsTarget="true" />
         <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="deletedTeam" BaseType="graph.entity">
@@ -34773,7 +34785,16 @@
         <Property Name="macDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
         <Property Name="macEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="microsoftDefenderForEndpointAttachEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerDisplayName" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedAndroidVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedIosVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedMacVersion" Type="Edm.String" />
+        <Property Name="partnerMinimumSupportedWindowsVersion" Type="Edm.String" />
         <Property Name="partnerState" Type="graph.mobileThreatPartnerTenantState" Nullable="false" />
+        <Property Name="partnerSupportsAndroidMam" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsIosCertificateSync" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsIosMam" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="partnerSupportsWindowsMam" Type="Edm.Boolean" Nullable="false" />
         <Property Name="partnerUnresponsivenessThresholdInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="partnerUnsupportedOsVersionBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="windowsDeviceBlockedOnMissingPartnerData" Type="Edm.Boolean" Nullable="false" />
@@ -37118,7 +37139,6 @@
         <Property Name="remoteTenantId" Type="Edm.Guid" />
         <Property Name="remoteTenantPrimaryDomain" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="removeFromLobbyOperation" BaseType="graph.commsOperation" OpenType="true" />
       <EntityType Name="reportRoot">
         <NavigationProperty Name="appCredentialSignInActivities" Type="Collection(graph.appCredentialSignInActivity)" ContainsTarget="true" />
         <NavigationProperty Name="applicationSignInDetailedSummary" Type="Collection(graph.applicationSignInDetailedSummary)" ContainsTarget="true" />
@@ -38094,7 +38114,6 @@
         <NavigationProperty Name="federatedIdentityCredentials" Type="Collection(graph.federatedIdentityCredential)" ContainsTarget="true" />
         <NavigationProperty Name="homeRealmDiscoveryPolicies" Type="Collection(graph.homeRealmDiscoveryPolicy)" />
         <NavigationProperty Name="licenseDetails" Type="Collection(graph.licenseDetails)" ContainsTarget="true" />
-        <NavigationProperty Name="lifecycle" Type="microsoft.graph.identityGovernance.identityLifecycle" ContainsTarget="true" />
         <NavigationProperty Name="memberOf" Type="Collection(graph.directoryObject)" />
         <NavigationProperty Name="oauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
         <NavigationProperty Name="ownedObjects" Type="Collection(graph.directoryObject)" />
@@ -38508,6 +38527,7 @@
         <Property Name="riskLevelAggregated" Type="graph.riskLevel" />
         <Property Name="riskLevelDuringSignIn" Type="graph.riskLevel" />
         <Property Name="riskState" Type="graph.riskState" />
+        <Property Name="rootActorId" Type="Edm.String" />
         <Property Name="servicePrincipalCredentialKeyId" Type="Edm.String" />
         <Property Name="servicePrincipalCredentialThumbprint" Type="Edm.String" />
         <Property Name="servicePrincipalId" Type="Edm.String" Nullable="false" />
@@ -43328,16 +43348,6 @@
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" />
         <ReturnType Type="graph.selfSignedCertificate" Nullable="false" />
-      </Action>
-      <Action Name="admitAllFromLobby" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.participant)" />
-        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.admitAllFromLobbyOperation" />
-      </Action>
-      <Action Name="admitFromLobby" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.participant" />
-        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.admitFromLobbyOperation" />
       </Action>
       <Action Name="allowNextEnrollment" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.windowsAutopilotDeviceIdentity" />
@@ -48878,11 +48888,6 @@
       <Action Name="removeFromDrive" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.contentModel" />
         <Parameter Name="driveId" Type="Edm.String" Unicode="false" />
-      </Action>
-      <Action Name="removeFromLobby" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.participant" />
-        <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="graph.removeFromLobbyOperation" />
       </Action>
       <Action Name="removeGroup" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.groupLifecyclePolicy" />
@@ -55746,13 +55751,6 @@
         <Member Name="failedUsers" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
-      <EnumType Name="complianceState">
-        <Member Name="compliant" Value="0" />
-        <Member Name="warning" Value="1" />
-        <Member Name="warningNotify" Value="2" />
-        <Member Name="nonCompliant" Value="3" />
-        <Member Name="unknownFutureValue" Value="5" />
-      </EnumType>
       <EnumType Name="customTaskExtensionOperationStatus">
         <Member Name="completed" Value="0" />
         <Member Name="failed" Value="1" />
@@ -55763,11 +55761,6 @@
         <Member Name="callback" Value="1" />
         <Member Name="response" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
-      </EnumType>
-      <EnumType Name="lifecyclePolicySource">
-        <Member Name="userCreated" Value="0" />
-        <Member Name="systemDefault" Value="1" />
-        <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
       <EnumType Name="lifecycleTaskCategory" IsFlags="true">
         <Member Name="joiner" Value="1" />
@@ -55832,6 +55825,12 @@
         <Member Name="preview" Value="4" />
         <Member Name="extensibilityOnDemand" Value="5" />
       </EnumType>
+      <EnumType Name="workflowTriggerOperatorEventTiming">
+        <Member Name="before" Value="0" />
+        <Member Name="after" Value="1" />
+        <Member Name="on" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
         <Member Name="employeeLeaveDateTime" Value="1" />
@@ -55854,12 +55853,6 @@
         <NavigationProperty Name="users" Type="Collection(graph.user)" />
       </ComplexType>
       <ComplexType Name="activationScope" Abstract="true" />
-      <ComplexType Name="allExcludingGroupsSubjectSet" BaseType="graph.subjectSet">
-        <NavigationProperty Name="excludedGroups" Type="Collection(graph.group)" />
-      </ComplexType>
-      <ComplexType Name="allExcludingSpecificObjectsSubjectSet" BaseType="graph.subjectSet">
-        <NavigationProperty Name="excludedObjects" Type="Collection(graph.directoryObject)" />
-      </ComplexType>
       <ComplexType Name="attributeChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="triggerAttributes" Type="Collection(microsoft.graph.identityGovernance.triggerAttribute)" Nullable="false" />
       </ComplexType>
@@ -55897,13 +55890,8 @@
         <Property Name="statusReasons" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="targetSubject" Type="microsoft.graph.identityGovernance.workflowSubject" />
       </ComplexType>
-      <ComplexType Name="deleteOnlyEnforcementAction" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyEnforcementAction" />
       <ComplexType Name="directoryObjectWorkflowSubject" BaseType="microsoft.graph.identityGovernance.workflowSubject">
         <NavigationProperty Name="directoryObject" Type="graph.directoryObject" Nullable="false" />
-      </ComplexType>
-      <ComplexType Name="disableOnlyEnforcementAction" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyEnforcementAction" />
-      <ComplexType Name="disableThenDeleteEnforcementAction" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyEnforcementAction">
-        <Property Name="deletionGracePeriodInDays" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="groupBasedSubjectSet" BaseType="graph.subjectSet">
         <NavigationProperty Name="groups" Type="Collection(graph.group)" />
@@ -55911,16 +55899,20 @@
       <ComplexType Name="guestSponsorTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="minimumRequiredSponsors" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="lifecyclePolicyEnforcementAction" Abstract="true" />
-      <ComplexType Name="lifecyclePolicyNotificationSettings">
-        <Property Name="additionalRecipients" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="offsetsAfterNonComplianceInDays" Type="Collection(Edm.Int32)" Nullable="false" />
-      </ComplexType>
       <ComplexType Name="membershipChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="changeType" Type="microsoft.graph.identityGovernance.membershipChangeType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="onDemandExecutionOnly" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+      <ComplexType Name="operatorBetween" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="greaterThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="lessThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorLessThanEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="parameter">
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="values" Type="Collection(Edm.String)" />
@@ -55961,9 +55953,6 @@
         <Property Name="totalTasks" Type="Edm.Int32" Nullable="false" />
         <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="selectedObjectsSubjectSet" BaseType="graph.subjectSet">
-        <NavigationProperty Name="inScopeObjects" Type="Collection(graph.directoryObject)" />
-      </ComplexType>
       <ComplexType Name="subjectSummary">
         <Property Name="failedSubjects" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
@@ -55980,6 +55969,10 @@
       <ComplexType Name="timeBasedAttributeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="timeBasedAttributeTriggerV2" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="attribute" Type="Edm.String" Nullable="false" />
+        <Property Name="operator" Type="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Nullable="false" />
       </ComplexType>
       <ComplexType Name="topTasksInsightsSummary">
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
@@ -56029,6 +56022,7 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowExecutionTriggerOperator" Abstract="true" />
       <ComplexType Name="workflowSetting">
         <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
       </ComplexType>
@@ -56055,17 +56049,9 @@
         <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="workflowSubject" Abstract="true" />
-      <EntityType Name="agentIdentityLifecycle" BaseType="microsoft.graph.identityGovernance.identityLifecycle" />
-      <EntityType Name="agentIdentityLifecyclePolicy" BaseType="microsoft.graph.identityGovernance.lifecyclePolicy" />
-      <EntityType Name="attestationComplianceIssue" BaseType="microsoft.graph.identityGovernance.complianceIssue">
-        <Property Name="attestationBlockReasons" Type="Collection(Edm.String)" Nullable="false" />
-      </EntityType>
-      <EntityType Name="complianceIssue" BaseType="graph.entity">
-        <Property Name="description" Type="Edm.String" Nullable="false" />
-        <Property Name="governingPolicyReferenceId" Type="Edm.String" Nullable="false" />
-        <Property Name="issueCode" Type="Edm.String" Nullable="false" />
-        <Property Name="ruleType" Type="Edm.String" />
-      </EntityType>
+      <ComplexType Name="workflowTriggerTimeBasedOperator" BaseType="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Abstract="true">
+        <Property Name="eventTiming" Type="microsoft.graph.identityGovernance.workflowTriggerOperatorEventTiming" Nullable="false" />
+      </ComplexType>
       <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
         <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -56074,57 +56060,20 @@
         <NavigationProperty Name="createdBy" Type="graph.user" />
         <NavigationProperty Name="lastModifiedBy" Type="graph.user" />
       </EntityType>
-      <EntityType Name="identityLifecycle" BaseType="graph.entity" Abstract="true">
-        <Property Name="lastAttestationDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="complianceIssues" Type="Collection(microsoft.graph.identityGovernance.complianceIssue)" ContainsTarget="true" />
-        <NavigationProperty Name="effectiveGoverningPolicy" Type="microsoft.graph.identityGovernance.lifecyclePolicy" />
-      </EntityType>
-      <EntityType Name="inactivityRule" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyRule">
-        <Property Name="lastActivityThresholdInDays" Type="Edm.Int32" Nullable="false" />
-      </EntityType>
       <EntityType Name="insights" BaseType="graph.entity" />
       <EntityType Name="lifecycleManagementSettings" BaseType="graph.entity">
         <Property Name="emailSettings" Type="graph.emailSettings" Nullable="false" />
         <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
         <Property Name="workflowScheduleIntervalInHours" Type="Edm.Int32" Nullable="false" />
       </EntityType>
-      <EntityType Name="lifecyclePolicy" BaseType="graph.entity" Abstract="true">
-        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="description" Type="Edm.String" />
-        <Property Name="displayName" Type="Edm.String" Nullable="false" />
-        <Property Name="enforcementAction" Type="microsoft.graph.identityGovernance.lifecyclePolicyEnforcementAction" Nullable="false" />
-        <Property Name="gracePeriodInDays" Type="Edm.Int32" />
-        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="notificationSchedule" Type="microsoft.graph.identityGovernance.lifecyclePolicyNotificationSettings" />
-        <Property Name="policySource" Type="microsoft.graph.identityGovernance.lifecyclePolicySource" Nullable="false" />
-        <Property Name="scope" Type="graph.subjectSet" />
-        <Property Name="versionNumber" Type="Edm.Int32" Nullable="false" />
-        <NavigationProperty Name="createdBy" Type="graph.directoryObject" />
-        <NavigationProperty Name="lastModifiedBy" Type="graph.directoryObject" />
-        <NavigationProperty Name="rules" Type="Collection(microsoft.graph.identityGovernance.lifecyclePolicyRule)" ContainsTarget="true" />
-        <NavigationProperty Name="versions" Type="Collection(microsoft.graph.identityGovernance.lifecyclePolicy)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="lifecyclePolicyPriorityConfiguration" BaseType="graph.entity">
-        <Property Name="orderedPolicyIds" Type="Collection(Edm.String)" Nullable="false" />
-        <Property Name="subjectType" Type="microsoft.graph.identityGovernance.subjectType" Nullable="false" />
-      </EntityType>
-      <EntityType Name="lifecyclePolicyRule" BaseType="graph.entity" Abstract="true">
-        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
-      </EntityType>
       <EntityType Name="lifecycleWorkflowsContainer" BaseType="graph.entity">
         <NavigationProperty Name="customTaskExtensions" Type="Collection(microsoft.graph.identityGovernance.customTaskExtension)" ContainsTarget="true" />
         <NavigationProperty Name="deletedItems" Type="graph.deletedItemContainer" ContainsTarget="true" />
         <NavigationProperty Name="insights" Type="microsoft.graph.identityGovernance.insights" ContainsTarget="true" />
-        <NavigationProperty Name="lifecyclePolicies" Type="Collection(microsoft.graph.identityGovernance.lifecyclePolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="lifecyclePolicyPriorityConfigurations" Type="Collection(microsoft.graph.identityGovernance.lifecyclePolicyPriorityConfiguration)" ContainsTarget="true" />
         <NavigationProperty Name="settings" Type="microsoft.graph.identityGovernance.lifecycleManagementSettings" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="taskDefinitions" Type="Collection(microsoft.graph.identityGovernance.taskDefinition)" ContainsTarget="true" />
         <NavigationProperty Name="workflows" Type="Collection(microsoft.graph.identityGovernance.workflow)" ContainsTarget="true" />
         <NavigationProperty Name="workflowTemplates" Type="Collection(microsoft.graph.identityGovernance.workflowTemplate)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="periodicAttestationRule" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyRule">
-        <Property Name="attestationIntervalInDays" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <EntityType Name="run" BaseType="graph.entity">
         <Property Name="activatedOnScope" Type="microsoft.graph.identityGovernance.activationScope" />
@@ -56144,9 +56093,6 @@
         <NavigationProperty Name="subjectProcessingResults" Type="Collection(microsoft.graph.identityGovernance.subjectProcessingResult)" ContainsTarget="true" />
         <NavigationProperty Name="taskProcessingResults" Type="Collection(microsoft.graph.identityGovernance.taskProcessingResult)" ContainsTarget="true" />
         <NavigationProperty Name="userProcessingResults" Type="Collection(microsoft.graph.identityGovernance.userProcessingResult)" ContainsTarget="true" />
-      </EntityType>
-      <EntityType Name="sponsorPresenceRule" BaseType="microsoft.graph.identityGovernance.lifecyclePolicyRule">
-        <Property Name="minimumSponsorCount" Type="Edm.Int32" Nullable="false" />
       </EntityType>
       <EntityType Name="subjectProcessingResult" BaseType="graph.entity">
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
@@ -56281,12 +56227,6 @@
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="scope" Type="microsoft.graph.identityGovernance.activationScope" />
       </Action>
-      <Action Name="attest" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.agentIdentity" />
-      </Action>
-      <Action Name="attest" IsBound="true">
-        <Parameter Name="bindingParameter" Type="graph.servicePrincipal" />
-      </Action>
       <Action Name="cancelProcessing" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="scope" Type="microsoft.graph.identityGovernance.cancelScope" />
@@ -56307,10 +56247,6 @@
       <Action Name="previewWorkflow" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
         <Parameter Name="subjects" Type="Collection(graph.directoryObject)" />
-      </Action>
-      <Action Name="restore" EntitySetPath="bindingParameter" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.lifecyclePolicy" />
-        <ReturnType Type="microsoft.graph.identityGovernance.lifecyclePolicy" />
       </Action>
       <Action Name="restore" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="microsoft.graph.identityGovernance.workflow" />
@@ -66533,6 +66469,7 @@
             <PropertyValue Property="NonFilterableProperties">
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
+                <PropertyPath>governanceMetadata</PropertyPath>
               </Collection>
             </PropertyValue>
           </Record>
@@ -66543,6 +66480,7 @@
             <PropertyValue Property="NonInsertableProperties">
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
+                <PropertyPath>governanceMetadata</PropertyPath>
               </Collection>
             </PropertyValue>
             <PropertyValue Property="RequiredProperties">
@@ -66558,6 +66496,7 @@
             <PropertyValue Property="NonSortableProperties">
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
+                <PropertyPath>governanceMetadata</PropertyPath>
               </Collection>
             </PropertyValue>
             <PropertyValue Property="Sortable" Bool="true" />
@@ -66573,6 +66512,7 @@
                 <PropertyPath>agentIdentityId</PropertyPath>
                 <PropertyPath>createdDateTime</PropertyPath>
                 <PropertyPath>elementDetails</PropertyPath>
+                <PropertyPath>governanceMetadata</PropertyPath>
                 <PropertyPath>id</PropertyPath>
                 <PropertyPath>lastModifiedDateTime</PropertyPath>
                 <PropertyPath>manifestVersion</PropertyPath>
@@ -68117,19 +68057,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
           <Record>
             <PropertyValue Property="Referenceable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.deletedItemContainer/lifecyclePolicies">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
@@ -77816,6 +77743,27 @@
       <Annotations Target="microsoft.graph.errorDetail/resourceType">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Current state of the discovery operation for an eSIM download server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/completed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has completed successfully." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/executing">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation is executing." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/failed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has failed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/requested">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The discovery operation has been requested." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/unknown">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unknown state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.eSimDiscoveryState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
       <Annotations Target="microsoft.graph.eSimProfileErrorDetail">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the detailed error condition for an eSIM profile operation." />
       </Annotations>
@@ -79295,6 +79243,7 @@
                 <PropertyPath>parameters</PropertyPath>
                 <PropertyPath>runAsUTCMServicePrincipal</PropertyPath>
                 <PropertyPath>runningOnBehalfOf</PropertyPath>
+                <PropertyPath>templateOwnerTenantId</PropertyPath>
                 <PropertyPath>tenantId</PropertyPath>
               </Collection>
             </PropertyValue>
@@ -80314,15 +80263,15 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/solutions">
-        <Annotation Term="Org.OData.Core.V1.Revisions" Qualifier="Org.OData.Core.V1.Revisions">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
             <Record>
-              <PropertyValue Property="Date" Date="2025-06-17" />
+              <PropertyValue Property="Date" Date="2023-03-01" />
               <PropertyValue Property="Kind">
                 <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
               </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2025-12-17" />
-              <PropertyValue Property="Version" String="2023-03/PrivatePreview:responderForm" />
+              <PropertyValue Property="RemovalDate" Date="2023-06-01" />
+              <PropertyValue Property="Version" String="2023-03/PrivatePreview:VirtualEventAPIs" />
             </Record>
           </Collection>
         </Annotation>
@@ -81974,174 +81923,6 @@
           </Collection>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.identityLifecycle/complianceIssues">
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.identityLifecycle/effectiveGoverningPolicy">
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecyclePolicy">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
-          <Record>
-            <PropertyValue Property="Filterable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
-          <Record>
-            <PropertyValue Property="Supported" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="true" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecyclePolicy/policySource">
-        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecyclePolicy/rules">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
-          <Record>
-            <PropertyValue Property="Supported" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="true" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecyclePolicy/versions">
-        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
-          <Record>
-            <PropertyValue Property="Countable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
-          <Record>
-            <PropertyValue Property="Expandable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
-          <Record>
-            <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
-          <Record>
-            <PropertyValue Property="Supported" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
-        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
-          <Record>
-            <PropertyValue Property="Sortable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecyclePolicyPriorityConfiguration/subjectType">
-        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
-      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowProcessingStatus/canceling">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -82160,31 +81941,6 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/lifecyclePolicies">
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="true" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
-            <PropertyValue Property="Upsertable" Bool="false" />
-          </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.identityGovernance.lifecycleWorkflowsContainer/lifecyclePolicyPriorityConfigurations">
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
@@ -82227,6 +81983,48 @@
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.operatorBetween">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.operatorEqualTo">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.operatorLessThanEqualTo">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.previewTaskFailures(microsoft.graph.identityGovernance.workflow)">
@@ -82575,6 +82373,20 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.timeBasedAttributeTriggerV2">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.userProcessingResult">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -82766,6 +82578,20 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.identityGovernance.workflowExecutionType/preview">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -82829,6 +82655,34 @@
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowTriggerOperatorEventTiming">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-03-10" />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2027-03-09" />
+              <PropertyValue Property="Version" String="2026-03/PrivatePreview:timeBasedTrigger2" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.identityInfo">
@@ -86472,20 +86326,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.licenseType/unknownFutureValue">
         <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.linkStatistics">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2026-06-24" />
-              <PropertyValue Property="Description" String="Private preview for correlated object links" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Added</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="Version" String="2026-06/PrivatePreview:correlationLinks" />
-            </Record>
-          </Collection>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.list/items">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -92422,8 +92262,35 @@
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/microsoftDefenderForEndpointAttachEnabled">
         <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that configuration profile management via Microsoft Defender for Endpoint is enabled. When FALSE, indicates that configuration profile management via Microsoft Defender for Endpoint is disabled. Default value is FALSE." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerDisplayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name of the Mobile Threat Defense partner. This is a read-only property determined by the partner metadata." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedAndroidVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum Android version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedIosVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum iOS version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedMacVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum macOS version supported by the Mobile Threat Defense partner." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerMinimumSupportedWindowsVersion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The minimum Windows version supported by the Mobile Threat Defense partner." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Mobile Threat Defense partner state for this account" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsAndroidMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports Android Mobile Application Management." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsIosCertificateSync">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports iOS certificate sync." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsIosMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports iOS Mobile Application Management." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerSupportsWindowsMam">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When TRUE, indicates that the Mobile Threat Defense partner supports Windows Mobile Application Management." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatDefenseConnector/partnerUnresponsivenessThresholdInDays">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the number of days without receiving a heartbeat from a Mobile Threat Defense partner before the partner is marked as unresponsive. Intune will the ignore the data from this Mobile Threat Defense Partner for next compliance calculation." />
@@ -92463,6 +92330,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/error">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector is in an error state. This can occur when the connector has a non-zero error code set due to an internal error in processing. Please see https://go.microsoft.com/fwlink/?linkid=2239039 for more information on connector states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/neverConfigured">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector catalog entry exists but the tenant has never configured it." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileThreatPartnerTenantState/notSetUp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the partner connector is not set up. This can occur when the connector is not provisioned and Intune has not received a heartbeat for the connector. Please see https://go.microsoft.com/fwlink/?linkid=2239039 for more information on connector states." />
@@ -92669,6 +92539,33 @@
       </Annotations>
       <Annotations Target="microsoft.graph.ndesConnector/state">
         <Annotation Term="Org.OData.Core.V1.Description" String="Ndes Connector Status" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents an individual health check result for an NDES connector, containing the metric name and its current status." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck/metricName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The name of the health check metric being evaluated." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheck/status">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The current health status for this specific metric, based on error rate thresholds computed from recent connector uploads." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The name of the health check metric being evaluated for an NDES connector." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caConnectivity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures connectivity between the connector and the Certificate Authority." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caIssuancePermissions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the connector has the required Enroll permission on the CA." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/caRevocationPermissions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the connector has the required permissions to revoke certificates on the CA." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/certificateTemplate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Measures whether the configured certificate template, Intune Profile fields are all valid." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.ndesConnectorHealthCheckMetricName/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.ndesConnectorHealthStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The health status of an NDES connector or individual health check metric." />
@@ -116856,6 +116753,12 @@
         <Parameter Name="aiAgentName" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
+        <Parameter Name="agentTypeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="agentVirtualId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
         <ReturnType Type="Collection(microsoft.graph.networkaccess.destination)" />
       </Function>
       <Function Name="deviceReport" IsBound="true">
@@ -116872,6 +116775,12 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <Parameter Name="aiAgentName" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="agentTypeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="agentVirtualId" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <Parameter Name="cloudApplicationName" Type="Edm.String" Unicode="false">
@@ -117020,6 +116929,12 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <Parameter Name="aiAgentName" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="agentTypeId" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="agentVirtualId" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <Parameter Name="cloudApplicationName" Type="Edm.String" Unicode="false">
