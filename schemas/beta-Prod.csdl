@@ -2,6 +2,14 @@
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
   <edmx:DataServices>
     <Schema Namespace="microsoft.graph" Alias="graph" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="a2aAuthorizationType">
+        <Member Name="none" Value="0" />
+        <Member Name="oAuthPluginVault" Value="1" />
+        <Member Name="apiKeyPluginVault" Value="2" />
+        <Member Name="dynamicClientRegistration" Value="3" />
+        <Member Name="connectionVault" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
       <EnumType Name="accessDriftReportResourceType">
         <Member Name="application" Value="0" />
         <Member Name="group" Value="1" />
@@ -9774,6 +9782,8 @@
         <Member Name="adminConfirmedAgentCompromised" Value="19" />
         <Member Name="adminDismissedRiskForAgent" Value="20" />
         <Member Name="microsoftRevokedSessions" Value="21" />
+        <Member Name="aiElevatedAccountRisk" Value="22" />
+        <Member Name="userPassedVerifiedIdDrivenByRiskBasedPolicy" Value="23" />
       </EnumType>
       <EnumType Name="riskDetectionTimingType">
         <Member Name="notDefined" Value="0" />
@@ -10257,6 +10267,13 @@
         <Member Name="registrationFailed" Value="5" />
         <Member Name="registrationTimedOut" Value="6" />
         <Member Name="disabled" Value="7" />
+      </EnumType>
+      <EnumType Name="severity">
+        <Member Name="none" Value="0" />
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="sharedPCAccountDeletionPolicyType">
         <Member Name="immediate" Value="0" />
@@ -12597,6 +12614,10 @@
         <Member Name="auto" Value="2" />
         <Member Name="unknownFutureValue" Value="99" />
       </EnumType>
+      <ComplexType Name="a2aAuthorization">
+        <Property Name="referenceId" Type="Edm.String" />
+        <Property Name="type" Type="graph.a2aAuthorizationType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="aadSource" BaseType="graph.authorizationSystemIdentitySource">
         <Property Name="domain" Type="Edm.String" />
       </ComplexType>
@@ -14167,6 +14188,12 @@
         <Property Name="startupAuthenticationTpmPinAndKeyUsage" Type="graph.configurationUsage" Nullable="false" />
         <Property Name="startupAuthenticationTpmPinUsage" Type="graph.configurationUsage" Nullable="false" />
         <Property Name="startupAuthenticationTpmUsage" Type="graph.configurationUsage" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="blastRadiusRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="blockAccessAction" BaseType="graph.dlpActionInfo" />
       <ComplexType Name="bookingCustomerInformation" BaseType="graph.bookingCustomerInformationBase">
@@ -17267,6 +17294,12 @@
         <Property Name="data" Type="Edm.Stream" />
         <Property Name="error" Type="graph.mailTipsError" />
         <Property Name="itemId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="exposureRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="expressionEvaluationDetails">
         <Property Name="expression" Type="Edm.String" />
@@ -21265,9 +21298,19 @@
         <Property Name="g" Type="Edm.Byte" Nullable="false" />
         <Property Name="r" Type="Edm.Byte" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="riskAlert">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="riskProfile">
         <Property Name="humanCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="nonHumanCount" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="riskRecommendation">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
       </ComplexType>
       <ComplexType Name="riskServicePrincipalActivity">
         <Property Name="detail" Type="graph.riskDetail" />
@@ -21332,6 +21375,11 @@
       <ComplexType Name="rubricQualitySelectedColumnModel">
         <Property Name="columnId" Type="Edm.String" />
         <Property Name="qualityId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="runtimeRisk">
+        <Property Name="alerts" Type="Collection(graph.riskAlert)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="samlAppProfile" />
       <ComplexType Name="samlAuthnRequest" />
@@ -24822,6 +24870,7 @@
         <NavigationProperty Name="collections" Type="Collection(graph.agentCollection)" />
       </EntityType>
       <EntityType Name="agentRegistration" BaseType="graph.entity">
+        <Property Name="a2aAuthorization" Type="graph.a2aAuthorization" />
         <Property Name="agentCard" Type="graph.Json" />
         <Property Name="agentIdentityBlueprintId" Type="Edm.String" />
         <Property Name="agentIdentityId" Type="Edm.String" />
@@ -27327,6 +27376,7 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="meetingNotes" Type="Collection(graph.meetingNote)" />
+        <Property Name="recapUrl" Type="Edm.String" />
         <Property Name="viewpoint" Type="graph.callAiInsightViewPoint" />
       </EntityType>
       <EntityType Name="callEvent" BaseType="graph.entity">
@@ -27712,6 +27762,7 @@
       </EntityType>
       <EntityType Name="cloudPcAgentPool" BaseType="graph.cloudPcPool">
         <Property Name="billingConfiguration" Type="graph.cloudPcAgentPoolBillingConfiguration" Nullable="false" />
+        <Property Name="capabilities" Type="graph.cloudPcAgentPoolCapabilityConfiguration" Nullable="false" />
         <Property Name="poolUrl" Type="Edm.String" />
         <Property Name="scalingPolicy" Type="graph.cloudPcAgentPoolScalingPolicy" Nullable="false" />
         <Property Name="sessionUsage" Type="graph.cloudPcAgentPoolSessionUsage" Nullable="false" />
@@ -27909,7 +27960,6 @@
         <Property Name="windowsSettings" Type="graph.cloudPcWindowsSettings" />
       </EntityType>
       <EntityType Name="cloudPcPool" BaseType="graph.entity" Abstract="true">
-        <Property Name="capabilities" Type="graph.cloudPcPoolCapabilityConfiguration" Nullable="false" />
         <Property Name="cloudPcConfiguration" Type="graph.cloudPcConfiguration" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -37491,16 +37541,25 @@
         <NavigationProperty Name="webApplicationFirewallVerifications" Type="Collection(graph.webApplicationFirewallVerificationModel)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="riskyAgent" BaseType="graph.entity">
+        <Property Name="additionalInfo" Type="Edm.String" />
         <Property Name="agentDisplayName" Type="Edm.String" />
+        <Property Name="agentPlatform" Type="Edm.String" />
+        <Property Name="associatedUserId" Type="Edm.String" />
+        <Property Name="blastRadiusRisk" Type="graph.blastRadiusRisk" />
         <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="exposureRisk" Type="graph.exposureRisk" />
         <Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" />
         <Property Name="isDeleted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isProcessing" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="machineId" Type="Edm.String" />
         <Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" />
         <Property Name="riskLastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
         <Property Name="riskState" Type="graph.riskState" Nullable="false" />
+        <Property Name="runtimeRisk" Type="graph.runtimeRisk" />
+        <Property Name="sources" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="riskyAgentDiscoveredAgentIdentity" BaseType="graph.riskyAgent" />
       <EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent">
@@ -44984,7 +45043,7 @@
         <ReturnType Type="graph.workbookSessionInfo" />
       </Action>
       <Action Name="createSnapshot" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(graph.configurationBaseline)" Nullable="false" />
+        <Parameter Name="bindingParameter" Type="Collection(graph.configurationBaseline)" />
         <Parameter Name="displayName" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="description" Type="Edm.String" Nullable="false" Unicode="false" />
         <Parameter Name="resources" Type="Collection(Edm.String)" Nullable="false" Unicode="false" />
@@ -55013,6 +55072,7 @@
       <ComplexType Name="applyDecisionContextData" BaseType="customDataProvidedResourcePayloads.accessReviewContextDataBase" />
       <ComplexType Name="calloutRequest">
         <Property Name="catalogId" Type="Edm.String" Nullable="false" />
+        <Property Name="data" Type="customDataProvidedResourcePayloads.data" Nullable="false" />
         <Property Name="resourceId" Type="Edm.String" Nullable="false" />
         <Property Name="source" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -56544,6 +56604,21 @@
         <Parameter Name="endDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <ReturnType Type="microsoft.graph.identityGovernance.workflowsInsightsSummary" />
       </Function>
+      <Annotations Target="microsoft.graph.a2aAuthorization">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Authentication configuration used to invoke the Agent2Agent server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.a2aAuthorization/referenceId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reference identifier for the A2A authentication configuration." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.a2aAuthorization/type">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The type of authorization required to invoke the Agent2Agent server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.a2aAuthorizationType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The supported authorization types for invoking the Agent2Agent server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.a2aAuthorizationType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
       <Annotations Target="microsoft.graph.accessDriftDetail">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -56855,21 +56930,6 @@
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.admin/exchange">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.adminConsent">
@@ -57222,6 +57282,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.agentRegistration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Entity that represents an agent registration containing metadata, endpoint&#xA;configuration, tools, and publishing information.&#xA;This entity provides developers and administrators with all details needed to&#xA;manage agent instances including their instructions, owners, publishing status,&#xA;and associated tools." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentRegistration/a2aAuthorization">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Authentication configuration used to invoke the Agent2Agent server." />
       </Annotations>
       <Annotations Target="microsoft.graph.agentRegistration/agentCard">
         <Annotation Term="Org.OData.Core.V1.Description" String="Flexible Json manifest containing agent card information following public manifest&#xA;specifications. Can include displayName, description, iconUrl, version, provider,&#xA;capabilities, skills, security, and other manifest-defined fields." />
@@ -67382,21 +67445,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.createGooglePlayWebToken(microsoft.graph.androidManagedStoreAccountEnterpriseSettings, Edm.String)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Generates a web token that is used in an embeddable component." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.createImportSession(microsoft.graph.mailbox)">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.createRemoteHelpSessionResponse">
         <Annotation Term="Org.OData.Core.V1.Description" String="Remote help - response we provide back to the helper after successfully creating an ACS session" />
@@ -78434,36 +78482,6 @@
           </Record>
         </Annotation>
       </Annotations>
-      <Annotations Target="microsoft.graph.exchangeAdmin">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.exchangeSettings">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.excludedApps">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for Excluded Office365 Apps." />
       </Annotations>
@@ -78526,36 +78544,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.expeditedWindowsQualityUpdateSettings/qualityUpdateRelease">
         <Annotation Term="Org.OData.Core.V1.Description" String="The release date to identify a quality update." />
-      </Annotations>
-      <Annotations Target="microsoft.graph.exportItemResponse">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.exportItems(microsoft.graph.mailbox, Collection(Edm.String))">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2024-06-30" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.exportMobileConfig(microsoft.graph.enrollmentProfile)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Exports the mobile configuration" />
@@ -80455,6 +80443,34 @@
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
           <Record>
             <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/identity">
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions" Qualifier="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="DeleteRestrictions">
+                    <Record>
+                      <PropertyValue Property="Deletable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="InsertRestrictions">
+                    <Record>
+                      <PropertyValue Property="Insertable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="NavigationProperty" NavigationPropertyPath="securityDefaults/rules" />
+                  <PropertyValue Property="UpdateRestrictions">
+                    <Record>
+                      <PropertyValue Property="Updatable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                </Record>
+              </Collection>
+            </PropertyValue>
           </Record>
         </Annotation>
       </Annotations>
@@ -88435,21 +88451,6 @@
       <Annotations Target="microsoft.graph.macOSWiredNetworkConfiguration/trustedServerCertificateNames">
         <Annotation Term="Org.OData.Core.V1.Description" String="Trusted server certificate names when EAP Type is configured to EAP-TLS/TTLS/FAST or PEAP. This is the common name used in the certificates issued by your trusted certificate authority (CA). If you provide this information, you can bypass the dynamic trust dialog that is displayed on end users devices when they connect to this wired network." />
       </Annotations>
-      <Annotations Target="microsoft.graph.mailbox">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
       <Annotations Target="microsoft.graph.mailbox/folders">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -88472,21 +88473,6 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mailboxExclusionUnit/email">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-      </Annotations>
-      <Annotations Target="microsoft.graph.mailboxFolder">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.mailboxFolder/childFolders">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -88525,36 +88511,6 @@
           <Record>
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.mailboxItem">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
-      </Annotations>
-      <Annotations Target="microsoft.graph.mailboxItemImportSession">
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.mailboxProtectionUnit/displayName">
@@ -105510,19 +105466,6 @@
             <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Core.V1.Revisions">
-          <Collection>
-            <Record>
-              <PropertyValue Property="Date" Date="2021-08-19" />
-              <PropertyValue Property="Description" String="Private preview for Import Export APIs" />
-              <PropertyValue Property="Kind">
-                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
-              </PropertyValue>
-              <PropertyValue Property="RemovalDate" Date="2021-11-15" />
-              <PropertyValue Property="Version" String="2021-08/PrivatePreview:importExport" />
-            </Record>
-          </Collection>
-        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.userTeamwork/sections">
         <Annotation Term="Org.OData.Core.V1.Description" String="User's teamwork sections for organizing chats and channels. The collection response may include @microsoft.graph.sectionsOrder and @microsoft.graph.sectionsVersion instance annotations for ordering and optimistic concurrency control." />
@@ -122121,6 +122064,13 @@
       <Function Name="getHuntingSchema" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.security" />
         <ReturnType Type="self.huntingSchemaResult" />
+      </Function>
+      <Function Name="getHuntingSchemaTables" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.security" />
+        <Parameter Name="workspaceId" Type="Edm.Guid">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(self.huntingSchemaTable)" />
       </Function>
       <Function Name="getRunHuntingQuery" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.security" />
