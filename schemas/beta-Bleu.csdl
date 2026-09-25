@@ -5602,6 +5602,8 @@
         <Member Name="adminConfirmedAgentCompromised" Value="19" />
         <Member Name="adminDismissedRiskForAgent" Value="20" />
         <Member Name="microsoftRevokedSessions" Value="21" />
+        <Member Name="aiElevatedAccountRisk" Value="22" />
+        <Member Name="userPassedVerifiedIdDrivenByRiskBasedPolicy" Value="23" />
       </EnumType>
       <EnumType Name="riskDetectionTimingType">
         <Member Name="notDefined" Value="0" />
@@ -5856,6 +5858,13 @@
       <EnumType Name="settingSourceType">
         <Member Name="deviceConfiguration" Value="0" />
         <Member Name="deviceIntent" Value="1" />
+      </EnumType>
+      <EnumType Name="severity">
+        <Member Name="none" Value="0" />
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="sharedPCAccountDeletionPolicyType">
         <Member Name="immediate" Value="0" />
@@ -8369,6 +8378,7 @@
         <Property Name="status" Type="graph.authenticationAppPolicyStatus" />
       </ComplexType>
       <ComplexType Name="authenticationBehaviors">
+        <Property Name="coopEnforcement" Type="Edm.Boolean" />
         <Property Name="removeUnverifiedEmailClaim" Type="Edm.Boolean" />
         <Property Name="requireClientServicePrincipal" Type="Edm.Boolean" />
       </ComplexType>
@@ -8487,6 +8497,12 @@
         <Property Name="startupAuthenticationTpmPinAndKeyUsage" Type="graph.configurationUsage" Nullable="false" />
         <Property Name="startupAuthenticationTpmPinUsage" Type="graph.configurationUsage" Nullable="false" />
         <Property Name="startupAuthenticationTpmUsage" Type="graph.configurationUsage" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="blastRadiusRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="booleanColumn" />
       <ComplexType Name="bulkCatalogItemActionResult">
@@ -10078,6 +10094,12 @@
         <Property Name="duration" Type="Edm.Duration" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="type" Type="graph.expirationPatternType" />
+      </ComplexType>
+      <ComplexType Name="exposureRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="expressionEvaluationDetails">
         <Property Name="expression" Type="Edm.String" />
@@ -12606,6 +12628,16 @@
         <Property Name="g" Type="Edm.Byte" Nullable="false" />
         <Property Name="r" Type="Edm.Byte" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="riskAlert">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="riskRecommendation">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="riskServicePrincipalActivity">
         <Property Name="detail" Type="graph.riskDetail" />
         <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
@@ -12630,6 +12662,11 @@
       <ComplexType Name="root" />
       <ComplexType Name="rotateBitLockerKeysDeviceActionResult" BaseType="graph.deviceActionResult">
         <Property Name="errorCode" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="runtimeRisk">
+        <Property Name="alerts" Type="Collection(graph.riskAlert)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="samlSingleSignOnSettings">
         <Property Name="relayState" Type="Edm.String" />
@@ -17476,6 +17513,7 @@
         <Property Name="accountEnabled" Type="Edm.Boolean" />
         <Property Name="alternativeSecurityIds" Type="Collection(graph.alternativeSecurityId)" Nullable="false" />
         <Property Name="approximateLastSignInDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="cloudLicensing" Type="microsoft.graph.cloudLicensing.deviceCloudLicensing" />
         <Property Name="complianceExpirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="deviceCategory" Type="Edm.String" />
         <Property Name="deviceId" Type="Edm.String" />
@@ -22911,16 +22949,25 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="riskyAgent" BaseType="graph.entity">
+        <Property Name="additionalInfo" Type="Edm.String" />
         <Property Name="agentDisplayName" Type="Edm.String" />
+        <Property Name="agentPlatform" Type="Edm.String" />
+        <Property Name="associatedUserId" Type="Edm.String" />
+        <Property Name="blastRadiusRisk" Type="graph.blastRadiusRisk" />
         <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="exposureRisk" Type="graph.exposureRisk" />
         <Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" />
         <Property Name="isDeleted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isProcessing" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="machineId" Type="Edm.String" />
         <Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" />
         <Property Name="riskLastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
         <Property Name="riskState" Type="graph.riskState" Nullable="false" />
+        <Property Name="runtimeRisk" Type="graph.runtimeRisk" />
+        <Property Name="sources" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="riskyAgentDiscoveredAgentIdentity" BaseType="graph.riskyAgent" />
       <EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent">
@@ -23913,14 +23960,25 @@
         <NavigationProperty Name="teamTemplates" Type="Collection(graph.teamTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
-      <EntityType Name="teamworkCustomEmoji">
-        <Key>
-          <PropertyRef Name="displayName" />
-        </Key>
+      <EntityType Name="teamworkCustomEmoji" BaseType="graph.entity">
         <Property Name="contentBytes" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="displayName" />
+                    <PropertyValue Property="Name" PropertyPath="displayName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="teamworkDevice" BaseType="graph.entity">
         <Property Name="activityState" Type="graph.teamworkDeviceActivityState" />
@@ -31757,6 +31815,7 @@
         <EntitySet Name="contracts" EntityType="microsoft.graph.contract" />
         <EntitySet Name="dataPolicyOperations" EntityType="microsoft.graph.dataPolicyOperation" />
         <EntitySet Name="devices" EntityType="microsoft.graph.device">
+          <NavigationPropertyBinding Path="cloudLicensing/assignments" Target="admin/microsoft.graph.cloudLicensing.adminCloudLicensing/cloudLicensing/assignments" />
           <NavigationPropertyBinding Path="memberOf" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects" />
           <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects" />
@@ -38852,6 +38911,66 @@
       <Annotations Target="microsoft.graph.cloudCertificationAuthorityVersionUsage/issuedStagedLeafCertificateCount">
         <Annotation Term="Org.OData.Core.V1.Description" String="The number of leaf certificates issued by the certification authority version when it was in the staged status. Only applicable for staged certification authority versions. Nullable. Read-only." />
       </Annotations>
+      <Annotations Target="microsoft.graph.cloudLicensing.deviceCloudLicensing">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-04-19" />
+              <PropertyValue Property="Description" String="Conditional Access Microsoft Cloud Licensing private preview." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-10-31" />
+              <PropertyValue Property="Version" String="2024-04/PrivatePreview:cloudLicensing" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudLicensing.deviceCloudLicensing/assignments">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-04-19" />
+              <PropertyValue Property="Description" String="Conditional Access Microsoft Cloud Licensing private preview." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-10-31" />
+              <PropertyValue Property="Version" String="2024-04/PrivatePreview:cloudLicensing" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudLicensing.deviceCloudLicensing/usageRights">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-04-19" />
+              <PropertyValue Property="Description" String="Conditional Access Microsoft Cloud Licensing private preview." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-10-31" />
+              <PropertyValue Property="Version" String="2024-04/PrivatePreview:cloudLicensing" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudLicensing.deviceCloudLicensing/waitingMembers">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-04-19" />
+              <PropertyValue Property="Description" String="Conditional Access Microsoft Cloud Licensing private preview." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-10-31" />
+              <PropertyValue Property="Version" String="2024-04/PrivatePreview:cloudLicensing" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.cloudPCConnectivityIssue">
         <Annotation Term="Org.OData.Core.V1.Description" String="The user experience analyte connectivity issue entity." />
       </Annotations>
@@ -41063,6 +41182,21 @@
           <Record>
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.device/cloudLicensing">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2024-04-19" />
+              <PropertyValue Property="Description" String="Conditional Access Microsoft Cloud Licensing private preview." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Deprecated</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="RemovalDate" Date="2025-10-31" />
+              <PropertyValue Property="Version" String="2024-04/PrivatePreview:cloudLicensing" />
+            </Record>
+          </Collection>
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.deviceActionCategory">
@@ -75365,6 +75499,11 @@
         <Member Name="trial" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <ComplexType Name="deviceCloudLicensing">
+        <NavigationProperty Name="assignments" Type="Collection(microsoft.graph.cloudLicensing.assignment)" />
+        <NavigationProperty Name="usageRights" Type="Collection(microsoft.graph.cloudLicensing.usageRight)" ContainsTarget="true" />
+        <NavigationProperty Name="waitingMembers" Type="Collection(microsoft.graph.cloudLicensing.waitingMember)" />
+      </ComplexType>
       <ComplexType Name="groupCloudLicensing">
         <NavigationProperty Name="assignments" Type="Collection(microsoft.graph.cloudLicensing.assignment)" />
         <NavigationProperty Name="usageRights" Type="Collection(microsoft.graph.cloudLicensing.usageRight)" ContainsTarget="true" />
@@ -75396,6 +75535,7 @@
         <Property Name="allottedUnits" Type="Edm.Int32" Nullable="false" />
         <Property Name="assignableTo" Type="microsoft.graph.cloudLicensing.assigneeTypes" Nullable="false" />
         <Property Name="consumedUnits" Type="Edm.Int32" Nullable="false" />
+        <Property Name="externalServiceIdentifier" Type="Edm.String" />
         <Property Name="services" Type="Collection(microsoft.graph.cloudLicensing.service)" Nullable="false" />
         <Property Name="skuId" Type="Edm.Guid" />
         <Property Name="skuPartNumber" Type="Edm.String" />
@@ -75417,6 +75557,7 @@
         <NavigationProperty Name="usageRight" Type="microsoft.graph.cloudLicensing.usageRight" />
       </EntityType>
       <EntityType Name="usageRight" BaseType="graph.entity">
+        <Property Name="externalServiceIdentifier" Type="Edm.String" />
         <Property Name="services" Type="Collection(microsoft.graph.cloudLicensing.service)" Nullable="false" />
         <Property Name="skuId" Type="Edm.Guid" />
         <Property Name="skuPartNumber" Type="Edm.String" />
