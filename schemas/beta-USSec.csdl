@@ -2008,6 +2008,8 @@
         <Member Name="adminConfirmedAgentCompromised" Value="19" />
         <Member Name="adminDismissedRiskForAgent" Value="20" />
         <Member Name="microsoftRevokedSessions" Value="21" />
+        <Member Name="aiElevatedAccountRisk" Value="22" />
+        <Member Name="userPassedVerifiedIdDrivenByRiskBasedPolicy" Value="23" />
       </EnumType>
       <EnumType Name="riskDetectionTimingType">
         <Member Name="notDefined" Value="0" />
@@ -2232,6 +2234,13 @@
         <Member Name="normal" Value="1" />
         <Member Name="high" Value="2" />
         <Member Name="critical" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="severity">
+        <Member Name="none" Value="0" />
+        <Member Name="low" Value="1" />
+        <Member Name="medium" Value="2" />
+        <Member Name="high" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="sharePointIdentityMappingGroupType">
@@ -3419,6 +3428,7 @@
       </ComplexType>
       <ComplexType Name="authenticationBehaviors">
         <Property Name="blockAzureADGraphAccess" Type="Edm.Boolean" />
+        <Property Name="coopEnforcement" Type="Edm.Boolean" />
         <Property Name="removeUnverifiedEmailClaim" Type="Edm.Boolean" />
         <Property Name="requireClientServicePrincipal" Type="Edm.Boolean" />
       </ComplexType>
@@ -3522,6 +3532,12 @@
       </ComplexType>
       <ComplexType Name="binaryContent" BaseType="graph.contentBase">
         <Property Name="data" Type="Edm.Binary" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="blastRadiusRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="blockAccessAction" BaseType="graph.dlpActionInfo" />
       <ComplexType Name="booleanColumn" />
@@ -4456,6 +4472,12 @@
         <Property Name="duration" Type="Edm.Duration" />
         <Property Name="endDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="type" Type="graph.expirationPatternType" />
+      </ComplexType>
+      <ComplexType Name="exposureRisk">
+        <Property Name="riskIndicators" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskRecommendations" Type="Collection(graph.riskRecommendation)" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="expressionEvaluationDetails">
         <Property Name="expression" Type="Edm.String" />
@@ -6264,6 +6286,16 @@
         <Property Name="g" Type="Edm.Byte" Nullable="false" />
         <Property Name="r" Type="Edm.Byte" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="riskAlert">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="riskRecommendation">
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="severity" Type="graph.severity" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="riskServicePrincipalActivity">
         <Property Name="detail" Type="graph.riskDetail" />
         <Property Name="riskEventTypes" Type="Collection(Edm.String)" />
@@ -6278,6 +6310,11 @@
         <Property Name="roleTemplateId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="root" />
+      <ComplexType Name="runtimeRisk">
+        <Property Name="alerts" Type="Collection(graph.riskAlert)" Nullable="false" />
+        <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
+        <Property Name="riskUrl" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="samlSingleSignOnSettings">
         <Property Name="relayState" Type="Edm.String" />
       </ComplexType>
@@ -11098,16 +11135,25 @@
         <Property Name="userPrincipalName" Type="Edm.String" />
       </EntityType>
       <EntityType Name="riskyAgent" BaseType="graph.entity">
+        <Property Name="additionalInfo" Type="Edm.String" />
         <Property Name="agentDisplayName" Type="Edm.String" />
+        <Property Name="agentPlatform" Type="Edm.String" />
+        <Property Name="associatedUserId" Type="Edm.String" />
+        <Property Name="blastRadiusRisk" Type="graph.blastRadiusRisk" />
         <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="deviceId" Type="Edm.String" />
+        <Property Name="exposureRisk" Type="graph.exposureRisk" />
         <Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" />
         <Property Name="isDeleted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isProcessing" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="machineId" Type="Edm.String" />
         <Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" />
         <Property Name="riskLastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" />
         <Property Name="riskState" Type="graph.riskState" Nullable="false" />
+        <Property Name="runtimeRisk" Type="graph.runtimeRisk" />
+        <Property Name="sources" Type="Collection(Edm.String)" Nullable="false" />
       </EntityType>
       <EntityType Name="riskyAgentDiscoveredAgentIdentity" BaseType="graph.riskyAgent" />
       <EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent">
@@ -12027,14 +12073,25 @@
         <NavigationProperty Name="teamTemplates" Type="Collection(graph.teamTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
-      <EntityType Name="teamworkCustomEmoji">
-        <Key>
-          <PropertyRef Name="displayName" />
-        </Key>
+      <EntityType Name="teamworkCustomEmoji" BaseType="graph.entity">
         <Property Name="contentBytes" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="displayName" />
+                    <PropertyValue Property="Name" PropertyPath="displayName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="teamworkDevice" BaseType="graph.entity">
         <Property Name="activityState" Type="graph.teamworkDeviceActivityState" />
