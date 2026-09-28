@@ -13365,6 +13365,7 @@
       <ComplexType Name="applicationDriftResourceInfo" BaseType="graph.driftResourceInfo" />
       <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
       <ComplexType Name="applicationIcon" />
+      <ComplexType Name="applicationIdentity" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="applicationLocation">
         <Property Name="dataCenter" Type="Edm.String" />
         <Property Name="headquarters" Type="Edm.String" />
@@ -17761,6 +17762,9 @@
         <Property Name="user" Type="graph.identity" />
       </ComplexType>
       <ComplexType Name="identitySource" Abstract="true" />
+      <ComplexType Name="identityVerificationEventsConfiguration">
+        <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="idleSessionSignOut">
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="signOutAfterInSeconds" Type="Edm.Int64" />
@@ -31367,7 +31371,9 @@
         <Property Name="assignedRole" Type="Edm.String" />
         <Property Name="expectedRole" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="entraDriftIdentityInfo" BaseType="graph.driftIdentityInfo" />
+      <EntityType Name="entraDriftIdentityInfo" BaseType="graph.driftIdentityInfo">
+        <Property Name="identityType" Type="Edm.String" />
+      </EntityType>
       <EntityType Name="entraIdProtectionRiskyUserApproval" BaseType="graph.controlConfiguration">
         <Property Name="isApprovalRequired" Type="Edm.Boolean" Nullable="false" />
         <Property Name="minimumRiskLevel" Type="graph.riskLevel" Nullable="false" />
@@ -32026,6 +32032,7 @@
         <Property Name="createdByAppId" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
+        <Property Name="disableNesting" Type="Edm.Boolean" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="expirationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false" />
@@ -39418,14 +39425,25 @@
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
-      <EntityType Name="teamworkCustomEmoji">
-        <Key>
-          <PropertyRef Name="displayName" />
-        </Key>
+      <EntityType Name="teamworkCustomEmoji" BaseType="graph.entity">
         <Property Name="contentBytes" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="displayName" />
+                    <PropertyValue Property="Name" PropertyPath="displayName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
       </EntityType>
       <EntityType Name="teamworkDevice" BaseType="graph.entity">
         <Property Name="activityState" Type="graph.teamworkDeviceActivityState" />
@@ -41082,6 +41100,7 @@
         <Property Name="verifiedIdProfiles" Type="Collection(Edm.Guid)" Nullable="false" />
       </EntityType>
       <EntityType Name="verifiableCredentialsAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="identityVerificationEventsConfiguration" Type="graph.identityVerificationEventsConfiguration" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.verifiableCredentialAuthenticationMethodTarget)" />
       </EntityType>
       <EntityType Name="verifiedIdProfile" BaseType="graph.entity">
@@ -56196,6 +56215,29 @@
       </ComplexType>
       <ComplexType Name="guestSponsorTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="minimumRequiredSponsors" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="lifecyclePolicyReference">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="version" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="lifecyclePolicyScopeProcessing">
+        <Property Name="currentStartedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastSuccessfulProcessingDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="latestAttempt" Type="microsoft.graph.identityGovernance.lifecyclePolicyScopeProcessingAttempt" />
+      </ComplexType>
+      <ComplexType Name="lifecyclePolicyScopeProcessingAttempt">
+        <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="error" Type="graph.publicError" />
+        <Property Name="startedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="lifecyclePolicySubjectCompliance">
+        <Property Name="evaluatedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="lifecyclePolicySubjectEnforcement">
+        <Property Name="isLocked" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isTerminal" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="nextActionDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="membershipChangeTrigger" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
         <Property Name="changeType" Type="microsoft.graph.identityGovernance.membershipChangeType" Nullable="false" />
@@ -79335,6 +79377,7 @@
                 <PropertyPath>driftedProperties</PropertyPath>
                 <PropertyPath>id</PropertyPath>
                 <PropertyPath>resourceInstanceIdentifier</PropertyPath>
+                <PropertyPath>resourceVersion</PropertyPath>
               </Collection>
             </PropertyValue>
           </Record>
@@ -79372,6 +79415,7 @@
                 <PropertyPath>driftedProperties</PropertyPath>
                 <PropertyPath>id</PropertyPath>
                 <PropertyPath>resourceInstanceIdentifier</PropertyPath>
+                <PropertyPath>resourceVersion</PropertyPath>
               </Collection>
             </PropertyValue>
             <PropertyValue Property="Sortable" Bool="true" />
@@ -98455,6 +98499,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.auditLogQuery">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents a query against the unified audit log." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/approximateReturnedRecordCount">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The approximate number of records retrieved by the query. This value can be higher or lower than recordCountLimit due to distributed counting." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/isRecordCountLimitExceeded">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the query exceeded the per-search record-count limit. The default value is false. A true value is authoritative and is not derived from approximateReturnedRecordCount." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/recordCountLimit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The record-count threshold used to limit query result retrieval." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.auditLogQuery/records">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
@@ -120878,13 +120934,16 @@
       </EntityType>
       <EntityType Name="auditLogQuery" BaseType="graph.entity">
         <Property Name="administrativeUnitIdFilters" Type="Collection(Edm.String)" />
+        <Property Name="approximateReturnedRecordCount" Type="Edm.Int64" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="filterEndDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="filterStartDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="ipAddressFilters" Type="Collection(Edm.String)" />
+        <Property Name="isRecordCountLimitExceeded" Type="Edm.Boolean" Nullable="false" />
         <Property Name="keywordFilter" Type="Edm.String" />
         <Property Name="objectIdFilters" Type="Collection(Edm.String)" />
         <Property Name="operationFilters" Type="Collection(Edm.String)" />
+        <Property Name="recordCountLimit" Type="Edm.Int64" />
         <Property Name="recordTypeFilters" Type="Collection(self.auditLogRecordType)" />
         <Property Name="serviceFilters" Type="Collection(Edm.String)" />
         <Property Name="status" Type="self.auditLogQueryStatus" />
