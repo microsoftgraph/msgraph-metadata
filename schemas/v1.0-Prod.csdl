@@ -2191,6 +2191,7 @@
         <Member Name="itemMajorVersionLimit" Value="4" />
         <Member Name="maxStoragePerContainerInBytes" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+        <Member Name="isOfficeRestricted" Value="7" />
       </EnumType>
       <EnumType Name="filterMode">
         <Member Name="include" Value="0" />
@@ -5416,7 +5417,8 @@
         <Member Name="ios" Value="1" />
         <Member Name="android" Value="2" />
         <Member Name="mac" Value="4" />
-        <Member Name="unknownFutureValue" Value="8" />
+        <Member Name="linux" Value="8" />
+        <Member Name="unknownFutureValue" Value="16" />
       </EnumType>
       <EnumType Name="targetedManagedAppGroupType">
         <Member Name="selectedPublicApps" Value="0" />
@@ -8780,6 +8782,7 @@
       </ComplexType>
       <ComplexType Name="fileStorageContainerCustomPropertyDictionary" BaseType="graph.Dictionary" OpenType="true" />
       <ComplexType Name="fileStorageContainerCustomPropertyValue">
+        <Property Name="isPatternToken" Type="Edm.Boolean" />
         <Property Name="isSearchable" Type="Edm.Boolean" />
         <Property Name="value" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -8791,6 +8794,7 @@
       <ComplexType Name="fileStorageContainerTypeRegistrationSettings">
         <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
         <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
+        <Property Name="isOfficeRestricted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isSearchEnabled" Type="Edm.Boolean" />
         <Property Name="isSharingRestricted" Type="Edm.Boolean" />
         <Property Name="itemMajorVersionLimit" Type="Edm.Int64" />
@@ -8802,6 +8806,7 @@
         <Property Name="consumingTenantOverridables" Type="graph.fileStorageContainerTypeSettingsOverride" />
         <Property Name="isDiscoverabilityEnabled" Type="Edm.Boolean" />
         <Property Name="isItemVersioningEnabled" Type="Edm.Boolean" />
+        <Property Name="isOfficeRestricted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isSearchEnabled" Type="Edm.Boolean" />
         <Property Name="isSharingRestricted" Type="Edm.Boolean" />
         <Property Name="itemMajorVersionLimit" Type="Edm.Int64" />
@@ -10449,6 +10454,10 @@
       <ComplexType Name="provisioningSystem" BaseType="graph.identity" OpenType="true">
         <Property Name="details" Type="graph.detailsInfo" />
       </ComplexType>
+      <ComplexType Name="provisionResponse">
+        <Property Name="challenge" Type="Edm.String" Nullable="false" />
+        <Property Name="deviceId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="proxiedDomain">
         <Property Name="ipAddressOrFQDN" Type="Edm.String" Nullable="false" />
         <Property Name="proxy" Type="Edm.String" />
@@ -10574,6 +10583,11 @@
         <Property Name="emailAddress" Type="Edm.String" Nullable="false" />
         <Property Name="mobilePhone" Type="Edm.String" />
         <Property Name="relationship" Type="graph.contactRelationship" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="relatedTenantsRefreshStatus">
+        <Property Name="isFirstRefresh" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="mostRecentRefreshDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="mostRecentRefreshRequestStatus" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="relationshipPolicy">
         <Property Name="delegatedAdministrationRoleAssignments" Type="Collection(graph.delegatedAdministrationRoleAssignmentSnapshot)" Nullable="false" />
@@ -12994,6 +13008,9 @@
         <Property Name="workProfilePasswordSignInFailureCountBeforeFactoryReset" Type="Edm.Int32" />
         <Property Name="workProfileRequirePassword" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
+      <EntityType Name="anonymousCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="anonymousGuestConversationMember" BaseType="graph.conversationMember">
         <Property Name="anonymousGuestId" Type="Edm.String" />
       </EntityType>
@@ -24881,6 +24898,11 @@
         <Parameter Name="bindparameter" Type="graph.workbookWorksheetProtection" />
         <Parameter Name="options" Type="graph.workbookWorksheetProtectionOptions" />
       </Action>
+      <Action Name="provision" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.device)" Nullable="false" />
+        <Parameter Name="provisioningBlob" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.provisionResponse" Nullable="false" />
+      </Action>
       <Action Name="provisionEmail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.channel" />
         <ReturnType Type="graph.provisionChannelEmailResult" />
@@ -25329,6 +25351,11 @@
       <Action Name="return" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.educationSubmission" />
         <ReturnType Type="graph.educationSubmission" />
+      </Action>
+      <Action Name="revokeGrants" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.permission" />
+        <Parameter Name="grantees" Type="Collection(graph.driveRecipient)" />
+        <ReturnType Type="graph.permission" />
       </Action>
       <Action Name="revokeSignInSessions" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" Nullable="false" />
@@ -27714,6 +27741,10 @@
       <Function Name="recent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="refreshStatus" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.relatedTenant)" />
+        <ReturnType Type="graph.relatedTenantsRefreshStatus" />
       </Function>
       <Function Name="reminderView" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.user" />
@@ -41948,6 +41979,9 @@
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether this tenant is a Microsoft infrastructure tenant." />
       </Annotations>
+      <Annotations Target="microsoft.graph.relatedTenantsRefreshStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the status of the most recent Related Tenants refresh operation." />
+      </Annotations>
       <Annotations Target="microsoft.graph.relationshipCreationType/addOnTenant">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents a relationship between the add-on tenant and the tenant from which it was created." />
       </Annotations>
@@ -42632,6 +42666,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.auditLogQuery">
         <Annotation Term="Org.OData.Core.V1.Description" String="Represents a query against the unified audit log." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/approximateReturnedRecordCount">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The approximate number of records retrieved by the query. This value can be higher or lower than recordCountLimit due to distributed counting." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/isRecordCountLimitExceeded">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the query exceeded the per-search record-count limit. The default value is false. A true value is authoritative and is not derived from approximateReturnedRecordCount." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.auditLogQuery/recordCountLimit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The record-count threshold used to limit query result retrieval." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.auditLogQuery/records">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
@@ -52297,13 +52343,16 @@
       </EntityType>
       <EntityType Name="auditLogQuery" BaseType="graph.entity">
         <Property Name="administrativeUnitIdFilters" Type="Collection(Edm.String)" />
+        <Property Name="approximateReturnedRecordCount" Type="Edm.Int64" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="filterEndDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="filterStartDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="ipAddressFilters" Type="Collection(Edm.String)" />
+        <Property Name="isRecordCountLimitExceeded" Type="Edm.Boolean" Nullable="false" />
         <Property Name="keywordFilter" Type="Edm.String" />
         <Property Name="objectIdFilters" Type="Collection(Edm.String)" />
         <Property Name="operationFilters" Type="Collection(Edm.String)" />
+        <Property Name="recordCountLimit" Type="Edm.Int64" />
         <Property Name="recordTypeFilters" Type="Collection(self.auditLogRecordType)" />
         <Property Name="serviceFilters" Type="Collection(Edm.String)" />
         <Property Name="status" Type="self.auditLogQueryStatus" />
