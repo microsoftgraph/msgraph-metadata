@@ -676,6 +676,7 @@
         <Member Name="created" Value="0" />
         <Member Name="updated" Value="1" />
         <Member Name="deleted" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="channelMembershipType">
         <Member Name="standard" Value="0" />
@@ -9984,6 +9985,7 @@
         <NavigationProperty Name="passwordMethods" Type="Collection(graph.passwordAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="phoneMethods" Type="Collection(graph.phoneAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="platformCredentialMethods" Type="Collection(graph.platformCredentialAuthenticationMethod)" ContainsTarget="true" />
+        <NavigationProperty Name="resourceAccountKeyAuthenticationMethods" Type="Collection(graph.resourceAccountKeyAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="softwareOathMethods" Type="Collection(graph.softwareOathAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="temporaryAccessPassMethods" Type="Collection(graph.temporaryAccessPassAuthenticationMethod)" ContainsTarget="true" />
         <NavigationProperty Name="windowsHelloForBusinessMethods" Type="Collection(graph.windowsHelloForBusinessAuthenticationMethod)" ContainsTarget="true" />
@@ -11331,6 +11333,7 @@
         <NavigationProperty Name="federationConfigurations" Type="Collection(graph.identityProviderBase)" ContainsTarget="true" />
         <NavigationProperty Name="onPremisesSynchronization" Type="Collection(graph.onPremisesDirectorySynchronization)" ContainsTarget="true" />
         <NavigationProperty Name="publicKeyInfrastructure" Type="graph.publicKeyInfrastructureRoot" ContainsTarget="true" />
+        <NavigationProperty Name="recovery" Type="entraRecoveryServices.recovery" ContainsTarget="true" />
         <NavigationProperty Name="subscriptions" Type="Collection(graph.companySubscription)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryAudit" BaseType="graph.entity">
@@ -13557,6 +13560,10 @@
         <Property Name="indirectProviderTenantId" Type="Edm.String" Nullable="false" />
         <Property Name="isPartnerConsentPending" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
+      <EntityType Name="resourceAccountKeyAuthenticationMethod" BaseType="graph.authenticationMethod">
+        <Property Name="displayName" Type="Edm.String" />
+        <NavigationProperty Name="device" Type="graph.device" />
+      </EntityType>
       <EntityType Name="resourceOperation" BaseType="graph.entity">
         <Property Name="actionName" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
@@ -14150,6 +14157,9 @@
         <Property Name="lifecycleNotificationUrl" Type="Edm.String" />
         <Property Name="notificationUrl" Type="Edm.String" Nullable="false" />
         <Property Name="resource" Type="Edm.String" Nullable="false" />
+        <Property Name="vapidPublicKey" Type="Edm.String" />
+        <Property Name="webPushEncryptionP256dhPublicKey" Type="Edm.String" />
+        <Property Name="webPushEncryptionSecret" Type="Edm.String" />
       </EntityType>
       <EntityType Name="synchronization" BaseType="graph.entity">
         <Property Name="secrets" Type="Collection(graph.synchronizationSecretKeyStringValuePair)" />
@@ -20912,6 +20922,10 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.managedAppRegistration)" />
         <ReturnType Type="Collection(Edm.String)" Unicode="false" />
       </Function>
+      <Function Name="getVapidPublicKey" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.subscription)" />
+        <ReturnType Type="Edm.String" Unicode="false" />
+      </Function>
       <Function Name="headerRowRange" IsBound="true" IsComposable="true">
         <Parameter Name="bindparameter" Type="graph.workbookTable" />
         <ReturnType Type="graph.workbookRange" />
@@ -21327,6 +21341,8 @@
         <Singleton Name="deviceManagement" Type="microsoft.graph.deviceManagement" />
         <Singleton Name="directory" Type="microsoft.graph.directory">
           <NavigationPropertyBinding Path="administrativeUnits/members" Target="directoryObjects" />
+          <NavigationPropertyBinding Path="recovery/snapshots/recoveryJobs" Target="directory/microsoft.graph.entraRecoveryServices.recovery/recovery/jobs" />
+          <NavigationPropertyBinding Path="recovery/snapshots/recoveryPreviewJobs" Target="directory/microsoft.graph.entraRecoveryServices.recovery/recovery/jobs" />
         </Singleton>
         <Singleton Name="drive" Type="microsoft.graph.drive" />
         <Singleton Name="external" Type="microsoft.graph.externalConnectors.external" />
@@ -21751,6 +21767,96 @@
         <Parameter Name="fromDateTime" Type="Edm.DateTimeOffset" />
         <Parameter Name="toDateTime" Type="Edm.DateTimeOffset" />
         <ReturnType Type="Collection(microsoft.graph.callRecords.pstnCallLogRow)" />
+      </Function>
+    </Schema>
+    <Schema Namespace="microsoft.graph.entraRecoveryServices" Alias="entraRecoveryServices" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="recoveryAction">
+        <Member Name="softDelete" Value="0" />
+        <Member Name="update" Value="1" />
+        <Member Name="restore" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="recoveryStatus">
+        <Member Name="initialized" Value="0" />
+        <Member Name="running" Value="1" />
+        <Member Name="successful" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="abandoned" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="calculating" Value="6" />
+        <Member Name="loadingData" Value="7" />
+      </EnumType>
+      <EnumType Name="resourceTypeName">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="conditionalAccessPolicy" Value="2" />
+        <Member Name="namedLocationPolicy" Value="3" />
+        <Member Name="authenticationMethodPolicy" Value="4" />
+        <Member Name="authorizationPolicy" Value="5" />
+        <Member Name="authenticationStrengthPolicy" Value="6" />
+        <Member Name="application" Value="7" />
+        <Member Name="servicePrincipal" Value="8" />
+        <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="oAuth2PermissionGrant" Value="10" />
+        <Member Name="appRoleAssignment" Value="11" />
+        <Member Name="organization" Value="12" />
+      </EnumType>
+      <ComplexType Name="entityTypeAndIds">
+        <Property Name="entityIds" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="entityType" Type="entraRecoveryServices.resourceTypeName" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="recoveryJobEntityNameAndIdsFilter" BaseType="entraRecoveryServices.recoveryJobFilteringCriteriaBase">
+        <Property Name="filterValues" Type="Collection(entraRecoveryServices.entityTypeAndIds)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="recoveryJobEntityNamesFilter" BaseType="entraRecoveryServices.recoveryJobFilteringCriteriaBase">
+        <Property Name="entityTypes" Type="Collection(entraRecoveryServices.resourceTypeName)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="recoveryJobFilteringCriteriaBase" />
+      <EntityType Name="recovery" BaseType="graph.entity">
+        <NavigationProperty Name="jobs" Type="Collection(entraRecoveryServices.recoveryJobBase)" ContainsTarget="true" />
+        <NavigationProperty Name="snapshots" Type="Collection(entraRecoveryServices.snapshot)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="recoveryChangeObjectBase" BaseType="graph.entity" OpenType="true">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="entityTypeName" Type="entraRecoveryServices.resourceTypeName" Nullable="false" />
+        <Property Name="failureMessage" Type="Edm.String" />
+        <Property Name="recoveryAction" Type="entraRecoveryServices.recoveryAction" Nullable="false" />
+      </EntityType>
+      <EntityType Name="recoveryJob" BaseType="entraRecoveryServices.recoveryJobBase">
+        <Property Name="totalFailedChanges" Type="Edm.Int32" />
+        <Property Name="totalLinksModified" Type="Edm.Int32" />
+        <Property Name="totalObjectsModified" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="recoveryJobBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="filteringCriteria" Type="entraRecoveryServices.recoveryJobFilteringCriteriaBase" />
+        <Property Name="jobCompletionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="jobStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="status" Type="entraRecoveryServices.recoveryStatus" Nullable="false" />
+        <Property Name="targetStateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="totalChangedLinksCalculated" Type="Edm.Int32" />
+        <Property Name="totalChangedObjectsCalculated" Type="Edm.Int32" />
+      </EntityType>
+      <EntityType Name="recoveryPreviewJob" BaseType="entraRecoveryServices.recoveryJobBase" />
+      <EntityType Name="snapshot" BaseType="graph.entity">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="totalChangedObjects" Type="Edm.Int32" />
+        <NavigationProperty Name="recoveryJobs" Type="Collection(entraRecoveryServices.recoveryJob)" />
+        <NavigationProperty Name="recoveryPreviewJobs" Type="Collection(entraRecoveryServices.recoveryPreviewJob)" />
+      </EntityType>
+      <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="entraRecoveryServices.recoveryJobBase" Nullable="false" />
+      </Action>
+      <Function Name="getChanges" IsBound="true">
+        <Parameter Name="bindingParameter" Type="entraRecoveryServices.recoveryPreviewJob" Nullable="false" />
+        <ReturnType Type="Collection(entraRecoveryServices.recoveryChangeObjectBase)">
+          <Annotation Term="Org.OData.Core.V1.IsDelta" Bool="true" />
+        </ReturnType>
+      </Function>
+      <Function Name="getFailedChanges" IsBound="true">
+        <Parameter Name="bindingParameter" Type="entraRecoveryServices.recoveryJob" Nullable="false" />
+        <ReturnType Type="Collection(entraRecoveryServices.recoveryChangeObjectBase)">
+          <Annotation Term="Org.OData.Core.V1.IsDelta" Bool="true" />
+        </ReturnType>
       </Function>
     </Schema>
     <Schema Namespace="microsoft.graph.externalConnectors" xmlns="http://docs.oasis-open.org/odata/ns/edm">
@@ -23672,6 +23778,18 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit resource's Id." />
       </Annotations>
       <Annotations Target="microsoft.graph.authentication/platformCredentialMethods">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.authentication/resourceAccountKeyAuthenticationMethods">
         <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
           <Record>
             <PropertyValue Property="Insertable" Bool="false" />
@@ -26849,6 +26967,81 @@
       </Annotations>
       <Annotations Target="microsoft.graph.enterpriseCodeSigningCertificate/uploadDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="The date time of CodeSigning Cert when it is uploaded (using ISO 8601 format, in UTC time). Uploading a valid cert file through the Intune admin console will automatically populate this value in the HTTP response. Supports: $filter, $select, $top, $OrderBy, $skip. $Search is not supported." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryAction/restore">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a restore action during recovery" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryAction/softDelete">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a soft delete action during recovery" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryAction/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryAction/update">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents an update action during recovery" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/abandoned">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job that was abandoned by the user" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/calculating">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job for which we have started calculating the diff/preview." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/failed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job that we were not able to run successfully" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/initialized">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job that has been initialized but has not been started yet" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/loadingData">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job for which we have started loading data of the snapshot." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/running">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job that is in progress" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/successful">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents a job that ran successfully and is now complete" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future-" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/application">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the application entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/appRoleAssignment">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the appRoleAssignment entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/authenticationMethodPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the authentication method policy entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/authenticationStrengthPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the authentication strength policy entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/authorizationPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the authorization policy entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/conditionalAccessPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the conditional access policy entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/group">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the group entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/namedLocationPolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the named location policy entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/oAuth2PermissionGrant">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the oAuth2PermissionGrant entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/organization">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the organization entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/servicePrincipal">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the service principal entity" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This will help in making this enum evolable and adding more values in the future." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.resourceTypeName/user">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the user entity" />
       </Annotations>
       <Annotations Target="microsoft.graph.event/attachments">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
@@ -33114,6 +33307,11 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.subscription/webPushEncryptionSecret">
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.synchronization">
         <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
