@@ -346,6 +346,12 @@
         <Member Name="blockNone" Value="3" />
         <Member Name="blockTextFile" Value="4" />
       </EnumType>
+      <EnumType Name="applicationMode">
+        <Member Name="manual" Value="0" />
+        <Member Name="automatic" Value="1" />
+        <Member Name="recommended" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="applicationPermissionType">
         <Member Name="role" Value="0" />
         <Member Name="scope" Value="1" />
@@ -1383,6 +1389,13 @@
         <Member Name="transient" Value="0" />
         <Member Name="permanent" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="copilotPackageRequestPrincipalType">
+        <Member Name="user" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="agentApplication" Value="2" />
+        <Member Name="agentUser" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="copilotPackageRequestStatus">
         <Member Name="pending" Value="0" />
@@ -7313,6 +7326,23 @@
       <ComplexType Name="azureCommunicationServicesUserIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="azureCommunicationServicesResourceId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="backupCountStatistics">
+        <Property Name="lastComputedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="offboardRequested" Type="Edm.Int32" />
+        <Property Name="protectedCompleted" Type="Edm.Int32" Nullable="false" />
+        <Property Name="protectedFailed" Type="Edm.Int32" Nullable="false" />
+        <Property Name="protectedInProgress" Type="Edm.Int32" Nullable="false" />
+        <Property Name="removed" Type="Edm.Int32" />
+        <Property Name="total" Type="Edm.Int32" Nullable="false" />
+        <Property Name="unprotectedCompleted" Type="Edm.Int32" Nullable="false" />
+        <Property Name="unprotectedFailed" Type="Edm.Int32" Nullable="false" />
+        <Property Name="unprotectedInProgress" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="backupPolicyReport">
+        <Property Name="backupPolicyId" Type="Edm.String" Nullable="false" />
+        <Property Name="countStatistics" Type="graph.backupCountStatistics" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="baseEndUserNotification">
         <Property Name="defaultLanguage" Type="Edm.String" />
         <NavigationProperty Name="endUserNotification" Type="graph.endUserNotification" />
@@ -8021,6 +8051,20 @@
         <Property Name="sourceId" Type="Edm.String" />
         <Property Name="targetId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="copilotPackageRequestInfo">
+        <Property Name="additionalMetadata" Type="graph.Json" />
+        <Property Name="assignees" Type="Collection(graph.copilotPackageRequestPrincipal)" Nullable="false" />
+        <Property Name="identifier" Type="Edm.String" />
+        <Property Name="requestedBy" Type="graph.emailAddress" />
+        <Property Name="requestedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="copilotPackageRequestMetadata">
+        <Property Name="requests" Type="Collection(graph.copilotPackageRequestInfo)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="copilotPackageRequestPrincipal" BaseType="graph.identity" OpenType="true">
+        <Property Name="principalType" Type="graph.copilotPackageRequestPrincipalType" Nullable="false" />
+        <Property Name="userPrincipalName" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="CopyNotebookModel">
         <Property Name="createdBy" Type="Edm.String" />
         <Property Name="createdByIdentity" Type="graph.identitySet" />
@@ -8078,6 +8122,10 @@
       </ComplexType>
       <ComplexType Name="currencyColumn">
         <Property Name="locale" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="currentLabel">
+        <Property Name="applicationMode" Type="graph.applicationMode" />
+        <Property Name="id" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="customAppManagementApplicationConfiguration">
         <Property Name="identifierUris" Type="graph.identifierUriConfiguration" />
@@ -10364,6 +10412,7 @@
         <Property Name="length" Type="Edm.Int64" />
         <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="name" Type="Edm.String" Nullable="false" />
+        <Property Name="sensitivityLabels" Type="Collection(graph.currentLabel)" />
         <Property Name="sequenceNumber" Type="Edm.Int64" />
       </ComplexType>
       <ComplexType Name="processContentRequest">
@@ -11237,6 +11286,7 @@
       <ComplexType Name="storagePlanInformation">
         <Property Name="upgradeAvailable" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="stringDictionary" BaseType="graph.Dictionary" OpenType="true" />
       <ComplexType Name="stringKeyAttributeMappingSourceValuePair">
         <Property Name="key" Type="Edm.String" />
         <Property Name="value" Type="graph.attributeMappingSource" />
@@ -13403,6 +13453,7 @@
         <NavigationProperty Name="userAttributeAssignments" Type="Collection(graph.identityUserFlowAttributeAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="userFlowIdentityProviders" Type="Collection(graph.identityProviderBase)" />
       </EntityType>
+      <EntityType Name="backupReport" BaseType="graph.entity" Abstract="true" />
       <EntityType Name="backupRestoreRoot" BaseType="graph.entity">
         <Property Name="serviceStatus" Type="graph.serviceStatus" />
         <NavigationProperty Name="browseSessions" Type="Collection(graph.browseSessionBase)" ContainsTarget="true" />
@@ -13420,6 +13471,7 @@
         <NavigationProperty Name="oneDriveForBusinessRestoreSessions" Type="Collection(graph.oneDriveForBusinessRestoreSession)" ContainsTarget="true" />
         <NavigationProperty Name="protectionPolicies" Type="Collection(graph.protectionPolicyBase)" ContainsTarget="true" />
         <NavigationProperty Name="protectionUnits" Type="Collection(graph.protectionUnitBase)" />
+        <NavigationProperty Name="reports" Type="graph.backupReport" ContainsTarget="true" />
         <NavigationProperty Name="restorePoints" Type="Collection(graph.restorePoint)" ContainsTarget="true" />
         <NavigationProperty Name="restoreSessions" Type="Collection(graph.restoreSessionBase)" ContainsTarget="true" />
         <NavigationProperty Name="serviceApps" Type="Collection(graph.serviceApp)" ContainsTarget="true" />
@@ -13675,6 +13727,7 @@
         <Property Name="hexColor" Type="Edm.String" />
         <Property Name="isDefaultCalendar" Type="Edm.Boolean" />
         <Property Name="isRemovable" Type="Edm.Boolean" />
+        <Property Name="isSharedWithMe" Type="Edm.Boolean" />
         <Property Name="isTallyingResponses" Type="Edm.Boolean" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="owner" Type="graph.emailAddress" />
@@ -14385,6 +14438,7 @@
         <Property Name="exceptionRate" Type="Edm.Double" />
         <Property Name="lastUsedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="longDescription" Type="Edm.String" />
+        <Property Name="requestMetadata" Type="graph.copilotPackageRequestMetadata" />
         <Property Name="sensitivity" Type="Edm.String" />
         <Property Name="sharedWithUsersAndGroups" Type="Collection(graph.packageAccessEntity)" Nullable="false" />
         <Property Name="totalRunTimeInHours" Type="Edm.Double" />
@@ -15110,6 +15164,9 @@
             </Record>
           </Collection>
         </Annotation>
+      </EntityType>
+      <EntityType Name="directoryRoleManagementDeletedItemContainer" BaseType="graph.entity">
+        <NavigationProperty Name="roleDefinitions" Type="Collection(graph.unifiedRoleDefinition)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="directoryRoleTemplate" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String" />
@@ -17797,10 +17854,12 @@
       </EntityType>
       <EntityType Name="place" BaseType="graph.entity" Abstract="true">
         <Property Name="address" Type="graph.physicalAddress" />
+        <Property Name="customProperties" Type="graph.stringDictionary" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
         <Property Name="geoCoordinates" Type="graph.outlookGeoCoordinates" />
         <Property Name="isWheelChairAccessible" Type="Edm.Boolean" />
         <Property Name="label" Type="Edm.String" />
+        <Property Name="lastUpdatedTime" Type="Edm.DateTimeOffset" />
         <Property Name="parentId" Type="Edm.String" />
         <Property Name="phone" Type="Edm.String" />
         <Property Name="placeId" Type="Edm.String" />
@@ -18277,6 +18336,7 @@
         <Property Name="updatedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="rbacApplication" BaseType="graph.entity">
+        <NavigationProperty Name="deletedItems" Type="graph.directoryRoleManagementDeletedItemContainer" ContainsTarget="true" />
         <NavigationProperty Name="resourceNamespaces" Type="Collection(graph.unifiedRbacResourceNamespace)" ContainsTarget="true" />
         <NavigationProperty Name="roleAssignments" Type="Collection(graph.unifiedRoleAssignment)" ContainsTarget="true" />
         <NavigationProperty Name="roleAssignmentScheduleInstances" Type="Collection(graph.unifiedRoleAssignmentScheduleInstance)" ContainsTarget="true" />
@@ -18468,6 +18528,7 @@
         <Property Name="error" Type="graph.publicError" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="policyId" Type="Edm.String" />
         <Property Name="restoreJobType" Type="graph.restoreJobType" />
         <Property Name="restoreSessionArtifactCount" Type="graph.restoreSessionArtifactCount" />
         <Property Name="status" Type="graph.restoreSessionStatus" />
@@ -18701,6 +18762,7 @@
         <NavigationProperty Name="identities" Type="self.identityContainer" ContainsTarget="true" />
         <NavigationProperty Name="incidents" Type="Collection(self.incident)" ContainsTarget="true" />
         <NavigationProperty Name="labels" Type="self.labelsRoot" ContainsTarget="true" />
+        <NavigationProperty Name="rules" Type="self.rulesRoot" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
         <NavigationProperty Name="subjectRightsRequests" Type="Collection(graph.subjectRightsRequest)" ContainsTarget="true" />
@@ -18714,6 +18776,7 @@
       </EntityType>
       <EntityType Name="sensitivityLabel" BaseType="graph.entity">
         <Property Name="actionSource" Type="graph.labelActionSource" />
+        <Property Name="applicationMode" Type="graph.applicationMode" />
         <Property Name="autoTooltip" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -19120,6 +19183,9 @@
         <Property Name="simulationId" Type="Edm.String" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="graph.simulationAutomationRunStatus" />
+      </EntityType>
+      <EntityType Name="singleValueExtendedProperty" BaseType="graph.entity">
+        <Property Name="value" Type="Edm.String" />
       </EntityType>
       <EntityType Name="singleValueLegacyExtendedProperty" BaseType="graph.entity">
         <Property Name="value" Type="Edm.String" />
@@ -19644,6 +19710,7 @@
         <NavigationProperty Name="checklistItems" Type="Collection(graph.checklistItem)" ContainsTarget="true" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
         <NavigationProperty Name="linkedResources" Type="Collection(graph.linkedResource)" ContainsTarget="true" />
+        <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueExtendedProperty)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="todoTaskList" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
@@ -19651,6 +19718,7 @@
         <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
         <Property Name="wellknownListName" Type="graph.wellknownListName" Nullable="false" />
         <NavigationProperty Name="extensions" Type="Collection(graph.extension)" ContainsTarget="true" />
+        <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueExtendedProperty)" ContainsTarget="true" />
         <NavigationProperty Name="tasks" Type="Collection(graph.todoTask)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="tokenIssuancePolicy" BaseType="graph.stsPolicy" />
@@ -25283,6 +25351,10 @@
         <Parameter Name="bindingParameter" Type="graph.namedLocation" Nullable="false" />
         <ReturnType Type="graph.namedLocation" />
       </Action>
+      <Action Name="restore" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.unifiedRoleDefinition" Nullable="false" />
+        <ReturnType Type="graph.unifiedRoleDefinition" />
+      </Action>
       <Action Name="restoreFactoryDefaults" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printer" />
       </Action>
@@ -25432,6 +25504,9 @@
         <Parameter Name="restorePointPreference" Type="graph.restorePointPreference" />
         <Parameter Name="tags" Type="graph.restorePointTags" />
         <Parameter Name="artifactQuery" Type="graph.artifactQuery">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="policyId" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <ReturnType Type="graph.restorePointSearchResponse" />
@@ -26497,6 +26572,10 @@
         <Parameter Name="bindingParameter" Type="Collection(graph.application)" />
         <ReturnType Type="Collection(graph.application)" />
       </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingparameter" Type="Collection(graph.calendar)" Nullable="false" />
+        <ReturnType Type="Collection(graph.calendar)" Nullable="false" />
+      </Function>
       <Function Name="delta" EntitySetPath="bindingParameter" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.callRecording)" />
         <ReturnType Type="Collection(graph.callRecording)" />
@@ -27424,6 +27503,11 @@
       <Function Name="getSourceImages" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.cloudPcDeviceImage)" />
         <ReturnType Type="Collection(graph.cloudPcSourceDeviceImage)" />
+      </Function>
+      <Function Name="getStatisticsByPolicy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.backupReport" />
+        <Parameter Name="policyId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.backupPolicyReport" />
       </Function>
       <Function Name="getTeamsDeviceUsageDistributionUserCounts" IsBound="true">
         <Parameter Name="reportRoot" Type="graph.reportRoot" />
@@ -32256,6 +32340,7 @@
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
                 <PropertyPath>governanceMetadata</PropertyPath>
+                <PropertyPath>requestMetadata</PropertyPath>
               </Collection>
             </PropertyValue>
           </Record>
@@ -32277,6 +32362,7 @@
               <Collection>
                 <PropertyPath>agentIdentityId</PropertyPath>
                 <PropertyPath>governanceMetadata</PropertyPath>
+                <PropertyPath>requestMetadata</PropertyPath>
                 <PropertyPath>requestStatus</PropertyPath>
                 <PropertyPath>requestType</PropertyPath>
               </Collection>
@@ -32305,11 +32391,71 @@
       <Annotations Target="microsoft.graph.copilotPackageDetail/lastUsedDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="The date and time when the package was last used, in ISO 8601 format and UTC." />
       </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageDetail/requestMetadata">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Request metadata returned by an explicit opt-in package detail read. Null when not loaded." />
+      </Annotations>
       <Annotations Target="microsoft.graph.copilotPackageDetail/totalRunTimeInHours">
         <Annotation Term="Org.OData.Core.V1.Description" String="Total hours worked by the agent." />
       </Annotations>
       <Annotations Target="microsoft.graph.copilotPackageDetail/totalSessions">
         <Annotation Term="Org.OData.Core.V1.Description" String="The total number of sessions served by the package during the reporting period." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The business identifier, first explicit assignee contact, all explicit assignees, submission date, and additional collected data of one package request." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo/additionalMetadata">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Additional data collected for this request, represented as a JSON object. Null when no value is available. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo/assignees">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="All explicit assigned recipients returned by Governance, in source order with duplicates preserved. The first member supplies the requestedBy display contact; the collection is not truncated to that member. Empty means no explicit members were returned, not that the request has no audience. Broad or all-users audiences are not expanded or represented by this collection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo/identifier">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The business request identifier returned by Governance, or null when unavailable. Not a requester identity, title identifier, correlation identifier, or Graph resource key or address. Uniqueness and lifetime stability are not guaranteed. No existing Graph operation in this proposal consumes this value." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo/requestedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name and contact address of the first explicitly assigned principal. The address may be a mail address or user principal name. Null only when there are no explicit assignees; a present first assignee may have null name and address. The first principal may be a user, group, or agent; requestedBy does not identify the request creator." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestInfo/requestedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The request submission date and time in ISO 8601 format. Null when unknown; independent of assignee presence and not the package creation or modification time." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A snapshot of first explicit assignee contacts, request dates, and additional request data for a package." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestMetadata/requests">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The request snapshots returned by the service. Empty when metadata was loaded and no requests were found." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipal">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A read-only snapshot of one explicit Governance assignee. Inherited id and displayName are the source identifier and resolved name, or null when unavailable. Identifier meaning depends on principalType and does not imply a resolvable directory-object URL. Openness is inherited from identity; the producer returns only the documented fields, never raw owner objects." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipal/principalType">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The source principal kind. Missing or unrecognized kinds use unknownFutureValue without dropping the assignee." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipal/userPrincipalName">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The actual userPrincipalName returned by Governance for user or agentUser principals. Null when unavailable and for other principal kinds. Never inferred from an email address or creator identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipalType/agentApplication">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An agent application identifier reported by Governance. Not assumed to be a service principal object identifier." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipalType/agentUser">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An agent user principal." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipalType/group">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An explicit group principal; group membership is not expanded." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipalType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An evolvable value also used when the source principal kind is missing or unrecognized." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.copilotPackageRequestPrincipalType/user">
+        <Annotation Term="Org.OData.Core.V1.Description" String="An explicit user principal." />
       </Annotations>
       <Annotations Target="microsoft.graph.copilotPackageRequestStatus">
         <Annotation Term="Org.OData.Core.V1.Description" String="The lifecycle status of a package governance request." />
@@ -34509,6 +34655,9 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.directoryRoleManagementDeletedItemContainer/roleDefinitions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Collection of soft-deleted directory role definitions that can be restored or permanently deleted." />
       </Annotations>
       <Annotations Target="microsoft.graph.directoryRoleTemplate">
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
@@ -41244,6 +41393,9 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.place/lastUpdatedTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.plannerPlan/owner">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -41911,6 +42063,9 @@
       <Annotations Target="microsoft.graph.ratingUnitedStatesTelevisionType/parentalGuidance">
         <Annotation Term="Org.OData.Core.V1.Description" String="TV-PG, parental guidance" />
       </Annotations>
+      <Annotations Target="microsoft.graph.rbacApplication/deletedItems">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Container for soft-deleted directory role management resources." />
+      </Annotations>
       <Annotations Target="microsoft.graph.rebootNow(microsoft.graph.managedDevice)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Reboot device" />
       </Annotations>
@@ -42464,6 +42619,9 @@
       <Annotations Target="microsoft.graph.security.a365AiExecuteTool">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for A365 AI Execute Tool events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.a365AiGuardrail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for A365 AI Guardrail events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.a365AiInferenceCall">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for A365 AI Inference Call events." />
       </Annotations>
@@ -42493,6 +42651,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.aiExecuteToolAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for AI Execute Tool events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.aiGuardrail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for AI Guardrail events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.aiInteractionsChangeNotificationAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for AI Interactions Change Notification events." />
@@ -42790,6 +42951,15 @@
       <Annotations Target="microsoft.graph.security.cdpResourceScopeChangeEventRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for CDP Resource Scope Change Event events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.cloudSecurityConnector">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Cloud Security Connector events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.cloudSecurityEnablement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Cloud Security Enablement events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.cloudSecurityManagement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Cloud Security Management events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.cloudUpdateDeviceConfigAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Cloud Update Device Config events." />
       </Annotations>
@@ -42853,6 +43023,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.complianceDLPSharePointClassificationExtendedAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Compliance DLP SharePoint Classification Extended events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.complianceEndpointEvaluationIncomplete">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for incomplete compliance endpoint evaluations." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.complianceEvaluationIncomplete">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for incomplete compliance evaluations." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.complianceExchangeOcrAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Compliance Exchange OCR events." />
@@ -42923,6 +43099,9 @@
       <Annotations Target="microsoft.graph.security.crossTenantAccessPolicyAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Cross Tenant Access Policy events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.cscContentMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for CSC Content Metadata events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.customerKeyServiceEncryptionAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Customer Key Service Encryption events." />
       </Annotations>
@@ -42947,8 +43126,17 @@
       <Annotations Target="microsoft.graph.security.defaultAuditData">
         <Annotation Term="Org.OData.Core.V1.Description" String="Default open-type audit data when no specific subtype applies." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.defenderAutomationRule">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Defender Automation Rule events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.defenderCaseManagementAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Defender Case Management events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.defenderGeneratedPlaybook">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Defender Generated Playbook events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.defenderIntegration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Defender Integration events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.defenderPreviewFeaturesRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Defender Preview Features events." />
@@ -42958,6 +43146,24 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.deployFeatureActivityRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Deploy Feature Activity events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.detectionRule">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="true" />
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.security.detonationBehaviourDetails">
         <Annotation Term="Org.OData.Core.V1.Revisions">
@@ -43007,8 +43213,14 @@
       <Annotations Target="microsoft.graph.security.dragonCopilotSessionRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Dragon Copilot Session events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.dspmAdminActivity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for DSPM Admin Activity events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.dynamics365BusinessCentralAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Dynamics365 Business Central events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.ecsContentMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for ECS Content Metadata events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.ehrConnectorAuditBaseRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for EHR Connector events." />
@@ -43036,6 +43248,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.fabricPolicyRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Fabric Policy events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.filteringTeamsMessageFileInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Filtering Teams Message File Info events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.healthcareSignalRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Healthcare Signal events." />
@@ -43432,6 +43647,9 @@
       <Annotations Target="microsoft.graph.security.mcasAlertsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MCAS Alerts events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.mcsRawEmailContentMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MCS Raw Email Content Metadata events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.mdaAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MDA events." />
       </Annotations>
@@ -43452,6 +43670,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.meshWorldsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Mesh Worlds events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.mesRawEmailContentMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MES Raw Email Content Metadata events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.microsoft365BackupBackupItemAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft365 Backup Backup Item events." />
@@ -43504,6 +43725,12 @@
       <Annotations Target="microsoft.graph.security.microsoftPurviewUnifiedCatalogOperationRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Purview Unified Catalog Operation events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.microsoftSecurityForAiConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Security for AI Configuration events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.microsoftSecurityForAiRealTimeProtection">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Security for AI Real-Time Protection events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.microsoftStreamAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Stream events." />
       </Annotations>
@@ -43518,6 +43745,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.microsoftTeamsDeviceAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Teams Device events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.microsoftTeamsMoveMessages">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Teams Move Messages events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.microsoftTeamsRetentionLabelActionAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Microsoft Teams Retention Label Action events." />
@@ -43597,6 +43827,9 @@
       <Annotations Target="microsoft.graph.security.msticNationStateNotificationRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MSTIC Nation State Notification events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.mtpContentMetadata">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for MTP Content Metadata events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.multiStageDispositionAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Multi Stage Disposition events." />
       </Annotations>
@@ -43611,6 +43844,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.omePortalAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for OME Portal events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.onDemandExchangeClassification">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for On-Demand Exchange Classification events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.onDemandSharePointClassificationAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for On Demand SharePoint Classification events." />
@@ -43644,6 +43880,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.p4aiAssessmentRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for P4AI Assessment events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.p4AiDagSitePermissionsRecord">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for P4 AI DAG Site Permissions events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.p4AIRiskScoreRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for P4 AI Risk Score events." />
@@ -43702,6 +43941,12 @@
       <Annotations Target="microsoft.graph.security.peopleAdminSettingsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for People Admin Settings events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.peopleSkillsAdmin">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for People Skills Admin events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.peopleSkillsUser">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for People Skills User events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.physicalBadgingSignalAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Physical Badging Signal events." />
       </Annotations>
@@ -43716,6 +43961,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.plannerCopyPlanAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Copy Plan events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.plannerCustomFieldDefinition">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Custom Field Definition events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.plannerCustomFieldDefinitionList">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Custom Field Definition List events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.plannerDependency">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Dependency events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.plannerDependencyList">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Dependency List events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.plannerGoalAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Planner Goal events." />
@@ -43978,6 +44235,9 @@
       <Annotations Target="microsoft.graph.security.sharePointFieldOperationAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for SharePoint Field Operation events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.sharePointFileArchivePolicy">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for SharePoint File Archive Policy events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.sharePointFileOperationAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for SharePoint File Operation events." />
       </Annotations>
@@ -44052,6 +44312,9 @@
       <Annotations Target="microsoft.graph.security.supervisoryReviewDayXInsightsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Supervisory Review Day X Insights events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.syntheticMediaDetectionEvent">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Synthetic Media Detection events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.syntheticProbeAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Synthetic Probe events." />
       </Annotations>
@@ -44121,6 +44384,9 @@
       <Annotations Target="microsoft.graph.security.universalPrintPrintJobAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Universal Print Print Job events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.universalPrintSecureScan">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Universal Print Secure Scan events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.urbacAssignmentAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for URBAC Assignment events." />
       </Annotations>
@@ -44163,6 +44429,12 @@
       <Annotations Target="microsoft.graph.security.vivaGlintAgenticCampaignAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint Agentic Campaign events." />
       </Annotations>
+      <Annotations Target="microsoft.graph.security.vivaGlintClientConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint Client Configuration events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.vivaGlintDataRetention">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint Data Retention events." />
+      </Annotations>
       <Annotations Target="microsoft.graph.security.vivaGlintFeedbackProgramAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint Feedback Program events." />
       </Annotations>
@@ -44195,6 +44467,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.vivaGlintUserGroupAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint User Group events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.vivaGlintVivaInsightsIntegration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Glint Viva Insights Integration events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.vivaGoalsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Viva Goals events." />
@@ -44288,6 +44563,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.windows365CustomerLockboxAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Windows365 Customer Lockbox events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.workIQAdminActivity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Work IQ Admin Activity events." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.workplaceAnalyticsAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Workplace Analytics events." />
@@ -45025,7 +45303,7 @@
       <Annotations Target="microsoft.graph.user/calendars">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
-            <PropertyValue Property="Supported" Bool="false" />
+            <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -49733,13 +50011,18 @@
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="partitionValue" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <EntityType Name="azureAggregatedUsage" BaseType="graph.entity">
+        <NavigationProperty Name="billed" Type="microsoft.graph.partners.billing.billedAggregatedUsage" ContainsTarget="true" Nullable="false" />
+      </EntityType>
       <EntityType Name="azureUsage" BaseType="graph.entity">
         <NavigationProperty Name="billed" Type="microsoft.graph.partners.billing.billedUsage" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="unbilled" Type="microsoft.graph.partners.billing.unbilledUsage" ContainsTarget="true" Nullable="false" />
       </EntityType>
+      <EntityType Name="billedAggregatedUsage" BaseType="graph.entity" />
       <EntityType Name="billedReconciliation" BaseType="graph.entity" />
       <EntityType Name="billedUsage" BaseType="graph.entity" />
       <EntityType Name="billing" BaseType="graph.entity">
+        <NavigationProperty Name="aggregatedUsage" Type="microsoft.graph.partners.billing.azureAggregatedUsage" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="manifests" Type="Collection(microsoft.graph.partners.billing.manifest)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(microsoft.graph.partners.billing.operation)" ContainsTarget="true" />
         <NavigationProperty Name="reconciliation" Type="microsoft.graph.partners.billing.billingReconciliation" ContainsTarget="true" Nullable="false" />
@@ -49775,6 +50058,11 @@
       <EntityType Name="runningOperation" BaseType="microsoft.graph.partners.billing.operation" />
       <EntityType Name="unbilledReconciliation" BaseType="graph.entity" />
       <EntityType Name="unbilledUsage" BaseType="graph.entity" />
+      <Action Name="export" IsBound="true">
+        <Parameter Name="this" Type="microsoft.graph.partners.billing.billedAggregatedUsage" />
+        <Parameter Name="invoiceId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="microsoft.graph.partners.billing.operation" />
+      </Action>
       <Action Name="export" IsBound="true">
         <Parameter Name="this" Type="microsoft.graph.partners.billing.billedReconciliation" />
         <Parameter Name="invoiceId" Type="Edm.String" Unicode="false" />
@@ -50455,7 +50743,42 @@
         <Member Name="MDASH" Value="473" />
         <Member Name="DefenderSecurityForAIConfiguration" Value="474" />
         <Member Name="SparkCoreCustomLivePool" Value="475" />
-        <Member Name="unknownFutureValue" Value="476" />
+        <Member Name="PlannerCustomFieldDefinition" Value="476" />
+        <Member Name="PlannerCustomFieldDefinitionList" Value="477" />
+        <Member Name="SyntheticMediaDetectionEvent" Value="478" />
+        <Member Name="VivaGlintVivaInsightsIntegration" Value="479" />
+        <Member Name="PeopleSkillsAdmin" Value="480" />
+        <Member Name="PeopleSkillsUser" Value="481" />
+        <Member Name="DSPMAdminActivity" Value="482" />
+        <Member Name="OnDemandExchangeClassification" Value="483" />
+        <Member Name="UniversalPrintSecureScan" Value="484" />
+        <Member Name="CloudSecurityManagement" Value="485" />
+        <Member Name="CloudSecurityConnector" Value="486" />
+        <Member Name="CloudSecurityEnablement" Value="487" />
+        <Member Name="MCSRawEmailContentMetadata" Value="488" />
+        <Member Name="AIGuardrail" Value="489" />
+        <Member Name="A365AIGuardrail" Value="490" />
+        <Member Name="WorkIQAdminActivity" Value="491" />
+        <Member Name="VivaGlintClientConfiguration" Value="492" />
+        <Member Name="VivaGlintDataRetention" Value="493" />
+        <Member Name="FilteringTeamsMessageFileInfo" Value="494" />
+        <Member Name="SharePointFileArchivePolicy" Value="495" />
+        <Member Name="DefenderAutomationRule" Value="496" />
+        <Member Name="DefenderGeneratedPlaybook" Value="497" />
+        <Member Name="DefenderIntegration" Value="498" />
+        <Member Name="P4AIDagSitePermissionsRecord" Value="499" />
+        <Member Name="PlannerDependency" Value="500" />
+        <Member Name="PlannerDependencyList" Value="501" />
+        <Member Name="CSCContentMetadata" Value="502" />
+        <Member Name="MicrosoftSecurityForAIConfiguration" Value="503" />
+        <Member Name="MicrosoftSecurityForAIRealTimeProtection" Value="504" />
+        <Member Name="MTPContentMetadata" Value="505" />
+        <Member Name="ComplianceEvaluationIncomplete" Value="506" />
+        <Member Name="ComplianceEndpointEvaluationIncomplete" Value="507" />
+        <Member Name="MicrosoftTeamsMoveMessages" Value="508" />
+        <Member Name="ECSContentMetadata" Value="509" />
+        <Member Name="MESRawEmailContentMetadata" Value="510" />
+        <Member Name="unknownFutureValue" Value="511" />
       </EnumType>
       <EnumType Name="auditLogUserType">
         <Member Name="Regular" Value="0" />
@@ -50625,6 +50948,12 @@
         <Member Name="startFailure" Value="8" />
         <Member Name="syncing" Value="9" />
         <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
+      <EnumType Name="detectionRuleStatus">
+        <Member Name="enabled" Value="0" />
+        <Member Name="disabled" Value="1" />
+        <Member Name="autoDisabled" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="detectionSource">
         <Member Name="unknown" Value="0" />
@@ -50900,6 +51229,11 @@
         <Member Name="high" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="isolationType">
+        <Member Name="full" Value="0" />
+        <Member Name="selective" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="itemsToInclude" IsFlags="true">
         <Member Name="searchHits" Value="1" />
         <Member Name="partiallyIndexed" Value="2" />
@@ -51123,6 +51457,7 @@
         <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
       <ComplexType Name="a365AiExecuteTool" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="a365AiGuardrail" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="a365AiInferenceCall" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="a365AiInvokeAgent" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="a365AiRunSummary" BaseType="self.auditData" OpenType="true" />
@@ -51132,6 +51467,21 @@
         <Property Name="actions" Type="Collection(self.action)" Nullable="false" />
         <Property Name="identifier" Type="Edm.String" Nullable="false" />
         <Property Name="identityProvider" Type="self.identityProvider" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="accountEntityMapping" BaseType="self.entityMapping">
+        <Property Name="aadUserIdColumn" Type="Edm.String" />
+        <Property Name="dnsDomainColumn" Type="Edm.String" />
+        <Property Name="nameColumn" Type="Edm.String" />
+        <Property Name="ntDomainColumn" Type="Edm.String" />
+        <Property Name="sidColumn" Type="Edm.String" />
+        <Property Name="upnColumn" Type="Edm.String" />
+        <Property Name="upnSuffixColumn" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="accountObjectIdAction" BaseType="self.automatedAction">
+        <Property Name="accountObjectIdColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="accountSidAction" BaseType="self.automatedAction">
+        <Property Name="accountSidColumn" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="activeDirectoryDomainEvidence" BaseType="self.alertEvidence">
         <Property Name="activeDirectoryDomainName" Type="Edm.String" />
@@ -51148,6 +51498,7 @@
       </ComplexType>
       <ComplexType Name="aiAppInteractionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="aiExecuteToolAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="aiGuardrail" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="aiInteractionsChangeNotificationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="aiInteractionsExportAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="aiInteractionsSubscriptionAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51167,6 +51518,7 @@
         <Property Name="createdByDisplayName" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="alertCustomDetails" BaseType="self.dictionary" OpenType="true" />
       <ComplexType Name="alertEvidence">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="detailedRoles" Type="Collection(Edm.String)" />
@@ -51178,6 +51530,18 @@
       </ComplexType>
       <ComplexType Name="alertSubmissionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="alertSubmissionResultDetailAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="alertTemplate">
+        <Property Name="customDetails" Type="self.alertCustomDetails" />
+        <Property Name="description" Type="Edm.String" Nullable="false" />
+        <Property Name="entityMappings" Type="self.entityMappingConfiguration" Nullable="false" />
+        <Property Name="recommendedActions" Type="Edm.String" />
+        <Property Name="severity" Type="self.alertSeverity" Nullable="false" />
+        <Property Name="tactics" Type="Collection(self.mitreTactic)" Nullable="false" />
+        <Property Name="title" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="amazonResourceEntityMapping" BaseType="self.entityMapping">
+        <Property Name="amazonResourceIdColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="amazonResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="amazonAccountId" Type="Edm.String" />
         <Property Name="amazonResourceId" Type="Edm.String" />
@@ -51265,6 +51629,25 @@
       </ComplexType>
       <ComplexType Name="auditRecordTypeDictionary" OpenType="true" />
       <ComplexType Name="auditSearchAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="automatedAction" Abstract="true" />
+      <ComplexType Name="automatedActionSet">
+        <Property Name="allowFiles" Type="Collection(self.fileAction)" />
+        <Property Name="blockFiles" Type="Collection(self.fileAction)" />
+        <Property Name="collectInvestigationPackages" Type="Collection(self.deviceAction)" />
+        <Property Name="disableUsers" Type="Collection(self.accountSidAction)" />
+        <Property Name="forceUserPasswordResets" Type="Collection(self.accountSidAction)" />
+        <Property Name="hardDeleteEmails" Type="Collection(self.emailAction)" />
+        <Property Name="initiateInvestigations" Type="Collection(self.deviceAction)" />
+        <Property Name="isolateDevices" Type="Collection(self.isolateDeviceAction)" />
+        <Property Name="markUsersAsCompromised" Type="Collection(self.accountObjectIdAction)" />
+        <Property Name="moveEmailsToDeletedItems" Type="Collection(self.emailAction)" />
+        <Property Name="moveEmailsToInbox" Type="Collection(self.emailAction)" />
+        <Property Name="moveEmailsToJunk" Type="Collection(self.emailAction)" />
+        <Property Name="restrictAppExecutions" Type="Collection(self.deviceAction)" />
+        <Property Name="runAntivirusScans" Type="Collection(self.deviceAction)" />
+        <Property Name="softDeleteEmails" Type="Collection(self.emailAction)" />
+        <Property Name="stopAndQuarantineFiles" Type="Collection(self.stopAndQuarantineFileAction)" />
+      </ComplexType>
       <ComplexType Name="autonomousSystem">
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="number" Type="Edm.Int32" Nullable="false" />
@@ -51278,6 +51661,9 @@
       <ComplexType Name="azureActiveDirectoryAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="azureActiveDirectoryStsLogonAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="azureAISearchAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="azureResourceEntityMapping" BaseType="self.entityMapping">
+        <Property Name="resourceIdColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="azureResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="resourceId" Type="Edm.String" />
         <Property Name="resourceName" Type="Edm.String" />
@@ -51306,6 +51692,10 @@
       <ComplexType Name="cdpLogRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cdpOcrBillingRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cdpResourceScopeChangeEventRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="cloudApplicationEntityMapping" BaseType="self.entityMapping">
+        <Property Name="appIdColumn" Type="Edm.String" />
+        <Property Name="nameColumn" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="cloudApplicationEvidence" BaseType="self.alertEvidence">
         <Property Name="appId" Type="Edm.Int64" />
         <Property Name="displayName" Type="Edm.String" />
@@ -51328,6 +51718,9 @@
         <Property Name="startUtcDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="userAgent" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="cloudSecurityConnector" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="cloudSecurityEnablement" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="cloudSecurityManagement" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cloudUpdateDeviceConfigAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cloudUpdateProfileConfigAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cloudUpdateTenantConfigAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51347,6 +51740,8 @@
       <ComplexType Name="complianceDLPSharePointClassificationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="complianceDLPSharePointClassificationCdpRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="complianceDLPSharePointClassificationExtendedAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="complianceEndpointEvaluationIncomplete" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="complianceEvaluationIncomplete" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="complianceExchangeOcrAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="complianceManagerActionRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="compliancePolicyGradingSharePointAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51391,6 +51786,7 @@
       <ComplexType Name="criticalAssetManagementClassificationRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="crmEntityOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="crossTenantAccessPolicyAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="cscContentMetadata" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="customerKeyServiceEncryptionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="cvssSummary">
         <Property Name="score" Type="Edm.Double" Nullable="false" />
@@ -51404,12 +51800,20 @@
       <ComplexType Name="dataSecurityInvestigationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dataShareOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="defaultAuditData" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="defenderAutomationRule" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="defenderCaseManagementAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="defenderGeneratedPlaybook" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="defenderIntegration" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="defenderPreviewFeaturesRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="defenderSecurityForAIConfigurationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="deployFeatureActivityRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="deploymentAccessKeyType">
         <Property Name="deploymentAccessKey" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="detectionAction">
+        <Property Name="alertTemplate" Type="self.alertTemplate" Nullable="false" />
+        <Property Name="automatedActions" Type="self.automatedActionSet" />
+        <Property Name="organizationalScope" Type="self.organizationalScope" />
       </ComplexType>
       <ComplexType Name="detonationBehaviourDetails">
         <Property Name="actionStatus" Type="Edm.String" />
@@ -51446,6 +51850,9 @@
         <Property Name="contactedUrls" Type="Collection(Edm.String)" />
         <Property Name="droppedfiles" Type="Collection(Edm.String)" />
       </ComplexType>
+      <ComplexType Name="deviceAction" BaseType="self.automatedAction">
+        <Property Name="deviceIdColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="deviceDiscoverySettingsAuthenticatedScansRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="deviceDiscoverySettingsExclusionRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="deviceDiscoverySettingsRecord" BaseType="self.auditData" OpenType="true" />
@@ -51478,6 +51885,11 @@
       <ComplexType Name="dlpEndpointAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dlpImportResultAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dlpSensitiveInformationTypeRulePackageCmdletRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="dnsEntityMapping" BaseType="self.entityMapping">
+        <Property Name="domainNameColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="hostIpAddressColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="serverIpColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="dnsEvidence" BaseType="self.alertEvidence">
         <Property Name="dnsServerIp" Type="self.ipEvidence" />
         <Property Name="domainName" Type="Edm.String" />
@@ -51488,13 +51900,39 @@
       <ComplexType Name="dragonCopilotAdminRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dragonCopilotClinicalDataRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dragonCopilotSessionRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="dspmAdminActivity" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="dynamicColumnValue" OpenType="true" />
       <ComplexType Name="dynamics365BusinessCentralAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="ecsContentMetadata" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="ehrConnectorAuditBaseRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="emailAction" BaseType="self.automatedAction">
+        <Property Name="networkMessageIdColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="recipientColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="emailSender">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
         <Property Name="emailAddress" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="entityMapping" Abstract="true" />
+      <ComplexType Name="entityMappingConfiguration">
+        <Property Name="accounts" Type="Collection(self.accountEntityMapping)" Nullable="false" />
+        <Property Name="amazonResources" Type="Collection(self.amazonResourceEntityMapping)" Nullable="false" />
+        <Property Name="azureResources" Type="Collection(self.azureResourceEntityMapping)" Nullable="false" />
+        <Property Name="cloudApplications" Type="Collection(self.cloudApplicationEntityMapping)" Nullable="false" />
+        <Property Name="dns" Type="Collection(self.dnsEntityMapping)" Nullable="false" />
+        <Property Name="files" Type="Collection(self.fileEntityMapping)" Nullable="false" />
+        <Property Name="googleCloudResources" Type="Collection(self.googleCloudResourceEntityMapping)" Nullable="false" />
+        <Property Name="hosts" Type="Collection(self.hostEntityMapping)" Nullable="false" />
+        <Property Name="ips" Type="Collection(self.ipEntityMapping)" Nullable="false" />
+        <Property Name="mailboxes" Type="Collection(self.mailboxEntityMapping)" Nullable="false" />
+        <Property Name="mailClusters" Type="Collection(self.mailClusterEntityMapping)" Nullable="false" />
+        <Property Name="mailMessages" Type="Collection(self.mailMessageEntityMapping)" Nullable="false" />
+        <Property Name="oAuthApplications" Type="Collection(self.oAuthApplicationEntityMapping)" Nullable="false" />
+        <Property Name="processes" Type="Collection(self.processEntityMapping)" Nullable="false" />
+        <Property Name="registryValues" Type="Collection(self.registryValueEntityMapping)" Nullable="false" />
+        <Property Name="securityGroups" Type="Collection(self.securityGroupEntityMapping)" Nullable="false" />
+        <Property Name="urls" Type="Collection(self.urlEntityMapping)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="eopSubmissionFeedEntityAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="eventPropagationResult">
@@ -51519,6 +51957,11 @@
       </ComplexType>
       <ComplexType Name="fabricAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="fabricPolicyRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="fileAction" BaseType="self.automatedAction">
+        <Property Name="deviceGroupNames" Type="Collection(Edm.String)" />
+        <Property Name="sha1Column" Type="Edm.String" />
+        <Property Name="sha256Column" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="fileDetails">
         <Property Name="fileName" Type="Edm.String" />
         <Property Name="filePath" Type="Edm.String" />
@@ -51530,6 +51973,11 @@
         <Property Name="sha256" Type="Edm.String" />
         <Property Name="sha256Ac" Type="Edm.String" />
         <Property Name="signer" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="fileEntityMapping" BaseType="self.entityMapping">
+        <Property Name="nameColumn" Type="Edm.String" />
+        <Property Name="sha1Column" Type="Edm.String" />
+        <Property Name="sha256Column" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="fileEvidence" BaseType="self.alertEvidence">
         <Property Name="detectionStatus" Type="self.detectionStatus" />
@@ -51558,6 +52006,7 @@
       </ComplexType>
       <ComplexType Name="filePlanReference" BaseType="self.filePlanDescriptorBase" />
       <ComplexType Name="filePlanSubcategory" BaseType="self.filePlanDescriptorBase" />
+      <ComplexType Name="filteringTeamsMessageFileInfo" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="formattedContent">
         <Property Name="content" Type="Edm.String" />
         <Property Name="format" Type="self.contentFormat" />
@@ -51591,6 +52040,9 @@
         <Property Name="userId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="googleCloudResourceEntityMapping" BaseType="self.entityMapping">
+        <Property Name="fullResourceNameColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="googleCloudResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="fullResourceName" Type="Edm.String" />
         <Property Name="location" Type="Edm.String" />
@@ -51602,6 +52054,13 @@
       </ComplexType>
       <ComplexType Name="healthcareSignalRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="hostedRpaAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="hostEntityMapping" BaseType="self.entityMapping">
+        <Property Name="deviceIdColumn" Type="Edm.String" />
+        <Property Name="dnsDomainColumn" Type="Edm.String" />
+        <Property Name="nameColumn" Type="Edm.String" />
+        <Property Name="netBiosNameColumn" Type="Edm.String" />
+        <Property Name="ntDomainColumn" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="hostLogonSessionEvidence" BaseType="self.alertEvidence">
         <Property Name="account" Type="self.userEvidence" />
         <Property Name="endUtcDateTime" Type="Edm.DateTimeOffset" />
@@ -51688,6 +52147,10 @@
         <Property Name="sourceRef" Type="self.urlEvidence" />
         <Property Name="zone" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="ipEntityMapping" BaseType="self.entityMapping">
+        <Property Name="addressColumn" Type="Edm.String" />
+        <Property Name="scopeColumn" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="ipEvidence" BaseType="self.alertEvidence">
         <Property Name="countryLetterCode" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String" />
@@ -51696,6 +52159,9 @@
       </ComplexType>
       <ComplexType Name="irmActivityAuditTrailRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="irmUserDefinedDetectionRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="isolateDeviceAction" BaseType="self.deviceAction">
+        <Property Name="isolationType" Type="self.isolationType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="kaizalaAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="kubernetesClusterEvidence" BaseType="self.alertEvidence">
         <Property Name="cloudResource" Type="self.alertEvidence" />
@@ -51772,11 +52238,18 @@
         <Property Name="mailboxPrimaryAddress" Type="Edm.String" />
         <Property Name="upn" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="mailboxEntityMapping" BaseType="self.entityMapping">
+        <Property Name="primaryAddressColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="mailboxEvidence" BaseType="self.alertEvidence">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="primaryAddress" Type="Edm.String" />
         <Property Name="upn" Type="Edm.String" />
         <Property Name="userAccount" Type="self.userAccount" />
+      </ComplexType>
+      <ComplexType Name="mailClusterEntityMapping" BaseType="self.entityMapping">
+        <Property Name="queryColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="sourceColumn" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="mailClusterEvidence" BaseType="self.alertEvidence">
         <Property Name="clusterBy" Type="Edm.String" />
@@ -51785,6 +52258,12 @@
         <Property Name="networkMessageIds" Type="Collection(Edm.String)" />
         <Property Name="query" Type="Edm.String" />
         <Property Name="urn" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="mailMessageEntityMapping" BaseType="self.entityMapping">
+        <Property Name="networkMessageIdColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="recipientColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="senderColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="subjectColumn" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="mailSubmissionData" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="malwareEvidence" BaseType="self.alertEvidence">
@@ -51800,6 +52279,7 @@
       <ComplexType Name="mapgPolicyAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mapgRemediationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mcasAlertsAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="mcsRawEmailContentMetadata" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mdaAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mdaDataSecuritySignalRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mDASHAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51810,6 +52290,7 @@
         <Property Name="targetIncidentId" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="meshWorldsAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="mesRawEmailContentMetadata" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoft365BackupBackupItemAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoft365BackupBackupPolicyAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoft365BackupGranularBrowseTaskAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51827,11 +52308,14 @@
       <ComplexType Name="microsoftPurviewPolicyOperationRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftPurviewPrivacyAuditEvent" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftPurviewUnifiedCatalogOperationRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="microsoftSecurityForAiConfiguration" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="microsoftSecurityForAiRealTimeProtection" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftStreamAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsAdminAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsAnalyticsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsDeviceAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="microsoftTeamsMoveMessages" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsRetentionLabelActionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsSensitivityLabelActionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="microsoftTeamsShiftsAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51846,6 +52330,14 @@
       <ComplexType Name="mipExactDataMatchAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mipLabelAnalyticsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mipLabelAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="mitreTactic">
+        <Property Name="tactic" Type="Edm.String" Nullable="false" />
+        <Property Name="techniques" Type="Collection(self.mitreTechnique)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="mitreTechnique">
+        <Property Name="subTechniques" Type="Collection(Edm.String)" />
+        <Property Name="technique" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="mosAgentInfoRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mosAgentInfoRecordV2" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="ms365dCustomDetectionAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51858,6 +52350,7 @@
       <ComplexType Name="msdeRolesSettingsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="mspVectorSearchContentMetadataAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="msticNationStateNotificationRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="mtpContentMetadata" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="multiStageDispositionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="myAnalyticsSettingsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="networkConnectionEvidence" BaseType="self.alertEvidence">
@@ -51873,6 +52366,9 @@
         <Property Name="vlans" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="noisyAlertPolicyAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="oAuthApplicationEntityMapping" BaseType="self.entityMapping">
+        <Property Name="oAuthAppIdColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="oauthApplicationEvidence" BaseType="self.alertEvidence">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -51886,24 +52382,35 @@
       </ComplexType>
       <ComplexType Name="officeNativeAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="omePortalAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="onDemandExchangeClassification" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="onDemandSharePointClassificationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="oneDriveAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="onPremisesFileShareScannerDLPAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="onPremisesSharePointScannerDLPAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="organizationalDataInM365AuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="organizationalScope">
+        <Property Name="deviceGroups" Type="Collection(Edm.String)" />
+      </ComplexType>
       <ComplexType Name="outlookCopilotAutomationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="owaGetAccessTokenForResourceAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="p4aiAssessmentCategoryRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="p4aiAssessmentFabricScannerRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="p4aiAssessmentLocationResultRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="p4aiAssessmentRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="p4AiDagSitePermissionsRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="p4AIRiskScoreRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="peopleAdminSettingsAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="peopleSkillsAdmin" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="peopleSkillsUser" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="physicalBadgingSignalAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="placesDirectoryAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerChatMessageAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerChatMessageListAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerCopyPlanAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="plannerCustomFieldDefinition" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="plannerCustomFieldDefinitionList" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="plannerDependency" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="plannerDependencyList" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerGoalAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerGoalListAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="plannerPlanAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -51937,6 +52444,10 @@
       <ComplexType Name="privacyRemediationRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="privaPrivacyAssessmentOperationRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="privaPrivacyConsentOperationRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="processEntityMapping" BaseType="self.entityMapping">
+        <Property Name="sha1Column" Type="Edm.String" />
+        <Property Name="sha256Column" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="processEvidence" BaseType="self.alertEvidence">
         <Property Name="detectionStatus" Type="self.detectionStatus" />
         <Property Name="imageFile" Type="self.fileDetails" />
@@ -51963,6 +52474,9 @@
       <ComplexType Name="purviewMCRecommendationRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="purviewPostureAgentAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="quarantineAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="queryCondition">
+        <Property Name="queryText" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="recordsManagementAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="redundancyDetectionSettings">
         <Property Name="isEnabled" Type="Edm.Boolean" />
@@ -51973,6 +52487,10 @@
       <ComplexType Name="registryKeyEvidence" BaseType="self.alertEvidence">
         <Property Name="registryHive" Type="Edm.String" />
         <Property Name="registryKey" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="registryValueEntityMapping" BaseType="self.entityMapping">
+        <Property Name="keyColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="valueNameColumn" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="registryValueEvidence" BaseType="self.alertEvidence">
         <Property Name="mdeDeviceId" Type="Edm.String" />
@@ -52007,6 +52525,9 @@
       </ComplexType>
       <ComplexType Name="retentionPolicyAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="rtiOperationsAgentAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="ruleSchedule">
+        <Property Name="frequency" Type="Edm.Duration" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="sasTokenEvidence" BaseType="self.alertEvidence">
         <Property Name="allowedIpAddresses" Type="Edm.String" />
         <Property Name="allowedResourceTypes" Type="Collection(Edm.String)" />
@@ -52032,6 +52553,11 @@
       <ComplexType Name="securityComplianceUserChangeAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="securityCopilotIdentityManagementAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="securityDevelopmentLifecycleAILogAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="securityGroupEntityMapping" BaseType="self.entityMapping">
+        <Property Name="distinguishedNameColumn" Type="Edm.String" />
+        <Property Name="objectIdColumn" Type="Edm.String" />
+        <Property Name="sidColumn" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="securityGroupEvidence" BaseType="self.alertEvidence">
         <Property Name="activeDirectoryObjectGuid" Type="Edm.Guid" />
         <Property Name="displayName" Type="Edm.String" />
@@ -52078,6 +52604,7 @@
       <ComplexType Name="sharePointContentTypeOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="sharePointESignatureAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="sharePointFieldOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="sharePointFileArchivePolicy" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="sharePointFileOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="sharePointListItemOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="sharePointListOperationAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -52106,6 +52633,10 @@
         <Property Name="serialNumber" Type="Edm.String" />
         <Property Name="surname" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="stopAndQuarantineFileAction" BaseType="self.automatedAction">
+        <Property Name="deviceIdColumn" Type="Edm.String" Nullable="false" />
+        <Property Name="sha1Column" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="stream">
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
@@ -52123,6 +52654,7 @@
         <Property Name="submitter" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="supervisoryReviewDayXInsightsAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="syntheticMediaDetectionEvent" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="syntheticProbeAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="teamCopilotInteractionAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="teamsEasyApprovalsAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -52191,9 +52723,13 @@
       <ComplexType Name="unifiedSimulationSummaryAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="universalPrintManagementAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="universalPrintPrintJobAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="universalPrintSecureScan" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="urbacAssignmentAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="urbacEnableStateAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="urbacRoleAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="urlEntityMapping" BaseType="self.entityMapping">
+        <Property Name="addressColumn" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="urlEvidence" BaseType="self.alertEvidence">
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
@@ -52223,6 +52759,8 @@
       <ComplexType Name="vivaEngageSegmentAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintAdvancedConfigurationAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintAgenticCampaignAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="vivaGlintClientConfiguration" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="vivaGlintDataRetention" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintFeedbackProgramAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintOrganizationalDataAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintPulseProgramAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -52234,6 +52772,7 @@
       <ComplexType Name="vivaGlintSystemAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintUserAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGlintUserGroupAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="vivaGlintVivaInsightsIntegration" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaGoalsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaLearningAdminAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="vivaLearningAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -52263,6 +52802,7 @@
         <NavigationProperty Name="host" Type="self.host" Nullable="false" />
       </ComplexType>
       <ComplexType Name="windows365CustomerLockboxAuditRecord" BaseType="self.auditData" OpenType="true" />
+      <ComplexType Name="workIQAdminActivity" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="workplaceAnalyticsAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="yammerAuditRecord" BaseType="self.auditData" OpenType="true" />
       <ComplexType Name="yammerUserHidingAuditRecord" BaseType="self.auditData" OpenType="true" />
@@ -52445,6 +52985,18 @@
         <Property Name="status" Type="self.dataSourceContainerStatus" />
       </EntityType>
       <EntityType Name="departmentTemplate" BaseType="self.filePlanDescriptorTemplate" />
+      <EntityType Name="detectionRule" BaseType="graph.entity">
+        <Property Name="createdBy" Type="Edm.String" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="detectionAction" Type="self.detectionAction" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="lastModifiedBy" Type="Edm.String" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="queryCondition" Type="self.queryCondition" Nullable="false" />
+        <Property Name="schedule" Type="self.ruleSchedule" Nullable="false" />
+        <Property Name="status" Type="self.detectionRuleStatus" Nullable="false" />
+      </EntityType>
       <EntityType Name="dispositionReviewStage">
         <Key>
           <PropertyRef Name="stageNumber" />
@@ -52790,6 +53342,9 @@
         <NavigationProperty Name="descriptors" Type="self.filePlanDescriptor" ContainsTarget="true" />
         <NavigationProperty Name="dispositionReviewStages" Type="Collection(self.dispositionReviewStage)" ContainsTarget="true" />
         <NavigationProperty Name="retentionEventType" Type="self.retentionEventType" />
+      </EntityType>
+      <EntityType Name="rulesRoot" BaseType="graph.entity">
+        <NavigationProperty Name="detectionRules" Type="Collection(self.detectionRule)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="search" BaseType="graph.entity" Abstract="true">
         <Property Name="contentQuery" Type="Edm.String" />
