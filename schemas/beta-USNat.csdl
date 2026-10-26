@@ -3755,6 +3755,12 @@
         <Member Name="subscriptionRemoved" Value="1" />
         <Member Name="reauthorizationRequired" Value="2" />
       </EnumType>
+      <EnumType Name="lifecyclePolicyComplianceState">
+        <Member Name="compliant" Value="0" />
+        <Member Name="warning" Value="1" />
+        <Member Name="warningNotify" Value="2" />
+        <Member Name="nonCompliant" Value="3" />
+      </EnumType>
       <EnumType Name="localSecurityOptionsAdministratorElevationPromptBehaviorType">
         <Member Name="notConfigured" Value="0" />
         <Member Name="elevateWithoutPrompting" Value="1" />
@@ -3838,6 +3844,12 @@
       <EnumType Name="lostModeState">
         <Member Name="disabled" Value="0" />
         <Member Name="enabled" Value="1" />
+      </EnumType>
+      <EnumType Name="m365ResourceType">
+        <Member Name="none" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="user" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="macAddressRandomizationMode">
         <Member Name="automatic" Value="0" />
@@ -11209,6 +11221,18 @@
         <Property Name="listId" Type="Edm.String" />
         <Property Name="primaryLookupColumnId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="m365CapabilityInboundAccess">
+        <Property Name="isAllowed" Type="Edm.Boolean" />
+        <Property Name="resourceScopes" Type="graph.m365CapabilityResourceScopes" />
+      </ComplexType>
+      <ComplexType Name="m365CapabilityResourceScope">
+        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="resourceType" Type="graph.m365ResourceType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="m365CapabilityResourceScopes">
+        <Property Name="excluded" Type="Collection(graph.m365CapabilityResourceScope)" Nullable="false" />
+        <Property Name="included" Type="Collection(graph.m365CapabilityResourceScope)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="macAppIdentifier" BaseType="graph.mobileAppIdentifier">
         <Property Name="bundleId" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -12872,6 +12896,7 @@
         <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
         <Property Name="severity" Type="graph.severity" Nullable="false" />
+        <Property Name="source" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="riskRecommendation">
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -15267,6 +15292,10 @@
       <EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true">
         <Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceState" Type="graph.lifecyclePolicyComplianceState" />
+        <Property Name="lifecyclePolicyComplianceStateLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceStateReason" Type="Edm.String" />
+        <Property Name="lifecyclePolicyNonComplianceDisablementDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="inheritedAppRoleAssignments" Type="Collection(graph.appRoleAssignment)" />
         <NavigationProperty Name="inheritedOauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
@@ -15278,6 +15307,10 @@
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true">
+        <Property Name="lifecyclePolicyComplianceState" Type="graph.lifecyclePolicyComplianceState" />
+        <Property Name="lifecyclePolicyComplianceStateLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceStateReason" Type="Edm.String" />
+        <Property Name="lifecyclePolicyNonComplianceDisablementDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
@@ -16351,6 +16384,9 @@
         <Property Name="ssid" Type="Edm.String" Nullable="false" />
         <Property Name="wiFiSecurityType" Type="graph.androidWiFiSecurityType" Nullable="false" />
       </EntityType>
+      <EntityType Name="anonymousCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="anonymousGuestConversationMember" BaseType="graph.conversationMember">
         <Property Name="anonymousGuestId" Type="Edm.String" />
       </EntityType>
@@ -17511,6 +17547,7 @@
         <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust" />
         <Property Name="invitationRedemptionIdentityProviderConfiguration" Type="graph.defaultInvitationRedemptionIdentityProviderConfiguration" />
         <Property Name="isServiceDefault" Type="Edm.Boolean" />
+        <NavigationProperty Name="m365Capabilities" Type="Collection(graph.m365CapabilityBase)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="crossTenantAccessPolicyConfigurationPartner">
         <Key>
@@ -17524,7 +17561,13 @@
         <Property Name="isServiceProvider" Type="Edm.Boolean" />
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="identitySynchronization" Type="graph.crossTenantIdentitySyncPolicyPartner" ContainsTarget="true" />
+        <NavigationProperty Name="m365Capabilities" Type="Collection(graph.m365CapabilityBase)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="crossTenantCalendarAvailabilityBasic" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarAvailabilityLimitedDetails" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantIdentitySyncPolicyPartner">
         <Key>
           <PropertyRef Name="tenantId" />
@@ -17534,6 +17577,12 @@
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <Property Name="userSyncInbound" Type="graph.crossTenantUserSyncInbound" />
       </EntityType>
+      <EntityType Name="crossTenantMailTipsAll" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantMailTipsLimited" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantMigration" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantOpenProfileCard" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantPlacesDeskBooking" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantPlacesRoomBooking" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="customAccessPackageWorkflowExtension" BaseType="graph.customCalloutExtension">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -20986,6 +21035,14 @@
       </EntityType>
       <EntityType Name="lookupResultRow" BaseType="graph.entity">
         <Property Name="row" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="m365CapabilityBase" Abstract="true">
+        <Key>
+          <PropertyRef Name="name" />
+        </Key>
+        <Property Name="inboundAccess" Type="graph.m365CapabilityInboundAccess" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
       </EntityType>
       <EntityType Name="macOSCertificateProfileBase" BaseType="graph.deviceConfiguration" Abstract="true">
         <Property Name="certificateValidityPeriodScale" Type="graph.certificateValidityPeriodScale" Nullable="false" />
@@ -24503,8 +24560,7 @@
         <NavigationProperty Name="teamTemplates" Type="Collection(graph.teamTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
-      <EntityType Name="teamworkCustomEmoji" BaseType="graph.entity">
-        <Property Name="contentBytes" Type="Edm.String" />
+      <EntityType Name="teamworkCustomEmoji" BaseType="graph.teamworkHostedContent">
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -44850,6 +44906,13 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationDefault/m365Capabilities">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -44868,6 +44931,13 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner/m365Capabilities">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.crossTenantIdentitySyncPolicyPartner">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
