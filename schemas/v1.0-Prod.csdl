@@ -1432,6 +1432,48 @@
         <Member Name="application" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="crossTenantMigrationJobStatus">
+        <Member Name="submitted" Value="0" />
+        <Member Name="approved" Value="1" />
+        <Member Name="processing" Value="2" />
+        <Member Name="cuttingOver" Value="3" />
+        <Member Name="inProgress" Value="4" />
+        <Member Name="completed" Value="5" />
+        <Member Name="completedWithErrors" Value="6" />
+        <Member Name="failed" Value="7" />
+        <Member Name="cancelled" Value="8" />
+        <Member Name="pendingCancel" Value="9" />
+        <Member Name="adminActionRequired" Value="10" />
+        <Member Name="validateSubmitted" Value="11" />
+        <Member Name="validateProcessing" Value="12" />
+        <Member Name="validateInProgress" Value="13" />
+        <Member Name="validatePassed" Value="14" />
+        <Member Name="validateFailed" Value="15" />
+        <Member Name="pendingDelete" Value="16" />
+        <Member Name="deleted" Value="17" />
+        <Member Name="unknownFutureValue" Value="18" />
+      </EnumType>
+      <EnumType Name="crossTenantMigrationJobType">
+        <Member Name="validate" Value="0" />
+        <Member Name="migrate" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="crossTenantMigrationServiceStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="valid" Value="1" />
+        <Member Name="invalid" Value="2" />
+        <Member Name="error" Value="3" />
+        <Member Name="inProgress" Value="4" />
+        <Member Name="completed" Value="5" />
+        <Member Name="failed" Value="6" />
+        <Member Name="cancelled" Value="7" />
+        <Member Name="pendingCancel" Value="8" />
+        <Member Name="syncing" Value="9" />
+        <Member Name="synced" Value="10" />
+        <Member Name="finalizing" Value="11" />
+        <Member Name="forceComplete" Value="12" />
+        <Member Name="unknownFutureValue" Value="13" />
+      </EnumType>
       <EnumType Name="csaStarLevel">
         <Member Name="none" Value="0" />
         <Member Name="attestation" Value="1" />
@@ -1468,6 +1510,8 @@
         <Member Name="azureResources" Value="2" />
         <Member Name="entraGroups" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="applicationAuthorization" Value="5" />
+        <Member Name="appRoles" Value="6" />
       </EnumType>
       <EnumType Name="customSecurityAttributeComparisonOperator">
         <Member Name="equals" Value="1" />
@@ -2654,6 +2698,13 @@
         <Member Name="disabled" Value="1" />
         <Member Name="limited" Value="2" />
         <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <EnumType Name="meetingEngagementType">
+        <Member Name="reaction" Value="0" />
+        <Member Name="hand" Value="1" />
+        <Member Name="camera" Value="2" />
+        <Member Name="microphone" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="meetingLiveShareOptions">
         <Member Name="enabled" Value="0" />
@@ -8117,6 +8168,16 @@
       <ComplexType Name="crossTenantAccessPolicyTenantRestrictions" BaseType="graph.crossTenantAccessPolicyB2BSetting">
         <Property Name="devices" Type="graph.devicesFilter" />
       </ComplexType>
+      <ComplexType Name="crossTenantMigrationCancelResponse">
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="status" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="crossTenantMigrationServiceStatusDetails">
+        <Property Name="errors" Type="Collection(graph.error)" />
+        <Property Name="message" Type="Edm.String" Nullable="false" />
+        <Property Name="service" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.crossTenantMigrationServiceStatus" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="crossTenantUserSyncInbound">
         <Property Name="isSyncAllowed" Type="Edm.Boolean" />
       </ComplexType>
@@ -8737,12 +8798,20 @@
       <ComplexType Name="enumeratedScopes" BaseType="graph.inheritableScopes">
         <Property Name="scopes" Type="Collection(Edm.String)" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="error">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="errorDetail">
         <Property Name="errorMessage" Type="Edm.String" Nullable="false" />
         <Property Name="resourceInstanceName" Type="Edm.String" Nullable="false" />
         <Property Name="resourceType" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="eventMessageDetail" Abstract="true" />
+      <ComplexType Name="exchangeOnlineCrossTenantMigrationSettings">
+        <Property Name="sourceEndpoint" Type="Edm.String" Nullable="false" />
+        <Property Name="targetDeliveryDomain" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="excludeTarget">
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="targetType" Type="graph.authenticationMethodTargetType" Nullable="false" />
@@ -9474,6 +9543,11 @@
         <Property Name="serverMuted" Type="Edm.Boolean" Nullable="false" />
         <Property Name="sourceId" Type="Edm.String" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="meetingEngagement">
+        <Property Name="dateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="engagementSubType" Type="Edm.String" />
+        <Property Name="engagementType" Type="graph.meetingEngagementType" />
+      </ComplexType>
       <ComplexType Name="meetingInfo" Abstract="true" />
       <ComplexType Name="meetingNote">
         <Property Name="subpoints" Type="Collection(graph.meetingNoteSubpoint)" />
@@ -9966,6 +10040,7 @@
       <ComplexType Name="optionalClaims">
         <Property Name="accessToken" Type="Collection(graph.optionalClaim)" />
         <Property Name="idToken" Type="Collection(graph.optionalClaim)" />
+        <Property Name="kerberosTicket" Type="Collection(graph.optionalClaim)" />
         <Property Name="saml2Token" Type="Collection(graph.optionalClaim)" />
       </ComplexType>
       <ComplexType Name="organizerMeetingInfo" BaseType="graph.meetingInfo" OpenType="true">
@@ -13268,6 +13343,7 @@
       <EntityType Name="attendanceRecord" BaseType="graph.entity">
         <Property Name="attendanceIntervals" Type="Collection(graph.attendanceInterval)" />
         <Property Name="emailAddress" Type="Edm.String" />
+        <Property Name="engagements" Type="Collection(graph.meetingEngagement)" />
         <Property Name="externalRegistrationInformation" Type="graph.virtualEventExternalRegistrationInformation" />
         <Property Name="identity" Type="graph.identity" />
         <Property Name="registrationId" Type="Edm.String" />
@@ -14514,6 +14590,42 @@
       <EntityType Name="crossTenantMailTipsAll" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantMailTipsLimited" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantMigration" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantMigrationJob" BaseType="graph.entity">
+        <Property Name="completeAfterDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="createdBy" Type="Edm.String" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="exchangeSettings" Type="graph.exchangeOnlineCrossTenantMigrationSettings" />
+        <Property Name="jobType" Type="graph.crossTenantMigrationJobType" Nullable="false" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="resources" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="resourceType" Type="Edm.String" Nullable="false" />
+        <Property Name="sourceTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="graph.crossTenantMigrationJobStatus" Nullable="false" />
+        <Property Name="targetTenantId" Type="Edm.String" Nullable="false" />
+        <Property Name="workloads" Type="Collection(Edm.String)" Nullable="false" />
+        <NavigationProperty Name="users" Type="Collection(graph.crossTenantMigrationTask)" ContainsTarget="true" />
+        <Annotation Term="Org.OData.Core.V1.AlternateKeys">
+          <Collection>
+            <Record Type="Org.OData.Core.V1.AlternateKey">
+              <PropertyValue Property="Key">
+                <Collection>
+                  <Record Type="Org.OData.Core.V1.PropertyRef">
+                    <PropertyValue Property="Alias" String="displayName" />
+                    <PropertyValue Property="Name" PropertyPath="displayName" />
+                  </Record>
+                </Collection>
+              </PropertyValue>
+            </Record>
+          </Collection>
+        </Annotation>
+      </EntityType>
+      <EntityType Name="crossTenantMigrationTask" BaseType="graph.entity">
+        <Property Name="currentStatus" Type="Collection(graph.crossTenantMigrationServiceStatusDetails)" />
+        <Property Name="lastUpdatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="taskType" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="crossTenantOpenProfileCard" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantPlacesDeskBooking" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantPlacesRoomBooking" BaseType="graph.m365CapabilityBase" />
@@ -17227,6 +17339,9 @@
         <Property Name="totalLicenseCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="usedLicenseCount" Type="Edm.Int32" Nullable="false" />
       </EntityType>
+      <EntityType Name="migrationsRoot" BaseType="graph.entity">
+        <NavigationProperty Name="crossTenantMigrationJobs" Type="Collection(graph.crossTenantMigrationJob)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="mobileApp" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="description" Type="Edm.String" />
@@ -18616,6 +18731,7 @@
       </EntityType>
       <EntityType Name="roleManagementCustomCalloutExtension" BaseType="graph.customCalloutExtension">
         <Property Name="customAttributes" Type="Collection(Edm.String)" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="resourceType" Type="graph.customExtensionResourceType" Nullable="false" />
         <Property Name="type" Type="graph.customCalloutExtensionType" Nullable="false" />
       </EntityType>
@@ -19289,6 +19405,7 @@
         <NavigationProperty Name="backupRestore" Type="graph.backupRestoreRoot" ContainsTarget="true" />
         <NavigationProperty Name="bookingBusinesses" Type="Collection(graph.bookingBusiness)" ContainsTarget="true" />
         <NavigationProperty Name="bookingCurrencies" Type="Collection(graph.bookingCurrency)" ContainsTarget="true" />
+        <NavigationProperty Name="migrations" Type="graph.migrationsRoot" ContainsTarget="true" />
         <NavigationProperty Name="virtualEvents" Type="graph.virtualEventsRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="speakerAssignmentSubmission" BaseType="graph.entity">
@@ -22229,6 +22346,14 @@
         <Parameter Name="bindingParameter" Type="graph.accessPackageAssignmentRequest" />
       </Action>
       <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantMigrationJob" />
+        <ReturnType Type="graph.crossTenantMigrationCancelResponse" />
+      </Action>
+      <Action Name="cancel" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantMigrationTask" />
+        <ReturnType Type="graph.crossTenantMigrationCancelResponse" />
+      </Action>
+      <Action Name="cancel" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.event" />
         <Parameter Name="Comment" Type="Edm.String" Unicode="false" />
       </Action>
@@ -24533,6 +24658,10 @@
         <Parameter Name="numBytes" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
       </Action>
+      <Action Name="migrate" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantMigrationJob" />
+        <ReturnType Type="graph.crossTenantMigrationJob" />
+      </Action>
       <Action Name="min" IsBound="true">
         <Parameter Name="bindparameter" Type="graph.workbookFunctions" />
         <Parameter Name="values" Type="graph.Json" />
@@ -26224,6 +26353,10 @@
         <Parameter Name="number" Type="graph.Json" />
         <Parameter Name="decimals" Type="graph.Json" />
         <ReturnType Type="graph.workbookFunctionResult" />
+      </Action>
+      <Action Name="validate" EntitySetPath="bindingParameter" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.crossTenantMigrationJob" />
+        <ReturnType Type="graph.crossTenantMigrationJob" />
       </Action>
       <Action Name="validateAuthenticationConfiguration" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.customAuthenticationExtension)" />
@@ -39049,29 +39182,14 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
           <Record>
             <PropertyValue Property="Expandable" Bool="false" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
@@ -39081,24 +39199,9 @@
             <PropertyValue Property="Supported" Bool="true" />
           </Record>
         </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
-          <Record>
-            <PropertyValue Property="Deletable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
-          <Record>
-            <PropertyValue Property="Insertable" Bool="false" />
-          </Record>
-        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
           <Record>
             <PropertyValue Property="Searchable" Bool="false" />
-          </Record>
-        </Annotation>
-        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
-          <Record>
-            <PropertyValue Property="Updatable" Bool="false" />
           </Record>
         </Annotation>
       </Annotations>
