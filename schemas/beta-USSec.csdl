@@ -3769,6 +3769,12 @@
         <Member Name="subscriptionRemoved" Value="1" />
         <Member Name="reauthorizationRequired" Value="2" />
       </EnumType>
+      <EnumType Name="lifecyclePolicyComplianceState">
+        <Member Name="compliant" Value="0" />
+        <Member Name="warning" Value="1" />
+        <Member Name="warningNotify" Value="2" />
+        <Member Name="nonCompliant" Value="3" />
+      </EnumType>
       <EnumType Name="lobbyBypassScope">
         <Member Name="organizer" Value="0" />
         <Member Name="organization" Value="1" />
@@ -3861,6 +3867,12 @@
       <EnumType Name="lostModeState">
         <Member Name="disabled" Value="0" />
         <Member Name="enabled" Value="1" />
+      </EnumType>
+      <EnumType Name="m365ResourceType">
+        <Member Name="none" Value="0" />
+        <Member Name="group" Value="1" />
+        <Member Name="user" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="macAddressRandomizationMode">
         <Member Name="automatic" Value="0" />
@@ -11325,6 +11337,18 @@
         <Property Name="listId" Type="Edm.String" />
         <Property Name="primaryLookupColumnId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="m365CapabilityInboundAccess">
+        <Property Name="isAllowed" Type="Edm.Boolean" />
+        <Property Name="resourceScopes" Type="graph.m365CapabilityResourceScopes" />
+      </ComplexType>
+      <ComplexType Name="m365CapabilityResourceScope">
+        <Property Name="resourceId" Type="Edm.String" />
+        <Property Name="resourceType" Type="graph.m365ResourceType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="m365CapabilityResourceScopes">
+        <Property Name="excluded" Type="Collection(graph.m365CapabilityResourceScope)" Nullable="false" />
+        <Property Name="included" Type="Collection(graph.m365CapabilityResourceScope)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="macAppIdentifier" BaseType="graph.mobileAppIdentifier">
         <Property Name="bundleId" Type="Edm.String" Nullable="false" />
       </ComplexType>
@@ -13045,7 +13069,7 @@
         <Property Name="subcode" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="retentionLabelSettings">
-        <Property Name="behaviorDuringRetentionPeriod" Type="microsoft.graph.security.behaviorDuringRetentionPeriod" />
+        <Property Name="behaviorDuringRetentionPeriod" Type="self.behaviorDuringRetentionPeriod" />
         <Property Name="isContentUpdateAllowed" Type="Edm.Boolean" />
         <Property Name="isDeleteAllowed" Type="Edm.Boolean" />
         <Property Name="isLabelUpdateAllowed" Type="Edm.Boolean" />
@@ -13091,6 +13115,7 @@
         <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
         <Property Name="severity" Type="graph.severity" Nullable="false" />
+        <Property Name="source" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="riskRecommendation">
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -15497,6 +15522,10 @@
       <EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true">
         <Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceState" Type="graph.lifecyclePolicyComplianceState" />
+        <Property Name="lifecyclePolicyComplianceStateLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceStateReason" Type="Edm.String" />
+        <Property Name="lifecyclePolicyNonComplianceDisablementDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="inheritedAppRoleAssignments" Type="Collection(graph.appRoleAssignment)" />
         <NavigationProperty Name="inheritedOauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" />
@@ -15507,6 +15536,10 @@
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
       <EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true">
+        <Property Name="lifecyclePolicyComplianceState" Type="graph.lifecyclePolicyComplianceState" />
+        <Property Name="lifecyclePolicyComplianceStateLastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lifecyclePolicyComplianceStateReason" Type="Edm.String" />
+        <Property Name="lifecyclePolicyNonComplianceDisablementDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
@@ -16580,6 +16613,9 @@
         <Property Name="ssid" Type="Edm.String" Nullable="false" />
         <Property Name="wiFiSecurityType" Type="graph.androidWiFiSecurityType" Nullable="false" />
       </EntityType>
+      <EntityType Name="anonymousCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="anonymousCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="anonymousGuestConversationMember" BaseType="graph.conversationMember">
         <Property Name="anonymousGuestId" Type="Edm.String" />
       </EntityType>
@@ -17745,6 +17781,7 @@
         <Property Name="inboundTrust" Type="graph.crossTenantAccessPolicyInboundTrust" />
         <Property Name="invitationRedemptionIdentityProviderConfiguration" Type="graph.defaultInvitationRedemptionIdentityProviderConfiguration" />
         <Property Name="isServiceDefault" Type="Edm.Boolean" />
+        <NavigationProperty Name="m365Capabilities" Type="Collection(graph.m365CapabilityBase)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="crossTenantAccessPolicyConfigurationPartner">
         <Key>
@@ -17758,7 +17795,13 @@
         <Property Name="isServiceProvider" Type="Edm.Boolean" />
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="identitySynchronization" Type="graph.crossTenantIdentitySyncPolicyPartner" ContainsTarget="true" />
+        <NavigationProperty Name="m365Capabilities" Type="Collection(graph.m365CapabilityBase)" ContainsTarget="true" />
       </EntityType>
+      <EntityType Name="crossTenantCalendarAvailabilityBasic" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarAvailabilityLimitedDetails" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusyDetail" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusyReviewer" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantCalendarSharingFreeBusySimple" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="crossTenantIdentitySyncPolicyPartner">
         <Key>
           <PropertyRef Name="tenantId" />
@@ -17768,6 +17811,12 @@
         <Property Name="tenantId" Type="Edm.String" Nullable="false" />
         <Property Name="userSyncInbound" Type="graph.crossTenantUserSyncInbound" />
       </EntityType>
+      <EntityType Name="crossTenantMailTipsAll" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantMailTipsLimited" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantMigration" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantOpenProfileCard" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantPlacesDeskBooking" BaseType="graph.m365CapabilityBase" />
+      <EntityType Name="crossTenantPlacesRoomBooking" BaseType="graph.m365CapabilityBase" />
       <EntityType Name="customAccessPackageWorkflowExtension" BaseType="graph.customCalloutExtension">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -21214,6 +21263,14 @@
       <EntityType Name="lookupResultRow" BaseType="graph.entity">
         <Property Name="row" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="m365CapabilityBase" Abstract="true">
+        <Key>
+          <PropertyRef Name="name" />
+        </Key>
+        <Property Name="inboundAccess" Type="graph.m365CapabilityInboundAccess" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="macOSCertificateProfileBase" BaseType="graph.deviceConfiguration" Abstract="true">
         <Property Name="certificateValidityPeriodScale" Type="graph.certificateValidityPeriodScale" Nullable="false" />
         <Property Name="certificateValidityPeriodValue" Type="Edm.Int32" Nullable="false" />
@@ -23822,16 +23879,16 @@
       </EntityType>
       <EntityType Name="security">
         <NavigationProperty Name="alerts" Type="Collection(graph.alert)" ContainsTarget="true" />
-        <NavigationProperty Name="alerts_v2" Type="Collection(microsoft.graph.security.alert)" ContainsTarget="true" />
-        <NavigationProperty Name="cases" Type="microsoft.graph.security.casesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="alerts_v2" Type="Collection(self.alert)" ContainsTarget="true" />
+        <NavigationProperty Name="cases" Type="self.casesRoot" ContainsTarget="true" />
         <NavigationProperty Name="dataSecurityAndGovernance" Type="graph.tenantDataSecurityAndGovernance" ContainsTarget="true" />
-        <NavigationProperty Name="incidents" Type="Collection(microsoft.graph.security.incident)" ContainsTarget="true" />
-        <NavigationProperty Name="labels" Type="microsoft.graph.security.labelsRoot" ContainsTarget="true" />
-        <NavigationProperty Name="rules" Type="microsoft.graph.security.rulesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="incidents" Type="Collection(self.incident)" ContainsTarget="true" />
+        <NavigationProperty Name="labels" Type="self.labelsRoot" ContainsTarget="true" />
+        <NavigationProperty Name="rules" Type="self.rulesRoot" ContainsTarget="true" />
         <NavigationProperty Name="secureScoreControlProfiles" Type="Collection(graph.secureScoreControlProfile)" ContainsTarget="true" />
         <NavigationProperty Name="secureScores" Type="Collection(graph.secureScore)" ContainsTarget="true" />
-        <NavigationProperty Name="triggers" Type="microsoft.graph.security.triggersRoot" ContainsTarget="true" />
-        <NavigationProperty Name="triggerTypes" Type="microsoft.graph.security.triggerTypesRoot" ContainsTarget="true" />
+        <NavigationProperty Name="triggers" Type="self.triggersRoot" ContainsTarget="true" />
+        <NavigationProperty Name="triggerTypes" Type="self.triggerTypesRoot" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="securityBaselineCategoryStateSummary" BaseType="graph.securityBaselineStateSummary">
         <Property Name="displayName" Type="Edm.String" />
@@ -24732,8 +24789,7 @@
         <NavigationProperty Name="teamTemplates" Type="Collection(graph.teamTemplate)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
-      <EntityType Name="teamworkCustomEmoji" BaseType="graph.entity">
-        <Property Name="contentBytes" Type="Edm.String" />
+      <EntityType Name="teamworkCustomEmoji" BaseType="graph.teamworkHostedContent">
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="displayName" Type="Edm.String" Nullable="false" />
@@ -25048,6 +25104,7 @@
       </EntityType>
       <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
         <Property Name="allowedPrincipalTypes" Type="graph.allowedRolePrincipalTypes" />
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isBuiltIn" Type="Edm.Boolean" />
@@ -45116,6 +45173,13 @@
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
       </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationDefault/m365Capabilities">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
           <Record>
@@ -45134,6 +45198,13 @@
         </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.crossTenantAccessPolicyConfigurationPartner/m365Capabilities">
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Upsertable" Bool="true" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.crossTenantIdentitySyncPolicyPartner">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -81743,7 +81814,7 @@
         <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
     </Schema>
-    <Schema Namespace="microsoft.graph.security" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+    <Schema Namespace="microsoft.graph.security" Alias="self" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="actionAfterRetentionPeriod">
         <Member Name="none" Value="0" />
         <Member Name="delete" Value="1" />
@@ -82425,9 +82496,9 @@
         <Member Name="azure" Value="1" />
         <Member Name="unknownFutureValue" Value="15" />
       </EnumType>
-      <ComplexType Name="activeDirectoryDomainEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="activeDirectoryDomainEvidence" BaseType="self.alertEvidence">
         <Property Name="activeDirectoryDomainName" Type="Edm.String" />
-        <Property Name="trustedDomains" Type="Collection(microsoft.graph.security.activeDirectoryDomainEvidence)" Nullable="false" />
+        <Property Name="trustedDomains" Type="Collection(self.activeDirectoryDomainEvidence)" Nullable="false" />
       </ComplexType>
       <ComplexType Name="alertComment">
         <Property Name="comment" Type="Edm.String" />
@@ -82437,32 +82508,32 @@
       <ComplexType Name="alertEvidence">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="detailedRoles" Type="Collection(Edm.String)" />
-        <Property Name="remediationStatus" Type="microsoft.graph.security.evidenceRemediationStatus" Nullable="false" />
+        <Property Name="remediationStatus" Type="self.evidenceRemediationStatus" Nullable="false" />
         <Property Name="remediationStatusDetails" Type="Edm.String" />
-        <Property Name="roles" Type="Collection(microsoft.graph.security.evidenceRole)" Nullable="false" />
+        <Property Name="roles" Type="Collection(self.evidenceRole)" Nullable="false" />
         <Property Name="tags" Type="Collection(Edm.String)" />
-        <Property Name="verdict" Type="microsoft.graph.security.evidenceVerdict" Nullable="false" />
+        <Property Name="verdict" Type="self.evidenceVerdict" Nullable="false" />
       </ComplexType>
       <ComplexType Name="alertTemplate">
         <Property Name="category" Type="Edm.String" Nullable="false" />
         <Property Name="description" Type="Edm.String" Nullable="false" />
-        <Property Name="impactedAssets" Type="Collection(microsoft.graph.security.impactedAsset)" Nullable="false" />
+        <Property Name="impactedAssets" Type="Collection(self.impactedAsset)" Nullable="false" />
         <Property Name="mitreTechniques" Type="Collection(Edm.String)" />
         <Property Name="recommendedActions" Type="Edm.String" />
-        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
+        <Property Name="severity" Type="self.alertSeverity" Nullable="false" />
         <Property Name="title" Type="Edm.String" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="allowFileResponseAction" BaseType="microsoft.graph.security.responseAction">
+      <ComplexType Name="allowFileResponseAction" BaseType="self.responseAction">
         <Property Name="deviceGroupNames" Type="Collection(Edm.String)" />
-        <Property Name="identifier" Type="microsoft.graph.security.fileEntityIdentifier" Nullable="false" />
+        <Property Name="identifier" Type="self.fileEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="amazonResourceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="amazonResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="amazonAccountId" Type="Edm.String" />
         <Property Name="amazonResourceId" Type="Edm.String" />
         <Property Name="resourceName" Type="Edm.String" />
         <Property Name="resourceType" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="analyzedMessageEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="analyzedMessageEvidence" BaseType="self.alertEvidence">
         <Property Name="antiSpamDirection" Type="Edm.String" />
         <Property Name="attachmentsCount" Type="Edm.Int64" />
         <Property Name="deliveryAction" Type="Edm.String" />
@@ -82470,8 +82541,8 @@
         <Property Name="internetMessageId" Type="Edm.String" />
         <Property Name="language" Type="Edm.String" />
         <Property Name="networkMessageId" Type="Edm.String" />
-        <Property Name="p1Sender" Type="microsoft.graph.security.emailSender" />
-        <Property Name="p2Sender" Type="microsoft.graph.security.emailSender" />
+        <Property Name="p1Sender" Type="self.emailSender" />
+        <Property Name="p2Sender" Type="self.emailSender" />
         <Property Name="receivedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="recipientEmailAddress" Type="Edm.String" />
         <Property Name="senderIp" Type="Edm.String" />
@@ -82482,40 +82553,40 @@
         <Property Name="urls" Type="Collection(Edm.String)" />
         <Property Name="urn" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="azureResourceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="azureResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="resourceId" Type="Edm.String" />
         <Property Name="resourceName" Type="Edm.String" />
         <Property Name="resourceType" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="blobContainerEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="blobContainerEvidence" BaseType="self.alertEvidence">
         <Property Name="name" Type="Edm.String" />
-        <Property Name="storageResource" Type="microsoft.graph.security.azureResourceEvidence" />
+        <Property Name="storageResource" Type="self.azureResourceEvidence" />
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="blobEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="blobContainer" Type="microsoft.graph.security.blobContainerEvidence" />
+      <ComplexType Name="blobEvidence" BaseType="self.alertEvidence">
+        <Property Name="blobContainer" Type="self.blobContainerEvidence" />
         <Property Name="etag" Type="Edm.String" />
-        <Property Name="fileHashes" Type="Collection(microsoft.graph.security.fileHash)" />
+        <Property Name="fileHashes" Type="Collection(self.fileHash)" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="blockFileResponseAction" BaseType="microsoft.graph.security.responseAction">
+      <ComplexType Name="blockFileResponseAction" BaseType="self.responseAction">
         <Property Name="deviceGroupNames" Type="Collection(Edm.String)" />
-        <Property Name="identifier" Type="microsoft.graph.security.fileEntityIdentifier" Nullable="false" />
+        <Property Name="identifier" Type="self.fileEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="cloudApplicationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="cloudApplicationEvidence" BaseType="self.alertEvidence">
         <Property Name="appId" Type="Edm.Int64" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="instanceId" Type="Edm.Int64" />
         <Property Name="instanceName" Type="Edm.String" />
         <Property Name="saasAppId" Type="Edm.Int64" />
-        <Property Name="stream" Type="microsoft.graph.security.stream" />
+        <Property Name="stream" Type="self.stream" />
       </ComplexType>
-      <ComplexType Name="cloudLogonRequestEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="cloudLogonRequestEvidence" BaseType="self.alertEvidence">
         <Property Name="requestId" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="cloudLogonSessionEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="account" Type="microsoft.graph.security.userEvidence" />
+      <ComplexType Name="cloudLogonSessionEvidence" BaseType="self.alertEvidence">
+        <Property Name="account" Type="self.userEvidence" />
         <Property Name="browser" Type="Edm.String" />
         <Property Name="deviceName" Type="Edm.String" />
         <Property Name="operatingSystem" Type="Edm.String" />
@@ -82525,76 +82596,76 @@
         <Property Name="startUtcDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="userAgent" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="collectInvestigationPackageResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceIdEntityIdentifier" Nullable="false" />
+      <ComplexType Name="collectInvestigationPackageResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.deviceIdEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="containerEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="containerEvidence" BaseType="self.alertEvidence">
         <Property Name="args" Type="Collection(Edm.String)" />
         <Property Name="command" Type="Collection(Edm.String)" />
         <Property Name="containerId" Type="Edm.String" />
-        <Property Name="image" Type="microsoft.graph.security.containerImageEvidence" />
+        <Property Name="image" Type="self.containerImageEvidence" />
         <Property Name="isPrivileged" Type="Edm.Boolean" Nullable="false" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="pod" Type="microsoft.graph.security.kubernetesPodEvidence" />
+        <Property Name="pod" Type="self.kubernetesPodEvidence" />
       </ComplexType>
-      <ComplexType Name="containerImageEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="digestImage" Type="microsoft.graph.security.containerImageEvidence" />
+      <ComplexType Name="containerImageEvidence" BaseType="self.alertEvidence">
+        <Property Name="digestImage" Type="self.containerImageEvidence" />
         <Property Name="imageId" Type="Edm.String" />
-        <Property Name="registry" Type="microsoft.graph.security.containerRegistryEvidence" />
+        <Property Name="registry" Type="self.containerRegistryEvidence" />
       </ComplexType>
-      <ComplexType Name="containerRegistryEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="containerRegistryEvidence" BaseType="self.alertEvidence">
         <Property Name="registry" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="createAlertInput">
         <Property Name="category" Type="Edm.String" Nullable="false" />
         <Property Name="description" Type="Edm.String" Nullable="false" />
-        <Property Name="entityDefinitions" Type="Collection(microsoft.graph.security.entityDefinition)" Nullable="false" />
+        <Property Name="entityDefinitions" Type="Collection(self.entityDefinition)" Nullable="false" />
         <Property Name="isExcludedFromCorrelation" Type="Edm.Boolean" Nullable="false" />
         <Property Name="linkToIncident" Type="Edm.Int64" />
         <Property Name="mitreTechniques" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="recommendedActions" Type="Edm.String" />
         <Property Name="sentinelWorkspace" Type="Edm.String" />
-        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
+        <Property Name="severity" Type="self.alertSeverity" Nullable="false" />
         <Property Name="title" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="detectionAction">
-        <Property Name="alertTemplate" Type="microsoft.graph.security.alertTemplate" Nullable="false" />
-        <Property Name="organizationalScope" Type="microsoft.graph.security.organizationalScope" />
-        <Property Name="responseActions" Type="Collection(microsoft.graph.security.responseAction)" />
+        <Property Name="alertTemplate" Type="self.alertTemplate" Nullable="false" />
+        <Property Name="organizationalScope" Type="self.organizationalScope" />
+        <Property Name="responseActions" Type="Collection(self.responseAction)" />
       </ComplexType>
-      <ComplexType Name="deviceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="deviceEvidence" BaseType="self.alertEvidence">
         <Property Name="azureAdDeviceId" Type="Edm.String" />
-        <Property Name="defenderAvStatus" Type="microsoft.graph.security.defenderAvStatus" />
+        <Property Name="defenderAvStatus" Type="self.defenderAvStatus" />
         <Property Name="deviceDnsName" Type="Edm.String" />
         <Property Name="dnsDomain" Type="Edm.String" />
         <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="healthStatus" Type="microsoft.graph.security.deviceHealthStatus" />
+        <Property Name="healthStatus" Type="self.deviceHealthStatus" />
         <Property Name="hostName" Type="Edm.String" />
         <Property Name="ipInterfaces" Type="Collection(Edm.String)" />
         <Property Name="lastExternalIpAddress" Type="Edm.String" />
         <Property Name="lastIpAddress" Type="Edm.String" />
-        <Property Name="loggedOnUsers" Type="Collection(microsoft.graph.security.loggedOnUser)" />
+        <Property Name="loggedOnUsers" Type="Collection(self.loggedOnUser)" />
         <Property Name="mdeDeviceId" Type="Edm.String" />
         <Property Name="ntDomain" Type="Edm.String" />
-        <Property Name="onboardingStatus" Type="microsoft.graph.security.onboardingStatus" />
+        <Property Name="onboardingStatus" Type="self.onboardingStatus" />
         <Property Name="osBuild" Type="Edm.Int64" />
         <Property Name="osPlatform" Type="Edm.String" />
         <Property Name="rbacGroupId" Type="Edm.Int32" />
         <Property Name="rbacGroupName" Type="Edm.String" />
-        <Property Name="resourceAccessEvents" Type="Collection(microsoft.graph.security.resourceAccessEvent)" />
-        <Property Name="riskScore" Type="microsoft.graph.security.deviceRiskScore" />
+        <Property Name="resourceAccessEvents" Type="Collection(self.resourceAccessEvent)" />
+        <Property Name="riskScore" Type="self.deviceRiskScore" />
         <Property Name="version" Type="Edm.String" />
-        <Property Name="vmMetadata" Type="microsoft.graph.security.vmMetadata" />
+        <Property Name="vmMetadata" Type="self.vmMetadata" />
       </ComplexType>
       <ComplexType Name="dictionary" OpenType="true" />
-      <ComplexType Name="disableUserResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.disableUserEntityIdentifier" Nullable="false" />
+      <ComplexType Name="disableUserResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.disableUserEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="dnsEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="dnsServerIp" Type="microsoft.graph.security.ipEvidence" />
+      <ComplexType Name="dnsEvidence" BaseType="self.alertEvidence">
+        <Property Name="dnsServerIp" Type="self.ipEvidence" />
         <Property Name="domainName" Type="Edm.String" />
-        <Property Name="hostIpAddress" Type="microsoft.graph.security.ipEvidence" />
-        <Property Name="ipAddresses" Type="Collection(microsoft.graph.security.ipEvidence)" />
+        <Property Name="hostIpAddress" Type="self.ipEvidence" />
+        <Property Name="ipAddresses" Type="Collection(self.ipEvidence)" />
       </ComplexType>
       <ComplexType Name="dynamicColumnValue" OpenType="true" />
       <ComplexType Name="emailSender">
@@ -82604,19 +82675,19 @@
       </ComplexType>
       <ComplexType Name="entityDefinition">
         <Property Name="entityIdentifier" Type="Edm.String" Nullable="false" />
-        <Property Name="entityType" Type="microsoft.graph.security.manualAlertEntityType" Nullable="false" />
+        <Property Name="entityType" Type="self.manualAlertEntityType" Nullable="false" />
         <Property Name="identifierValue" Type="Edm.String" Nullable="false" />
-        <Property Name="role" Type="microsoft.graph.security.entityDefinitionInputRole" Nullable="false" />
+        <Property Name="role" Type="self.entityDefinitionInputRole" Nullable="false" />
       </ComplexType>
       <ComplexType Name="eventPropagationResult">
         <Property Name="location" Type="Edm.String" />
         <Property Name="serviceName" Type="Edm.String" />
-        <Property Name="status" Type="microsoft.graph.security.eventPropagationStatus" />
+        <Property Name="status" Type="self.eventPropagationStatus" />
         <Property Name="statusInformation" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="eventQuery">
         <Property Name="query" Type="Edm.String" Nullable="false" />
-        <Property Name="queryType" Type="microsoft.graph.security.queryType" />
+        <Property Name="queryType" Type="self.queryType" />
       </ComplexType>
       <ComplexType Name="exportFileMetadata">
         <Property Name="downloadUrl" Type="Edm.String" />
@@ -82635,35 +82706,35 @@
         <Property Name="sha256Ac" Type="Edm.String" />
         <Property Name="signer" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="fileEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="detectionStatus" Type="microsoft.graph.security.detectionStatus" />
-        <Property Name="fileDetails" Type="microsoft.graph.security.fileDetails" />
+      <ComplexType Name="fileEvidence" BaseType="self.alertEvidence">
+        <Property Name="detectionStatus" Type="self.detectionStatus" />
+        <Property Name="fileDetails" Type="self.fileDetails" />
         <Property Name="mdeDeviceId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="fileHash">
-        <Property Name="algorithm" Type="microsoft.graph.security.fileHashAlgorithm" Nullable="false" />
+        <Property Name="algorithm" Type="self.fileHashAlgorithm" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="fileHashEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="algorithm" Type="microsoft.graph.security.fileHashAlgorithm" Nullable="false" />
+      <ComplexType Name="fileHashEvidence" BaseType="self.alertEvidence">
+        <Property Name="algorithm" Type="self.fileHashAlgorithm" Nullable="false" />
         <Property Name="value" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="filePlanAppliedCategory" BaseType="microsoft.graph.security.filePlanDescriptorBase">
-        <Property Name="subcategory" Type="microsoft.graph.security.filePlanSubcategory" />
+      <ComplexType Name="filePlanAppliedCategory" BaseType="self.filePlanDescriptorBase">
+        <Property Name="subcategory" Type="self.filePlanSubcategory" />
       </ComplexType>
-      <ComplexType Name="filePlanAuthority" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
-      <ComplexType Name="filePlanCitation" BaseType="microsoft.graph.security.filePlanDescriptorBase">
+      <ComplexType Name="filePlanAuthority" BaseType="self.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanCitation" BaseType="self.filePlanDescriptorBase">
         <Property Name="citationJurisdiction" Type="Edm.String" />
         <Property Name="citationUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="filePlanDepartment" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanDepartment" BaseType="self.filePlanDescriptorBase" />
       <ComplexType Name="filePlanDescriptorBase">
         <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="filePlanReference" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
-      <ComplexType Name="filePlanSubcategory" BaseType="microsoft.graph.security.filePlanDescriptorBase" />
-      <ComplexType Name="forceUserPasswordResetResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.forceUserPasswordResetEntityIdentifier" Nullable="false" />
+      <ComplexType Name="filePlanReference" BaseType="self.filePlanDescriptorBase" />
+      <ComplexType Name="filePlanSubcategory" BaseType="self.filePlanDescriptorBase" />
+      <ComplexType Name="forceUserPasswordResetResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.forceUserPasswordResetEntityIdentifier" Nullable="false" />
       </ComplexType>
       <ComplexType Name="geoLocation">
         <Property Name="city" Type="Edm.String" />
@@ -82672,7 +82743,7 @@
         <Property Name="longitude" Type="Edm.Double" />
         <Property Name="state" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="gitHubOrganizationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="gitHubOrganizationEvidence" BaseType="self.alertEvidence">
         <Property Name="company" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="email" Type="Edm.String" />
@@ -82680,74 +82751,84 @@
         <Property Name="orgId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="gitHubRepoEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="gitHubRepoEvidence" BaseType="self.alertEvidence">
         <Property Name="baseUrl" Type="Edm.String" />
         <Property Name="login" Type="Edm.String" />
         <Property Name="owner" Type="Edm.String" />
         <Property Name="ownerType" Type="Edm.String" />
         <Property Name="repoId" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="gitHubUserEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="gitHubUserEvidence" BaseType="self.alertEvidence">
         <Property Name="email" Type="Edm.String" />
         <Property Name="login" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="userId" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="googleCloudResourceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="googleCloudResourceEvidence" BaseType="self.alertEvidence">
         <Property Name="fullResourceName" Type="Edm.String" />
         <Property Name="location" Type="Edm.String" />
-        <Property Name="locationType" Type="microsoft.graph.security.googleCloudLocationType" />
+        <Property Name="locationType" Type="self.googleCloudLocationType" />
         <Property Name="projectId" Type="Edm.String" />
         <Property Name="projectNumber" Type="Edm.Int64" />
         <Property Name="resourceName" Type="Edm.String" />
         <Property Name="resourceType" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="hardDeleteResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.emailEntityIdentifier" Nullable="false" />
+      <ComplexType Name="hardDeleteResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.emailEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="hostLogonSessionEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="account" Type="microsoft.graph.security.userEvidence" />
+      <ComplexType Name="hostLogonSessionEvidence" BaseType="self.alertEvidence">
+        <Property Name="account" Type="self.userEvidence" />
         <Property Name="endUtcDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="host" Type="microsoft.graph.security.deviceEvidence" />
+        <Property Name="host" Type="self.deviceEvidence" />
         <Property Name="sessionId" Type="Edm.String" />
         <Property Name="startUtcDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
       <ComplexType Name="huntingQueryResults">
-        <Property Name="results" Type="Collection(microsoft.graph.security.huntingRowResult)" />
-        <Property Name="schema" Type="Collection(microsoft.graph.security.singlePropertySchema)" />
+        <Property Name="results" Type="Collection(self.huntingRowResult)" />
+        <Property Name="schema" Type="Collection(self.singlePropertySchema)" />
       </ComplexType>
       <ComplexType Name="huntingRowResult" OpenType="true" />
+      <ComplexType Name="huntingSchemaTable">
+        <Property Name="columns" Type="Collection(self.huntingSchemaTableColumn)" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="huntingSchemaTableColumn">
+        <Property Name="dataType" Type="Edm.String" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="impactedAsset" Abstract="true" />
-      <ComplexType Name="impactedDeviceAsset" BaseType="microsoft.graph.security.impactedAsset">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceAssetIdentifier" Nullable="false" />
+      <ComplexType Name="impactedDeviceAsset" BaseType="self.impactedAsset">
+        <Property Name="identifier" Type="self.deviceAssetIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="impactedMailboxAsset" BaseType="microsoft.graph.security.impactedAsset">
-        <Property Name="identifier" Type="microsoft.graph.security.mailboxAssetIdentifier" Nullable="false" />
+      <ComplexType Name="impactedMailboxAsset" BaseType="self.impactedAsset">
+        <Property Name="identifier" Type="self.mailboxAssetIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="impactedUserAsset" BaseType="microsoft.graph.security.impactedAsset">
-        <Property Name="identifier" Type="microsoft.graph.security.userAssetIdentifier" Nullable="false" />
+      <ComplexType Name="impactedUserAsset" BaseType="self.impactedAsset">
+        <Property Name="identifier" Type="self.userAssetIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="initiateInvestigationResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceIdEntityIdentifier" Nullable="false" />
+      <ComplexType Name="initiateInvestigationResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.deviceIdEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="ioTDeviceEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="ioTDeviceEvidence" BaseType="self.alertEvidence">
         <Property Name="deviceId" Type="Edm.String" />
         <Property Name="deviceName" Type="Edm.String" />
         <Property Name="devicePageLink" Type="Edm.String" />
         <Property Name="deviceSubType" Type="Edm.String" />
         <Property Name="deviceType" Type="Edm.String" />
-        <Property Name="importance" Type="microsoft.graph.security.ioTDeviceImportanceType" />
-        <Property Name="ioTHub" Type="microsoft.graph.security.azureResourceEvidence" />
+        <Property Name="importance" Type="self.ioTDeviceImportanceType" />
+        <Property Name="ioTHub" Type="self.azureResourceEvidence" />
         <Property Name="ioTSecurityAgentId" Type="Edm.String" />
-        <Property Name="ipAddress" Type="microsoft.graph.security.ipEvidence" />
+        <Property Name="ipAddress" Type="self.ipEvidence" />
         <Property Name="isAuthorized" Type="Edm.Boolean" />
         <Property Name="isProgramming" Type="Edm.Boolean" />
         <Property Name="isScanner" Type="Edm.Boolean" />
         <Property Name="macAddress" Type="Edm.String" />
         <Property Name="manufacturer" Type="Edm.String" />
         <Property Name="model" Type="Edm.String" />
-        <Property Name="nics" Type="Collection(microsoft.graph.security.nicEvidence)" />
+        <Property Name="nics" Type="Collection(self.nicEvidence)" />
         <Property Name="operatingSystem" Type="Edm.String" />
         <Property Name="owners" Type="Collection(Edm.String)" />
         <Property Name="protocols" Type="Collection(Edm.String)" />
@@ -82756,94 +82837,94 @@
         <Property Name="serialNumber" Type="Edm.String" />
         <Property Name="site" Type="Edm.String" />
         <Property Name="source" Type="Edm.String" />
-        <Property Name="sourceRef" Type="microsoft.graph.security.urlEvidence" />
+        <Property Name="sourceRef" Type="self.urlEvidence" />
         <Property Name="zone" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="ipEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="ipEvidence" BaseType="self.alertEvidence">
         <Property Name="countryLetterCode" Type="Edm.String" />
         <Property Name="ipAddress" Type="Edm.String" />
-        <Property Name="location" Type="microsoft.graph.security.geoLocation" />
-        <Property Name="stream" Type="microsoft.graph.security.stream" />
+        <Property Name="location" Type="self.geoLocation" />
+        <Property Name="stream" Type="self.stream" />
       </ComplexType>
-      <ComplexType Name="isolateDeviceResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceIdEntityIdentifier" Nullable="false" />
-        <Property Name="isolationType" Type="microsoft.graph.security.isolationType" Nullable="false" />
+      <ComplexType Name="isolateDeviceResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.deviceIdEntityIdentifier" Nullable="false" />
+        <Property Name="isolationType" Type="self.isolationType" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="kubernetesClusterEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="cloudResource" Type="microsoft.graph.security.alertEvidence" />
+      <ComplexType Name="kubernetesClusterEvidence" BaseType="self.alertEvidence">
+        <Property Name="cloudResource" Type="self.alertEvidence" />
         <Property Name="distribution" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="platform" Type="microsoft.graph.security.kubernetesPlatform" />
+        <Property Name="platform" Type="self.kubernetesPlatform" />
         <Property Name="version" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="kubernetesControllerEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="labels" Type="microsoft.graph.security.dictionary" />
+      <ComplexType Name="kubernetesControllerEvidence" BaseType="self.alertEvidence">
+        <Property Name="labels" Type="self.dictionary" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="namespace" Type="microsoft.graph.security.kubernetesNamespaceEvidence" />
+        <Property Name="namespace" Type="self.kubernetesNamespaceEvidence" />
         <Property Name="type" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="kubernetesNamespaceEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="cluster" Type="microsoft.graph.security.kubernetesClusterEvidence" />
-        <Property Name="labels" Type="microsoft.graph.security.dictionary" />
+      <ComplexType Name="kubernetesNamespaceEvidence" BaseType="self.alertEvidence">
+        <Property Name="cluster" Type="self.kubernetesClusterEvidence" />
+        <Property Name="labels" Type="self.dictionary" />
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="kubernetesPodEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="containers" Type="Collection(microsoft.graph.security.containerEvidence)" />
-        <Property Name="controller" Type="microsoft.graph.security.kubernetesControllerEvidence" />
-        <Property Name="ephemeralContainers" Type="Collection(microsoft.graph.security.containerEvidence)" />
-        <Property Name="initContainers" Type="Collection(microsoft.graph.security.containerEvidence)" />
-        <Property Name="labels" Type="microsoft.graph.security.dictionary" />
+      <ComplexType Name="kubernetesPodEvidence" BaseType="self.alertEvidence">
+        <Property Name="containers" Type="Collection(self.containerEvidence)" />
+        <Property Name="controller" Type="self.kubernetesControllerEvidence" />
+        <Property Name="ephemeralContainers" Type="Collection(self.containerEvidence)" />
+        <Property Name="initContainers" Type="Collection(self.containerEvidence)" />
+        <Property Name="labels" Type="self.dictionary" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="namespace" Type="microsoft.graph.security.kubernetesNamespaceEvidence" />
-        <Property Name="podIp" Type="microsoft.graph.security.ipEvidence" />
-        <Property Name="serviceAccount" Type="microsoft.graph.security.kubernetesServiceAccountEvidence" />
+        <Property Name="namespace" Type="self.kubernetesNamespaceEvidence" />
+        <Property Name="podIp" Type="self.ipEvidence" />
+        <Property Name="serviceAccount" Type="self.kubernetesServiceAccountEvidence" />
       </ComplexType>
-      <ComplexType Name="kubernetesSecretEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="kubernetesSecretEvidence" BaseType="self.alertEvidence">
         <Property Name="name" Type="Edm.String" />
-        <Property Name="namespace" Type="microsoft.graph.security.kubernetesNamespaceEvidence" />
+        <Property Name="namespace" Type="self.kubernetesNamespaceEvidence" />
         <Property Name="secretType" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="kubernetesServiceAccountEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="kubernetesServiceAccountEvidence" BaseType="self.alertEvidence">
         <Property Name="name" Type="Edm.String" />
-        <Property Name="namespace" Type="microsoft.graph.security.kubernetesNamespaceEvidence" />
+        <Property Name="namespace" Type="self.kubernetesNamespaceEvidence" />
       </ComplexType>
-      <ComplexType Name="kubernetesServiceEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="clusterIP" Type="microsoft.graph.security.ipEvidence" />
-        <Property Name="externalIPs" Type="Collection(microsoft.graph.security.ipEvidence)" />
-        <Property Name="labels" Type="microsoft.graph.security.dictionary" />
+      <ComplexType Name="kubernetesServiceEvidence" BaseType="self.alertEvidence">
+        <Property Name="clusterIP" Type="self.ipEvidence" />
+        <Property Name="externalIPs" Type="Collection(self.ipEvidence)" />
+        <Property Name="labels" Type="self.dictionary" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="namespace" Type="microsoft.graph.security.kubernetesNamespaceEvidence" />
-        <Property Name="selector" Type="microsoft.graph.security.dictionary" />
-        <Property Name="servicePorts" Type="Collection(microsoft.graph.security.kubernetesServicePort)" />
-        <Property Name="serviceType" Type="microsoft.graph.security.kubernetesServiceType" Nullable="false" />
+        <Property Name="namespace" Type="self.kubernetesNamespaceEvidence" />
+        <Property Name="selector" Type="self.dictionary" />
+        <Property Name="servicePorts" Type="Collection(self.kubernetesServicePort)" />
+        <Property Name="serviceType" Type="self.kubernetesServiceType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="kubernetesServicePort">
         <Property Name="appProtocol" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="nodePort" Type="Edm.Int32" Nullable="false" />
         <Property Name="port" Type="Edm.Int32" Nullable="false" />
-        <Property Name="protocol" Type="microsoft.graph.security.containerPortProtocol" />
+        <Property Name="protocol" Type="self.containerPortProtocol" />
         <Property Name="targetPort" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="loggedOnUser">
         <Property Name="accountName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="mailboxConfigurationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="mailboxConfigurationEvidence" BaseType="self.alertEvidence">
         <Property Name="configurationId" Type="Edm.String" />
-        <Property Name="configurationType" Type="microsoft.graph.security.mailboxConfigurationType" />
+        <Property Name="configurationType" Type="self.mailboxConfigurationType" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="externalDirectoryObjectId" Type="Edm.Guid" />
         <Property Name="mailboxPrimaryAddress" Type="Edm.String" />
         <Property Name="upn" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="mailboxEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="mailboxEvidence" BaseType="self.alertEvidence">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="primaryAddress" Type="Edm.String" />
         <Property Name="upn" Type="Edm.String" />
-        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+        <Property Name="userAccount" Type="self.userAccount" />
       </ComplexType>
-      <ComplexType Name="mailClusterEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="mailClusterEvidence" BaseType="self.alertEvidence">
         <Property Name="clusterBy" Type="Edm.String" />
         <Property Name="clusterByValue" Type="Edm.String" />
         <Property Name="emailCount" Type="Edm.Int64" />
@@ -82851,40 +82932,40 @@
         <Property Name="query" Type="Edm.String" />
         <Property Name="urn" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="malwareEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="malwareEvidence" BaseType="self.alertEvidence">
         <Property Name="category" Type="Edm.String" />
-        <Property Name="files" Type="Collection(microsoft.graph.security.fileEvidence)" />
+        <Property Name="files" Type="Collection(self.fileEvidence)" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="processes" Type="Collection(microsoft.graph.security.processEvidence)" />
+        <Property Name="processes" Type="Collection(self.processEvidence)" />
       </ComplexType>
-      <ComplexType Name="markUserAsCompromisedResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.markUserAsCompromisedEntityIdentifier" Nullable="false" />
+      <ComplexType Name="markUserAsCompromisedResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.markUserAsCompromisedEntityIdentifier" Nullable="false" />
       </ComplexType>
       <ComplexType Name="mergeResponse">
         <Property Name="targetIncidentId" Type="Edm.String" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="moveToDeletedItemsResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.emailEntityIdentifier" Nullable="false" />
+      <ComplexType Name="moveToDeletedItemsResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.emailEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="moveToInboxResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.emailEntityIdentifier" Nullable="false" />
+      <ComplexType Name="moveToInboxResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.emailEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="moveToJunkResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.emailEntityIdentifier" Nullable="false" />
+      <ComplexType Name="moveToJunkResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.emailEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="networkConnectionEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="destinationAddress" Type="microsoft.graph.security.ipEvidence" />
+      <ComplexType Name="networkConnectionEvidence" BaseType="self.alertEvidence">
+        <Property Name="destinationAddress" Type="self.ipEvidence" />
         <Property Name="destinationPort" Type="Edm.Int32" />
-        <Property Name="protocol" Type="microsoft.graph.security.protocolType" />
-        <Property Name="sourceAddress" Type="microsoft.graph.security.ipEvidence" />
+        <Property Name="protocol" Type="self.protocolType" />
+        <Property Name="sourceAddress" Type="self.ipEvidence" />
         <Property Name="sourcePort" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="nicEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="ipAddress" Type="microsoft.graph.security.ipEvidence" />
+      <ComplexType Name="nicEvidence" BaseType="self.alertEvidence">
+        <Property Name="ipAddress" Type="self.ipEvidence" />
         <Property Name="macAddress" Type="Edm.String" />
         <Property Name="vlans" Type="Collection(Edm.String)" />
       </ComplexType>
-      <ComplexType Name="oauthApplicationEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="oauthApplicationEvidence" BaseType="self.alertEvidence">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="objectId" Type="Edm.String" />
@@ -82897,19 +82978,19 @@
       </ComplexType>
       <ComplexType Name="organizationalScope">
         <Property Name="scopeNames" Type="Collection(Edm.String)" />
-        <Property Name="scopeType" Type="microsoft.graph.security.scopeType" Nullable="false" />
+        <Property Name="scopeType" Type="self.scopeType" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="processEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="detectionStatus" Type="microsoft.graph.security.detectionStatus" />
-        <Property Name="imageFile" Type="microsoft.graph.security.fileDetails" />
+      <ComplexType Name="processEvidence" BaseType="self.alertEvidence">
+        <Property Name="detectionStatus" Type="self.detectionStatus" />
+        <Property Name="imageFile" Type="self.fileDetails" />
         <Property Name="mdeDeviceId" Type="Edm.String" />
         <Property Name="parentProcessCreationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="parentProcessId" Type="Edm.Int64" />
-        <Property Name="parentProcessImageFile" Type="microsoft.graph.security.fileDetails" />
+        <Property Name="parentProcessImageFile" Type="self.fileDetails" />
         <Property Name="processCommandLine" Type="Edm.String" />
         <Property Name="processCreationDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="processId" Type="Edm.Int64" />
-        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+        <Property Name="userAccount" Type="self.userAccount" />
       </ComplexType>
       <ComplexType Name="queryCondition">
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -82924,11 +83005,11 @@
         <Property Name="minWords" Type="Edm.Int32" />
         <Property Name="similarityThreshold" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="registryKeyEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="registryKeyEvidence" BaseType="self.alertEvidence">
         <Property Name="registryHive" Type="Edm.String" />
         <Property Name="registryKey" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="registryValueEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="registryValueEvidence" BaseType="self.alertEvidence">
         <Property Name="mdeDeviceId" Type="Edm.String" />
         <Property Name="registryHive" Type="Edm.String" />
         <Property Name="registryKey" Type="Edm.String" />
@@ -82948,32 +83029,32 @@
         <Property Name="resourceIdentifier" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="responseAction" Abstract="true" />
-      <ComplexType Name="restrictAppExecutionResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceIdEntityIdentifier" Nullable="false" />
+      <ComplexType Name="restrictAppExecutionResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.deviceIdEntityIdentifier" Nullable="false" />
       </ComplexType>
       <ComplexType Name="retentionDuration" Abstract="true" />
-      <ComplexType Name="retentionDurationForever" BaseType="microsoft.graph.security.retentionDuration" />
-      <ComplexType Name="retentionDurationInDays" BaseType="microsoft.graph.security.retentionDuration">
+      <ComplexType Name="retentionDurationForever" BaseType="self.retentionDuration" />
+      <ComplexType Name="retentionDurationInDays" BaseType="self.retentionDuration">
         <Property Name="days" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="retentionEventStatus">
         <Property Name="error" Type="graph.publicError" />
-        <Property Name="status" Type="microsoft.graph.security.eventStatusType" />
+        <Property Name="status" Type="self.eventStatusType" />
       </ComplexType>
       <ComplexType Name="ruleSchedule">
         <Property Name="nextRunDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="period" Type="Edm.String" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="runAntivirusScanResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.deviceIdEntityIdentifier" Nullable="false" />
+      <ComplexType Name="runAntivirusScanResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.deviceIdEntityIdentifier" Nullable="false" />
       </ComplexType>
       <ComplexType Name="runDetails">
-        <Property Name="errorCode" Type="microsoft.graph.security.huntingRuleErrorCode" />
+        <Property Name="errorCode" Type="self.huntingRuleErrorCode" />
         <Property Name="failureReason" Type="Edm.String" />
         <Property Name="lastRunDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="microsoft.graph.security.huntingRuleRunStatus" />
+        <Property Name="status" Type="self.huntingRuleRunStatus" />
       </ComplexType>
-      <ComplexType Name="sasTokenEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="sasTokenEvidence" BaseType="self.alertEvidence">
         <Property Name="allowedIpAddresses" Type="Edm.String" />
         <Property Name="allowedResourceTypes" Type="Collection(Edm.String)" />
         <Property Name="allowedServices" Type="Collection(Edm.String)" />
@@ -82983,35 +83064,35 @@
         <Property Name="signatureHash" Type="Edm.String" />
         <Property Name="signedWith" Type="Edm.String" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="storageResource" Type="microsoft.graph.security.azureResourceEvidence" />
+        <Property Name="storageResource" Type="self.azureResourceEvidence" />
       </ComplexType>
-      <ComplexType Name="securityGroupEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="securityGroupEvidence" BaseType="self.alertEvidence">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="securityGroupId" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="servicePrincipalEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="servicePrincipalEvidence" BaseType="self.alertEvidence">
         <Property Name="appId" Type="Edm.String" />
         <Property Name="appOwnerTenantId" Type="Edm.String" />
         <Property Name="servicePrincipalName" Type="Edm.String" />
         <Property Name="servicePrincipalObjectId" Type="Edm.String" />
-        <Property Name="servicePrincipalType" Type="microsoft.graph.security.servicePrincipalType" />
+        <Property Name="servicePrincipalType" Type="self.servicePrincipalType" />
         <Property Name="tenantId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="singlePropertySchema">
         <Property Name="name" Type="Edm.String" />
         <Property Name="type" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="softDeleteResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.emailEntityIdentifier" Nullable="false" />
+      <ComplexType Name="softDeleteResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.emailEntityIdentifier" Nullable="false" />
       </ComplexType>
-      <ComplexType Name="stopAndQuarantineFileResponseAction" BaseType="microsoft.graph.security.responseAction">
-        <Property Name="identifier" Type="microsoft.graph.security.stopAndQuarantineFileEntityIdentifier" Nullable="false" />
+      <ComplexType Name="stopAndQuarantineFileResponseAction" BaseType="self.responseAction">
+        <Property Name="identifier" Type="self.stopAndQuarantineFileEntityIdentifier" Nullable="false" />
       </ComplexType>
       <ComplexType Name="stream">
         <Property Name="name" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="stringValueDictionary" OpenType="true" />
-      <ComplexType Name="submissionMailEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="submissionMailEvidence" BaseType="self.alertEvidence">
         <Property Name="networkMessageId" Type="Edm.String" />
         <Property Name="recipient" Type="Edm.String" />
         <Property Name="reportType" Type="Edm.String" />
@@ -83022,17 +83103,17 @@
         <Property Name="submissionId" Type="Edm.String" />
         <Property Name="submitter" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="teamsMessageEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="teamsMessageEvidence" BaseType="self.alertEvidence">
         <Property Name="campaignId" Type="Edm.String" />
         <Property Name="channelId" Type="Edm.String" />
-        <Property Name="deliveryAction" Type="microsoft.graph.security.teamsMessageDeliveryAction" />
-        <Property Name="deliveryLocation" Type="microsoft.graph.security.teamsDeliveryLocation" />
-        <Property Name="files" Type="Collection(microsoft.graph.security.fileEvidence)" />
+        <Property Name="deliveryAction" Type="self.teamsMessageDeliveryAction" />
+        <Property Name="deliveryLocation" Type="self.teamsDeliveryLocation" />
+        <Property Name="files" Type="Collection(self.fileEvidence)" />
         <Property Name="groupId" Type="Edm.String" />
         <Property Name="isExternal" Type="Edm.Boolean" />
         <Property Name="isOwned" Type="Edm.Boolean" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="messageDirection" Type="microsoft.graph.security.antispamTeamsDirection" />
+        <Property Name="messageDirection" Type="self.antispamTeamsDirection" />
         <Property Name="messageId" Type="Edm.String" />
         <Property Name="owningTenantId" Type="Edm.Guid" />
         <Property Name="parentMessageId" Type="Edm.String" />
@@ -83046,7 +83127,7 @@
         <Property Name="suspiciousRecipients" Type="Collection(Edm.String)" />
         <Property Name="threadId" Type="Edm.String" />
         <Property Name="threadType" Type="Edm.String" />
-        <Property Name="urls" Type="Collection(microsoft.graph.security.urlEvidence)" />
+        <Property Name="urls" Type="Collection(self.urlEvidence)" />
       </ComplexType>
       <ComplexType Name="topicModelingSettings">
         <Property Name="dynamicallyAdjustTopicCount" Type="Edm.Boolean" />
@@ -83054,7 +83135,7 @@
         <Property Name="isEnabled" Type="Edm.Boolean" />
         <Property Name="topicCount" Type="Edm.Int32" />
       </ComplexType>
-      <ComplexType Name="urlEvidence" BaseType="microsoft.graph.security.alertEvidence">
+      <ComplexType Name="urlEvidence" BaseType="self.alertEvidence">
         <Property Name="url" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="userAccount">
@@ -83062,38 +83143,38 @@
         <Property Name="azureAdUserId" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="domainName" Type="Edm.String" />
-        <Property Name="resourceAccessEvents" Type="Collection(microsoft.graph.security.resourceAccessEvent)" />
+        <Property Name="resourceAccessEvents" Type="Collection(self.resourceAccessEvent)" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="userPrincipalName" Type="Edm.String" />
         <Property Name="userSid" Type="Edm.String" />
       </ComplexType>
-      <ComplexType Name="userEvidence" BaseType="microsoft.graph.security.alertEvidence">
-        <Property Name="stream" Type="microsoft.graph.security.stream" />
-        <Property Name="userAccount" Type="microsoft.graph.security.userAccount" />
+      <ComplexType Name="userEvidence" BaseType="self.alertEvidence">
+        <Property Name="stream" Type="self.stream" />
+        <Property Name="userAccount" Type="self.userAccount" />
       </ComplexType>
       <ComplexType Name="vmMetadata">
-        <Property Name="cloudProvider" Type="microsoft.graph.security.vmCloudProvider" Nullable="false" />
+        <Property Name="cloudProvider" Type="self.vmCloudProvider" Nullable="false" />
         <Property Name="resourceId" Type="Edm.String" />
         <Property Name="subscriptionId" Type="Edm.String" />
         <Property Name="vmId" Type="Edm.String" />
       </ComplexType>
       <EntityType Name="alert" BaseType="graph.entity">
         <Property Name="actorDisplayName" Type="Edm.String" />
-        <Property Name="additionalData" Type="microsoft.graph.security.dictionary" />
+        <Property Name="additionalData" Type="self.dictionary" />
         <Property Name="alertPolicyId" Type="Edm.String" />
         <Property Name="alertWebUrl" Type="Edm.String" />
         <Property Name="assignedTo" Type="Edm.String" />
         <Property Name="categories" Type="Collection(Edm.String)" />
         <Property Name="category" Type="Edm.String" />
-        <Property Name="classification" Type="microsoft.graph.security.alertClassification" />
-        <Property Name="comments" Type="Collection(microsoft.graph.security.alertComment)" />
+        <Property Name="classification" Type="self.alertClassification" />
+        <Property Name="comments" Type="Collection(self.alertComment)" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="customDetails" Type="microsoft.graph.security.dictionary" />
+        <Property Name="customDetails" Type="self.dictionary" />
         <Property Name="description" Type="Edm.String" />
-        <Property Name="detectionSource" Type="microsoft.graph.security.detectionSource" />
+        <Property Name="detectionSource" Type="self.detectionSource" />
         <Property Name="detectorId" Type="Edm.String" />
-        <Property Name="determination" Type="microsoft.graph.security.alertDetermination" />
-        <Property Name="evidence" Type="Collection(microsoft.graph.security.alertEvidence)" />
+        <Property Name="determination" Type="self.alertDetermination" />
+        <Property Name="evidence" Type="Collection(self.alertEvidence)" />
         <Property Name="firstActivityDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="incidentId" Type="Edm.String" />
         <Property Name="incidentWebUrl" Type="Edm.String" />
@@ -83104,40 +83185,40 @@
         <Property Name="providerAlertId" Type="Edm.String" />
         <Property Name="recommendedActions" Type="Edm.String" />
         <Property Name="resolvedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="serviceSource" Type="microsoft.graph.security.serviceSource" Nullable="false" />
-        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
-        <Property Name="status" Type="microsoft.graph.security.alertStatus" Nullable="false" />
+        <Property Name="serviceSource" Type="self.serviceSource" Nullable="false" />
+        <Property Name="severity" Type="self.alertSeverity" Nullable="false" />
+        <Property Name="status" Type="self.alertStatus" Nullable="false" />
         <Property Name="systemTags" Type="Collection(Edm.String)" />
         <Property Name="tenantId" Type="Edm.String" />
         <Property Name="threatDisplayName" Type="Edm.String" />
         <Property Name="threatFamilyName" Type="Edm.String" />
         <Property Name="title" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="authorityTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
+      <EntityType Name="authorityTemplate" BaseType="self.filePlanDescriptorTemplate" />
       <EntityType Name="case" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="microsoft.graph.security.caseStatus" />
+        <Property Name="status" Type="self.caseStatus" />
       </EntityType>
       <EntityType Name="caseOperation" BaseType="graph.entity">
-        <Property Name="action" Type="microsoft.graph.security.caseAction" />
+        <Property Name="action" Type="self.caseAction" />
         <Property Name="completedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="percentProgress" Type="Edm.Int32" />
         <Property Name="resultInfo" Type="graph.resultInfo" />
-        <Property Name="status" Type="microsoft.graph.security.caseOperationStatus" />
+        <Property Name="status" Type="self.caseOperationStatus" />
       </EntityType>
       <EntityType Name="casesRoot" BaseType="graph.entity">
-        <NavigationProperty Name="ediscoveryCases" Type="Collection(microsoft.graph.security.ediscoveryCase)" ContainsTarget="true" />
+        <NavigationProperty Name="ediscoveryCases" Type="Collection(self.ediscoveryCase)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="categoryTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate">
-        <NavigationProperty Name="subcategories" Type="Collection(microsoft.graph.security.subcategoryTemplate)" ContainsTarget="true" />
+      <EntityType Name="categoryTemplate" BaseType="self.filePlanDescriptorTemplate">
+        <NavigationProperty Name="subcategories" Type="Collection(self.subcategoryTemplate)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="citationTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate">
+      <EntityType Name="citationTemplate" BaseType="self.filePlanDescriptorTemplate">
         <Property Name="citationJurisdiction" Type="Edm.String" />
         <Property Name="citationUrl" Type="Edm.String" />
       </EntityType>
@@ -83151,23 +83232,23 @@
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="holdStatus" Type="microsoft.graph.security.dataSourceHoldStatus" />
+        <Property Name="holdStatus" Type="self.dataSourceHoldStatus" />
       </EntityType>
       <EntityType Name="dataSourceContainer" BaseType="graph.entity" Abstract="true">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="holdStatus" Type="microsoft.graph.security.dataSourceHoldStatus" />
+        <Property Name="holdStatus" Type="self.dataSourceHoldStatus" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="releasedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="microsoft.graph.security.dataSourceContainerStatus" />
+        <Property Name="status" Type="self.dataSourceContainerStatus" />
       </EntityType>
-      <EntityType Name="departmentTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
-      <EntityType Name="detectionRule" BaseType="microsoft.graph.security.protectionRule">
-        <Property Name="detectionAction" Type="microsoft.graph.security.detectionAction" />
+      <EntityType Name="departmentTemplate" BaseType="self.filePlanDescriptorTemplate" />
+      <EntityType Name="detectionRule" BaseType="self.protectionRule">
+        <Property Name="detectionAction" Type="self.detectionAction" />
         <Property Name="detectorId" Type="Edm.String" />
-        <Property Name="lastRunDetails" Type="microsoft.graph.security.runDetails" />
-        <Property Name="queryCondition" Type="microsoft.graph.security.queryCondition" />
-        <Property Name="schedule" Type="microsoft.graph.security.ruleSchedule" />
+        <Property Name="lastRunDetails" Type="self.runDetails" />
+        <Property Name="queryCondition" Type="self.queryCondition" />
+        <Property Name="schedule" Type="self.ruleSchedule" />
       </EntityType>
       <EntityType Name="dispositionReviewStage">
         <Key>
@@ -83177,135 +83258,135 @@
         <Property Name="reviewersEmailAddresses" Type="Collection(Edm.String)" />
         <Property Name="stageNumber" Type="Edm.String" Nullable="false" />
       </EntityType>
-      <EntityType Name="ediscoveryAddToReviewSetOperation" BaseType="microsoft.graph.security.caseOperation">
-        <Property Name="additionalDataOptions" Type="microsoft.graph.security.additionalDataOptions" />
-        <Property Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
-        <Property Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
-        <Property Name="itemsToInclude" Type="microsoft.graph.security.itemsToInclude" />
-        <Property Name="reportFileMetadata" Type="Collection(microsoft.graph.security.reportFileMetadata)" />
-        <NavigationProperty Name="reviewSet" Type="microsoft.graph.security.ediscoveryReviewSet" />
-        <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch" />
+      <EntityType Name="ediscoveryAddToReviewSetOperation" BaseType="self.caseOperation">
+        <Property Name="additionalDataOptions" Type="self.additionalDataOptions" />
+        <Property Name="cloudAttachmentVersion" Type="self.cloudAttachmentVersion" />
+        <Property Name="documentVersion" Type="self.documentVersion" />
+        <Property Name="itemsToInclude" Type="self.itemsToInclude" />
+        <Property Name="reportFileMetadata" Type="Collection(self.reportFileMetadata)" />
+        <NavigationProperty Name="reviewSet" Type="self.ediscoveryReviewSet" />
+        <NavigationProperty Name="search" Type="self.ediscoverySearch" />
       </EntityType>
-      <EntityType Name="ediscoveryCase" BaseType="microsoft.graph.security.case">
+      <EntityType Name="ediscoveryCase" BaseType="self.case">
         <Property Name="closedBy" Type="graph.identitySet" />
         <Property Name="closedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="externalId" Type="Edm.String" />
-        <NavigationProperty Name="caseMembers" Type="Collection(microsoft.graph.security.ediscoveryCaseMember)" ContainsTarget="true" />
-        <NavigationProperty Name="custodians" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" ContainsTarget="true" />
-        <NavigationProperty Name="legalHolds" Type="Collection(microsoft.graph.security.ediscoveryHoldPolicy)" ContainsTarget="true" />
-        <NavigationProperty Name="noncustodialDataSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" ContainsTarget="true" />
-        <NavigationProperty Name="operations" Type="Collection(microsoft.graph.security.caseOperation)" ContainsTarget="true" />
-        <NavigationProperty Name="reviewSets" Type="Collection(microsoft.graph.security.ediscoveryReviewSet)" ContainsTarget="true" />
-        <NavigationProperty Name="searches" Type="Collection(microsoft.graph.security.ediscoverySearch)" ContainsTarget="true" />
-        <NavigationProperty Name="settings" Type="microsoft.graph.security.ediscoveryCaseSettings" ContainsTarget="true" />
-        <NavigationProperty Name="tags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" ContainsTarget="true" />
+        <NavigationProperty Name="caseMembers" Type="Collection(self.ediscoveryCaseMember)" ContainsTarget="true" />
+        <NavigationProperty Name="custodians" Type="Collection(self.ediscoveryCustodian)" ContainsTarget="true" />
+        <NavigationProperty Name="legalHolds" Type="Collection(self.ediscoveryHoldPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="noncustodialDataSources" Type="Collection(self.ediscoveryNoncustodialDataSource)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(self.caseOperation)" ContainsTarget="true" />
+        <NavigationProperty Name="reviewSets" Type="Collection(self.ediscoveryReviewSet)" ContainsTarget="true" />
+        <NavigationProperty Name="searches" Type="Collection(self.ediscoverySearch)" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="self.ediscoveryCaseSettings" ContainsTarget="true" />
+        <NavigationProperty Name="tags" Type="Collection(self.ediscoveryReviewTag)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="ediscoveryCaseMember" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="recipientType" Type="microsoft.graph.security.recipientType" />
+        <Property Name="recipientType" Type="self.recipientType" />
         <Property Name="smtpAddress" Type="Edm.String" />
       </EntityType>
       <EntityType Name="ediscoveryCaseSettings" BaseType="graph.entity">
-        <Property Name="caseType" Type="microsoft.graph.security.caseType" Nullable="false" />
-        <Property Name="ocr" Type="microsoft.graph.security.ocrSettings" />
-        <Property Name="redundancyDetection" Type="microsoft.graph.security.redundancyDetectionSettings" />
-        <Property Name="reviewSetSettings" Type="microsoft.graph.security.reviewSetSettings" />
-        <Property Name="topicModeling" Type="microsoft.graph.security.topicModelingSettings" />
+        <Property Name="caseType" Type="self.caseType" Nullable="false" />
+        <Property Name="ocr" Type="self.ocrSettings" />
+        <Property Name="redundancyDetection" Type="self.redundancyDetectionSettings" />
+        <Property Name="reviewSetSettings" Type="self.reviewSetSettings" />
+        <Property Name="topicModeling" Type="self.topicModelingSettings" />
       </EntityType>
-      <EntityType Name="ediscoveryCustodian" BaseType="microsoft.graph.security.dataSourceContainer">
+      <EntityType Name="ediscoveryCustodian" BaseType="self.dataSourceContainer">
         <Property Name="acknowledgedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="email" Type="Edm.String" />
-        <NavigationProperty Name="lastIndexOperation" Type="microsoft.graph.security.ediscoveryIndexOperation" />
-        <NavigationProperty Name="siteSources" Type="Collection(microsoft.graph.security.siteSource)" ContainsTarget="true" />
-        <NavigationProperty Name="unifiedGroupSources" Type="Collection(microsoft.graph.security.unifiedGroupSource)" ContainsTarget="true" />
-        <NavigationProperty Name="userSources" Type="Collection(microsoft.graph.security.userSource)" ContainsTarget="true" />
+        <NavigationProperty Name="lastIndexOperation" Type="self.ediscoveryIndexOperation" />
+        <NavigationProperty Name="siteSources" Type="Collection(self.siteSource)" ContainsTarget="true" />
+        <NavigationProperty Name="unifiedGroupSources" Type="Collection(self.unifiedGroupSource)" ContainsTarget="true" />
+        <NavigationProperty Name="userSources" Type="Collection(self.userSource)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="ediscoveryEstimateOperation" BaseType="microsoft.graph.security.caseOperation">
+      <EntityType Name="ediscoveryEstimateOperation" BaseType="self.caseOperation">
         <Property Name="indexedItemCount" Type="Edm.Int64" />
         <Property Name="indexedItemsSize" Type="Edm.Int64" />
         <Property Name="mailboxCount" Type="Edm.Int32" />
-        <Property Name="reportFileMetadata" Type="Collection(microsoft.graph.security.reportFileMetadata)" />
+        <Property Name="reportFileMetadata" Type="Collection(self.reportFileMetadata)" />
         <Property Name="siteCount" Type="Edm.Int32" />
-        <Property Name="statisticsOptions" Type="microsoft.graph.security.statisticsOptions" />
+        <Property Name="statisticsOptions" Type="self.statisticsOptions" />
         <Property Name="unindexedItemCount" Type="Edm.Int64" />
         <Property Name="unindexedItemsSize" Type="Edm.Int64" />
-        <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch" />
+        <NavigationProperty Name="search" Type="self.ediscoverySearch" />
       </EntityType>
-      <EntityType Name="ediscoveryExportOperation" BaseType="microsoft.graph.security.caseOperation">
+      <EntityType Name="ediscoveryExportOperation" BaseType="self.caseOperation">
         <Property Name="azureBlobContainer" Type="Edm.String" />
         <Property Name="azureBlobToken" Type="Edm.String" />
         <Property Name="description" Type="Edm.String" />
-        <Property Name="exportFileMetadata" Type="Collection(microsoft.graph.security.exportFileMetadata)" />
-        <Property Name="exportOptions" Type="microsoft.graph.security.exportOptions" />
-        <Property Name="exportStructure" Type="microsoft.graph.security.exportFileStructure" />
+        <Property Name="exportFileMetadata" Type="Collection(self.exportFileMetadata)" />
+        <Property Name="exportOptions" Type="self.exportOptions" />
+        <Property Name="exportStructure" Type="self.exportFileStructure" />
         <Property Name="outputFolderId" Type="Edm.String" />
         <Property Name="outputName" Type="Edm.String" />
-        <NavigationProperty Name="reviewSet" Type="microsoft.graph.security.ediscoveryReviewSet" />
-        <NavigationProperty Name="reviewSetQuery" Type="microsoft.graph.security.ediscoveryReviewSetQuery" />
+        <NavigationProperty Name="reviewSet" Type="self.ediscoveryReviewSet" />
+        <NavigationProperty Name="reviewSetQuery" Type="self.ediscoveryReviewSetQuery" />
       </EntityType>
-      <EntityType Name="ediscoveryFile" BaseType="microsoft.graph.security.file">
-        <NavigationProperty Name="custodian" Type="microsoft.graph.security.ediscoveryCustodian" />
-        <NavigationProperty Name="tags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+      <EntityType Name="ediscoveryFile" BaseType="self.file">
+        <NavigationProperty Name="custodian" Type="self.ediscoveryCustodian" />
+        <NavigationProperty Name="tags" Type="Collection(self.ediscoveryReviewTag)" />
       </EntityType>
-      <EntityType Name="ediscoveryHoldOperation" BaseType="microsoft.graph.security.caseOperation" />
-      <EntityType Name="ediscoveryHoldPolicy" BaseType="microsoft.graph.security.policyBase">
+      <EntityType Name="ediscoveryHoldOperation" BaseType="self.caseOperation" />
+      <EntityType Name="ediscoveryHoldPolicy" BaseType="self.policyBase">
         <Property Name="contentQuery" Type="Edm.String" />
         <Property Name="errors" Type="Collection(Edm.String)" />
         <Property Name="isEnabled" Type="Edm.Boolean" />
-        <NavigationProperty Name="siteSources" Type="Collection(microsoft.graph.security.siteSource)" ContainsTarget="true" />
-        <NavigationProperty Name="userSources" Type="Collection(microsoft.graph.security.userSource)" ContainsTarget="true" />
+        <NavigationProperty Name="siteSources" Type="Collection(self.siteSource)" ContainsTarget="true" />
+        <NavigationProperty Name="userSources" Type="Collection(self.userSource)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="ediscoveryHoldPolicySyncOperation" BaseType="microsoft.graph.security.caseOperation">
-        <Property Name="reportFileMetadata" Type="Collection(microsoft.graph.security.reportFileMetadata)" />
+      <EntityType Name="ediscoveryHoldPolicySyncOperation" BaseType="self.caseOperation">
+        <Property Name="reportFileMetadata" Type="Collection(self.reportFileMetadata)" />
       </EntityType>
-      <EntityType Name="ediscoveryIndexOperation" BaseType="microsoft.graph.security.caseOperation" />
-      <EntityType Name="ediscoveryNoncustodialDataSource" BaseType="microsoft.graph.security.dataSourceContainer">
-        <NavigationProperty Name="dataSource" Type="microsoft.graph.security.dataSource" ContainsTarget="true" />
-        <NavigationProperty Name="lastIndexOperation" Type="microsoft.graph.security.ediscoveryIndexOperation" />
+      <EntityType Name="ediscoveryIndexOperation" BaseType="self.caseOperation" />
+      <EntityType Name="ediscoveryNoncustodialDataSource" BaseType="self.dataSourceContainer">
+        <NavigationProperty Name="dataSource" Type="self.dataSource" ContainsTarget="true" />
+        <NavigationProperty Name="lastIndexOperation" Type="self.ediscoveryIndexOperation" />
       </EntityType>
-      <EntityType Name="ediscoveryPurgeDataOperation" BaseType="microsoft.graph.security.caseOperation">
-        <Property Name="reportFileMetadata" Type="Collection(microsoft.graph.security.reportFileMetadata)" />
+      <EntityType Name="ediscoveryPurgeDataOperation" BaseType="self.caseOperation">
+        <Property Name="reportFileMetadata" Type="Collection(self.reportFileMetadata)" />
       </EntityType>
-      <EntityType Name="ediscoveryReviewSet" BaseType="microsoft.graph.security.dataSet">
-        <NavigationProperty Name="files" Type="Collection(microsoft.graph.security.ediscoveryFile)" ContainsTarget="true" />
-        <NavigationProperty Name="queries" Type="Collection(microsoft.graph.security.ediscoveryReviewSetQuery)" ContainsTarget="true" />
+      <EntityType Name="ediscoveryReviewSet" BaseType="self.dataSet">
+        <NavigationProperty Name="files" Type="Collection(self.ediscoveryFile)" ContainsTarget="true" />
+        <NavigationProperty Name="queries" Type="Collection(self.ediscoveryReviewSetQuery)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="ediscoveryReviewSetQuery" BaseType="microsoft.graph.security.search" />
-      <EntityType Name="ediscoveryReviewTag" BaseType="microsoft.graph.security.tag">
-        <Property Name="childSelectability" Type="microsoft.graph.security.childSelectability" />
-        <NavigationProperty Name="childTags" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
-        <NavigationProperty Name="parent" Type="microsoft.graph.security.ediscoveryReviewTag" />
+      <EntityType Name="ediscoveryReviewSetQuery" BaseType="self.search" />
+      <EntityType Name="ediscoveryReviewTag" BaseType="self.tag">
+        <Property Name="childSelectability" Type="self.childSelectability" />
+        <NavigationProperty Name="childTags" Type="Collection(self.ediscoveryReviewTag)" />
+        <NavigationProperty Name="parent" Type="self.ediscoveryReviewTag" />
       </EntityType>
-      <EntityType Name="ediscoverySearch" BaseType="microsoft.graph.security.search">
-        <Property Name="dataSourceScopes" Type="microsoft.graph.security.dataSourceScopes" />
-        <NavigationProperty Name="additionalSources" Type="Collection(microsoft.graph.security.dataSource)" ContainsTarget="true" />
-        <NavigationProperty Name="addToReviewSetOperation" Type="microsoft.graph.security.ediscoveryAddToReviewSetOperation" />
-        <NavigationProperty Name="custodianSources" Type="Collection(microsoft.graph.security.dataSource)" />
-        <NavigationProperty Name="lastEstimateStatisticsOperation" Type="microsoft.graph.security.ediscoveryEstimateOperation" />
-        <NavigationProperty Name="noncustodialSources" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
+      <EntityType Name="ediscoverySearch" BaseType="self.search">
+        <Property Name="dataSourceScopes" Type="self.dataSourceScopes" />
+        <NavigationProperty Name="additionalSources" Type="Collection(self.dataSource)" ContainsTarget="true" />
+        <NavigationProperty Name="addToReviewSetOperation" Type="self.ediscoveryAddToReviewSetOperation" />
+        <NavigationProperty Name="custodianSources" Type="Collection(self.dataSource)" />
+        <NavigationProperty Name="lastEstimateStatisticsOperation" Type="self.ediscoveryEstimateOperation" />
+        <NavigationProperty Name="noncustodialSources" Type="Collection(self.ediscoveryNoncustodialDataSource)" />
       </EntityType>
-      <EntityType Name="ediscoverySearchExportOperation" BaseType="microsoft.graph.security.caseOperation">
-        <Property Name="additionalOptions" Type="microsoft.graph.security.additionalOptions" />
-        <Property Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
+      <EntityType Name="ediscoverySearchExportOperation" BaseType="self.caseOperation">
+        <Property Name="additionalOptions" Type="self.additionalOptions" />
+        <Property Name="cloudAttachmentVersion" Type="self.cloudAttachmentVersion" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
-        <Property Name="exportCriteria" Type="microsoft.graph.security.exportCriteria" />
-        <Property Name="exportFileMetadata" Type="Collection(microsoft.graph.security.exportFileMetadata)" />
-        <Property Name="exportFormat" Type="microsoft.graph.security.exportFormat" />
-        <Property Name="exportLocation" Type="microsoft.graph.security.exportLocation" />
+        <Property Name="documentVersion" Type="self.documentVersion" />
+        <Property Name="exportCriteria" Type="self.exportCriteria" />
+        <Property Name="exportFileMetadata" Type="Collection(self.exportFileMetadata)" />
+        <Property Name="exportFormat" Type="self.exportFormat" />
+        <Property Name="exportLocation" Type="self.exportLocation" />
         <Property Name="exportSingleItems" Type="Edm.Boolean" />
-        <NavigationProperty Name="search" Type="microsoft.graph.security.ediscoverySearch" />
+        <NavigationProperty Name="search" Type="self.ediscoverySearch" />
       </EntityType>
-      <EntityType Name="ediscoveryTagOperation" BaseType="microsoft.graph.security.caseOperation" />
+      <EntityType Name="ediscoveryTagOperation" BaseType="self.caseOperation" />
       <EntityType Name="entityDefinitionInput">
         <Key>
           <PropertyRef Name="entityIdentifier" />
         </Key>
         <Property Name="entityIdentifier" Type="Edm.String" Nullable="false" />
-        <Property Name="entityType" Type="microsoft.graph.security.manualAlertEntityType" Nullable="false" />
+        <Property Name="entityType" Type="self.manualAlertEntityType" Nullable="false" />
         <Property Name="identifierValue" Type="Edm.String" Nullable="false" />
-        <Property Name="role" Type="microsoft.graph.security.entityDefinitionInputRole" Nullable="false" />
+        <Property Name="role" Type="self.entityDefinitionInputRole" Nullable="false" />
       </EntityType>
       <EntityType Name="file" BaseType="graph.entity">
         <Property Name="content" Type="Edm.Stream" />
@@ -83314,67 +83395,67 @@
         <Property Name="extractedTextContent" Type="Edm.Stream" />
         <Property Name="mediaType" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
-        <Property Name="otherProperties" Type="microsoft.graph.security.stringValueDictionary" />
-        <Property Name="processingStatus" Type="microsoft.graph.security.fileProcessingStatus" />
+        <Property Name="otherProperties" Type="self.stringValueDictionary" />
+        <Property Name="processingStatus" Type="self.fileProcessingStatus" />
         <Property Name="senderOrAuthors" Type="Collection(Edm.String)" />
         <Property Name="size" Type="Edm.Int64" />
-        <Property Name="sourceType" Type="microsoft.graph.security.sourceType" />
+        <Property Name="sourceType" Type="self.sourceType" />
         <Property Name="subjectTitle" Type="Edm.String" />
       </EntityType>
       <EntityType Name="filePlanDescriptor" BaseType="graph.entity">
-        <Property Name="authority" Type="microsoft.graph.security.filePlanAuthority" />
-        <Property Name="category" Type="microsoft.graph.security.filePlanAppliedCategory" />
-        <Property Name="citation" Type="microsoft.graph.security.filePlanCitation" />
-        <Property Name="department" Type="microsoft.graph.security.filePlanDepartment" />
-        <Property Name="filePlanReference" Type="microsoft.graph.security.filePlanReference" />
-        <NavigationProperty Name="authorityTemplate" Type="microsoft.graph.security.authorityTemplate" />
-        <NavigationProperty Name="categoryTemplate" Type="microsoft.graph.security.categoryTemplate" />
-        <NavigationProperty Name="citationTemplate" Type="microsoft.graph.security.citationTemplate" />
-        <NavigationProperty Name="departmentTemplate" Type="microsoft.graph.security.departmentTemplate" />
-        <NavigationProperty Name="filePlanReferenceTemplate" Type="microsoft.graph.security.filePlanReferenceTemplate" />
+        <Property Name="authority" Type="self.filePlanAuthority" />
+        <Property Name="category" Type="self.filePlanAppliedCategory" />
+        <Property Name="citation" Type="self.filePlanCitation" />
+        <Property Name="department" Type="self.filePlanDepartment" />
+        <Property Name="filePlanReference" Type="self.filePlanReference" />
+        <NavigationProperty Name="authorityTemplate" Type="self.authorityTemplate" />
+        <NavigationProperty Name="categoryTemplate" Type="self.categoryTemplate" />
+        <NavigationProperty Name="citationTemplate" Type="self.citationTemplate" />
+        <NavigationProperty Name="departmentTemplate" Type="self.departmentTemplate" />
+        <NavigationProperty Name="filePlanReferenceTemplate" Type="self.filePlanReferenceTemplate" />
       </EntityType>
       <EntityType Name="filePlanDescriptorTemplate" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
-      <EntityType Name="filePlanReferenceTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
+      <EntityType Name="filePlanReferenceTemplate" BaseType="self.filePlanDescriptorTemplate" />
       <EntityType Name="incident" BaseType="graph.entity">
         <Property Name="assignedTo" Type="Edm.String" />
-        <Property Name="classification" Type="microsoft.graph.security.alertClassification" />
-        <Property Name="comments" Type="Collection(microsoft.graph.security.alertComment)" />
+        <Property Name="classification" Type="self.alertClassification" />
+        <Property Name="comments" Type="Collection(self.alertComment)" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="customTags" Type="Collection(Edm.String)" />
         <Property Name="description" Type="Edm.String" />
-        <Property Name="determination" Type="microsoft.graph.security.alertDetermination" />
+        <Property Name="determination" Type="self.alertDetermination" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="incidentWebUrl" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="Edm.String" />
         <Property Name="lastUpdateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="recommendedActions" Type="Edm.String" />
-        <Property Name="recommendedHuntingQueries" Type="Collection(microsoft.graph.security.recommendedHuntingQuery)" />
+        <Property Name="recommendedHuntingQueries" Type="Collection(self.recommendedHuntingQuery)" />
         <Property Name="redirectIncidentId" Type="Edm.String" />
         <Property Name="resolvingComment" Type="Edm.String" />
-        <Property Name="severity" Type="microsoft.graph.security.alertSeverity" Nullable="false" />
-        <Property Name="status" Type="microsoft.graph.security.incidentStatus" Nullable="false" />
+        <Property Name="severity" Type="self.alertSeverity" Nullable="false" />
+        <Property Name="status" Type="self.incidentStatus" Nullable="false" />
         <Property Name="summary" Type="Edm.String" />
         <Property Name="systemTags" Type="Collection(Edm.String)" />
         <Property Name="tenantId" Type="Edm.String" />
-        <NavigationProperty Name="alerts" Type="Collection(microsoft.graph.security.alert)" />
+        <NavigationProperty Name="alerts" Type="Collection(self.alert)" />
       </EntityType>
       <EntityType Name="labelsRoot" BaseType="graph.entity">
-        <NavigationProperty Name="authorities" Type="Collection(microsoft.graph.security.authorityTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="categories" Type="Collection(microsoft.graph.security.categoryTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="citations" Type="Collection(microsoft.graph.security.citationTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="departments" Type="Collection(microsoft.graph.security.departmentTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="filePlanReferences" Type="Collection(microsoft.graph.security.filePlanReferenceTemplate)" ContainsTarget="true" />
-        <NavigationProperty Name="retentionLabels" Type="Collection(microsoft.graph.security.retentionLabel)" ContainsTarget="true" />
+        <NavigationProperty Name="authorities" Type="Collection(self.authorityTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="categories" Type="Collection(self.categoryTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="citations" Type="Collection(self.citationTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="departments" Type="Collection(self.departmentTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="filePlanReferences" Type="Collection(self.filePlanReferenceTemplate)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionLabels" Type="Collection(self.retentionLabel)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="manualAlert" BaseType="microsoft.graph.security.alert">
+      <EntityType Name="manualAlert" BaseType="self.alert">
         <Property Name="isExcludedFromCorrelation" Type="Edm.Boolean" Nullable="false" />
         <Property Name="linkToIncident" Type="Edm.Int64" />
         <Property Name="sentinelWorkspace" Type="Edm.String" />
-        <NavigationProperty Name="entityDefinitions" Type="Collection(microsoft.graph.security.entityDefinitionInput)" ContainsTarget="true" />
+        <NavigationProperty Name="entityDefinitions" Type="Collection(self.entityDefinitionInput)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="policyBase" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -83383,7 +83464,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="status" Type="microsoft.graph.security.policyStatus" />
+        <Property Name="status" Type="self.policyStatus" />
       </EntityType>
       <EntityType Name="protectionRule" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="Edm.String" Nullable="false" />
@@ -83398,14 +83479,14 @@
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
-        <Property Name="eventPropagationResults" Type="Collection(microsoft.graph.security.eventPropagationResult)" />
-        <Property Name="eventQueries" Type="Collection(microsoft.graph.security.eventQuery)" />
-        <Property Name="eventStatus" Type="microsoft.graph.security.retentionEventStatus" />
+        <Property Name="eventPropagationResults" Type="Collection(self.eventPropagationResult)" />
+        <Property Name="eventQueries" Type="Collection(self.eventQuery)" />
+        <Property Name="eventStatus" Type="self.retentionEventStatus" />
         <Property Name="eventTriggerDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastStatusUpdateDateTime" Type="Edm.DateTimeOffset" />
-        <NavigationProperty Name="retentionEventType" Type="microsoft.graph.security.retentionEventType" />
+        <NavigationProperty Name="retentionEventType" Type="self.retentionEventType" />
       </EntityType>
       <EntityType Name="retentionEventType" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -83416,11 +83497,11 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="retentionLabel" BaseType="graph.entity">
-        <Property Name="actionAfterRetentionPeriod" Type="microsoft.graph.security.actionAfterRetentionPeriod" />
-        <Property Name="behaviorDuringRetentionPeriod" Type="microsoft.graph.security.behaviorDuringRetentionPeriod" />
+        <Property Name="actionAfterRetentionPeriod" Type="self.actionAfterRetentionPeriod" />
+        <Property Name="behaviorDuringRetentionPeriod" Type="self.behaviorDuringRetentionPeriod" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="defaultRecordBehavior" Type="microsoft.graph.security.defaultRecordBehavior" />
+        <Property Name="defaultRecordBehavior" Type="self.defaultRecordBehavior" />
         <Property Name="descriptionForAdmins" Type="Edm.String" />
         <Property Name="descriptionForUsers" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -83428,14 +83509,14 @@
         <Property Name="labelToBeApplied" Type="Edm.String" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
-        <Property Name="retentionDuration" Type="microsoft.graph.security.retentionDuration" />
-        <Property Name="retentionTrigger" Type="microsoft.graph.security.retentionTrigger" />
-        <NavigationProperty Name="descriptors" Type="microsoft.graph.security.filePlanDescriptor" ContainsTarget="true" />
-        <NavigationProperty Name="dispositionReviewStages" Type="Collection(microsoft.graph.security.dispositionReviewStage)" ContainsTarget="true" />
-        <NavigationProperty Name="retentionEventType" Type="microsoft.graph.security.retentionEventType" />
+        <Property Name="retentionDuration" Type="self.retentionDuration" />
+        <Property Name="retentionTrigger" Type="self.retentionTrigger" />
+        <NavigationProperty Name="descriptors" Type="self.filePlanDescriptor" ContainsTarget="true" />
+        <NavigationProperty Name="dispositionReviewStages" Type="Collection(self.dispositionReviewStage)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionEventType" Type="self.retentionEventType" />
       </EntityType>
       <EntityType Name="rulesRoot" BaseType="graph.entity">
-        <NavigationProperty Name="detectionRules" Type="Collection(microsoft.graph.security.detectionRule)" ContainsTarget="true" />
+        <NavigationProperty Name="detectionRules" Type="Collection(self.detectionRule)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="search" BaseType="graph.entity" Abstract="true">
         <Property Name="contentQuery" Type="Edm.String" />
@@ -83446,10 +83527,10 @@
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
-      <EntityType Name="siteSource" BaseType="microsoft.graph.security.dataSource">
+      <EntityType Name="siteSource" BaseType="self.dataSource">
         <NavigationProperty Name="site" Type="graph.site" Nullable="false" />
       </EntityType>
-      <EntityType Name="subcategoryTemplate" BaseType="microsoft.graph.security.filePlanDescriptorTemplate" />
+      <EntityType Name="subcategoryTemplate" BaseType="self.filePlanDescriptorTemplate" />
       <EntityType Name="tag" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="description" Type="Edm.String" />
@@ -83457,121 +83538,121 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="triggersRoot" BaseType="graph.entity">
-        <NavigationProperty Name="retentionEvents" Type="Collection(microsoft.graph.security.retentionEvent)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionEvents" Type="Collection(self.retentionEvent)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="triggerTypesRoot" BaseType="graph.entity">
-        <NavigationProperty Name="retentionEventTypes" Type="Collection(microsoft.graph.security.retentionEventType)" ContainsTarget="true" />
+        <NavigationProperty Name="retentionEventTypes" Type="Collection(self.retentionEventType)" ContainsTarget="true" />
       </EntityType>
-      <EntityType Name="unifiedGroupSource" BaseType="microsoft.graph.security.dataSource">
-        <Property Name="includedSources" Type="microsoft.graph.security.sourceType" />
+      <EntityType Name="unifiedGroupSource" BaseType="self.dataSource">
+        <Property Name="includedSources" Type="self.sourceType" />
         <NavigationProperty Name="group" Type="graph.group" Nullable="false" />
       </EntityType>
-      <EntityType Name="userSource" BaseType="microsoft.graph.security.dataSource">
+      <EntityType Name="userSource" BaseType="self.dataSource">
         <Property Name="email" Type="Edm.String" Nullable="false" />
-        <Property Name="includedSources" Type="microsoft.graph.security.sourceType" />
+        <Property Name="includedSources" Type="self.sourceType" />
         <Property Name="siteWebUrl" Type="Edm.String" />
       </EntityType>
       <Action Name="activate" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCustodian" />
       </Action>
       <Action Name="addToReviewSet" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSet" />
-        <Parameter Name="search" Type="microsoft.graph.security.ediscoverySearch" />
-        <Parameter Name="additionalDataOptions" Type="microsoft.graph.security.additionalDataOptions" />
-        <Parameter Name="itemsToInclude" Type="microsoft.graph.security.itemsToInclude" />
-        <Parameter Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
-        <Parameter Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryReviewSet" />
+        <Parameter Name="search" Type="self.ediscoverySearch" />
+        <Parameter Name="additionalDataOptions" Type="self.additionalDataOptions" />
+        <Parameter Name="itemsToInclude" Type="self.itemsToInclude" />
+        <Parameter Name="cloudAttachmentVersion" Type="self.cloudAttachmentVersion" />
+        <Parameter Name="documentVersion" Type="self.documentVersion" />
       </Action>
       <Action Name="applyHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryCustodian)" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="applyHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryNoncustodialDataSource)" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="applyHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCustodian" />
       </Action>
       <Action Name="applyHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryNoncustodialDataSource" />
       </Action>
       <Action Name="applyTags" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSetQuery" />
-        <Parameter Name="tagsToAdd" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
-        <Parameter Name="tagsToRemove" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryReviewSetQuery" />
+        <Parameter Name="tagsToAdd" Type="Collection(self.ediscoveryReviewTag)" />
+        <Parameter Name="tagsToRemove" Type="Collection(self.ediscoveryReviewTag)" />
       </Action>
       <Action Name="close" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCase" />
       </Action>
       <Action Name="createAlert" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.alert)" />
-        <Parameter Name="createAlertInput" Type="microsoft.graph.security.createAlertInput" Nullable="false" />
-        <ReturnType Type="microsoft.graph.security.alert" />
+        <Parameter Name="bindingParameter" Type="Collection(self.alert)" />
+        <Parameter Name="createAlertInput" Type="self.createAlertInput" Nullable="false" />
+        <ReturnType Type="self.alert" />
       </Action>
       <Action Name="disablePolicy" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryHoldPolicy" />
       </Action>
       <Action Name="enablePolicy" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryHoldPolicy" />
       </Action>
       <Action Name="estimateStatistics" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
-        <Parameter Name="statisticsOptions" Type="microsoft.graph.security.statisticsOptions" />
+        <Parameter Name="bindingParameter" Type="self.ediscoverySearch" />
+        <Parameter Name="statisticsOptions" Type="self.statisticsOptions" />
       </Action>
       <Action Name="export" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSet" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryReviewSet" />
         <Parameter Name="outputName" Type="Edm.String" Unicode="false" />
         <Parameter Name="description" Type="Edm.String" Unicode="false" />
         <Parameter Name="azureBlobContainer" Type="Edm.String" Unicode="false" />
         <Parameter Name="azureBlobToken" Type="Edm.String" Unicode="false" />
-        <Parameter Name="exportOptions" Type="microsoft.graph.security.exportOptions" />
-        <Parameter Name="exportStructure" Type="microsoft.graph.security.exportFileStructure" />
+        <Parameter Name="exportOptions" Type="self.exportOptions" />
+        <Parameter Name="exportStructure" Type="self.exportFileStructure" />
       </Action>
       <Action Name="export" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSetQuery" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryReviewSetQuery" />
         <Parameter Name="outputName" Type="Edm.String" Unicode="false" />
         <Parameter Name="description" Type="Edm.String" Unicode="false" />
         <Parameter Name="azureBlobContainer" Type="Edm.String" Unicode="false" />
         <Parameter Name="azureBlobToken" Type="Edm.String" Unicode="false" />
-        <Parameter Name="exportOptions" Type="microsoft.graph.security.exportOptions" />
-        <Parameter Name="exportStructure" Type="microsoft.graph.security.exportFileStructure" />
+        <Parameter Name="exportOptions" Type="self.exportOptions" />
+        <Parameter Name="exportStructure" Type="self.exportFileStructure" />
       </Action>
       <Action Name="exportReport" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
+        <Parameter Name="bindingParameter" Type="self.ediscoverySearch" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <Parameter Name="description" Type="Edm.String" Unicode="false" />
-        <Parameter Name="exportCriteria" Type="microsoft.graph.security.exportCriteria" />
-        <Parameter Name="exportLocation" Type="microsoft.graph.security.exportLocation" />
-        <Parameter Name="additionalOptions" Type="microsoft.graph.security.additionalOptions" />
-        <Parameter Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
-        <Parameter Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
+        <Parameter Name="exportCriteria" Type="self.exportCriteria" />
+        <Parameter Name="exportLocation" Type="self.exportLocation" />
+        <Parameter Name="additionalOptions" Type="self.additionalOptions" />
+        <Parameter Name="cloudAttachmentVersion" Type="self.cloudAttachmentVersion" />
+        <Parameter Name="documentVersion" Type="self.documentVersion" />
       </Action>
       <Action Name="exportResult" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
+        <Parameter Name="bindingParameter" Type="self.ediscoverySearch" />
         <Parameter Name="displayName" Type="Edm.String" Unicode="false" />
         <Parameter Name="description" Type="Edm.String" Unicode="false" />
-        <Parameter Name="exportCriteria" Type="microsoft.graph.security.exportCriteria" />
-        <Parameter Name="exportLocation" Type="microsoft.graph.security.exportLocation" />
-        <Parameter Name="additionalOptions" Type="microsoft.graph.security.additionalOptions" />
-        <Parameter Name="exportFormat" Type="microsoft.graph.security.exportFormat" />
+        <Parameter Name="exportCriteria" Type="self.exportCriteria" />
+        <Parameter Name="exportLocation" Type="self.exportLocation" />
+        <Parameter Name="additionalOptions" Type="self.additionalOptions" />
+        <Parameter Name="exportFormat" Type="self.exportFormat" />
         <Parameter Name="exportSingleItems" Type="Edm.Boolean" />
-        <Parameter Name="cloudAttachmentVersion" Type="microsoft.graph.security.cloudAttachmentVersion" />
-        <Parameter Name="documentVersion" Type="microsoft.graph.security.documentVersion" />
+        <Parameter Name="cloudAttachmentVersion" Type="self.cloudAttachmentVersion" />
+        <Parameter Name="documentVersion" Type="self.documentVersion" />
       </Action>
       <Action Name="mergeIncidents" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.incident)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.incident)" />
         <Parameter Name="incidentIds" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="incidentComment" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <Parameter Name="mergeReasons" Type="microsoft.graph.security.correlationReason">
+        <Parameter Name="mergeReasons" Type="self.correlationReason">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <ReturnType Type="microsoft.graph.security.mergeResponse" />
+        <ReturnType Type="self.mergeResponse" />
       </Action>
       <Action Name="moveAlerts" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.alert)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.alert)" />
         <Parameter Name="alertIds" Type="Collection(Edm.String)" Unicode="false" />
         <Parameter Name="incidentId" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
@@ -83579,48 +83660,48 @@
         <Parameter Name="alertComment" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <Parameter Name="newCorrelationReasons" Type="microsoft.graph.security.correlationReason">
+        <Parameter Name="newCorrelationReasons" Type="self.correlationReason">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <ReturnType Type="microsoft.graph.security.mergeResponse" />
+        <ReturnType Type="self.mergeResponse" />
       </Action>
       <Action Name="purgeData" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoverySearch" />
-        <Parameter Name="purgeType" Type="microsoft.graph.security.purgeType">
+        <Parameter Name="bindingParameter" Type="self.ediscoverySearch" />
+        <Parameter Name="purgeType" Type="self.purgeType">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <Parameter Name="purgeAreas" Type="microsoft.graph.security.purgeAreas">
+        <Parameter Name="purgeAreas" Type="self.purgeAreas">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
       </Action>
       <Action Name="release" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCustodian" />
       </Action>
       <Action Name="release" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryNoncustodialDataSource" />
       </Action>
       <Action Name="removeHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryCustodian)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryCustodian)" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="removeHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryNoncustodialDataSource)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryNoncustodialDataSource)" />
         <Parameter Name="ids" Type="Collection(Edm.String)" Unicode="false" />
       </Action>
       <Action Name="removeHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCustodian" />
       </Action>
       <Action Name="removeHold" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryNoncustodialDataSource" />
       </Action>
       <Action Name="reopen" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCase" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCase" />
       </Action>
       <Action Name="resetToDefault" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCaseSettings" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCaseSettings" />
       </Action>
       <Action Name="retryPolicy" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryHoldPolicy" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryHoldPolicy" />
       </Action>
       <Action Name="runHuntingQuery" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.security" />
@@ -83628,25 +83709,32 @@
         <Parameter Name="timespan" Type="Edm.String" Unicode="false">
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
-        <ReturnType Type="microsoft.graph.security.huntingQueryResults" />
+        <ReturnType Type="self.huntingQueryResults" />
       </Action>
       <Action Name="updateIndex" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryCustodian" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryCustodian" />
       </Action>
       <Action Name="updateIndex" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryNoncustodialDataSource" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryNoncustodialDataSource" />
       </Action>
       <Function Name="asHierarchy" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
-        <ReturnType Type="Collection(microsoft.graph.security.ediscoveryReviewTag)" />
+        <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryReviewTag)" />
+        <ReturnType Type="Collection(self.ediscoveryReviewTag)" />
       </Function>
       <Function Name="getDownloadUrl" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryExportOperation" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryExportOperation" />
         <ReturnType Type="Edm.String" Unicode="false" />
       </Function>
+      <Function Name="getHuntingSchemaTables" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.security" />
+        <Parameter Name="workspaceId" Type="Edm.Guid">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(self.huntingSchemaTable)" />
+      </Function>
       <Function Name="run" IsBound="true">
-        <Parameter Name="bindingParameter" Type="microsoft.graph.security.ediscoveryReviewSetQuery" />
-        <ReturnType Type="Collection(microsoft.graph.security.ediscoveryFile)" />
+        <Parameter Name="bindingParameter" Type="self.ediscoveryReviewSetQuery" />
+        <ReturnType Type="Collection(self.ediscoveryFile)" />
       </Function>
     </Schema>
     <Schema Namespace="microsoft.graph.termStore" xmlns="http://docs.oasis-open.org/odata/ns/edm">
