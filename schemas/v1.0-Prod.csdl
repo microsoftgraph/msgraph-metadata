@@ -4591,6 +4591,13 @@
         <Member Name="externalPartner" Value="4" />
         <Member Name="externalNonPartner" Value="8" />
       </EnumType>
+      <EnumType Name="recipientType">
+        <Member Name="contact" Value="0" />
+        <Member Name="oneOff" Value="1" />
+        <Member Name="mailbox" Value="2" />
+        <Member Name="privateDL" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="recordingStatus">
         <Member Name="unknown" Value="0" />
         <Member Name="notRecording" Value="1" />
@@ -9585,6 +9592,12 @@
         <Property Name="emptySuggestionsReason" Type="Edm.String" />
         <Property Name="meetingTimeSuggestions" Type="Collection(graph.meetingTimeSuggestion)" />
       </ComplexType>
+      <ComplexType Name="member">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="key" Type="Edm.String" />
+        <Property Name="memberId" Type="Edm.String" />
+        <Property Name="type" Type="graph.recipientType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="membersAddedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="members" Type="Collection(graph.teamworkUserIdentity)" />
@@ -11646,6 +11659,12 @@
       <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="teamworkUserIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="userIdentityType" Type="graph.teamworkUserIdentityType" />
+      </ComplexType>
+      <ComplexType Name="telecomProviderSettings">
+        <Property Name="appId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="isEvaluationModeEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="migrationPercentage" Type="Edm.Int32" Nullable="false" />
+        <Property Name="url" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="teleconferenceDeviceAudioQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true" />
       <ComplexType Name="teleconferenceDeviceMediaQuality" Abstract="true" OpenType="true">
@@ -15283,6 +15302,19 @@
       <EntityType Name="directoryRoleTemplate" BaseType="graph.directoryObject" OpenType="true">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="distributionList" BaseType="graph.outlookItem">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="notes" Type="Edm.String" />
+        <Property Name="personId" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.distributionListMember)" ContainsTarget="true" />
+        <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="distributionListMember" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="memberId" Type="Edm.String" />
+        <Property Name="type" Type="graph.recipientType" Nullable="false" />
+        <NavigationProperty Name="contact" Type="graph.contact" />
       </EntityType>
       <EntityType Name="documentSetVersion" BaseType="graph.listItemVersion">
         <Property Name="comment" Type="Edm.String" />
@@ -19368,6 +19400,7 @@
         <Property Name="skypeId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="smsAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="telecomProviderSettings" Type="graph.telecomProviderSettings" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.smsAuthenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="smsAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
@@ -20172,6 +20205,7 @@
         <NavigationProperty Name="dataSecurityAndGovernance" Type="graph.userDataSecurityAndGovernance" ContainsTarget="true" />
         <NavigationProperty Name="deviceManagementTroubleshootingEvents" Type="Collection(graph.deviceManagementTroubleshootingEvent)" ContainsTarget="true" />
         <NavigationProperty Name="directReports" Type="Collection(graph.directoryObject)" />
+        <NavigationProperty Name="distributionLists" Type="Collection(graph.distributionList)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" ContainsTarget="true" />
         <NavigationProperty Name="drives" Type="Collection(graph.drive)" ContainsTarget="true" />
         <NavigationProperty Name="employeeExperience" Type="graph.employeeExperienceUser" ContainsTarget="true" />
@@ -20699,6 +20733,7 @@
       <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="voiceAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="isOfficePhoneAllowed" Type="Edm.Boolean" />
+        <Property Name="telecomProviderSettings" Type="graph.telecomProviderSettings" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="vppToken" BaseType="graph.entity">
@@ -21897,6 +21932,11 @@
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.addLargeGalleryViewOperation" />
       </Action>
+      <Action Name="addMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.distributionList" />
+        <Parameter Name="Members" Type="Collection(graph.member)" Nullable="false" />
+        <ReturnType Type="graph.distributionList" />
+      </Action>
       <Action Name="addPassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
         <Parameter Name="passwordCredential" Type="graph.passwordCredential" />
@@ -23092,6 +23132,11 @@
       <Action Name="deleteAndUnprotect" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.protectionRuleBase" />
         <ReturnType Type="graph.protectionRuleBase" />
+      </Action>
+      <Action Name="deleteMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.distributionList" />
+        <Parameter Name="Members" Type="Collection(graph.member)" Nullable="false" />
+        <ReturnType Type="graph.distributionList" />
       </Action>
       <Action Name="deleteTargetedMessage" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.userTeamwork" />
@@ -34813,6 +34858,40 @@
       <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
         <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
+      <Annotations Target="microsoft.graph.distributionList/members">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.distributionListMember/contact">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Download Apple push notification certificate signing request" />
       </Annotations>
@@ -45493,6 +45572,23 @@
       </Annotations>
       <Annotations Target="microsoft.graph.user/deviceManagementTroubleshootingEvents">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of troubleshooting events for this user." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.user/distributionLists">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.user/events">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
