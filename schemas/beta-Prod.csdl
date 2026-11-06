@@ -3487,6 +3487,13 @@
         <Member Name="payAsYouGo" Value="2" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="costManagementFundingClass">
+        <Member Name="prepaid" Value="0" />
+        <Member Name="payAsYouGo" Value="1" />
+        <Member Name="overage" Value="2" />
+        <Member Name="nonBillable" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="costManagementUnit">
         <Member Name="copilotCredit" Value="0" />
         <Member Name="unknownFutureValue" Value="1" />
@@ -16090,6 +16097,9 @@
       <ComplexType Name="costManagementUnevaluatedService">
         <Property Name="reason" Type="graph.balanceEvaluationFailureReason" Nullable="false" />
         <Property Name="serviceId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="costManagementUsageDataStatus">
+        <Property Name="latestSourceDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
       </ComplexType>
       <ComplexType Name="createAction" />
       <ComplexType Name="createRemoteHelpSessionResponse">
@@ -29264,9 +29274,40 @@
         <Property Name="thresholds" Type="Collection(graph.costManagementAlertThreshold)" Nullable="false" />
         <NavigationProperty Name="recipients" Type="Collection(graph.user)" />
       </EntityType>
+      <EntityType Name="costManagementFundingUsageRecord" BaseType="graph.entity">
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="dataStatus" Type="graph.costManagementUsageDataStatus" Nullable="false" />
+        <Property Name="fundingClass" Type="graph.costManagementFundingClass" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+      </EntityType>
+      <EntityType Name="costManagementGroupUsageRecord">
+        <Key>
+          <PropertyRef Name="groupId" />
+        </Key>
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="groupId" Type="Edm.String" Nullable="false" />
+        <Property Name="sessionCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+      </EntityType>
       <EntityType Name="costManagementRoot" BaseType="graph.entity">
         <NavigationProperty Name="spendingPolicies" Type="Collection(graph.spendingPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="usageReports" Type="graph.costManagementUsageReportRoot" ContainsTarget="true" />
         <NavigationProperty Name="userBalances" Type="Collection(graph.costManagementUserBalance)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="costManagementServiceUsageRecord">
+        <Key>
+          <PropertyRef Name="serviceId" />
+        </Key>
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="serviceId" Type="Edm.String" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+      </EntityType>
+      <EntityType Name="costManagementUsageReportRoot" BaseType="graph.entity">
+        <NavigationProperty Name="fundingUsageRecords" Type="Collection(graph.costManagementFundingUsageRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="groupUsageRecords" Type="Collection(graph.costManagementGroupUsageRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="serviceUsageRecords" Type="Collection(graph.costManagementServiceUsageRecord)" ContainsTarget="true" />
+        <NavigationProperty Name="userUsageDetails" Type="Collection(graph.costManagementUserUsageDetail)" ContainsTarget="true" />
+        <NavigationProperty Name="userUsageRecords" Type="Collection(graph.costManagementUserUsageRecord)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="costManagementUserBalance" BaseType="graph.entity">
         <Property Name="selectionDataStatus" Type="graph.selectionDataStatus" Nullable="false" />
@@ -29287,6 +29328,38 @@
         <Property Name="remainingQuantity" Type="graph.costManagementQuantity" Nullable="false" />
         <Property Name="serviceId" Type="Edm.String" Nullable="false" />
         <Property Name="spendingPolicyId" Type="Edm.String" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+      </EntityType>
+      <EntityType Name="costManagementUserUsageDetail">
+        <Key>
+          <PropertyRef Name="userId" />
+        </Key>
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="dataStatus" Type="graph.costManagementUsageDataStatus" />
+        <Property Name="sessionCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+        <Property Name="userId" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="services" Type="Collection(graph.costManagementUserUsageServiceDetail)" ContainsTarget="true" />
+        <NavigationProperty Name="sessions" Type="Collection(graph.costManagementUserUsageSessionDetail)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="costManagementUserUsageRecord">
+        <Key>
+          <PropertyRef Name="userId" />
+        </Key>
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="sessionCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+        <Property Name="userId" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="costManagementUserUsageServiceDetail" BaseType="graph.entity">
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
+      </EntityType>
+      <EntityType Name="costManagementUserUsageSessionDetail" BaseType="graph.entity">
+        <Property Name="consumedQuantity" Type="Edm.Double" Nullable="false" />
+        <Property Name="firstActivityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastActivityDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="sourceSessionId" Type="Edm.String" />
         <Property Name="unit" Type="graph.costManagementUnit" Nullable="false" />
       </EntityType>
       <EntityType Name="countryNamedLocation" BaseType="graph.namedLocation">
@@ -31526,6 +31599,7 @@
         <Property Name="directoryObjectIds" Type="Collection(Edm.String)" />
         <Property Name="drives" Type="Collection(Edm.String)" />
       </EntityType>
+      <EntityType Name="dynamicPermissionsManagementRoot" BaseType="graph.entity" />
       <EntityType Name="dynamicRuleActivityLog" BaseType="graph.activityLogBase">
         <Property Name="policyId" Type="Edm.String" />
         <Property Name="policyName" Type="Edm.String" />
@@ -53617,6 +53691,42 @@
         </Parameter>
         <ReturnType Type="Collection(graph.serviceActivityValueMetric)" />
       </Function>
+      <Function Name="getMetricsForAgentIdAutonomousSignInFailure" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceActivity" />
+        <Parameter Name="inclusiveIntervalStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="exclusiveIntervalEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="aggregationIntervalInMinutes" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.serviceActivityValueMetric)" />
+      </Function>
+      <Function Name="getMetricsForAgentIdAutonomousSignInSuccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceActivity" />
+        <Parameter Name="inclusiveIntervalStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="exclusiveIntervalEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="aggregationIntervalInMinutes" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.serviceActivityValueMetric)" />
+      </Function>
+      <Function Name="getMetricsForAgentIdInteractiveSignInFailure" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceActivity" />
+        <Parameter Name="inclusiveIntervalStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="exclusiveIntervalEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="aggregationIntervalInMinutes" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.serviceActivityValueMetric)" />
+      </Function>
+      <Function Name="getMetricsForAgentIdInteractiveSignInSuccess" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.serviceActivity" />
+        <Parameter Name="inclusiveIntervalStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="exclusiveIntervalEndDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Parameter Name="aggregationIntervalInMinutes" Type="Edm.Int32">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="Collection(graph.serviceActivityValueMetric)" />
+      </Function>
       <Function Name="getMetricsForConditionalAccessBlockedSignIn" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.serviceActivity" />
         <Parameter Name="inclusiveIntervalStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -56941,6 +57051,8 @@
         <Member Name="privateAppBlockedByConnector" Value="8" />
         <Member Name="remoteNetworkTunnelConnectivity" Value="9" />
         <Member Name="remoteNetworkBgpConnectivity" Value="10" />
+        <Member Name="agentIdAutonomousSignInFailure" Value="12" />
+        <Member Name="agentIdInteractiveSignInFailure" Value="13" />
       </EnumType>
       <EnumType Name="category">
         <Member Name="unknown" Value="0" />
@@ -56961,6 +57073,7 @@
         <Member Name="conditionalAccess" Value="4" />
         <Member Name="saml" Value="5" />
         <Member Name="gsa" Value="6" />
+        <Member Name="agentId" Value="8" />
       </EnumType>
       <ComplexType Name="applicationImpactSummary" BaseType="microsoft.graph.healthMonitoring.directoryObjectImpactSummary" />
       <ComplexType Name="deviceImpactSummary" BaseType="microsoft.graph.healthMonitoring.directoryObjectImpactSummary" />
@@ -69009,6 +69122,62 @@
       <Annotations Target="microsoft.graph.costManagementDataStatus/lastModifiedDateTime">
         <Annotation Term="Org.OData.Core.V1.Description" String="When the underlying data was last modified, not when the request was received." />
       </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The funding classification of reported consumption, including unbilled consumption." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass/nonBillable">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Consumed but not billed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass/overage">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Consumed above the purchased pool. Unbilled, not an invoiced excess charge." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass/payAsYouGo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Billed on demand, with no prepaid pool." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass/prepaid">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Drawn from a prepaid Copilot Credits pool." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingClass/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingUsageRecord">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One funding class's share of reported consumption for a calendar month." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingUsageRecord/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Consumption attributed to this funding class during the requested month, including&#xA;unbilled consumption where applicable. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingUsageRecord/dataStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Freshness of the snapshot this row was computed from. Read-only. Does not indicate whether&#xA;the covered month has closed, only how recently the underlying snapshot was synced." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingUsageRecord/fundingClass">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The funding class this row covers. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementFundingUsageRecord/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementGroupUsageRecord">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One security group's reported consumption for one completed UTC day." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementGroupUsageRecord/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Billable consumption attributed to members of this group for the requested completed UTC day. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementGroupUsageRecord/groupId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the security group this row reports. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementGroupUsageRecord/sessionCount">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Count of distinct non-null session identifiers on billable activity attributed to this group&#xA;during the requested completed UTC day, subject to the source filters and plan processing&#xA;watermarks. Excludes non-billable activity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementGroupUsageRecord/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
+      </Annotations>
       <Annotations Target="microsoft.graph.costManagementQuantity">
         <Annotation Term="Org.OData.Core.V1.Description" String="A unit-bearing quantity that is either limited to a value or unlimited. Every quantity is&#xA;one of its derived types, identified by @odata.type on create." />
       </Annotations>
@@ -69021,8 +69190,26 @@
       <Annotations Target="microsoft.graph.costManagementRoot/spendingPolicies">
         <Annotation Term="Org.OData.Core.V1.Description" String="The spending policies that govern Copilot Credits consumption." />
       </Annotations>
+      <Annotations Target="microsoft.graph.costManagementRoot/usageReports">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption of Copilot Credits, split by user, group, service and funding." />
+      </Annotations>
       <Annotations Target="microsoft.graph.costManagementRoot/userBalances">
         <Annotation Term="Org.OData.Core.V1.Description" String="Per-user consumption balances, addressed by the user's identifier." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementServiceUsageRecord">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One service's share of reported consumption for one completed UTC day." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementServiceUsageRecord/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Consumption attributed to this service for the requested completed UTC day. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementServiceUsageRecord/serviceId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The governed service identifier, such as cowork or workIQ. Discover valid values from the&#xA;service catalog using a category identifier, not the catalog entry's own id. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementServiceUsageRecord/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
       </Annotations>
       <Annotations Target="microsoft.graph.costManagementTenantCreditBalance">
         <Annotation Term="Org.OData.Core.V1.Description" String="The tenant's Copilot credit balance snapshot." />
@@ -69047,6 +69234,30 @@
       </Annotations>
       <Annotations Target="microsoft.graph.costManagementUnit/unknownFutureValue">
         <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageDataStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Freshness of the source data behind a Phase 2 usage report result that can report it." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageDataStatus/latestSourceDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Timestamp of the latest source event or snapshot sync run incorporated into this result,&#xA;where the operation can report one. Meaning is operation-specific - see the property that&#xA;references this type. Does not indicate the result is complete or that the covered period&#xA;has closed; a later read over the same window may return a later value or additional rows." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Copilot Cost Management usage reporting root." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot/fundingUsageRecords">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per funding class for a calendar month." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot/groupUsageRecords">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per security group for one completed UTC day." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot/serviceUsageRecords">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per governed service for one completed UTC day." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot/userUsageDetails">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Raw per-user usage detail, read one user at a time." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUsageReportRoot/userUsageRecords">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per user for one completed UTC day, ranked by consumption." />
       </Annotations>
       <Annotations Target="microsoft.graph.costManagementUserBalance">
         <Annotation Term="Org.OData.Core.V1.Description" String="A user's computed per-service consumption balance. Addressed by the user's identifier; one&#xA;balance resource exists per user." />
@@ -69099,6 +69310,88 @@
       </Annotations>
       <Annotations Target="microsoft.graph.costManagementUserServiceBalance/unit">
         <Annotation Term="Org.OData.Core.V1.Description" String="The unit for consumedQuantity. Every other quantity on this row carries its own unit." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One user's raw usage detail, distinct from the processed report at userUsageRecords." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Raw, billable-flagged consumption attributed to this user over the requested window, bounded&#xA;to the latest processed watermark rather than reprocessed. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/dataStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Freshness of the source activity data this detail was computed from, when the native source&#xA;reports an as-of timestamp for the window. Null rather than fabricated when the source has&#xA;none to report. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/services">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This user's raw consumption, split by governed service. The same native grouped result is&#xA;also addressable directly at the services navigation collection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/sessionCount">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Count of billable-flagged activity sessions, bounded to the latest processed watermark, that&#xA;contributed to consumedQuantity. Excludes non-billable activity; the timestamp window and raw&#xA;source distinguish this count from the processed completed-day report. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/sessions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="This user's raw usage grouped by session identifiers represented by the native source.&#xA;Activity without a session identifier may be omitted even when included in the parent total;&#xA;child quantities need not sum to the parent's consumedQuantity. Also available as a direct collection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageDetail/userId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the user this detail covers. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageRecord">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One user's reported consumption for one completed UTC day." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageRecord/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Billable consumption attributed to this user for the requested completed UTC day. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageRecord/sessionCount">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Count of distinct non-null session identifiers on billable activity for this user during the&#xA;requested completed UTC day, subject to the source filters and plan processing watermarks.&#xA;Excludes non-billable activity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageRecord/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageRecord/userId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of the user this row reports. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageServiceDetail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="One governed service's share of a user's raw usage detail." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageServiceDetail/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Raw, billable-flagged consumption attributed to this service within the containing user's&#xA;detail window. Independently rounded; child rows are not guaranteed to sum exactly to the&#xA;containing detail's consumedQuantity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageServiceDetail/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A native-source session grouping within a user's raw usage detail. Activity without a session&#xA;identifier may be omitted, even when it contributes to the parent total." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail/consumedQuantity">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Raw, billable-flagged consumption attributed to this source-returned session grouping within&#xA;the containing user's detail window. Session rows need not sum to the parent's consumedQuantity.&#xA;Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail/firstActivityDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Time the earliest activity in this session was recorded, or null when the source did not&#xA;report one. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail/lastActivityDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Time the latest activity in this session was recorded, or null when the source did not&#xA;report one. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail/sourceSessionId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The native session identifier on a row returned by the source, preserved verbatim, including&#xA;null if the source returns it. Distinct from this row's opaque id. A nullable value does not&#xA;guarantee a returned group for activity without a session identifier; such activity may be&#xA;absent from the session breakdown while contributing to the parent total. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementUserUsageSessionDetail/unit">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Unit that applies to consumedQuantity. Read-only." />
       </Annotations>
       <Annotations Target="microsoft.graph.countryRegion">
         <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
@@ -77990,6 +78283,20 @@
       <Annotations Target="microsoft.graph.driverUpdateProfileApprovalType/manual">
         <Annotation Term="Org.OData.Core.V1.Description" String="This indicates a driver and firmware profile needs to be approved manually." />
       </Annotations>
+      <Annotations Target="microsoft.graph.dynamicPermissionsManagementRoot">
+        <Annotation Term="Org.OData.Core.V1.Revisions">
+          <Collection>
+            <Record>
+              <PropertyValue Property="Date" Date="2026-10-27" />
+              <PropertyValue Property="Description" String="Adds the Dynamic Permissions Management routing container for existing Dynamic Access resources." />
+              <PropertyValue Property="Kind">
+                <EnumMember>Org.OData.Core.V1.RevisionKind/Added</EnumMember>
+              </PropertyValue>
+              <PropertyValue Property="Version" String="PrivatePreview:DynamicPermissionsManagement" />
+            </Record>
+          </Collection>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.eapFastConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Available settings for EAP-FAST Configuration." />
       </Annotations>
@@ -81977,6 +82284,475 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Description" String="The per-service settings contained by a spending policy. POST adds a service; removal is&#xA;expressed by setting state to disabled, so the collection has no DELETE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption of Copilot Credits." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/fundingUsageRecords">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="false" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="NonSortableProperties">
+              <Collection>
+                <PropertyPath>dataStatus</PropertyPath>
+                <PropertyPath>fundingClass</PropertyPath>
+                <PropertyPath>id</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per funding class for a calendar month." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/groupUsageRecords">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>consumedQuantity</PropertyPath>
+                <PropertyPath>sessionCount</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="true" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="NonSortableProperties">
+              <Collection>
+                <PropertyPath>groupId</PropertyPath>
+                <PropertyPath>sessionCount</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per security group for one completed UTC day, selected by required&#xA;startDate/endDate date-only bounds [start,end). Current-day, future and multi-day windows are rejected." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/serviceUsageRecords">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>consumedQuantity</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="true" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="NonSortableProperties">
+              <Collection>
+                <PropertyPath>serviceId</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per governed service for one completed UTC day, selected by required&#xA;startDate/endDate date-only bounds [start,end). Current-day, future and multi-day windows are rejected." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/userUsageDetails">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="true" />
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection />
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="false" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="true" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="One user's raw billable-flagged consumption over the required startDateTime/endDateTime timestamp&#xA;window, bounded by the latest processed watermark rather than reprocessed. Distinct from the&#xA;processed completed-day aggregate at userUsageRecords/{userId}." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/userUsageDetails/services">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="false" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="This user's raw consumption, split by governed service. Returns the complete native result&#xA;for the requested window; not paged." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/userUsageDetails/sessions">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="false" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="This user's raw usage grouped by session identifiers represented by the native source.&#xA;Activity without a session identifier may be omitted despite contributing to the parent total;&#xA;returned child quantities need not sum to the parent's consumedQuantity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/usageReports/userUsageRecords">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>consumedQuantity</PropertyPath>
+                <PropertyPath>sessionCount</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="true" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="NonSortableProperties">
+              <Collection>
+                <PropertyPath>sessionCount</PropertyPath>
+                <PropertyPath>unit</PropertyPath>
+                <PropertyPath>userId</PropertyPath>
+              </Collection>
+            </PropertyValue>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Reported consumption per user for one completed UTC day, ranked by consumption. Requires&#xA;startDate/endDate in YYYY-MM-DD format, exactly one day apart; current-day and future days are rejected." />
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/copilot/costManagement/userBalances">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
