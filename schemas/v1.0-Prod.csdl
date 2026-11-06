@@ -4835,6 +4835,13 @@
         <Member Name="audit" Value="1" />
         <Member Name="block" Value="2" />
       </EnumType>
+      <EnumType Name="retentionPeriodChangeStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="failed" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="retrievalDataSource">
         <Member Name="sharePoint" Value="0" />
         <Member Name="oneDriveBusiness" Value="1" />
@@ -7510,8 +7517,12 @@
         <Property Name="isVideoOnDemandEnabled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="browseQueryResponseItem">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="itemKey" Type="Edm.String" />
         <Property Name="itemsCount" Type="Edm.Int32" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="sizeInBytes" Type="Edm.String" />
         <Property Name="type" Type="graph.browseQueryResponseItemType" Nullable="false" />
@@ -10893,6 +10904,11 @@
         <Property Name="isLabelUpdateAllowed" Type="Edm.Boolean" />
         <Property Name="isMetadataUpdateAllowed" Type="Edm.Boolean" />
         <Property Name="isRecordLocked" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="retentionPeriodChange">
+        <Property Name="effectiveFromDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.retentionPeriodChangeStatus" Nullable="false" />
+        <Property Name="targetRetentionPeriodInDays" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="retentionSetting">
         <Property Name="interval" Type="Edm.String" />
@@ -16163,6 +16179,7 @@
       <EntityType Name="granularRestoreArtifactBase" BaseType="graph.entity">
         <Property Name="browseSessionId" Type="Edm.String" />
         <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="error" Type="graph.publicError" />
         <Property Name="restoredItemKey" Type="Edm.String" />
         <Property Name="restoredItemPath" Type="Edm.String" />
         <Property Name="restoredItemWebUrl" Type="Edm.String" />
@@ -16968,6 +16985,7 @@
       <EntityType Name="mailboxFolder" BaseType="graph.entity">
         <Property Name="childFolderCount" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isHidden" Type="Edm.Boolean" />
         <Property Name="parentFolderId" Type="Edm.String" />
         <Property Name="totalItemCount" Type="Edm.Int32" />
         <Property Name="type" Type="Edm.String" />
@@ -18419,12 +18437,14 @@
         <Property Name="status" Type="graph.protectionRuleStatus" />
       </EntityType>
       <EntityType Name="protectionUnitBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="backupRetentionPeriodInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="error" Type="graph.publicError" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="offboardRequestedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="pendingRetentionPeriodChange" Type="graph.retentionPeriodChange" />
         <Property Name="policyId" Type="Edm.String" />
         <Property Name="protectionSources" Type="graph.protectionSource" Nullable="false" />
         <Property Name="status" Type="graph.protectionUnitStatus" />
@@ -29201,6 +29221,12 @@
         <Member Name="preview" Value="4" />
         <Member Name="extensibilityOnDemand" Value="5" />
       </EnumType>
+      <EnumType Name="workflowTriggerOperatorEventTiming">
+        <Member Name="before" Value="0" />
+        <Member Name="after" Value="1" />
+        <Member Name="on" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
         <Member Name="employeeLeaveDateTime" Value="1" />
@@ -29273,6 +29299,16 @@
         <Property Name="changeType" Type="microsoft.graph.identityGovernance.membershipChangeType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="onDemandExecutionOnly" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+      <ComplexType Name="operatorBetween" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="greaterThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="lessThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorLessThanEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="parameter">
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="values" Type="Collection(Edm.String)" />
@@ -29330,6 +29366,10 @@
         <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="timeBasedAttributeTriggerV2" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="attribute" Type="Edm.String" Nullable="false" />
+        <Property Name="operator" Type="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="topTasksInsightsSummary">
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
@@ -29378,6 +29418,7 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowExecutionTriggerOperator" Abstract="true" />
       <ComplexType Name="workflowSetting">
         <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
       </ComplexType>
@@ -29404,6 +29445,9 @@
         <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="workflowSubject" Abstract="true" />
+      <ComplexType Name="workflowTriggerTimeBasedOperator" BaseType="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Abstract="true">
+        <Property Name="eventTiming" Type="microsoft.graph.identityGovernance.workflowTriggerOperatorEventTiming" Nullable="false" />
+      </ComplexType>
       <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
         <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -41772,6 +41816,9 @@
             </Record>
           </Collection>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.protectionUnitBase/pendingRetentionPeriodChange">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.provisioningObjectSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
