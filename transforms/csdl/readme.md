@@ -20,7 +20,8 @@ Please use fully qualified and precise template match statements so as not to pe
 8. Inspect the transformed file output named *preprocess_csdl_test_input.xml* for the expected changes.
 9. Perform a simple text diff of the output *preprocess_csdl_test_input.xml* with the *preprocess_csdl_test_output.xml* file and check for unexpected changes.
 10. Add the expected output to *preprocess_csdl_test_output.xml*.
-11. Check in changes and open your pull request.
+11. If your change needs regression coverage beyond the shared fixture (for example gating by `csdlVersion`, or guarding against duplicate annotations), add focused cases to *preprocess_csdl_regression_tests.ps1* and run it with `./preprocess_csdl_regression_tests.ps1`. It applies small, in-memory CSDL fragments to the real stylesheet (no dependency on the shared fixtures, no files written to disk) and exits non-zero if any case fails.
+12. Check in changes and open your pull request.
     > NB: The build job in the pipeline currently errors out on PRs coming in from personal forked repos.  
 
 ## Command line instructions for running the transform
@@ -30,6 +31,7 @@ Please use fully qualified and precise template match statements so as not to pe
 3. Run `transform.ps1 <xsl_file> <input_file> <output_file>`. If files are not specified, the script will apply transformations from  *preprocess_csdl.xsl* on  *preprocess_csdl_test_input.xml* and override *preprocess_csdl_test_output.xml* file.
 4. You can optionally run the transform without removing capability annotations by setting the `-removeCapabilityAnnotations` flag to `$false`. The default behavior is to remove capability annotations.
 5. You can optionally run the transform to inject the OData inner error description by setting the `addInnerErrorDescription` flag to `$true`. The default value is `$false`.
+6. Run `./preprocess_csdl_regression_tests.ps1` to execute the dependency-free regression test script against *preprocess_csdl.xsl* (in-memory CSDL fragments, no shared fixtures, no files written to disk). Pass `-xslPath <path>` to point it at a different stylesheet.
 
 ## Instructions for running transform against Microsoft Graph metadata
 
