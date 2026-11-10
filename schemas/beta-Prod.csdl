@@ -970,6 +970,8 @@
         <Member Name="reportOnlyFailure" Value="7" />
         <Member Name="reportOnlyNotApplied" Value="8" />
         <Member Name="reportOnlyInterrupted" Value="9" />
+        <Member Name="notAppliedAllAppsExclusion" Value="15" />
+        <Member Name="reportOnlyNotAppliedAllAppsExclusion" Value="16" />
       </EnumType>
       <EnumType Name="appListType">
         <Member Name="none" Value="0" />
@@ -5840,6 +5842,19 @@
         <Member Name="custom" Value="2" />
         <Member Name="required" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="idJagResourceServerUriMatchType">
+        <Member Name="absent" Value="0" />
+        <Member Name="exact" Value="1" />
+        <Member Name="pathPrefix" Value="2" />
+        <Member Name="anyURI" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="idJagScopeMappingType">
+        <Member Name="direct" Value="0" />
+        <Member Name="mapped" Value="1" />
+        <Member Name="passthrough" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="imageTaggingChoice">
         <Member Name="disabled" Value="0" />
@@ -13413,6 +13428,9 @@
       <ComplexType Name="allPreApprovedPermissionsOnResourceApp" BaseType="graph.preApprovedPermissions">
         <Property Name="resourceApplicationId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="allResourcesExclusions">
+        <Property Name="userActionExclusions" Type="Collection(graph.userActionExclusion)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="allScopeSensitivityLabels" BaseType="graph.scopeSensitivityLabels" />
       <ComplexType Name="alterationResponse">
         <Property Name="originalQueryString" Type="Edm.String" />
@@ -13635,6 +13653,10 @@
       <ComplexType Name="applicationDriftResourceInfo" BaseType="graph.driftResourceInfo" />
       <ComplexType Name="applicationEnforcedRestrictionsSessionControl" BaseType="graph.conditionalAccessSessionControl" />
       <ComplexType Name="applicationIcon" />
+      <ComplexType Name="applicationIdentifierUriConfiguration">
+        <Property Name="idJag" Type="graph.idJagIdentifierUriConfiguration" />
+        <Property Name="saml" Type="graph.samlIdentifierUriConfiguration" />
+      </ComplexType>
       <ComplexType Name="applicationIdentity" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="applicationLocation">
         <Property Name="dataCenter" Type="Edm.String" />
@@ -15691,6 +15713,9 @@
       </ComplexType>
       <ComplexType Name="conditionalAccessEnumeratedExternalTenants" BaseType="graph.conditionalAccessExternalTenants">
         <Property Name="members" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessExclusions">
+        <Property Name="allResourcesExclusions" Type="graph.allResourcesExclusions" />
       </ComplexType>
       <ComplexType Name="conditionalAccessExternalTenants" Abstract="true">
         <Property Name="membershipKind" Type="graph.conditionalAccessExternalTenantsMembershipKind" />
@@ -18231,6 +18256,37 @@
       <ComplexType Name="identitySource" Abstract="true" />
       <ComplexType Name="identityVerificationEventsConfiguration">
         <Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="idJagApplicationConfiguration">
+        <Property Name="client" Type="graph.idJagClientConfiguration" />
+        <Property Name="resourceAuthorizationServer" Type="graph.idJagResourceAuthorizationServerConfiguration" />
+      </ComplexType>
+      <ComplexType Name="idJagClientConfiguration">
+        <Property Name="isEnabled" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="idJagEnabledClient">
+        <Property Name="clientId" Type="Edm.Guid" />
+        <Property Name="resourceAuthorizationServerClientId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="idJagIdentifierUriConfiguration">
+        <Property Name="uris" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="idJagResourceAuthorizationServerConfiguration">
+        <Property Name="resourceServers" Type="Collection(graph.idJagResourceServer)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="idJagResourceServer">
+        <Property Name="resourceServerUriMatchType" Type="graph.idJagResourceServerUriMatchType" />
+        <Property Name="resourceServerUris" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="scopeMappings" Type="Collection(graph.idJagScopeMapping)" Nullable="false" />
+        <Property Name="scopeMappingType" Type="graph.idJagScopeMappingType" />
+      </ComplexType>
+      <ComplexType Name="idJagScopeMapping">
+        <Property Name="oauth2Permission" Type="Edm.String" />
+        <Property Name="validResourceAuthorizationServerScopes" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="idJagServicePrincipalConfiguration">
+        <Property Name="enabledClients" Type="Collection(graph.idJagEnabledClient)" Nullable="false" />
+        <Property Name="isEnabled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="idleSessionSignOut">
         <Property Name="isEnabled" Type="Edm.Boolean" />
@@ -21900,6 +21956,9 @@
       <ComplexType Name="samlCertificate" />
       <ComplexType Name="samlClaim" />
       <ComplexType Name="samlConditions" />
+      <ComplexType Name="samlIdentifierUriConfiguration">
+        <Property Name="uris" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="samlIdentitySource" BaseType="graph.permissionsDefinitionIdentitySource" />
       <ComplexType Name="samlNameIdClaim" BaseType="graph.customClaimBase">
         <Property Name="nameIdFormat" Type="graph.samlNameIDFormat" Nullable="false" />
@@ -23560,6 +23619,10 @@
       </ComplexType>
       <ComplexType Name="userActionContext" BaseType="graph.signInContext">
         <Property Name="userAction" Type="graph.userAction" />
+      </ComplexType>
+      <ComplexType Name="userActionExclusion">
+        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
+        <Property Name="userAction" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="userAssignmentCapability">
         <Property Name="extensions" Type="Edm.Boolean" Nullable="false" />
@@ -26762,11 +26825,14 @@
         <Property Name="disabledByMicrosoftStatus" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="groupMembershipClaims" Type="Edm.String" />
+        <Property Name="identifierUriConfiguration" Type="graph.applicationIdentifierUriConfiguration" />
         <Property Name="identifierUris" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="idJag" Type="graph.idJagApplicationConfiguration" />
         <Property Name="info" Type="graph.informationalUrl" />
         <Property Name="isDeviceOnlyAuthSupported" Type="Edm.Boolean" />
         <Property Name="isDisabled" Type="Edm.Boolean" />
         <Property Name="isFallbackPublicClient" Type="Edm.Boolean" />
+        <Property Name="isHardDeleteProtectionEnabled" Type="Edm.Boolean" />
         <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
         <Property Name="logo" Type="Edm.Stream" Nullable="false" />
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
@@ -28087,6 +28153,7 @@
         <NavigationProperty Name="planner" Type="graph.teamsChannelPlanner" ContainsTarget="true" />
         <NavigationProperty Name="sharedWithTeams" Type="Collection(graph.sharedWithChannelTeamInfo)" ContainsTarget="true" />
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
+        <NavigationProperty Name="tags" Type="Collection(graph.teamworkChannelTag)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
@@ -28896,7 +28963,12 @@
         <NavigationProperty Name="deletedItems" Type="graph.caPoliciesDeletableRoot" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="graph.conditionalAccessSettings" ContainsTarget="true" />
         <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessSettings" BaseType="graph.entity">
+        <Property Name="exclusions" Type="graph.conditionalAccessExclusions" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" Nullable="false" />
@@ -29070,6 +29142,9 @@
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="linkType" Type="graph.contentLinkType" />
         <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="contentManagementRoot" BaseType="graph.entity">
+        <NavigationProperty Name="repositories" Type="Collection(securityContentManagement.contentManagementRepository)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="contentModel" BaseType="graph.entity">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -32812,6 +32887,7 @@
         <Property Name="isArchived" Type="Edm.Boolean" />
         <Property Name="isAssignableToRole" Type="Edm.Boolean" />
         <Property Name="isFavorite" Type="Edm.Boolean" />
+        <Property Name="isHardDeleteProtectionEnabled" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isSubscribedByMail" Type="Edm.Boolean" />
         <Property Name="licenseProcessingState" Type="graph.licenseProcessingState" />
@@ -38956,6 +39032,7 @@
         <NavigationProperty Name="cases" Type="self.casesRoot" ContainsTarget="true" />
         <NavigationProperty Name="cloudAppSecurityProfiles" Type="Collection(graph.cloudAppSecurityProfile)" ContainsTarget="true" />
         <NavigationProperty Name="collaboration" Type="self.collaborationRoot" ContainsTarget="true" />
+        <NavigationProperty Name="contentManagement" Type="graph.contentManagementRoot" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="dataDiscovery" Type="self.dataDiscoveryRoot" ContainsTarget="true" />
         <NavigationProperty Name="dataSecurityAndGovernance" Type="graph.tenantDataSecurityAndGovernance" ContainsTarget="true" />
         <NavigationProperty Name="domainSecurityProfiles" Type="Collection(graph.domainSecurityProfile)" ContainsTarget="true" />
@@ -39203,8 +39280,10 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="errorUrl" Type="Edm.String" />
         <Property Name="homepage" Type="Edm.String" />
+        <Property Name="idJag" Type="graph.idJagServicePrincipalConfiguration" />
         <Property Name="info" Type="graph.informationalUrl" />
         <Property Name="isDisabled" Type="Edm.Boolean" />
+        <Property Name="isHardDeleteProtectionEnabled" Type="Edm.Boolean" />
         <Property Name="keyCredentials" Type="Collection(graph.keyCredential)" Nullable="false" />
         <Property Name="loginUrl" Type="Edm.String" />
         <Property Name="logoutUrl" Type="Edm.String" />
@@ -40345,6 +40424,9 @@
         <NavigationProperty Name="workforceIntegrations" Type="Collection(graph.workforceIntegration)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="teamworkBot" BaseType="graph.entity" />
+      <EntityType Name="teamworkChannelTag" BaseType="graph.teamworkTag">
+        <Property Name="channelId" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="teamworkCustomEmoji" BaseType="graph.teamworkHostedContent">
         <Property Name="createdBy" Type="graph.customEmojiFromIdentitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -41165,6 +41247,7 @@
         <Property Name="imAddresses" Type="Collection(Edm.String)" />
         <Property Name="infoCatalogs" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="interests" Type="Collection(Edm.String)" />
+        <Property Name="isHardDeleteProtectionEnabled" Type="Edm.Boolean" />
         <Property Name="isLicenseReconciliationNeeded" Type="Edm.Boolean" />
         <Property Name="isManagementRestricted" Type="Edm.Boolean" />
         <Property Name="isResourceAccount" Type="Edm.Boolean" />
@@ -55229,6 +55312,8 @@
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.restoreSessionBase" />
       <Term Name="corpusSize" Type="Edm.String" AppliesTo="microsoft.graph.groundingItem)" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="firstChannelLayoutType" Type="graph.channelLayoutType" AppliesTo="microsoft.graph.team" Nullable="false" />
+      <Term Name="firstChannelName" Type="Edm.String" AppliesTo="microsoft.graph.team" />
       <Term Name="legacyName" Type="Edm.String" AppliesTo="microsoft.graph.identitySet" />
       <Term Name="licenseRequired" Type="Edm.String" AppliesTo="microsoft.graph.applicationTemplate)" />
       <Term Name="originalSourceMembershipUrl" Type="Edm.String" AppliesTo="microsoft.graph.aadUserConversationMember" />
@@ -68185,6 +68270,12 @@
       </Annotations>
       <Annotations Target="microsoft.graph.contentLink/createdBy">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.contentManagementRoot">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The contentManagement segment under `/security`. Groups the content-management resources&#xA;(connected repositories) under a single node." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.contentManagementRoot/repositories">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Connected source-control repositories that deliver security content as code." />
       </Annotations>
       <Annotations Target="microsoft.graph.continuousAccessEvaluationPolicy">
         <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
@@ -81733,6 +81824,29 @@
         </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.GraphService/applications">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>synchronization/actions</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions" Qualifier="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="Navigability">
+                    <EnumMember>Org.OData.Capabilities.V1.NavigationType/None</EnumMember>
+                  </PropertyValue>
+                  <PropertyValue Property="NavigationProperty" NavigationPropertyPath="synchronization/actions" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -83363,7 +83477,197 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/security/contentManagement">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Route node for the `/security/contentManagement` singleton." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.GraphService/security/contentManagement/repositories">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="true" />
+            <PropertyValue Property="NonFilterableProperties">
+              <Collection>
+                <PropertyPath>contentTypes</PropertyPath>
+                <PropertyPath>deploymentIdentity</PropertyPath>
+                <PropertyPath>deploymentScope</PropertyPath>
+                <PropertyPath>deploymentScope/id</PropertyPath>
+                <PropertyPath>deploymentScope/scopeType</PropertyPath>
+                <PropertyPath>description</PropertyPath>
+                <PropertyPath>lastDeploymentInfo</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/deploymentFetchStatus</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/message</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run/deploymentDateTime</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run/deploymentId</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run/deploymentLogsUrl</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run/deploymentResult</PropertyPath>
+                <PropertyPath>lastDeploymentInfo/run/deploymentState</PropertyPath>
+                <PropertyPath>pullRequest</PropertyPath>
+                <PropertyPath>pullRequest/state</PropertyPath>
+                <PropertyPath>pullRequest/url</PropertyPath>
+                <PropertyPath>servicePrincipal</PropertyPath>
+                <PropertyPath>servicePrincipal/appId</PropertyPath>
+                <PropertyPath>servicePrincipal/credentialsExpireDateTime</PropertyPath>
+                <PropertyPath>servicePrincipal/servicePrincipalId</PropertyPath>
+                <PropertyPath>servicePrincipal/tenantId</PropertyPath>
+                <PropertyPath>sourceLocation</PropertyPath>
+                <PropertyPath>sourceLocation/branch</PropertyPath>
+                <PropertyPath>sourceLocation/deploymentLogsUrl</PropertyPath>
+                <PropertyPath>sourceLocation/displayUrl</PropertyPath>
+                <PropertyPath>sourceLocation/url</PropertyPath>
+                <PropertyPath>systemData</PropertyPath>
+                <PropertyPath>systemData/createdBy</PropertyPath>
+                <PropertyPath>systemData/createdByType</PropertyPath>
+                <PropertyPath>systemData/createdDateTime</PropertyPath>
+                <PropertyPath>systemData/lastModifiedBy</PropertyPath>
+                <PropertyPath>systemData/lastModifiedByType</PropertyPath>
+                <PropertyPath>systemData/lastModifiedDateTime</PropertyPath>
+                <PropertyPath>workloadIdentityFederation</PropertyPath>
+                <PropertyPath>workloadIdentityFederation/appId</PropertyPath>
+                <PropertyPath>workloadIdentityFederation/federatedCredentialId</PropertyPath>
+                <PropertyPath>workloadIdentityFederation/issuer</PropertyPath>
+                <PropertyPath>workloadIdentityFederation/subject</PropertyPath>
+                <PropertyPath>workloadIdentityFederation/tenantId</PropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Readable" Bool="true" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="NonSortableProperties">
+              <Collection>
+                <PropertyPath>contentTypes</PropertyPath>
+                <PropertyPath>deploymentIdentity</PropertyPath>
+                <PropertyPath>deploymentScope</PropertyPath>
+                <PropertyPath>description</PropertyPath>
+                <PropertyPath>id</PropertyPath>
+                <PropertyPath>lastDeploymentInfo</PropertyPath>
+                <PropertyPath>pullRequest</PropertyPath>
+                <PropertyPath>repoType</PropertyPath>
+                <PropertyPath>servicePrincipal</PropertyPath>
+                <PropertyPath>sourceLocation</PropertyPath>
+                <PropertyPath>systemData</PropertyPath>
+                <PropertyPath>workloadIdentityFederation</PropertyPath>
+              </Collection>
+            </PropertyValue>
+            <PropertyValue Property="Sortable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Collection of connected source-control repositories under /security/contentManagement/repositories." />
+      </Annotations>
       <Annotations Target="microsoft.graph.GraphService/servicePrincipals">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions" Qualifier="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="NonExpandableProperties">
+              <Collection>
+                <NavigationPropertyPath>synchronization/actions</NavigationPropertyPath>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions" Qualifier="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="RestrictedProperties">
+              <Collection>
+                <Record>
+                  <PropertyValue Property="FilterRestrictions">
+                    <Record>
+                      <PropertyValue Property="Filterable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="IndexableByKey" Bool="false" />
+                  <PropertyValue Property="InsertRestrictions">
+                    <Record>
+                      <PropertyValue Property="Insertable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="Navigability">
+                    <EnumMember>Org.OData.Capabilities.V1.NavigationType/Single</EnumMember>
+                  </PropertyValue>
+                  <PropertyValue Property="NavigationProperty" NavigationPropertyPath="synchronization/actions" />
+                  <PropertyValue Property="SearchRestrictions">
+                    <Record>
+                      <PropertyValue Property="Searchable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="SkipSupported" Bool="false" />
+                  <PropertyValue Property="SortRestrictions">
+                    <Record>
+                      <PropertyValue Property="Sortable" Bool="false" />
+                    </Record>
+                  </PropertyValue>
+                  <PropertyValue Property="TopSupported" Bool="false" />
+                </Record>
+              </Collection>
+            </PropertyValue>
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
           <Record>
             <PropertyValue Property="CustomHeaders">
@@ -86107,6 +86411,69 @@
             </Record>
           </Collection>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagClientConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Calling-client opt-in configuration for ID-JAG. The application must be confidential-client-capable." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagClientConfiguration/isEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when client configuration is supplied. Indicates whether the application is enabled to request ID-JAG issuance. true conflicts with a non-null idJag.resourceAuthorizationServer child." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagEnabledClient">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Maps an enabled Entra client application to its identifier at the Resource Authorization Server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagEnabledClient/clientId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each enabled-client entry. The appId of the client application in Microsoft Entra." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagEnabledClient/resourceAuthorizationServerClientId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each enabled-client entry. The client identifier registered for this client at the Resource Authorization Server." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagIdentifierUriConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier URIs classified for the ID-JAG protocol. Each value must also exist exactly in the application's top-level identifierUris. Clearing this classification doesn't remove top-level identifierUris; complete deletion requires removing the URI from identifierUris and every referencing protocol classification in the same Application PATCH. Must use HTTPS; api://, wildcards, query strings, fragments, and explicit ports 80 or 443 are not supported. Other explicit ports remain significant. Values are compared using Unicode code-point equality without URI normalization." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagIdentifierUriConfiguration/uris">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when ID-JAG identifier URI configuration is supplied. Application identifier URIs opted into outbound ID-JAG. Must exactly match values in top-level identifierUris in the prospective final state. Explicit ports 80 and 443 are rejected; other ports remain significant. An empty collection normalizes the parent to null without changing top-level identifierUris." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceAuthorizationServerConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="ID-JAG Resource Authorization Server configuration for an application. A non-null resourceAuthorizationServer child counts as resource configuration even when resourceServers is empty. Requires signInAudience AzureADMyOrg." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceAuthorizationServerConfiguration/resourceServers">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when resource configuration is supplied. Resource server URI and scope mappings." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Configures resource URI matching and Resource Authorization Server scope mapping for one ID-JAG resource server. Across entries, overlapping normalized resource domains are allowed only when every common accepted external scope resolves to the same Entra OAuth2 permission." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServer/resourceServerUriMatchType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each resource server entry. Matching precedence is exact, longest pathPrefix, then anyURI; absent applies only when no resource is supplied. Overlap is rejected when a common accepted external scope resolves to a different Entra OAuth2 permission across entries." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServer/resourceServerUris">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each resource server entry. Non-empty for exact and pathPrefix; empty for absent and anyURI." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServer/scopeMappings">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each resource server entry. Empty for direct, non-empty for mapped, and exactly one entry with an empty validResourceAuthorizationServerScopes collection for passthrough." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServer/scopeMappingType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each resource server entry. Specifies direct, mapped, or passthrough scope behavior used to detect contradictory scope-to-permission outcomes across overlapping resource domains." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagResourceServerUriMatchType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Specifies how an ID-JAG resource server matches a supplied resource URI." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagScopeMapping">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Maps Resource Authorization Server scopes to an Entra OAuth2 permission." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagScopeMapping/oauth2Permission">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each scope mapping. An enabled delegated permission exposed by the resource application for ID-JAG use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagScopeMapping/validResourceAuthorizationServerScopes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null in each scope mapping. One or two equivalent, case-sensitive Resource Authorization Server scopes for mapped behavior; empty for the single passthrough mapping." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagScopeMappingType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Specifies how Resource Authorization Server scopes resolve to an Entra OAuth2 permission." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagServicePrincipalConfiguration/enabledClients">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when ServicePrincipal ID-JAG configuration is supplied. Maps enabled Entra clients to their Resource Authorization Server client identifiers. This is the only supported ID-JAG child on agentIdentityBlueprintPrincipal and agentIdentity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.idJagServicePrincipalConfiguration/isEnabled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when ID-JAG configuration is supplied on a base ServicePrincipal. Indicates whether ID-JAG issuance is enabled for this tenant-local resource. Not supported on agentIdentityBlueprintPrincipal or agentIdentity; returned as null and rejected on write." />
       </Annotations>
       <Annotations Target="microsoft.graph.impactedResource">
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
@@ -100991,6 +101358,12 @@
           </Record>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.samlIdentifierUriConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier URIs classified for the SAML protocol. Each value must also exist in the application's top-level identifierUris. Clearing this classification doesn't remove top-level identifierUris; complete deletion requires removing the URI from identifierUris and every referencing protocol classification in the same Application PATCH. No extra SAML-specific format rules beyond existing identifierUris validation." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.samlIdentifierUriConfiguration/uris">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Required and non-null when SAML identifier URI configuration is supplied. Application identifier URIs classified for SAML. Must be a subset of top-level identifierUris in the prospective final state. An empty collection normalizes the parent to null without changing top-level identifierUris." />
+      </Annotations>
       <Annotations Target="microsoft.graph.samsungEFotaFirmwareVersion">
         <Annotation Term="Org.OData.Core.V1.Description" String="The firmware version from Samsung for a specific device model, sales code, and CSC (Consumer Software Customization). Used to create Samsung E-FOTA deployments." />
       </Annotations>
@@ -102197,6 +102570,386 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.consumptionResourceAuditRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Consumption Resource events." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.connect(Collection(microsoft.graph.security.contentManagement.contentManagementRepository), Edm.String, microsoft.graph.security.contentManagement.repositoryType, Collection(microsoft.graph.security.contentManagement.repositoryContentType), microsoft.graph.security.contentManagement.repositorySettings, microsoft.graph.security.contentManagement.repositoryAccessCredential, microsoft.graph.security.contentManagement.deploymentScope, Edm.String, microsoft.graph.security.contentManagement.deploymentIdentity)">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Connect a repository." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A connected source-control repository that delivers security content as code&#xA;(the customer-facing shape of the internal Source Control resource). Tenant is resolved&#xA;from the caller token; there is no subscription, resource group, or workspace in the path." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/contentTypes">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Content kinds this repository is configured to deploy." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/deploymentIdentity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Bring-your-own deployment identity used for deployment. Optional; when omitted the&#xA;platform-managed identity path is used. Provide a service principal or a managed identity." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/deploymentScope">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Optional Azure deployment scope, immutable after connecting the repository." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/description">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Optional description of the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Human-readable name of the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/lastDeploymentInfo">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Status of the most recent deployment from this repository. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/pullRequest">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The setup pull request opened for this connection, when applicable. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/repoType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Source-control provider for this repository." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/servicePrincipal">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Service principal / managed identity used by the connection. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/sourceLocation">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Location of the source repository (URL and branch)." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/systemData">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Creation and last modification provenance. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.contentManagementRepository/workloadIdentityFederation">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Workload identity federation details for the connection, when configured. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentIdentity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Bring-your-own deployment identity. The concrete type (set via `@odata.type`) selects&#xA;whether a service principal or a managed identity backs the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScope">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Optional Azure scope where the deployment stack is provisioned." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScope/id">
+        <Annotation Term="Org.OData.Core.V1.Description" String="ARM resource id of the scope: a resource group (/subscriptions/{id}/resourceGroups/{name}) or a management group (/providers/Microsoft.Management/managementGroups/{id})." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScope/scopeType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Kind of Azure scope the deployment stack is provisioned at." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScopeType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure scope kind for deployment stack provisioning." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScopeType/managementGroup">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure management group." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScopeType/resourceGroup">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure resource group." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.deploymentScopeType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.disconnect(microsoft.graph.security.contentManagement.contentManagementRepository, microsoft.graph.security.contentManagement.repositoryAccessCredential)">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Disconnect a repository. Always removes the connection on the Sentinel side.&#xA;The provider credential is optional: when supplied, repository-side artifacts&#xA;(the deployment identity and setup pipeline) are cleaned up on a best-effort basis;&#xA;when omitted, or if cleanup fails, the connection is still removed and any repository-side&#xA;artifacts that could not be removed are reported in the result. Disconnecting without a&#xA;credential does not stop the repository from pushing until its identity is removed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.discoverAvailableRepositories(Collection(microsoft.graph.security.contentManagement.contentManagementRepository), microsoft.graph.security.contentManagement.repositoryAccessCredential)">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Discover candidate repositories the caller can connect, using a supplied provider credential.&#xA;Credential is passed in the request body and is never returned; only repository metadata is.&#xA;Results are transient, non-addressable discovery records: the backend exposes no stable id for&#xA;a candidate repository (confirmed in source), so they are modeled as value objects, not entities.&#xA;&#xA;The result is a bounded set: the action returns up to 200 candidate repositories accessible to the&#xA;supplied credential. It is not paged. Paging is not offered because the credential is a write-only&#xA;request-body value and an OData `@odata.nextLink` continuation is a GET that cannot carry it; the&#xA;bound keeps the response size predictable. Callers who need a specific repository connect it directly." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.discoveredRepository">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A candidate repository returned by the discoverAvailableRepositories discovery action." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.discoveredRepository/branches">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Branch names available in the repository." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.discoveredRepository/fullName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Provider full name, for example `owner/repo`." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.discoveredRepository/url">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Repository URL." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.managedIdentityDeploymentIdentity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Bring-your-own user-assigned managed identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.managedIdentityDeploymentIdentity/managedIdentityId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Resource id of the user-assigned managed identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.modify(microsoft.graph.security.contentManagement.contentManagementRepository, Edm.String, Edm.String, Collection(microsoft.graph.security.contentManagement.repositoryContentType), microsoft.graph.security.contentManagement.repositoryAccessCredential, microsoft.graph.security.contentManagement.repositorySettings, microsoft.graph.security.contentManagement.repositoryType, microsoft.graph.security.contentManagement.deploymentScope, microsoft.graph.security.contentManagement.deploymentIdentity)">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Modify a connected repository." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryAccessCredential">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Provider credential used to establish or refresh repository access. The concrete type&#xA;(set via `@odata.type`) selects the credential style. All fields are input only and are&#xA;never returned." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryContentType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Content kind a repository can deploy. The tenant/E5 path deploys custom detections and&#xA;Defender Workbooks; additional content kinds are added as the tenant path gains support." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryContentType/customDetection">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Custom detection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryContentType/defenderWorkbook">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Defender workbook." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryContentType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Details of a fetched deployment run. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment/deploymentDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="When the deployment ran." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment/deploymentId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment/deploymentLogsUrl">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="URL where the deployment logs can be viewed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment/deploymentResult">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Result of the deployment; pending until a final result is known." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeployment/deploymentState">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Current state of the deployment." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether deployment status could be fetched." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus/notFound">
+        <Annotation Term="Org.OData.Core.V1.Description" String="No deployment was found." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus/success">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Status fetched successfully." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus/unauthorized">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Caller was not authorized to fetch status." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus/unavailable">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Provider status could not be fetched." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentFetchStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentInfo">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Status fetch result and the most recent deployment, when available." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentInfo/deploymentFetchStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether deployment status could be fetched." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentInfo/message">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Human-readable status or error message." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentInfo/run">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment details; null when no run was fetched." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Result of a completed deployment." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult/canceled">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment was canceled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult/failed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment failed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult/pending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The deployment has not produced a final result yet." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult/success">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment succeeded." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentResult/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="State of a deployment run." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState/canceling">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment is being canceled." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState/completed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment completed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState/inProgress">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment is in progress." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState/queued">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Deployment is queued." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDeploymentState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDisconnectResult">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Result of the disconnect action." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryDisconnectResult/warning">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Optional warning from best-effort cleanup." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential">
+        <Annotation Term="Org.OData.Core.V1.Description" String="OAuth authorization-code credential." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential/clientId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="OAuth client id." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential/code">
+        <Annotation Term="Org.OData.Core.V1.Description" String="OAuth authorization code." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential/codeVerifier">
+        <Annotation Term="Org.OData.Core.V1.Description" String="PKCE code verifier." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential/redirectUri">
+        <Annotation Term="Org.OData.Core.V1.Description" String="OAuth redirect URI." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryOAuthCredential/state">
+        <Annotation Term="Org.OData.Core.V1.Description" String="OAuth state value." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPatCredential">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Personal access token credential." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPatCredential/token">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Personal access token." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Write</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequest">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The setup pull request opened for a repository connection. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequest/state">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Whether the pull request is open, closed, or merged." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequest/url">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Pull request URL." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequestState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="State of a setup pull request." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequestState/closed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Pull request is closed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequestState/merged">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Pull request was merged." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequestState/open">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Pull request is open." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryPullRequestState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryServicePrincipal">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Service principal / managed identity backing a repository connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryServicePrincipal/appId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Application (client) id of the identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryServicePrincipal/credentialsExpireDateTime">
+        <Annotation Term="Org.OData.Core.V1.Description" String="When the identity's credentials expire." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryServicePrincipal/servicePrincipalId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Object id of the service principal." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryServicePrincipal/tenantId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Tenant id that owns the identity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositorySettings">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Repository location settings." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositorySettings/branch">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Branch that content is deployed from." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositorySettings/deploymentLogsUrl">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="URL where deployment logs can be viewed. Read-only." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositorySettings/displayUrl">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Human-friendly display URL." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositorySettings/url">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Repository URL." />
+        <Annotation Term="Org.OData.Core.V1.Immutable" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryType">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Source-control provider." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryType/azureDevOps">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure DevOps." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryType/gitHub">
+        <Annotation Term="Org.OData.Core.V1.Description" String="GitHub." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryType/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Workload identity federation details for a repository connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation/appId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Application (client) id of the parent application." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation/federatedCredentialId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Federated credential id." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation/issuer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Federated credential issuer." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation/subject">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Federated credential subject." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.repositoryWorkloadIdentityFederation/tenantId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Tenant id that owns the parent application." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.servicePrincipalDeploymentIdentity">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Bring-your-own service principal." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.servicePrincipalDeploymentIdentity/applicationId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Application (client) id of the customer-supplied service principal." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Creation and last modification provenance for a connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/createdBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the identity that created the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/createdByType">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Type of identity that created the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="UTC resource creation time." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/lastModifiedBy">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifier of the identity that last modified the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/lastModifiedByType">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Type of identity that last modified the connection." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security.contentManagement.systemData/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="UTC time of the last effective modification." />
       </Annotations>
       <Annotations Target="microsoft.graph.security.contentStoreMetadataRecord">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit data for Content Store Meta events." />
@@ -104432,6 +105185,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.security.zone/modified">
         <Annotation Term="Org.OData.Core.V1.Description" String="Audit information for when the zone was last modified." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.security/contentManagement">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Security content management: connected repositories." />
       </Annotations>
       <Annotations Target="microsoft.graph.security/workbooks">
         <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
@@ -108978,6 +109734,11 @@
         <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.userRegistrationDetails">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="true" />
+          </Record>
+        </Annotation>
         <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
           <Record>
             <PropertyValue Property="Filterable" Bool="true" />
@@ -126468,6 +127229,195 @@
         <Property Name="subscriptionId" Type="Edm.String" />
         <Property Name="workspaceName" Type="Edm.String" />
       </EntityType>
+    </Schema>
+    <Schema Namespace="microsoft.graph.security.contentManagement" Alias="securityContentManagement" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="deploymentScopeType">
+        <Member Name="resourceGroup" Value="0" />
+        <Member Name="managementGroup" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="repositoryContentType">
+        <Member Name="customDetection" Value="0" />
+        <Member Name="unknownFutureValue" Value="1" />
+        <Member Name="defenderWorkbook" Value="2" />
+      </EnumType>
+      <EnumType Name="repositoryDeploymentFetchStatus">
+        <Member Name="success" Value="0" />
+        <Member Name="unauthorized" Value="1" />
+        <Member Name="notFound" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+        <Member Name="unavailable" Value="4" />
+      </EnumType>
+      <EnumType Name="repositoryDeploymentResult">
+        <Member Name="success" Value="0" />
+        <Member Name="canceled" Value="1" />
+        <Member Name="failed" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+        <Member Name="pending" Value="4" />
+      </EnumType>
+      <EnumType Name="repositoryDeploymentState">
+        <Member Name="inProgress" Value="0" />
+        <Member Name="completed" Value="1" />
+        <Member Name="queued" Value="2" />
+        <Member Name="canceling" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="repositoryPullRequestState">
+        <Member Name="open" Value="0" />
+        <Member Name="closed" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+        <Member Name="merged" Value="3" />
+      </EnumType>
+      <EnumType Name="repositoryType">
+        <Member Name="gitHub" Value="0" />
+        <Member Name="azureDevOps" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <ComplexType Name="deploymentIdentity" Abstract="true" />
+      <ComplexType Name="deploymentScope">
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="scopeType" Type="securityContentManagement.deploymentScopeType" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="discoveredRepository">
+        <Property Name="branches" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="fullName" Type="Edm.String" />
+        <Property Name="url" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="managedIdentityDeploymentIdentity" BaseType="securityContentManagement.deploymentIdentity">
+        <Property Name="managedIdentityId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="repositoryAccessCredential" Abstract="true" />
+      <ComplexType Name="repositoryDeployment">
+        <Property Name="deploymentDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="deploymentId" Type="Edm.String" />
+        <Property Name="deploymentLogsUrl" Type="Edm.String" />
+        <Property Name="deploymentResult" Type="securityContentManagement.repositoryDeploymentResult" Nullable="false" />
+        <Property Name="deploymentState" Type="securityContentManagement.repositoryDeploymentState" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="repositoryDeploymentInfo">
+        <Property Name="deploymentFetchStatus" Type="securityContentManagement.repositoryDeploymentFetchStatus" Nullable="false" />
+        <Property Name="message" Type="Edm.String" />
+        <Property Name="run" Type="securityContentManagement.repositoryDeployment" />
+      </ComplexType>
+      <ComplexType Name="repositoryDisconnectResult">
+        <Property Name="warning" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="repositoryOAuthCredential" BaseType="securityContentManagement.repositoryAccessCredential">
+        <Property Name="clientId" Type="Edm.String" />
+        <Property Name="code" Type="Edm.String" Nullable="false" />
+        <Property Name="codeVerifier" Type="Edm.String" />
+        <Property Name="redirectUri" Type="Edm.String" />
+        <Property Name="state" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="repositoryPatCredential" BaseType="securityContentManagement.repositoryAccessCredential">
+        <Property Name="token" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="repositoryPullRequest">
+        <Property Name="state" Type="securityContentManagement.repositoryPullRequestState" Nullable="false" />
+        <Property Name="url" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="repositoryServicePrincipal">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="credentialsExpireDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="servicePrincipalId" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="repositorySettings">
+        <Property Name="branch" Type="Edm.String" Nullable="false" />
+        <Property Name="deploymentLogsUrl" Type="Edm.String" />
+        <Property Name="displayUrl" Type="Edm.String" />
+        <Property Name="url" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="repositoryWorkloadIdentityFederation">
+        <Property Name="appId" Type="Edm.String" />
+        <Property Name="federatedCredentialId" Type="Edm.String" />
+        <Property Name="issuer" Type="Edm.String" />
+        <Property Name="subject" Type="Edm.String" />
+        <Property Name="tenantId" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="servicePrincipalDeploymentIdentity" BaseType="securityContentManagement.deploymentIdentity">
+        <Property Name="applicationId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="systemData">
+        <Property Name="createdBy" Type="Edm.String" />
+        <Property Name="createdByType" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedBy" Type="Edm.String" />
+        <Property Name="lastModifiedByType" Type="Edm.String" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <EntityType Name="contentManagementRepository" BaseType="graph.entity">
+        <Property Name="contentTypes" Type="Collection(securityContentManagement.repositoryContentType)" Nullable="false" />
+        <Property Name="deploymentIdentity" Type="securityContentManagement.deploymentIdentity" />
+        <Property Name="deploymentScope" Type="securityContentManagement.deploymentScope" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="lastDeploymentInfo" Type="securityContentManagement.repositoryDeploymentInfo" />
+        <Property Name="pullRequest" Type="securityContentManagement.repositoryPullRequest" />
+        <Property Name="repoType" Type="securityContentManagement.repositoryType" Nullable="false" />
+        <Property Name="servicePrincipal" Type="securityContentManagement.repositoryServicePrincipal" />
+        <Property Name="sourceLocation" Type="securityContentManagement.repositorySettings" Nullable="false" />
+        <Property Name="systemData" Type="securityContentManagement.systemData" />
+        <Property Name="workloadIdentityFederation" Type="securityContentManagement.repositoryWorkloadIdentityFederation" />
+      </EntityType>
+      <Action Name="connect" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(securityContentManagement.contentManagementRepository)" />
+        <Parameter Name="displayName" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="repoType" Type="securityContentManagement.repositoryType" Nullable="false" />
+        <Parameter Name="contentTypes" Type="Collection(securityContentManagement.repositoryContentType)" Nullable="false" />
+        <Parameter Name="sourceLocation" Type="securityContentManagement.repositorySettings" Nullable="false" />
+        <Parameter Name="accessCredential" Type="securityContentManagement.repositoryAccessCredential" Nullable="false" />
+        <Parameter Name="deploymentScope" Type="securityContentManagement.deploymentScope">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="description" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="deploymentIdentity" Type="securityContentManagement.deploymentIdentity">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="securityContentManagement.contentManagementRepository" Nullable="false" />
+      </Action>
+      <Action Name="disconnect" IsBound="true">
+        <Parameter Name="bindingParameter" Type="securityContentManagement.contentManagementRepository" Nullable="false" />
+        <Parameter Name="accessCredential" Type="securityContentManagement.repositoryAccessCredential">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="securityContentManagement.repositoryDisconnectResult" Nullable="false" />
+      </Action>
+      <Action Name="discoverAvailableRepositories" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(securityContentManagement.contentManagementRepository)" />
+        <Parameter Name="accessCredential" Type="securityContentManagement.repositoryAccessCredential" Nullable="false" />
+        <ReturnType Type="Collection(securityContentManagement.discoveredRepository)" Nullable="false" />
+      </Action>
+      <Action Name="modify" IsBound="true">
+        <Parameter Name="bindingParameter" Type="securityContentManagement.contentManagementRepository" Nullable="false" />
+        <Parameter Name="displayName" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="description" Type="Edm.String" Unicode="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="contentTypes" Type="Collection(securityContentManagement.repositoryContentType)" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="accessCredential" Type="securityContentManagement.repositoryAccessCredential">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="sourceLocation" Type="securityContentManagement.repositorySettings">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="repoType" Type="securityContentManagement.repositoryType" Nullable="false">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="deploymentScope" Type="securityContentManagement.deploymentScope">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <Parameter Name="deploymentIdentity" Type="securityContentManagement.deploymentIdentity">
+          <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
+        </Parameter>
+        <ReturnType Type="securityContentManagement.contentManagementRepository" Nullable="false" />
+      </Action>
     </Schema>
     <Schema Namespace="microsoft.graph.security.dlp" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <EnumType Name="auditRecordType">
