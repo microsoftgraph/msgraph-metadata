@@ -1786,6 +1786,20 @@
         <Member Name="failed" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
+      <EnumType Name="cloudPcFlexAccessState">
+        <Member Name="unassigned" Value="0" />
+        <Member Name="activationFailed" Value="1" />
+        <Member Name="active" Value="2" />
+        <Member Name="activating" Value="3" />
+        <Member Name="standbyMode" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
+      </EnumType>
+      <EnumType Name="cloudPcFlexAvailabilityStatus">
+        <Member Name="notApplicable" Value="0" />
+        <Member Name="available" Value="1" />
+        <Member Name="notAvailable" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="cloudPCFrontlineReportType">
         <Member Name="noLicenseAvailableConnectivityFailureReport" Value="0" />
         <Member Name="licenseUsageReport" Value="1" />
@@ -2116,6 +2130,7 @@
         <Member Name="powerOn" Value="11" />
         <Member Name="powerOff" Value="12" />
         <Member Name="moveRegion" Value="13" />
+        <Member Name="setDeviceName" Value="14" />
       </EnumType>
       <EnumType Name="cloudPcReportName">
         <Member Name="remoteConnectionHistoricalReports" Value="0" />
@@ -3422,6 +3437,9 @@
         <Member Name="holographicForBusiness" Value="12" />
         <Member Name="windowsMultiSession" Value="13" />
         <Member Name="surfaceHub" Value="14" />
+        <Member Name="windowsCPC" Value="18" />
+        <Member Name="unknownFutureValue" Value="19" />
+        <Member Name="windowsServer" Value="20" />
       </EnumType>
       <EnumType Name="deviceManagementDerivedCredentialIssuer">
         <Member Name="intercede" Value="0" />
@@ -10339,6 +10357,9 @@
       <ComplexType Name="allPreApprovedPermissionsOnResourceApp" BaseType="graph.preApprovedPermissions">
         <Property Name="resourceApplicationId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="allResourcesExclusions">
+        <Property Name="userActionExclusions" Type="Collection(graph.userActionExclusion)" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="allScopeSensitivityLabels" BaseType="graph.scopeSensitivityLabels" />
       <ComplexType Name="alterationResponse">
         <Property Name="originalQueryString" Type="Edm.String" />
@@ -11678,6 +11699,12 @@
         <Property Name="userId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="cloudPcFilePathAppDetail" BaseType="graph.cloudPcCloudAppDetail" />
+      <ComplexType Name="cloudPcFlexAccessConfiguration">
+        <Property Name="accessState" Type="graph.cloudPcFlexAccessState" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="cloudPcFlexConfigurationDetail">
+        <Property Name="flexCloudPcAvailability" Type="graph.cloudPcFlexAvailabilityStatus" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="cloudPcForensicStorageAccount">
         <Property Name="accessTier" Type="graph.cloudPcStorageAccountAccessTier" />
         <Property Name="immutableStorage" Type="Edm.Boolean" />
@@ -12051,6 +12078,9 @@
       </ComplexType>
       <ComplexType Name="conditionalAccessEnumeratedExternalTenants" BaseType="graph.conditionalAccessExternalTenants">
         <Property Name="members" Type="Collection(Edm.String)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="conditionalAccessExclusions">
+        <Property Name="allResourcesExclusions" Type="graph.allResourcesExclusions" />
       </ComplexType>
       <ComplexType Name="conditionalAccessExternalTenants" Abstract="true">
         <Property Name="membershipKind" Type="graph.conditionalAccessExternalTenantsMembershipKind" />
@@ -17586,6 +17616,10 @@
       <ComplexType Name="userActionContext" BaseType="graph.signInContext">
         <Property Name="userAction" Type="graph.userAction" />
       </ComplexType>
+      <ComplexType Name="userActionExclusion">
+        <Property Name="state" Type="graph.conditionalAccessPolicyState" Nullable="false" />
+        <Property Name="userAction" Type="Edm.String" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="userAttributeValuesItem">
         <Property Name="isDefault" Type="Edm.Boolean" Nullable="false" />
         <Property Name="name" Type="Edm.String" />
@@ -21325,6 +21359,9 @@
         <Property Name="restorePointDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="timeRange" Type="graph.restoreTimeRange" Nullable="false" />
       </EntityType>
+      <EntityType Name="cloudPcBulkSetDeviceName" BaseType="graph.cloudPcBulkAction">
+        <Property Name="deviceNamingTemplate" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="cloudPcBulkSetReviewStatus" BaseType="graph.cloudPcBulkAction">
         <Property Name="reviewStatus" Type="graph.cloudPcReviewStatus" Nullable="false" />
       </EntityType>
@@ -21667,7 +21704,12 @@
         <NavigationProperty Name="deletedItems" Type="graph.caPoliciesDeletableRoot" ContainsTarget="true" />
         <NavigationProperty Name="namedLocations" Type="Collection(graph.namedLocation)" ContainsTarget="true" />
         <NavigationProperty Name="policies" Type="Collection(graph.conditionalAccessPolicy)" ContainsTarget="true" />
+        <NavigationProperty Name="settings" Type="graph.conditionalAccessSettings" ContainsTarget="true" />
         <NavigationProperty Name="templates" Type="Collection(graph.conditionalAccessTemplate)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="conditionalAccessSettings" BaseType="graph.entity">
+        <Property Name="exclusions" Type="graph.conditionalAccessExclusions" />
+        <Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" />
       </EntityType>
       <EntityType Name="conditionalAccessTemplate" BaseType="graph.entity">
         <Property Name="description" Type="Edm.String" Nullable="false" />
@@ -38871,6 +38913,10 @@
         <Parameter Name="bindingParameter" Type="graph.enrollmentProfile" />
       </Action>
       <Action Name="setDeviceName" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.cloudPC" />
+        <Parameter Name="deviceName" Type="Edm.String" Unicode="false" />
+      </Action>
+      <Action Name="setDeviceName" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
         <Parameter Name="deviceName" Type="Edm.String" Unicode="false" />
       </Action>
@@ -41406,6 +41452,14 @@
           <Annotation Term="Org.OData.Core.V1.OptionalParameter" />
         </Parameter>
         <ReturnType Type="Collection(graph.cloudPcDiscoveredApp)" />
+      </Function>
+      <Function Name="retrieveFlexCloudPcAccessConfiguration" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.cloudPC" />
+        <ReturnType Type="graph.cloudPcFlexAccessConfiguration" />
+      </Function>
+      <Function Name="retrieveFlexCloudPcConfigurationDetail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.cloudPC" />
+        <ReturnType Type="graph.cloudPcFlexConfigurationDetail" />
       </Function>
       <Function Name="retrieveFrontlineCloudPcDetail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.cloudPC" />
@@ -51235,6 +51289,9 @@
       <Annotations Target="microsoft.graph.cloudPcBulkRelocate/domainJoinConfigurations">
         <Annotation Term="Org.OData.Core.V1.Description" String="The domain join configurations used when relocating Cloud PCs." />
       </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcBulkSetDeviceName/deviceNamingTemplate">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The naming template used to generate device names for the Cloud PCs. The template must be 5–15 characters total, with a prefix of 0–10 characters followed by a macro for the unique identifier. Supported macro: %RAND:x% (minimum x=5). For example, 'ACRA-%RAND:5%'." />
+      </Annotations>
       <Annotations Target="microsoft.graph.cloudPcConnectionSettings">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -58927,6 +58984,12 @@
       <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/unknown">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Device Management Configuration Windows SKU is 'unknown' " />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/windowsCPC">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the setting is applicable to the Windows CPC SKU family. Existing public beta member." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/windowsEducation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Device Management Configuration Windows SKU is 'windowsEducation' " />
       </Annotations>
@@ -58947,6 +59010,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/windowsProfessional">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Device Management Configuration Windows SKU is 'windowsProfessional' " />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/windowsServer">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the setting is applicable to the Windows Server SKU family. Use the Prefer: include-unknown-enum-members request header to receive this value." />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationWindowsSkus/windowsTeamSurface">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Device Management Configuration Windows SKU is 'windowsTeamSurface' " />

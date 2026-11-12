@@ -2815,6 +2815,12 @@
         <Member Name="commitFileFailed" Value="302" />
         <Member Name="commitFileTimedOut" Value="303" />
       </EnumType>
+      <EnumType Name="mobileAppContentScriptState">
+        <Member Name="commitPending" Value="0" />
+        <Member Name="commitSuccess" Value="1" />
+        <Member Name="commitFailed" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="mobileAppPublishingState">
         <Member Name="notPublished" Value="0" />
         <Member Name="processing" Value="1" />
@@ -9741,6 +9747,9 @@
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="useLocalTime" Type="Edm.Boolean" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="mobileAppScriptReference">
+        <Property Name="targetId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="modifiedProperty">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="newValue" Type="Edm.String" />
@@ -12890,7 +12899,9 @@
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
-      <EntityType Name="agentUser" BaseType="graph.user" OpenType="true" />
+      <EntityType Name="agentUser" BaseType="graph.user" OpenType="true">
+        <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
+      </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isPerDeviceAcceptanceRequired" Type="Edm.Boolean" />
@@ -17421,6 +17432,7 @@
       <EntityType Name="mobileAppContent" BaseType="graph.entity">
         <NavigationProperty Name="containedApps" Type="Collection(graph.mobileContainedApp)" ContainsTarget="true" />
         <NavigationProperty Name="files" Type="Collection(graph.mobileAppContentFile)" ContainsTarget="true" />
+        <NavigationProperty Name="scripts" Type="Collection(graph.mobileAppContentScript)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="mobileAppContentFile" BaseType="graph.entity">
         <Property Name="azureStorageUri" Type="Edm.String" />
@@ -17433,6 +17445,11 @@
         <Property Name="size" Type="Edm.Int64" Nullable="false" />
         <Property Name="sizeEncrypted" Type="Edm.Int64" Nullable="false" />
         <Property Name="uploadState" Type="graph.mobileAppContentFileUploadState" Nullable="false" />
+      </EntityType>
+      <EntityType Name="mobileAppContentScript" BaseType="graph.entity" Abstract="true">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="state" Type="graph.mobileAppContentScriptState" Nullable="false" />
       </EntityType>
       <EntityType Name="mobileAppRelationship" BaseType="graph.entity" Abstract="true">
         <Property Name="sourceDisplayName" Type="Edm.String" />
@@ -19985,10 +20002,12 @@
         <NavigationProperty Name="targetSchedule" Type="graph.unifiedRoleAssignmentSchedule" />
       </EntityType>
       <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isBuiltIn" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isPrivileged" Type="Edm.Boolean" />
         <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
         <Property Name="templateId" Type="Edm.String" />
@@ -20789,6 +20808,8 @@
         <Property Name="policyApplies" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="win32LobApp" BaseType="graph.mobileLobApp">
+        <Property Name="activeInstallScript" Type="graph.mobileAppScriptReference" />
+        <Property Name="activeUninstallScript" Type="graph.mobileAppScriptReference" />
         <Property Name="allowedArchitectures" Type="graph.windowsArchitecture" />
         <Property Name="applicableArchitectures" Type="graph.windowsArchitecture" Nullable="false" />
         <Property Name="installCommandLine" Type="Edm.String" />
@@ -20804,6 +20825,12 @@
         <Property Name="setupFilePath" Type="Edm.String" />
         <Property Name="uninstallCommandLine" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="win32LobAppInstallPowerShellScript" BaseType="graph.win32LobAppScript" />
+      <EntityType Name="win32LobAppScript" BaseType="graph.mobileAppContentScript" Abstract="true">
+        <Property Name="enforceSignatureCheck" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="runAs32Bit" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="win32LobAppUninstallPowerShellScript" BaseType="graph.win32LobAppScript" />
       <EntityType Name="windows10CompliancePolicy" BaseType="graph.deviceCompliancePolicy">
         <Property Name="bitLockerEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="codeIntegrityEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -29800,6 +29827,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentUser/managerApplications">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Collection of application (appId) GUIDs that act as managers for this agent user's backing agent blueprint. Server-managed; read-only. Only returned with $select." />
       </Annotations>
       <Annotations Target="microsoft.graph.agreement">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -40920,6 +40961,9 @@
       <Annotations Target="microsoft.graph.mobileAppContent/files">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of files for this app content version." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContent/scripts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The list of scripts for this app content version." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for a single installer file that is associated with a given mobileAppContent version." />
       </Annotations>
@@ -40975,6 +41019,37 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFileUploadState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for upload request states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for a script associated with amobileLobApp entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/content">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The content of the script. This is a Base64-encoded representation of the script's original content. The original content (before Base64 encoding) has a maximum size limit of 100KB." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the script." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/state">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the state of the script upload. Possible values are commitPending, commitSuccess, and commitFailed. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A list of possible script lifecycle states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script is in an unusable state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitPending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script content is in a pending state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitSuccess">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script content is ready." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="The identifier for a mobile app." />
@@ -41057,6 +41132,12 @@
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppScriptReference">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A complex type that contains an identifier which is a reference an associated mobileAppContentScript entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppScriptReference/targetId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of an associated mobileAppContentScript entity." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/appLogCollectionRequests">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates collection of App Log Upload Request." />
@@ -47028,6 +47109,12 @@
       <Annotations Target="microsoft.graph.win32LobApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for Win32 apps." />
       </Annotations>
+      <Annotations Target="microsoft.graph.win32LobApp/activeInstallScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains the unique identifier of the associated install script for this Win32 app to be used instead of the install command line by the managed device during app installation. When null, the install command line is used instead." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobApp/activeUninstallScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains the unique identifier of the associated uninstall script for this Win32 app to be used instead of the uninstall command line by the managed device during app uninstallation. When null, the uninstall command line is used instead." />
+      </Annotations>
       <Annotations Target="microsoft.graph.win32LobApp/allowedArchitectures">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Windows architecture(s) this app should be installed on. The app will be treated as not applicable for devices with architectures not matching the selected value. When a non-null value is provided for the `allowedArchitectures` property, the value of the `applicableArchitectures` property is set to `none`. Possible values are: `null`, `x86`, `x64`, `arm64`." />
       </Annotations>
@@ -47153,6 +47240,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppInstallExperience/runAsAccount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of execution context the app runs in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppInstallPowerShellScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a PowerShell script that is used to install a Win32 app on an end-user device managed by Intune." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppMsiInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains MSI app properties for a Win32 App." />
@@ -47399,6 +47489,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppRuleType/requirement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Requirement rule." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a script that can be run on an end-user device managed by Intune in relation to a Win32 app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript/enforceSignatureCheck">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether or not to enforce a signature check when running the script. When TRUE, the script cannot be run without enforcing a signature check. When FALSE, no signature check will be enforced when running the script. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript/runAs32Bit">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the script will run as 32-bit or 64-bit. When TRUE, the script will run as 32-bit. When FALSE, the script will run as 64-bit. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppUninstallPowerShellScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a PowerShell script that is used to uninstall a Win32 app on an end-user device managed by Intune." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAutoUpdateSupersededAppsState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains value for auto-update superseded apps." />
