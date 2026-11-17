@@ -2814,6 +2814,12 @@
         <Member Name="commitFileFailed" Value="302" />
         <Member Name="commitFileTimedOut" Value="303" />
       </EnumType>
+      <EnumType Name="mobileAppContentScriptState">
+        <Member Name="commitPending" Value="0" />
+        <Member Name="commitSuccess" Value="1" />
+        <Member Name="commitFailed" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="mobileAppPublishingState">
         <Member Name="notPublished" Value="0" />
         <Member Name="processing" Value="1" />
@@ -4590,6 +4596,13 @@
         <Member Name="externalPartner" Value="4" />
         <Member Name="externalNonPartner" Value="8" />
       </EnumType>
+      <EnumType Name="recipientType">
+        <Member Name="contact" Value="0" />
+        <Member Name="oneOff" Value="1" />
+        <Member Name="mailbox" Value="2" />
+        <Member Name="privateDL" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="recordingStatus">
         <Member Name="unknown" Value="0" />
         <Member Name="notRecording" Value="1" />
@@ -4826,6 +4839,13 @@
         <Member Name="warn" Value="0" />
         <Member Name="audit" Value="1" />
         <Member Name="block" Value="2" />
+      </EnumType>
+      <EnumType Name="retentionPeriodChangeStatus">
+        <Member Name="none" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="failed" Value="2" />
+        <Member Name="completed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="retrievalDataSource">
         <Member Name="sharePoint" Value="0" />
@@ -7502,8 +7522,12 @@
         <Property Name="isVideoOnDemandEnabled" Type="Edm.Boolean" />
       </ComplexType>
       <ComplexType Name="browseQueryResponseItem">
+        <Property Name="createdBy" Type="graph.identitySet" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="itemKey" Type="Edm.String" />
         <Property Name="itemsCount" Type="Edm.Int32" />
+        <Property Name="lastModifiedBy" Type="graph.identitySet" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="name" Type="Edm.String" />
         <Property Name="sizeInBytes" Type="Edm.String" />
         <Property Name="type" Type="graph.browseQueryResponseItemType" Nullable="false" />
@@ -9584,6 +9608,12 @@
         <Property Name="emptySuggestionsReason" Type="Edm.String" />
         <Property Name="meetingTimeSuggestions" Type="Collection(graph.meetingTimeSuggestion)" />
       </ComplexType>
+      <ComplexType Name="member">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="key" Type="Edm.String" />
+        <Property Name="memberId" Type="Edm.String" />
+        <Property Name="type" Type="graph.recipientType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="membersAddedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="initiator" Type="graph.identitySet" />
         <Property Name="members" Type="Collection(graph.teamworkUserIdentity)" />
@@ -9715,6 +9745,9 @@
         <Property Name="deadlineDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="startDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="useLocalTime" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="mobileAppScriptReference">
+        <Property Name="targetId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="modifiedProperty">
         <Property Name="displayName" Type="Edm.String" />
@@ -10892,6 +10925,11 @@
         <Property Name="isMetadataUpdateAllowed" Type="Edm.Boolean" />
         <Property Name="isRecordLocked" Type="Edm.Boolean" />
       </ComplexType>
+      <ComplexType Name="retentionPeriodChange">
+        <Property Name="effectiveFromDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="graph.retentionPeriodChangeStatus" Nullable="false" />
+        <Property Name="targetRetentionPeriodInDays" Type="Edm.Int32" />
+      </ComplexType>
       <ComplexType Name="retentionSetting">
         <Property Name="interval" Type="Edm.String" />
         <Property Name="period" Type="Edm.Duration" />
@@ -11657,6 +11695,12 @@
       <ComplexType Name="teamworkTagIdentity" BaseType="graph.identity" OpenType="true" />
       <ComplexType Name="teamworkUserIdentity" BaseType="graph.identity" OpenType="true">
         <Property Name="userIdentityType" Type="graph.teamworkUserIdentityType" />
+      </ComplexType>
+      <ComplexType Name="telecomProviderSettings">
+        <Property Name="appId" Type="Edm.Guid" Nullable="false" />
+        <Property Name="isEvaluationModeEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="migrationPercentage" Type="Edm.Int32" Nullable="false" />
+        <Property Name="url" Type="Edm.String" Nullable="false" />
       </ComplexType>
       <ComplexType Name="teleconferenceDeviceAudioQuality" BaseType="graph.teleconferenceDeviceMediaQuality" OpenType="true" />
       <ComplexType Name="teleconferenceDeviceMediaQuality" Abstract="true" OpenType="true">
@@ -12929,7 +12973,9 @@
         <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
         <NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" />
       </EntityType>
-      <EntityType Name="agentUser" BaseType="graph.user" OpenType="true" />
+      <EntityType Name="agentUser" BaseType="graph.user" OpenType="true">
+        <Property Name="managerApplications" Type="Collection(Edm.Guid)" Nullable="false" />
+      </EntityType>
       <EntityType Name="agreement" BaseType="graph.entity">
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isPerDeviceAcceptanceRequired" Type="Edm.Boolean" />
@@ -15753,6 +15799,27 @@
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="distributionList" BaseType="graph.outlookItem">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="notes" Type="Edm.String" />
+        <Property Name="personId" Type="Edm.String" />
+        <NavigationProperty Name="members" Type="Collection(graph.distributionListMember)" ContainsTarget="true" />
+        <NavigationProperty Name="singleValueExtendedProperties" Type="Collection(graph.singleValueLegacyExtendedProperty)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+            <Record>
+              <PropertyValue Property="Navigability">
+                <EnumMember>Org.OData.Capabilities.V1.NavigationType/None</EnumMember>
+              </PropertyValue>
+            </Record>
+          </Annotation>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="distributionListMember" BaseType="graph.entity">
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="memberId" Type="Edm.String" />
+        <Property Name="type" Type="graph.recipientType" Nullable="false" />
+        <NavigationProperty Name="contact" Type="graph.contact" />
+      </EntityType>
       <EntityType Name="documentSetVersion" BaseType="graph.listItemVersion">
         <Property Name="comment" Type="Edm.String" />
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -16735,6 +16802,7 @@
       <EntityType Name="granularRestoreArtifactBase" BaseType="graph.entity">
         <Property Name="browseSessionId" Type="Edm.String" />
         <Property Name="completionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="error" Type="graph.publicError" />
         <Property Name="restoredItemKey" Type="Edm.String" />
         <Property Name="restoredItemPath" Type="Edm.String" />
         <Property Name="restoredItemWebUrl" Type="Edm.String" />
@@ -17815,6 +17883,7 @@
       <EntityType Name="mailboxFolder" BaseType="graph.entity">
         <Property Name="childFolderCount" Type="Edm.Int32" />
         <Property Name="displayName" Type="Edm.String" />
+        <Property Name="isHidden" Type="Edm.Boolean" />
         <Property Name="parentFolderId" Type="Edm.String" />
         <Property Name="totalItemCount" Type="Edm.Int32" />
         <Property Name="type" Type="Edm.String" />
@@ -18344,6 +18413,7 @@
       <EntityType Name="mobileAppContent" BaseType="graph.entity">
         <NavigationProperty Name="containedApps" Type="Collection(graph.mobileContainedApp)" ContainsTarget="true" />
         <NavigationProperty Name="files" Type="Collection(graph.mobileAppContentFile)" ContainsTarget="true" />
+        <NavigationProperty Name="scripts" Type="Collection(graph.mobileAppContentScript)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="mobileAppContentFile" BaseType="graph.entity">
         <Property Name="azureStorageUri" Type="Edm.String" />
@@ -18356,6 +18426,11 @@
         <Property Name="size" Type="Edm.Int64" Nullable="false" />
         <Property Name="sizeEncrypted" Type="Edm.Int64" Nullable="false" />
         <Property Name="uploadState" Type="graph.mobileAppContentFileUploadState" Nullable="false" />
+      </EntityType>
+      <EntityType Name="mobileAppContentScript" BaseType="graph.entity" Abstract="true">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="state" Type="graph.mobileAppContentScriptState" Nullable="false" />
       </EntityType>
       <EntityType Name="mobileAppRelationship" BaseType="graph.entity" Abstract="true">
         <Property Name="sourceDisplayName" Type="Edm.String" />
@@ -19679,12 +19754,14 @@
         <Property Name="status" Type="graph.protectionRuleStatus" />
       </EntityType>
       <EntityType Name="protectionUnitBase" BaseType="graph.entity" Abstract="true">
+        <Property Name="backupRetentionPeriodInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="error" Type="graph.publicError" />
         <Property Name="lastModifiedBy" Type="graph.identitySet" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="offboardRequestedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="pendingRetentionPeriodChange" Type="graph.retentionPeriodChange" />
         <Property Name="policyId" Type="Edm.String" />
         <Property Name="protectionSources" Type="graph.protectionSource" Nullable="false" />
         <Property Name="status" Type="graph.protectionUnitStatus" />
@@ -20825,6 +20902,7 @@
         <Property Name="skypeId" Type="Edm.String" />
       </EntityType>
       <EntityType Name="smsAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
+        <Property Name="telecomProviderSettings" Type="graph.telecomProviderSettings" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.smsAuthenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="smsAuthenticationMethodTarget" BaseType="graph.authenticationMethodTarget">
@@ -21405,10 +21483,12 @@
         <NavigationProperty Name="targetSchedule" Type="graph.unifiedRoleAssignmentSchedule" />
       </EntityType>
       <EntityType Name="unifiedRoleDefinition" BaseType="graph.entity">
+        <Property Name="deletedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isBuiltIn" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isPrivileged" Type="Edm.Boolean" />
         <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
         <Property Name="templateId" Type="Edm.String" />
@@ -21732,6 +21812,7 @@
             </Record>
           </Annotation>
         </NavigationProperty>
+        <NavigationProperty Name="distributionLists" Type="Collection(graph.distributionList)" ContainsTarget="true" />
         <NavigationProperty Name="drive" Type="graph.drive" />
         <NavigationProperty Name="drives" Type="Collection(graph.drive)" />
         <NavigationProperty Name="employeeExperience" Type="graph.employeeExperienceUser" ContainsTarget="true" />
@@ -22512,6 +22593,7 @@
       <EntityType Name="virtualEventWebinarRegistrationConfiguration" BaseType="graph.virtualEventRegistrationConfiguration" />
       <EntityType Name="voiceAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <Property Name="isOfficePhoneAllowed" Type="Edm.Boolean" />
+        <Property Name="telecomProviderSettings" Type="graph.telecomProviderSettings" />
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="vppToken" BaseType="graph.entity">
@@ -22547,6 +22629,8 @@
         <Property Name="policyApplies" Type="Edm.Boolean" Nullable="false" />
       </EntityType>
       <EntityType Name="win32LobApp" BaseType="graph.mobileLobApp">
+        <Property Name="activeInstallScript" Type="graph.mobileAppScriptReference" />
+        <Property Name="activeUninstallScript" Type="graph.mobileAppScriptReference" />
         <Property Name="allowedArchitectures" Type="graph.windowsArchitecture" />
         <Property Name="applicableArchitectures" Type="graph.windowsArchitecture" Nullable="false" />
         <Property Name="installCommandLine" Type="Edm.String" />
@@ -22562,6 +22646,12 @@
         <Property Name="setupFilePath" Type="Edm.String" />
         <Property Name="uninstallCommandLine" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="win32LobAppInstallPowerShellScript" BaseType="graph.win32LobAppScript" />
+      <EntityType Name="win32LobAppScript" BaseType="graph.mobileAppContentScript" Abstract="true">
+        <Property Name="enforceSignatureCheck" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="runAs32Bit" Type="Edm.Boolean" Nullable="false" />
+      </EntityType>
+      <EntityType Name="win32LobAppUninstallPowerShellScript" BaseType="graph.win32LobAppScript" />
       <EntityType Name="windows10CompliancePolicy" BaseType="graph.deviceCompliancePolicy">
         <Property Name="bitLockerEnabled" Type="Edm.Boolean" Nullable="false" />
         <Property Name="codeIntegrityEnabled" Type="Edm.Boolean" Nullable="false" />
@@ -23710,6 +23800,11 @@
         <Parameter Name="bindingParameter" Type="graph.call" />
         <Parameter Name="clientContext" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.addLargeGalleryViewOperation" />
+      </Action>
+      <Action Name="addMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.distributionList" />
+        <Parameter Name="Members" Type="Collection(graph.member)" Nullable="false" />
+        <ReturnType Type="graph.distributionList" />
       </Action>
       <Action Name="addPassword" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.application" Nullable="false" />
@@ -24908,6 +25003,11 @@
       <Action Name="deleteAndUnprotect" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.protectionRuleBase" />
         <ReturnType Type="graph.protectionRuleBase" />
+      </Action>
+      <Action Name="deleteMembers" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.distributionList" />
+        <Parameter Name="Members" Type="Collection(graph.member)" Nullable="false" />
+        <ReturnType Type="graph.distributionList" />
       </Action>
       <Action Name="deleteTargetedMessage" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.userTeamwork" />
@@ -31872,6 +31972,12 @@
         <Member Name="preview" Value="4" />
         <Member Name="extensibilityOnDemand" Value="5" />
       </EnumType>
+      <EnumType Name="workflowTriggerOperatorEventTiming">
+        <Member Name="before" Value="0" />
+        <Member Name="after" Value="1" />
+        <Member Name="on" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="workflowTriggerTimeBasedAttribute">
         <Member Name="employeeHireDate" Value="0" />
         <Member Name="employeeLeaveDateTime" Value="1" />
@@ -31944,6 +32050,16 @@
         <Property Name="changeType" Type="microsoft.graph.identityGovernance.membershipChangeType" Nullable="false" />
       </ComplexType>
       <ComplexType Name="onDemandExecutionOnly" BaseType="microsoft.graph.identityGovernance.workflowExecutionConditions" />
+      <ComplexType Name="operatorBetween" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="greaterThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+        <Property Name="lessThanOffsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="operatorLessThanEqualTo" BaseType="microsoft.graph.identityGovernance.workflowTriggerTimeBasedOperator">
+        <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="parameter">
         <Property Name="name" Type="Edm.String" Nullable="false" />
         <Property Name="values" Type="Collection(Edm.String)" />
@@ -32001,6 +32117,10 @@
         <Property Name="offsetInDays" Type="Edm.Int32" Nullable="false" />
         <Property Name="timeBasedAttribute" Type="microsoft.graph.identityGovernance.workflowTriggerTimeBasedAttribute" Nullable="false" />
       </ComplexType>
+      <ComplexType Name="timeBasedAttributeTriggerV2" BaseType="microsoft.graph.identityGovernance.workflowExecutionTrigger">
+        <Property Name="attribute" Type="Edm.String" Nullable="false" />
+        <Property Name="operator" Type="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="topTasksInsightsSummary">
         <Property Name="failedTasks" Type="Edm.Int32" Nullable="false" />
         <Property Name="failedUsers" Type="Edm.Int32" Nullable="false" />
@@ -32049,6 +32169,7 @@
       </ComplexType>
       <ComplexType Name="workflowExecutionConditions" Abstract="true" />
       <ComplexType Name="workflowExecutionTrigger" Abstract="true" />
+      <ComplexType Name="workflowExecutionTriggerOperator" Abstract="true" />
       <ComplexType Name="workflowSetting">
         <Property Name="quarantineConfiguration" Type="microsoft.graph.identityGovernance.quarantineConfiguration" />
       </ComplexType>
@@ -32075,6 +32196,9 @@
         <Property Name="totalUsers" Type="Edm.Int32" Nullable="false" />
       </ComplexType>
       <ComplexType Name="workflowSubject" Abstract="true" />
+      <ComplexType Name="workflowTriggerTimeBasedOperator" BaseType="microsoft.graph.identityGovernance.workflowExecutionTriggerOperator" Abstract="true">
+        <Property Name="eventTiming" Type="microsoft.graph.identityGovernance.workflowTriggerOperatorEventTiming" Nullable="false" />
+      </ComplexType>
       <EntityType Name="customTaskExtension" BaseType="graph.customCalloutExtension">
         <Property Name="callbackConfiguration" Type="graph.customExtensionCallbackConfiguration" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -32427,6 +32551,20 @@
           </Record>
         </Annotation>
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.agentUser/managerApplications">
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Collection of application (appId) GUIDs that act as managers for this agent user's backing agent blueprint. Server-managed; read-only. Only returned with $select." />
       </Annotations>
       <Annotations Target="microsoft.graph.agreement">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -37515,6 +37653,40 @@
       </Annotations>
       <Annotations Target="microsoft.graph.diskType/unknownFutureValue">
         <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.distributionList/members">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.distributionListMember/contact">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
       </Annotations>
       <Annotations Target="microsoft.graph.downloadApplePushNotificationCertificateSigningRequest(microsoft.graph.applePushNotificationCertificate)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Download Apple push notification certificate signing request" />
@@ -43500,6 +43672,9 @@
       <Annotations Target="microsoft.graph.mobileAppContent/files">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of files for this app content version." />
       </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContent/scripts">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The list of scripts for this app content version." />
+      </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFile">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for a single installer file that is associated with a given mobileAppContent version." />
       </Annotations>
@@ -43555,6 +43730,37 @@
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppContentFileUploadState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for upload request states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties for a script associated with amobileLobApp entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/content">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The content of the script. This is a Base64-encoded representation of the script's original content. The original content (before Base64 encoding) has a maximum size limit of 100KB." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/displayName">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The display name for the script." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScript/state">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the state of the script upload. Possible values are commitPending, commitSuccess, and commitFailed. This property is read-only." />
+        <Annotation Term="Org.OData.Core.V1.Permissions">
+          <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A list of possible script lifecycle states." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitFailed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script is in an unusable state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitPending">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script content is in a pending state." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/commitSuccess">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates that the script content is ready." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppContentScriptState/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppIdentifier">
         <Annotation Term="Org.OData.Core.V1.Description" String="The identifier for a mobile app." />
@@ -43637,6 +43843,12 @@
         <Annotation Term="Org.OData.Core.V1.Permissions">
           <EnumMember>Org.OData.Core.V1.Permission/Read</EnumMember>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppScriptReference">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A complex type that contains an identifier which is a reference an associated mobileAppContentScript entity." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.mobileAppScriptReference/targetId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The identifier of an associated mobileAppContentScript entity." />
       </Annotations>
       <Annotations Target="microsoft.graph.mobileAppTroubleshootingEvent/appLogCollectionRequests">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates collection of App Log Upload Request." />
@@ -44396,6 +44608,9 @@
             </Record>
           </Collection>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.protectionUnitBase/pendingRetentionPeriodChange">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
       </Annotations>
       <Annotations Target="microsoft.graph.provisioningObjectSummary">
         <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
@@ -48197,6 +48412,23 @@
       <Annotations Target="microsoft.graph.user/deviceManagementTroubleshootingEvents">
         <Annotation Term="Org.OData.Core.V1.Description" String="The list of troubleshooting events for this user." />
       </Annotations>
+      <Annotations Target="microsoft.graph.user/distributionLists">
+        <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SearchRestrictions">
+          <Record>
+            <PropertyValue Property="Searchable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
       <Annotations Target="microsoft.graph.user/events">
         <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
           <Record>
@@ -49588,6 +49820,12 @@
       <Annotations Target="microsoft.graph.win32LobApp">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains properties and inherited properties for Win32 apps." />
       </Annotations>
+      <Annotations Target="microsoft.graph.win32LobApp/activeInstallScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains the unique identifier of the associated install script for this Win32 app to be used instead of the install command line by the managed device during app installation. When null, the install command line is used instead." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobApp/activeUninstallScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Contains the unique identifier of the associated uninstall script for this Win32 app to be used instead of the uninstall command line by the managed device during app uninstallation. When null, the uninstall command line is used instead." />
+      </Annotations>
       <Annotations Target="microsoft.graph.win32LobApp/allowedArchitectures">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the Windows architecture(s) this app should be installed on. The app will be treated as not applicable for devices with architectures not matching the selected value. When a non-null value is provided for the `allowedArchitectures` property, the value of the `applicableArchitectures` property is set to `none`. Possible values are: `null`, `x86`, `x64`, `arm64`." />
       </Annotations>
@@ -49713,6 +49951,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppInstallExperience/runAsAccount">
         <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the type of execution context the app runs in." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppInstallPowerShellScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a PowerShell script that is used to install a Win32 app on an end-user device managed by Intune." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppMsiInformation">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains MSI app properties for a Win32 App." />
@@ -49959,6 +50200,18 @@
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAppRuleType/requirement">
         <Annotation Term="Org.OData.Core.V1.Description" String="Requirement rule." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a script that can be run on an end-user device managed by Intune in relation to a Win32 app." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript/enforceSignatureCheck">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether or not to enforce a signature check when running the script. When TRUE, the script cannot be run without enforcing a signature check. When FALSE, no signature check will be enforced when running the script. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppScript/runAs32Bit">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates whether the script will run as 32-bit or 64-bit. When TRUE, the script will run as 32-bit. When FALSE, the script will run as 64-bit. Default value is FALSE." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.win32LobAppUninstallPowerShellScript">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A representation of a PowerShell script that is used to uninstall a Win32 app on an end-user device managed by Intune." />
       </Annotations>
       <Annotations Target="microsoft.graph.win32LobAutoUpdateSupersededAppsState">
         <Annotation Term="Org.OData.Core.V1.Description" String="Contains value for auto-update superseded apps." />
