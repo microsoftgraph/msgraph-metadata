@@ -866,6 +866,11 @@
         <Member Name="Boolean" Value="4" />
         <Member Name="DateTime" Value="5" />
       </EnumType>
+      <EnumType Name="auditIdentityType">
+        <Member Name="agent" Value="0" />
+        <Member Name="servicePrincipal" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="authenticationAppAdminConfiguration">
         <Member Name="notApplicable" Value="0" />
         <Member Name="enabled" Value="1" />
@@ -2397,6 +2402,7 @@
         <Member Name="companyPortal" Value="25" />
         <Member Name="windowsRecoveryAndRemediationConfiguration" Value="26" />
         <Member Name="maintenanceWindows" Value="27" />
+        <Member Name="endpointSecurityShieldingExclusions" Value="28" />
       </EnumType>
       <EnumType Name="deviceManagementConfigurationWindowsSkus">
         <Member Name="unknown" Value="0" />
@@ -8125,6 +8131,11 @@
         <Property Name="linkableIdentifiers" Type="graph.linkableIdentifiers" />
         <Property Name="user" Type="graph.auditUserIdentity" />
       </ComplexType>
+      <ComplexType Name="auditActivityPerformer">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="identityType" Type="graph.auditIdentityType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="auditActor">
         <Property Name="applicationDisplayName" Type="Edm.String" />
         <Property Name="applicationId" Type="Edm.String" />
@@ -9234,6 +9245,7 @@
       <ComplexType Name="deviceEnrollmentPlatformRestriction">
         <Property Name="blockedManufacturers" Type="Collection(Edm.String)" />
         <Property Name="blockedSkus" Type="Collection(Edm.String)" />
+        <Property Name="isServerEnrollmentBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="osMaximumVersion" Type="Edm.String" />
         <Property Name="osMinimumVersion" Type="Edm.String" />
         <Property Name="personalDeviceEnrollmentBlocked" Type="Edm.Boolean" Nullable="false" />
@@ -16360,7 +16372,6 @@
         <Property Name="etag" Type="Edm.String" />
         <Property Name="eventDetail" Type="graph.eventMessageDetail" />
         <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
-        <Property Name="hasReplies" Type="Edm.Boolean" Nullable="false" />
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false" />
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -18050,6 +18061,7 @@
         <Property Name="settingTemplateCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="technologies" Type="graph.deviceManagementConfigurationTechnologies" Nullable="false" />
         <Property Name="templateFamily" Type="graph.deviceManagementConfigurationTemplateFamily" Nullable="false" />
+        <Property Name="templatePublisher" Type="Edm.String" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
         <NavigationProperty Name="settingTemplates" Type="Collection(graph.deviceManagementConfigurationSettingTemplate)" ContainsTarget="true" />
       </EntityType>
@@ -18409,6 +18421,7 @@
         <Property Name="initiatedBy" Type="graph.auditActivityInitiator" Nullable="false" />
         <Property Name="loggedByService" Type="Edm.String" />
         <Property Name="operationType" Type="Edm.String" />
+        <Property Name="performedBy" Type="graph.auditActivityPerformer" />
         <Property Name="result" Type="graph.operationResult" />
         <Property Name="resultReason" Type="Edm.String" />
         <Property Name="targetResources" Type="Collection(graph.targetResource)" />
@@ -31739,6 +31752,7 @@
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="hasReplies" Type="Edm.Boolean" AppliesTo="microsoft.graph.chatMessage" />
       <Term Name="queries" Type="Edm.String" AppliesTo="microsoft.graph.groundingItem)" />
       <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="size" Type="Edm.String" AppliesTo="microsoft.graph.groundingItem)" />
@@ -43904,6 +43918,10 @@
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/blockedSkus">
         <Annotation Term="Org.OData.Core.V1.Description" String="Collection of blocked Skus." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/isServerEnrollmentBlocked">
+        <Annotation Term="Org.OData.Core.V1.ComputedDefaultValue" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Block servers from enrolling" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/osMaximumVersion">
         <Annotation Term="Org.OData.Core.V1.Description" String="Max OS version supported" />
       </Annotations>
@@ -46278,6 +46296,9 @@
       <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/templateFamily">
         <Annotation Term="Org.OData.Core.V1.Description" String="TemplateFamily for this template" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/templatePublisher">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the publisher of the template." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/version">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Template version. Valid values 1 to 2147483647. This property is read-only." />
@@ -46806,6 +46827,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/endpointSecurityFirewall">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EndpointSecurityFirewall that helps configure a devices built-in firewall for device that run macOS and Windows 10" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/endpointSecurityShieldingExclusions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifies policy templates that let Intune administrators exclude targeted devices from Defender Shielding mitigation recommendations and enforcement" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/enrollmentConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EnrollmentConfiguration" />

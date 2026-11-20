@@ -1522,6 +1522,13 @@
         <Member Name="discovered" Value="11" />
         <Member Name="unknownFutureValue" Value="12" />
       </EnumType>
+      <EnumType Name="maxWorkLocationDetails">
+        <Member Name="unknown" Value="0" />
+        <Member Name="none" Value="1" />
+        <Member Name="approximate" Value="2" />
+        <Member Name="specific" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="mdmAppConfigKeyType">
         <Member Name="stringType" Value="0" />
         <Member Name="integerType" Value="1" />
@@ -3276,6 +3283,11 @@
         <Member Name="remote" Value="2" />
         <Member Name="timeOff" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="workLocationUpdateScope">
+        <Member Name="currentSegment" Value="1" />
+        <Member Name="currentDay" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="x509CertificateAffinityLevel">
         <Member Name="low" Value="0" />
@@ -6465,6 +6477,10 @@
       <ComplexType Name="timeConstraint">
         <Property Name="activityDomain" Type="graph.activityDomain" />
         <Property Name="timeSlots" Type="Collection(graph.timeSlot)" />
+      </ComplexType>
+      <ComplexType Name="timeOffDetails">
+        <Property Name="isAllDay" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="subject" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="timeSlot">
         <Property Name="end" Type="graph.dateTimeTimeZone" Nullable="false" />
@@ -11521,6 +11537,7 @@
         <Property Name="displayName" Type="Edm.String" />
         <Property Name="isBuiltIn" Type="Edm.Boolean" />
         <Property Name="isEnabled" Type="Edm.Boolean" />
+        <Property Name="isPrivileged" Type="Edm.Boolean" />
         <Property Name="resourceScopes" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="rolePermissions" Type="Collection(graph.unifiedRolePermission)" Nullable="false" />
         <Property Name="templateId" Type="Edm.String" />
@@ -12048,6 +12065,7 @@
       </EntityType>
       <EntityType Name="userSettings" BaseType="graph.entity">
         <NavigationProperty Name="itemInsights" Type="graph.userInsightsSettings" ContainsTarget="true" />
+        <NavigationProperty Name="workHoursAndLocations" Type="graph.workHoursAndLocationsSetting" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="userSignInInsight" BaseType="graph.governanceInsight">
         <Property Name="lastSignInDateTime" Type="Edm.DateTimeOffset" />
@@ -12820,6 +12838,26 @@
       </EntityType>
       <EntityType Name="windowsWebApp" BaseType="graph.mobileApp">
         <Property Name="appUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="workHoursAndLocationsSetting" BaseType="graph.entity">
+        <Property Name="maxSharedWorkLocationDetails" Type="graph.maxWorkLocationDetails" Nullable="false" />
+        <NavigationProperty Name="occurrences" Type="Collection(graph.workPlanOccurrence)" ContainsTarget="true" />
+        <NavigationProperty Name="recurrences" Type="Collection(graph.workPlanRecurrence)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="workPlanOccurrence" BaseType="graph.entity">
+        <Property Name="end" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="placeId" Type="Edm.String" />
+        <Property Name="recurrenceId" Type="Edm.String" />
+        <Property Name="start" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="timeOffDetails" Type="graph.timeOffDetails" />
+        <Property Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
+      </EntityType>
+      <EntityType Name="workPlanRecurrence" BaseType="graph.entity">
+        <Property Name="end" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="placeId" Type="Edm.String" />
+        <Property Name="recurrence" Type="graph.patternedRecurrence" Nullable="false" />
+        <Property Name="start" Type="graph.dateTimeTimeZone" Nullable="false" />
+        <Property Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
       </EntityType>
       <EntityType Name="workspace" BaseType="graph.place">
         <Property Name="capacity" Type="Edm.Int32" />
@@ -14303,6 +14341,12 @@
         <Parameter Name="workLocationType" Type="graph.workLocationType" Nullable="false" />
         <Parameter Name="placeId" Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="setCurrentLocation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.workPlanOccurrence)" />
+        <Parameter Name="updateScope" Type="graph.workLocationUpdateScope" />
+        <Parameter Name="workLocationType" Type="graph.workLocationType" />
+        <Parameter Name="placeId" Type="Edm.String" Unicode="false" />
+      </Action>
       <Action Name="setExternalEventInformation" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.virtualEvent" />
         <Parameter Name="externalEventId" Type="Edm.String" Unicode="false" />
@@ -15047,6 +15091,12 @@
         <Parameter Name="bindingParameter" Type="graph.reportRoot" />
         <Parameter Name="period" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.report" />
+      </Function>
+      <Function Name="occurrencesView" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.workHoursAndLocationsSetting" />
+        <Parameter Name="startDateTime" Type="Edm.String" Nullable="false" Unicode="false" />
+        <Parameter Name="endDateTime" Type="Edm.String" Unicode="false" />
+        <ReturnType Type="Collection(graph.workPlanOccurrence)" />
       </Function>
       <Function Name="recent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
@@ -29062,6 +29112,81 @@
       </Annotations>
       <Annotations Target="microsoft.graph.wipeManagedAppRegistrationsByDeviceTag(microsoft.graph.user, Edm.String)">
         <Annotation Term="Org.OData.Core.V1.Description" String="Issues a wipe operation on an app registration with specified device tag." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.workHoursAndLocationsSetting">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+            <PropertyValue Property="Description" String="Deletion of workHoursAndLocations is not supported." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Direct creation of workHoursAndLocations is not supported." />
+            <PropertyValue Property="Insertable" Bool="false" />
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.workPlanOccurrence">
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="true" />
+            <PropertyValue Property="Description" String="Only time-off occurrences can be deleted. Occurrences generated from recurrences cannot be deleted." />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Only time-off occurrences can be created directly. Other occurrences are auto-generated from recurrences." />
+            <PropertyValue Property="Insertable" Bool="true" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Reading individual occurrences by ID is not supported. Use the occurrencesView function with date range parameters instead." />
+                <PropertyValue Property="Readable" Bool="false" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Updates require the full occurrence object to be provided (PUT semantics). PATCH is not supported." />
+            <PropertyValue Property="Updatable" Bool="true" />
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.workPlanRecurrence">
+        <Annotation Term="Org.OData.Capabilities.V1.ReadRestrictions">
+          <Record>
+            <PropertyValue Property="Readable" Bool="true" />
+            <PropertyValue Property="ReadByKeyRestrictions">
+              <Record>
+                <PropertyValue Property="Description" String="Reading individual recurrences by ID is not supported. Use the recurrences collection endpoint instead." />
+                <PropertyValue Property="Readable" Bool="false" />
+              </Record>
+            </PropertyValue>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Description" String="Updates require the full recurrence object to be provided (PUT semantics). PATCH is not supported." />
+            <PropertyValue Property="Updatable" Bool="true" />
+            <PropertyValue Property="UpdateMethod">
+              <EnumMember>Org.OData.Capabilities.V1.HttpMethod/PUT</EnumMember>
+            </PropertyValue>
+          </Record>
+        </Annotation>
       </Annotations>
     </Schema>
     <Schema Namespace="microsoft.graph.security" xmlns="http://docs.oasis-open.org/odata/ns/edm">

@@ -951,6 +951,11 @@
         <Member Name="Boolean" Value="4" />
         <Member Name="DateTime" Value="5" />
       </EnumType>
+      <EnumType Name="auditIdentityType">
+        <Member Name="agent" Value="0" />
+        <Member Name="servicePrincipal" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <EnumType Name="auditLogRecordType" />
       <EnumType Name="auditLogUserType" />
       <EnumType Name="authenticationAppAdminConfiguration">
@@ -1844,6 +1849,22 @@
         <Member Name="inaccessibleCloudPcTrendReport" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
       </EnumType>
+      <EnumType Name="cloudPcManagedLicenseOperationFailureCode">
+        <Member Name="internalServiceError" Value="0" />
+        <Member Name="noActiveProvisioningPolicyAssignment" Value="1" />
+        <Member Name="userLicenseAssignmentNotEnabled" Value="2" />
+        <Member Name="maximumAccessDurationExceeded" Value="3" />
+        <Member Name="sufficientAccessTimeRemaining" Value="4" />
+        <Member Name="noEligibleLicenseAvailable" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="cloudPcManagedLicenseOperationStatus">
+        <Member Name="inProgress" Value="0" />
+        <Member Name="succeeded" Value="1" />
+        <Member Name="partiallySucceeded" Value="2" />
+        <Member Name="failed" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="cloudPcManagedLicenseStatus">
         <Member Name="enabled" Value="0" />
         <Member Name="expired" Value="1" />
@@ -1886,6 +1907,7 @@
         <Member Name="endpointConnectivityCheckAzureADUrlNotAllowListed" Value="303" />
         <Member Name="endpointConnectivityCheckLocaleUrlNotAllowListed" Value="304" />
         <Member Name="endpointConnectivityCheckVMAgentEndPointCommunicationError" Value="305" />
+        <Member Name="endpointConnectivityCheckAllEndpointChecksFailed" Value="398" />
         <Member Name="endpointConnectivityCheckUnknownError" Value="399" />
         <Member Name="azureAdDeviceSyncCheckDeviceNotFound" Value="400" />
         <Member Name="azureAdDeviceSyncCheckLongSyncCircle" Value="401" />
@@ -3420,6 +3442,7 @@
         <Member Name="companyPortal" Value="25" />
         <Member Name="windowsRecoveryAndRemediationConfiguration" Value="26" />
         <Member Name="maintenanceWindows" Value="27" />
+        <Member Name="endpointSecurityShieldingExclusions" Value="28" />
       </EnumType>
       <EnumType Name="deviceManagementConfigurationWindowsSkus">
         <Member Name="unknown" Value="0" />
@@ -7068,6 +7091,14 @@
         <Member Name="aborted" Value="7" />
         <Member Name="unknownFutureValue" Value="8" />
       </EnumType>
+      <EnumType Name="printJobReleaseMethods" IsFlags="true">
+        <Member Name="none" Value="0" />
+        <Member Name="unknown" Value="1" />
+        <Member Name="badge" Value="2" />
+        <Member Name="biometrics" Value="4" />
+        <Member Name="usernamePassword" Value="8" />
+        <Member Name="unknownFutureValue" Value="16" />
+      </EnumType>
       <EnumType Name="printJobStateDetail">
         <Member Name="uploadPending" Value="0" />
         <Member Name="transforming" Value="1" />
@@ -8189,6 +8220,7 @@
         <Member Name="medium" Value="2" />
         <Member Name="high" Value="3" />
         <Member Name="unknownFutureValue" Value="4" />
+        <Member Name="informational" Value="5" />
       </EnumType>
       <EnumType Name="sharedPCAccountDeletionPolicyType">
         <Member Name="immediate" Value="0" />
@@ -10966,6 +10998,11 @@
         <Property Name="linkableIdentifiers" Type="graph.linkableIdentifiers" />
         <Property Name="user" Type="graph.auditUserIdentity" />
       </ComplexType>
+      <ComplexType Name="auditActivityPerformer">
+        <Property Name="appId" Type="Edm.String" Nullable="false" />
+        <Property Name="blueprintId" Type="Edm.String" />
+        <Property Name="identityType" Type="graph.auditIdentityType" Nullable="false" />
+      </ComplexType>
       <ComplexType Name="auditActor">
         <Property Name="applicationDisplayName" Type="Edm.String" />
         <Property Name="applicationId" Type="Edm.String" />
@@ -11735,6 +11772,21 @@
       </ComplexType>
       <ComplexType Name="cloudPcLoginResult">
         <Property Name="time" Type="Edm.DateTimeOffset" />
+      </ComplexType>
+      <ComplexType Name="cloudPcManagedLicenseExtendAccess" BaseType="graph.cloudPcManagedLicenseOperation">
+        <Property Name="entraUserIds" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="operationStatus" Type="graph.cloudPcManagedLicenseOperationStatus" Nullable="false" />
+        <Property Name="results" Type="Collection(graph.cloudPcManagedLicenseOperationResult)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="cloudPcManagedLicenseOperation" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="operationRequestId" Type="Edm.String" Nullable="false" />
+        <Property Name="servicePlanId" Type="Edm.String" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="cloudPcManagedLicenseOperationResult">
+        <Property Name="entraUserId" Type="Edm.String" Nullable="false" />
+        <Property Name="failureCode" Type="graph.cloudPcManagedLicenseOperationFailureCode" />
+        <Property Name="operationResultStatus" Type="graph.cloudPcManagedLicenseOperationStatus" Nullable="false" />
       </ComplexType>
       <ComplexType Name="cloudPcManagementAssignmentTarget" Abstract="true" />
       <ComplexType Name="cloudPcManagementGroupAssignmentTarget" BaseType="graph.cloudPcManagementAssignmentTarget">
@@ -12669,6 +12721,7 @@
       <ComplexType Name="deviceEnrollmentPlatformRestriction">
         <Property Name="blockedManufacturers" Type="Collection(Edm.String)" />
         <Property Name="blockedSkus" Type="Collection(Edm.String)" />
+        <Property Name="isServerEnrollmentBlocked" Type="Edm.Boolean" Nullable="false" />
         <Property Name="osMaximumVersion" Type="Edm.String" />
         <Property Name="osMinimumVersion" Type="Edm.String" />
         <Property Name="personalDeviceEnrollmentBlocked" Type="Edm.Boolean" Nullable="false" />
@@ -15869,6 +15922,10 @@
         <Property Name="streetAddress" Type="Edm.String" />
         <Property Name="subdivision" Type="Collection(Edm.String)" />
         <Property Name="subunit" Type="Collection(Edm.String)" />
+      </ComplexType>
+      <ComplexType Name="printerProvidedReleaseSupport">
+        <Property Name="isPullPrintEnabled" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="jobReleaseMethods" Type="graph.printJobReleaseMethods" Nullable="false" />
       </ComplexType>
       <ComplexType Name="printerShareViewpoint">
         <Property Name="lastUsedDateTime" Type="Edm.DateTimeOffset" />
@@ -21126,7 +21183,6 @@
         <Property Name="etag" Type="Edm.String" />
         <Property Name="eventDetail" Type="graph.eventMessageDetail" />
         <Property Name="from" Type="graph.chatMessageFromIdentitySet" />
-        <Property Name="hasReplies" Type="Edm.Boolean" Nullable="false" />
         <Property Name="importance" Type="graph.chatMessageImportance" Nullable="false" />
         <Property Name="lastEditedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
@@ -23252,6 +23308,7 @@
         <Property Name="settingTemplateCount" Type="Edm.Int32" Nullable="false" />
         <Property Name="technologies" Type="graph.deviceManagementConfigurationTechnologies" Nullable="false" />
         <Property Name="templateFamily" Type="graph.deviceManagementConfigurationTemplateFamily" Nullable="false" />
+        <Property Name="templatePublisher" Type="Edm.String" />
         <Property Name="version" Type="Edm.Int32" Nullable="false" />
         <NavigationProperty Name="settingTemplates" Type="Collection(graph.deviceManagementConfigurationSettingTemplate)" ContainsTarget="true" />
       </EntityType>
@@ -23613,6 +23670,7 @@
         <Property Name="initiatedBy" Type="graph.auditActivityInitiator" Nullable="false" />
         <Property Name="loggedByService" Type="Edm.String" />
         <Property Name="operationType" Type="Edm.String" />
+        <Property Name="performedBy" Type="graph.auditActivityPerformer" />
         <Property Name="result" Type="graph.operationResult" />
         <Property Name="resultReason" Type="Edm.String" />
         <Property Name="targetResources" Type="Collection(graph.targetResource)" />
@@ -27712,6 +27770,7 @@
         <NavigationProperty Name="connectors" Type="Collection(graph.printConnector)" ContainsTarget="true" />
         <NavigationProperty Name="operations" Type="Collection(graph.printOperation)" ContainsTarget="true" />
         <NavigationProperty Name="printers" Type="Collection(graph.printer)" ContainsTarget="true" />
+        <NavigationProperty Name="pullPrintPrinters" Type="Collection(graph.pullPrintPrinter)" ContainsTarget="true" />
         <NavigationProperty Name="services" Type="Collection(graph.printService)" ContainsTarget="true" />
         <NavigationProperty Name="shares" Type="Collection(graph.printerShare)" ContainsTarget="true" />
         <NavigationProperty Name="taskDefinitions" Type="Collection(graph.printTaskDefinition)" ContainsTarget="true" />
@@ -27735,8 +27794,10 @@
         <Property Name="hasPhysicalDevice" Type="Edm.Boolean" Nullable="false" />
         <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
         <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="printerProvidedReleaseSupport" Type="graph.printerProvidedReleaseSupport" Nullable="false" />
         <Property Name="registeredDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <NavigationProperty Name="connectors" Type="Collection(graph.printConnector)" />
+        <NavigationProperty Name="pullPrintPrinters" Type="Collection(graph.pullPrintPrinter)" />
         <NavigationProperty Name="shares" Type="Collection(graph.printerShare)" />
         <NavigationProperty Name="taskTriggers" Type="Collection(graph.printTaskTrigger)" ContainsTarget="true" />
       </EntityType>
@@ -27758,10 +27819,12 @@
       <EntityType Name="printerShare" BaseType="graph.printerBase">
         <Property Name="allowAllUsers" Type="Edm.Boolean" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="holdJobsForSecureRelease" Type="Edm.Boolean" Nullable="false" />
         <Property Name="viewPoint" Type="graph.printerShareViewpoint" />
         <NavigationProperty Name="allowedGroups" Type="Collection(graph.group)" />
         <NavigationProperty Name="allowedUsers" Type="Collection(graph.user)" />
         <NavigationProperty Name="printer" Type="graph.printer" />
+        <NavigationProperty Name="pullPrintPrinter" Type="graph.pullPrintPrinter" />
       </EntityType>
       <EntityType Name="printJob" BaseType="graph.entity">
         <Property Name="acknowledgedDateTime" Type="Edm.DateTimeOffset" />
@@ -27774,6 +27837,7 @@
         <Property Name="isFetchable" Type="Edm.Boolean" Nullable="false" />
         <Property Name="redirectedFrom" Type="Edm.String" />
         <Property Name="redirectedTo" Type="Edm.String" />
+        <Property Name="releasedDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="status" Type="graph.printJobStatus" Nullable="false" />
         <NavigationProperty Name="documents" Type="Collection(graph.printDocument)" ContainsTarget="true" />
         <NavigationProperty Name="tasks" Type="Collection(graph.printTask)" />
@@ -28089,6 +28153,15 @@
         <Property Name="resourceName" Type="Edm.String" />
         <NavigationProperty Name="agentGroups" Type="Collection(graph.onPremisesAgentGroup)" />
       </EntityType>
+      <EntityType Name="pullPrintPrinter" BaseType="graph.printerBase">
+        <Property Name="includeAllPrinters" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="registeredDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <NavigationProperty Name="printers" Type="Collection(graph.printer)" />
+        <NavigationProperty Name="shares" Type="Collection(graph.printerShare)" />
+      </EntityType>
+      <EntityType Name="pullPrintPrinterCreateOperation" BaseType="graph.printOperation">
+        <NavigationProperty Name="pullPrintPrinter" Type="graph.pullPrintPrinter" />
+      </EntityType>
       <EntityType Name="qrAuthenticationMethodConfiguration" BaseType="graph.authenticationMethodConfiguration">
         <NavigationProperty Name="includeTargets" Type="Collection(graph.authenticationMethodTarget)" ContainsTarget="true" />
       </EntityType>
@@ -28340,6 +28413,7 @@
         <Property Name="additionalInfo" Type="Edm.String" />
         <Property Name="agentDisplayName" Type="Edm.String" />
         <Property Name="agentPlatform" Type="Edm.String" />
+        <Property Name="agentTypeId" Type="Edm.String" />
         <Property Name="associatedUserId" Type="Edm.String" />
         <Property Name="blastRadiusRisk" Type="graph.blastRadiusRisk" />
         <Property Name="blueprintId" Type="Edm.String" />
@@ -28537,6 +28611,7 @@
         <NavigationProperty Name="alerts_v2" Type="Collection(self.alert)" ContainsTarget="true" />
         <NavigationProperty Name="cases" Type="self.casesRoot" ContainsTarget="true" />
         <NavigationProperty Name="collaboration" Type="self.collaborationRoot" ContainsTarget="true" />
+        <NavigationProperty Name="dataDiscovery" Type="self.dataDiscoveryRoot" ContainsTarget="true" />
         <NavigationProperty Name="dataSecurityAndGovernance" Type="graph.tenantDataSecurityAndGovernance" ContainsTarget="true" />
         <NavigationProperty Name="identities" Type="self.identityContainer" ContainsTarget="true" />
         <NavigationProperty Name="incidents" Type="Collection(self.incident)" ContainsTarget="true" />
@@ -37979,6 +38054,11 @@
         <Parameter Name="approvalSource" Type="graph.operationApprovalSource" />
         <ReturnType Type="Edm.String" Unicode="false" />
       </Action>
+      <Action Name="release" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.printJob)" />
+        <Parameter Name="jobId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.printJob" />
+      </Action>
       <Action Name="releaseAppleDevices" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.depOnboardingSetting" />
         <Parameter Name="depToken" Type="Edm.String" Unicode="false" />
@@ -38254,6 +38334,9 @@
       </Action>
       <Action Name="restoreFactoryDefaults" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.printer" />
+      </Action>
+      <Action Name="restoreFactoryDefaults" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.pullPrintPrinter" />
       </Action>
       <Action Name="restoreManagedHomeScreen" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.managedDevice" />
@@ -39109,6 +39192,11 @@
       </Action>
       <Action Name="stop" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.request" />
+      </Action>
+      <Action Name="submitManagedLicenseOperation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.cloudPcManagedLicense)" Nullable="false" />
+        <Parameter Name="operation" Type="graph.cloudPcManagedLicenseOperation" Nullable="false" />
+        <ReturnType Type="graph.cloudPcManagedLicenseOperation" Nullable="false" />
       </Action>
       <Action Name="subscribeByMail" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.group" />
@@ -41352,6 +41440,10 @@
         <Parameter Name="period" Type="Edm.String" Unicode="false" />
         <ReturnType Type="graph.report" />
       </Function>
+      <Function Name="memberSuggestions" IsBound="true">
+        <Parameter Name="bindingParameter" Type="graph.pullPrintPrinter" />
+        <ReturnType Type="Collection(graph.printer)" />
+      </Function>
       <Function Name="My" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.accessPackageAssignment)" />
         <ReturnType Type="Collection(graph.accessPackageAssignment)" />
@@ -41412,6 +41504,10 @@
       <Function Name="recent" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.drive" />
         <ReturnType Type="Collection(graph.driveItem)" />
+      </Function>
+      <Function Name="releaseWait" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.printJob)" />
+        <ReturnType Type="Collection(graph.printJob)" />
       </Function>
       <Function Name="reminderView" IsBound="true">
         <Parameter Name="bindingparameter" Type="graph.user" />
@@ -41476,6 +41572,11 @@
       <Function Name="retrieveManagedDevicesWithAppInstallationIssues" IsBound="true">
         <Parameter Name="bindingParameter" Type="graph.user" />
         <ReturnType Type="Collection(graph.managedDeviceSummarizedAppState)" />
+      </Function>
+      <Function Name="retrieveManagedLicenseOperation" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(graph.cloudPcManagedLicense)" Nullable="false" />
+        <Parameter Name="operationRequestId" Type="Edm.String" Nullable="false" Unicode="false" />
+        <ReturnType Type="graph.cloudPcManagedLicenseOperation" Nullable="false" />
       </Function>
       <Function Name="retrieveMyRequestById" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(graph.operationApprovalRequest)" />
@@ -41773,6 +41874,7 @@
       <Term Name="channelCreationMode" Type="Edm.String" AppliesTo="microsoft.graph.channel" />
       <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
       <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem" />
+      <Term Name="hasReplies" Type="Edm.Boolean" AppliesTo="microsoft.graph.chatMessage" />
       <Term Name="licenseRequired" Type="Edm.String" AppliesTo="microsoft.graph.applicationTemplate)" />
       <Term Name="queries" Type="Edm.String" AppliesTo="microsoft.graph.groundingItem)" />
       <Term Name="sharedChanged" Type="Edm.Boolean" AppliesTo="microsoft.graph.driveItem" />
@@ -51508,6 +51610,27 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseExtendAccess/operationStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseExtendAccess/results">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseOperation/createdDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseOperation/operationRequestId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseOperationResult/entraUserId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseOperationResult/failureCode">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.cloudPcManagedLicenseOperationResult/operationResultStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.cloudPcNotificationSetting">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -55994,6 +56117,10 @@
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/blockedSkus">
         <Annotation Term="Org.OData.Core.V1.Description" String="Collection of blocked Skus." />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/isServerEnrollmentBlocked">
+        <Annotation Term="Org.OData.Core.V1.ComputedDefaultValue" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Block servers from enrolling" />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceEnrollmentPlatformRestriction/osMaximumVersion">
         <Annotation Term="Org.OData.Core.V1.Description" String="Max OS version supported" />
       </Annotations>
@@ -58398,6 +58525,9 @@
       <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/templateFamily">
         <Annotation Term="Org.OData.Core.V1.Description" String="TemplateFamily for this template" />
       </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/templatePublisher">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Indicates the publisher of the template." />
+      </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationPolicyTemplate/version">
         <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
         <Annotation Term="Org.OData.Core.V1.Description" String="Template version. Valid values 1 to 2147483647. This property is read-only." />
@@ -58926,6 +59056,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/endpointSecurityFirewall">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EndpointSecurityFirewall that helps configure a devices built-in firewall for device that run macOS and Windows 10" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/endpointSecurityShieldingExclusions">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Identifies policy templates that let Intune administrators exclude targeted devices from Defender Shielding mitigation recommendations and enforcement" />
       </Annotations>
       <Annotations Target="microsoft.graph.deviceManagementConfigurationTemplateFamily/enrollmentConfiguration">
         <Annotation Term="Org.OData.Core.V1.Description" String="Template Family for EnrollmentConfiguration" />
@@ -93328,6 +93461,134 @@
         <Member Name="intraorg" Value="3" />
         <Member Name="unknownFutureValue" Value="31" />
       </EnumType>
+      <EnumType Name="appCategory">
+        <Member Name="security" Value="1" />
+        <Member Name="collaboration" Value="2" />
+        <Member Name="hostingServices" Value="3" />
+        <Member Name="onlineMeetings" Value="4" />
+        <Member Name="newsAndEntertainment" Value="5" />
+        <Member Name="eCommerce" Value="6" />
+        <Member Name="education" Value="7" />
+        <Member Name="cloudStorage" Value="8" />
+        <Member Name="marketing" Value="9" />
+        <Member Name="operationsManagement" Value="10" />
+        <Member Name="health" Value="11" />
+        <Member Name="advertising" Value="12" />
+        <Member Name="productivity" Value="13" />
+        <Member Name="accountingAndFinance" Value="14" />
+        <Member Name="contentManagement" Value="15" />
+        <Member Name="contentSharing" Value="16" />
+        <Member Name="businessManagement" Value="17" />
+        <Member Name="communications" Value="18" />
+        <Member Name="dataAnalytics" Value="19" />
+        <Member Name="businessIntelligence" Value="20" />
+        <Member Name="webemail" Value="21" />
+        <Member Name="codeHosting" Value="22" />
+        <Member Name="webAnalytics" Value="23" />
+        <Member Name="socialNetwork" Value="24" />
+        <Member Name="crm" Value="25" />
+        <Member Name="forums" Value="26" />
+        <Member Name="humanResourceManagement" Value="27" />
+        <Member Name="transportationAndTravel" Value="28" />
+        <Member Name="productDesign" Value="29" />
+        <Member Name="sales" Value="30" />
+        <Member Name="cloudComputingPlatform" Value="31" />
+        <Member Name="projectManagement" Value="32" />
+        <Member Name="personalInstantMessaging" Value="33" />
+        <Member Name="developmentTools" Value="34" />
+        <Member Name="itServices" Value="35" />
+        <Member Name="supplyChainAndLogistics" Value="36" />
+        <Member Name="propertyManagement" Value="37" />
+        <Member Name="customerSupport" Value="38" />
+        <Member Name="internetOfThings" Value="39" />
+        <Member Name="vendorManagementSystems" Value="40" />
+        <Member Name="websiteMonitoring" Value="41" />
+        <Member Name="generativeAi" Value="42" />
+        <Member Name="unknown" Value="43" />
+        <Member Name="unknownFutureValue" Value="44" />
+        <Member Name="aiModelProvider" Value="45" />
+        <Member Name="mcpServer" Value="46" />
+        <Member Name="clientAiApp" Value="47" />
+      </EnumType>
+      <EnumType Name="appInfoCsaStarLevel">
+        <Member Name="selfAssessment" Value="1" />
+        <Member Name="certification" Value="2" />
+        <Member Name="attestation" Value="3" />
+        <Member Name="cStarAssessment" Value="4" />
+        <Member Name="continuousMonitoring" Value="5" />
+        <Member Name="unknown" Value="6" />
+        <Member Name="unknownFutureValue" Value="7" />
+      </EnumType>
+      <EnumType Name="appInfoDataAtRestEncryptionMethod">
+        <Member Name="aes" Value="1" />
+        <Member Name="bitLocker" Value="2" />
+        <Member Name="blowfish" Value="3" />
+        <Member Name="des3" Value="4" />
+        <Member Name="des" Value="5" />
+        <Member Name="rc4" Value="6" />
+        <Member Name="rsA" Value="7" />
+        <Member Name="notSupported" Value="8" />
+        <Member Name="unknown" Value="9" />
+        <Member Name="unknownFutureValue" Value="10" />
+      </EnumType>
+      <EnumType Name="appInfoDataRetentionPolicy">
+        <Member Name="dataRetained" Value="1" />
+        <Member Name="deletedImmediately" Value="2" />
+        <Member Name="deletedWithinTwoWeeks" Value="3" />
+        <Member Name="deletedWithinOneMonth" Value="4" />
+        <Member Name="deletedWithinThreeMonths" Value="5" />
+        <Member Name="deletedWithinMoreThanThreeMonths" Value="6" />
+        <Member Name="unknown" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
+      <EnumType Name="appInfoEncryptionProtocol">
+        <Member Name="tls1_0" Value="1" />
+        <Member Name="tls1_1" Value="2" />
+        <Member Name="tls1_2" Value="3" />
+        <Member Name="tls1_3" Value="4" />
+        <Member Name="notApplicable" Value="5" />
+        <Member Name="notSupported" Value="6" />
+        <Member Name="unknown" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+        <Member Name="ssl3" Value="9" />
+      </EnumType>
+      <EnumType Name="appInfoFedRampLevel">
+        <Member Name="high" Value="1" />
+        <Member Name="moderate" Value="2" />
+        <Member Name="low" Value="3" />
+        <Member Name="liSaaS" Value="4" />
+        <Member Name="unknown" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
+        <Member Name="notSupported" Value="7" />
+      </EnumType>
+      <EnumType Name="appInfoHolding">
+        <Member Name="private" Value="1" />
+        <Member Name="public" Value="2" />
+        <Member Name="unknown" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
+      <EnumType Name="appInfoPciDssVersion">
+        <Member Name="v1" Value="1" />
+        <Member Name="v2" Value="2" />
+        <Member Name="v3" Value="3" />
+        <Member Name="v3_1" Value="4" />
+        <Member Name="v3_2" Value="5" />
+        <Member Name="v3_2_1" Value="6" />
+        <Member Name="notSupported" Value="7" />
+        <Member Name="unknown" Value="8" />
+        <Member Name="unknownFutureValue" Value="9" />
+        <Member Name="v4" Value="10" />
+      </EnumType>
+      <EnumType Name="appInfoUploadedDataTypes">
+        <Member Name="documents" Value="1" />
+        <Member Name="mediaFiles" Value="2" />
+        <Member Name="codingFiles" Value="3" />
+        <Member Name="creditCards" Value="4" />
+        <Member Name="databaseFiles" Value="5" />
+        <Member Name="none" Value="6" />
+        <Member Name="unknown" Value="7" />
+        <Member Name="unknownFutureValue" Value="8" />
+      </EnumType>
       <EnumType Name="behaviorDuringRetentionPeriod">
         <Member Name="doNotRetain" Value="0" />
         <Member Name="retain" Value="1" />
@@ -93376,6 +93637,12 @@
         <Member Name="One" Value="0" />
         <Member Name="Many" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="cloudAppInfoState">
+        <Member Name="true" Value="1" />
+        <Member Name="false" Value="2" />
+        <Member Name="unknown" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="cloudAttachmentVersion">
         <Member Name="latest" Value="1" />
@@ -93552,6 +93819,14 @@
         <Member Name="impacted" Value="0" />
         <Member Name="related" Value="1" />
         <Member Name="unknownFutureValue" Value="99" />
+      </EnumType>
+      <EnumType Name="entityType">
+        <Member Name="userName" Value="1" />
+        <Member Name="ipAddress" Value="2" />
+        <Member Name="machineName" Value="3" />
+        <Member Name="other" Value="4" />
+        <Member Name="unknown" Value="5" />
+        <Member Name="unknownFutureValue" Value="6" />
       </EnumType>
       <EnumType Name="eventPropagationStatus">
         <Member Name="none" Value="0" />
@@ -93808,6 +94083,65 @@
         <Member Name="loadBalancer" Value="4" />
         <Member Name="unknownFutureValue" Value="31" />
       </EnumType>
+      <EnumType Name="logDataProvider">
+        <Member Name="barracuda" Value="101" />
+        <Member Name="bluecoat" Value="102" />
+        <Member Name="checkpoint" Value="103" />
+        <Member Name="ciscoAsa" Value="104" />
+        <Member Name="ciscoIronportProxy" Value="106" />
+        <Member Name="fortigate" Value="108" />
+        <Member Name="paloAlto" Value="112" />
+        <Member Name="squid" Value="114" />
+        <Member Name="zscaler" Value="120" />
+        <Member Name="mcafeeSwg" Value="121" />
+        <Member Name="ciscoScanSafe" Value="124" />
+        <Member Name="juniperSrx" Value="129" />
+        <Member Name="sophosSg" Value="130" />
+        <Member Name="websenseV75" Value="135" />
+        <Member Name="websenseSiemCef" Value="138" />
+        <Member Name="machineZoneMeraki" Value="153" />
+        <Member Name="squidNative" Value="155" />
+        <Member Name="ciscoFwsm" Value="157" />
+        <Member Name="microsoftIsaW3C" Value="159" />
+        <Member Name="sonicwall" Value="160" />
+        <Member Name="sophosCyberoam" Value="162" />
+        <Member Name="clavister" Value="164" />
+        <Member Name="customParser" Value="167" />
+        <Member Name="juniperSsg" Value="168" />
+        <Member Name="zscalerQradar" Value="170" />
+        <Member Name="juniperSrxSd" Value="172" />
+        <Member Name="juniperSrxWelf" Value="174" />
+        <Member Name="microsoftConditionalAppAccess" Value="176" />
+        <Member Name="ciscoAsaFirepower" Value="177" />
+        <Member Name="genericCef" Value="179" />
+        <Member Name="genericLeef" Value="181" />
+        <Member Name="genericW3C" Value="183" />
+        <Member Name="iFilter" Value="185" />
+        <Member Name="checkpointXml" Value="187" />
+        <Member Name="checkpointSmartViewTracker" Value="189" />
+        <Member Name="barracudaNextGenFw" Value="191" />
+        <Member Name="barracudaNextGenFwWeblog" Value="193" />
+        <Member Name="microsoftDefenderForEndpoint" Value="195" />
+        <Member Name="zscalerCef" Value="196" />
+        <Member Name="sophosXg" Value="198" />
+        <Member Name="iboss" Value="200" />
+        <Member Name="forcepoint" Value="202" />
+        <Member Name="fortios" Value="204" />
+        <Member Name="ciscoIronportWsaIi" Value="206" />
+        <Member Name="paloAltoLeef" Value="208" />
+        <Member Name="forcepointLeef" Value="210" />
+        <Member Name="stormshield" Value="212" />
+        <Member Name="contentkeeper" Value="214" />
+        <Member Name="ciscoIronportWsaIii" Value="216" />
+        <Member Name="checkpointCef" Value="219" />
+        <Member Name="corrata" Value="220" />
+        <Member Name="ciscoFirepowerV6" Value="223" />
+        <Member Name="menloSecurityCef" Value="224" />
+        <Member Name="watchguardXtm" Value="225" />
+        <Member Name="openSystemsSecureWebGateway" Value="227" />
+        <Member Name="wandera" Value="229" />
+        <Member Name="unknownFutureValue" Value="231" />
+      </EnumType>
       <EnumType Name="mailboxConfigurationType">
         <Member Name="mailForwardingRule" Value="0" />
         <Member Name="owaSettings" Value="1" />
@@ -93868,6 +94202,14 @@
         <Member Name="files" Value="0" />
         <Member Name="messages" Value="1" />
         <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
+      <EnumType Name="receiverProtocol">
+        <Member Name="ftp" Value="0" />
+        <Member Name="ftps" Value="1" />
+        <Member Name="syslogUdp" Value="2" />
+        <Member Name="syslogTcp" Value="3" />
+        <Member Name="syslogTls" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
       <EnumType Name="recipientType" IsFlags="true">
         <Member Name="user" Value="1" />
@@ -93992,6 +94334,12 @@
         <Member Name="air" Value="7" />
         <Member Name="unknown" Value="8" />
         <Member Name="unknownFutureValue" Value="127" />
+      </EnumType>
+      <EnumType Name="trafficType">
+        <Member Name="downloadedBytes" Value="2" />
+        <Member Name="uploadedBytes" Value="3" />
+        <Member Name="unknown" Value="4" />
+        <Member Name="unknownFutureValue" Value="5" />
       </EnumType>
       <EnumType Name="verdictCategory">
         <Member Name="none" Value="0" />
@@ -94844,8 +95192,29 @@
         <Property Name="citationJurisdiction" Type="Edm.String" />
         <Property Name="citationUrl" Type="Edm.String" />
       </EntityType>
+      <EntityType Name="cloudAppDiscoveryReport" BaseType="graph.entity">
+        <Property Name="anonymizeMachineData" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="anonymizeUserData" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="isSnapshotReport" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastDataReceivedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="logDataProvider" Type="self.logDataProvider" />
+        <Property Name="logFileCount" Type="Edm.Int32" />
+        <Property Name="receiverProtocol" Type="self.receiverProtocol" />
+        <Property Name="supportedEntityTypes" Type="Collection(self.entityType)" Nullable="false" />
+        <Property Name="supportedTrafficTypes" Type="Collection(self.trafficType)" Nullable="false" />
+      </EntityType>
       <EntityType Name="collaborationRoot" BaseType="graph.entity" Abstract="true">
         <NavigationProperty Name="analyzedEmails" Type="Collection(self.analyzedEmail)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="dataDiscoveryReport" BaseType="graph.entity">
+        <NavigationProperty Name="uploadedStreams" Type="Collection(self.cloudAppDiscoveryReport)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="dataDiscoveryRoot" BaseType="graph.entity">
+        <NavigationProperty Name="cloudAppDiscovery" Type="self.dataDiscoveryReport" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="dataSet" BaseType="graph.entity" Abstract="true">
         <Property Name="createdBy" Type="graph.identitySet" />
@@ -94868,6 +95237,127 @@
         <Property Name="status" Type="self.dataSourceContainerStatus" />
       </EntityType>
       <EntityType Name="departmentTemplate" BaseType="self.filePlanDescriptorTemplate" />
+      <EntityType Name="discoveredCloudAppDetail" BaseType="graph.entity">
+        <Property Name="category" Type="self.appCategory" Nullable="false" />
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" Nullable="false" />
+        <Property Name="domains" Type="Collection(Edm.String)" />
+        <Property Name="downloadNetworkTrafficInBytes" Type="Edm.Int64" Nullable="false" />
+        <Property Name="firstSeenDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="ipAddressCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="lastSeenDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="riskScore" Type="Edm.Int64" />
+        <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="transactionCount" Type="Edm.Int64" Nullable="false" />
+        <Property Name="uploadNetworkTrafficInBytes" Type="Edm.Int64" Nullable="false" />
+        <Property Name="userCount" Type="Edm.Int64" Nullable="false" />
+        <NavigationProperty Name="appInfo" Type="self.discoveredCloudAppInfo" />
+        <NavigationProperty Name="ipAddresses" Type="Collection(self.discoveredCloudAppIPAddress)" ContainsTarget="true" />
+        <NavigationProperty Name="users" Type="Collection(self.discoveredCloudAppUser)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="discoveredCloudAppDevice">
+        <Key>
+          <PropertyRef Name="name" />
+        </Key>
+        <Property Name="name" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="discoveredCloudAppInfo" BaseType="graph.entity">
+        <Property Name="csaStarLevel" Type="self.appInfoCsaStarLevel" Nullable="false" />
+        <Property Name="dataAtRestEncryptionMethod" Type="self.appInfoDataAtRestEncryptionMethod" Nullable="false" />
+        <Property Name="dataCenter" Type="Edm.String" Nullable="false" />
+        <Property Name="dataRetentionPolicy" Type="self.appInfoDataRetentionPolicy" Nullable="false" />
+        <Property Name="dataTypes" Type="Collection(self.appInfoUploadedDataTypes)" Nullable="false" />
+        <Property Name="domainRegistrationDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="encryptionProtocol" Type="self.appInfoEncryptionProtocol" Nullable="false" />
+        <Property Name="fedRampLevel" Type="self.appInfoFedRampLevel" Nullable="false" />
+        <Property Name="founded" Type="Edm.Int32" Nullable="false" />
+        <Property Name="gdprReadinessStatement" Type="Edm.String" Nullable="false" />
+        <Property Name="headquarters" Type="Edm.String" Nullable="false" />
+        <Property Name="holding" Type="self.appInfoHolding" Nullable="false" />
+        <Property Name="hostingCompany" Type="Edm.String" Nullable="false" />
+        <Property Name="isAdminAuditTrail" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isCobitCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isCoppaCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isDataAuditTrail" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isDataClassification" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isDataOwnership" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isDisasterRecoveryPlan" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isDmca" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isFerpaCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isFfiecCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isFileSharing" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isFinraCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isFismaCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGaapCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprDataProtectionImpactAssessment" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprDataProtectionOfficer" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprDataProtectionSecureCrossBorderDataTransfer" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprImpactAssessment" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprLawfulBasisForProcessing" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprReportDataBreaches" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightsRelatedToAutomatedDecisionMaking" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToAccess" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToBeInformed" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToDataPortablility" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToErasure" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToObject" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToRectification" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprRightToRestrictionOfProcessing" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGdprSecureCrossBorderDataControl" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isGlbaCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHipaaCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHitrustCsfCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHttpSecurityHeadersContentSecurityPolicy" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHttpSecurityHeadersStrictTransportSecurity" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHttpSecurityHeadersXContentTypeOptions" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHttpSecurityHeadersXFrameOptions" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isHttpSecurityHeadersXXssProtection" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isIpAddressRestriction" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isIsae3402Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isIso27001Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isIso27017Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isIso27018Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isItarCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isMultiFactorAuthentication" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicy" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicyChangePasswordPeriod" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicyCharacterCombination" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicyPasswordHistoryAndReuse" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicyPasswordLengthLimit" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPasswordPolicyPersonalInformationUse" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPenetrationTesting" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isPrivacyShieldCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isRememberPassword" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isRequiresUserAuthentication" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSoc1Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSoc2Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSoc3Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSoxCompliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSp80053Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSsae16Compliant" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isSupportsSaml" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isTrustedCertificate" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isUserAuditTrail" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isUserCanUploadData" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isUserRolesSupport" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="isValidCertificateName" Type="self.cloudAppInfoState" Nullable="false" />
+        <Property Name="latestBreachDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="logonUrls" Type="Collection(Edm.String)" Nullable="false" />
+        <Property Name="pciDssVersion" Type="self.appInfoPciDssVersion" Nullable="false" />
+        <Property Name="vendor" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="discoveredCloudAppIPAddress">
+        <Key>
+          <PropertyRef Name="ipAddress" />
+        </Key>
+        <Property Name="ipAddress" Type="Edm.String" Nullable="false" />
+      </EntityType>
+      <EntityType Name="discoveredCloudAppUser">
+        <Key>
+          <PropertyRef Name="userIdentifier" />
+        </Key>
+        <Property Name="userIdentifier" Type="Edm.String" Nullable="false" />
+      </EntityType>
       <EntityType Name="dispositionReviewStage">
         <Key>
           <PropertyRef Name="stageNumber" />
@@ -94997,6 +95487,10 @@
         <NavigationProperty Name="search" Type="self.ediscoverySearch" />
       </EntityType>
       <EntityType Name="ediscoveryTagOperation" BaseType="self.caseOperation" />
+      <EntityType Name="endpointDiscoveredCloudAppDetail" BaseType="self.discoveredCloudAppDetail">
+        <Property Name="deviceCount" Type="Edm.Int64" Nullable="false" />
+        <NavigationProperty Name="devices" Type="Collection(self.discoveredCloudAppDevice)" ContainsTarget="true" />
+      </EntityType>
       <EntityType Name="entityDefinitionInput">
         <Key>
           <PropertyRef Name="entityIdentifier" />
@@ -95424,6 +95918,11 @@
       <Action Name="updateIndex" IsBound="true">
         <Parameter Name="bindingParameter" Type="self.ediscoveryNoncustodialDataSource" />
       </Action>
+      <Function Name="aggregatedAppsDetails" IsBound="true" IsComposable="true">
+        <Parameter Name="bindingParameter" Type="self.cloudAppDiscoveryReport" />
+        <Parameter Name="period" Type="Edm.Duration" />
+        <ReturnType Type="Collection(self.discoveredCloudAppDetail)" />
+      </Function>
       <Function Name="asHierarchy" IsBound="true">
         <Parameter Name="bindingParameter" Type="Collection(self.ediscoveryReviewTag)" />
         <ReturnType Type="Collection(self.ediscoveryReviewTag)" />
