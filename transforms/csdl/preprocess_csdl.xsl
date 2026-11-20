@@ -505,6 +505,55 @@
             </Annotation>
         </xsl:copy>
     </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='costManagementRoot']/edm:NavigationProperty[@Name='spendingPolicies']">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" />
+            <xsl:if test="$csdlVersion='beta' and not(edm:Annotation[@Term='Org.OData.Validation.V1.DerivedTypeConstraint']) and not(../../edm:Annotations[@Target='microsoft.graph.costManagementRoot/spendingPolicies']/edm:Annotation[@Term='Org.OData.Validation.V1.DerivedTypeConstraint'])">
+                <Annotation Term="Org.OData.Validation.V1.DerivedTypeConstraint">
+                    <Collection>
+                        <String>microsoft.graph.allUsersSpendingPolicy</String>
+                        <String>microsoft.graph.selectedGroupsSpendingPolicy</String>
+                    </Collection>
+                </Annotation>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='selectedGroupsSpendingPolicy']/edm:NavigationProperty[@Name='assignedGroups'] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='costManagementAlertSetting']/edm:NavigationProperty[@Name='recipients']">
+        <xsl:variable name="target" select="concat('microsoft.graph.', ../@Name, '/', @Name)" />
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" />
+            <xsl:if test="$csdlVersion='beta' and $remove-capability-annotations='False' and
+                          not(edm:Annotation[@Term='Org.OData.Capabilities.V1.NavigationRestrictions' and not(@Qualifier)]) and
+                          not(../../edm:Annotations[@Target=$target]/edm:Annotation[@Term='Org.OData.Capabilities.V1.NavigationRestrictions' and not(@Qualifier)])">
+                <xsl:call-template name="ReferenceableRestrictionsTemplate">
+                    <xsl:with-param name="referenceable">true</xsl:with-param>
+                </xsl:call-template>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='selectedGroupsSpendingPolicy']/edm:NavigationProperty[@Name='assignedGroups']/edm:Annotation[@Term='Org.OData.Capabilities.V1.NavigationRestrictions' and not(@Qualifier)] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='costManagementAlertSetting']/edm:NavigationProperty[@Name='recipients']/edm:Annotation[@Term='Org.OData.Capabilities.V1.NavigationRestrictions' and not(@Qualifier)] |
+                         edm:Schema[@Namespace='microsoft.graph']/edm:Annotations[@Target='microsoft.graph.selectedGroupsSpendingPolicy/assignedGroups' or @Target='microsoft.graph.costManagementAlertSetting/recipients']/edm:Annotation[@Term='Org.OData.Capabilities.V1.NavigationRestrictions' and not(@Qualifier)]">
+        <xsl:if test="$remove-capability-annotations='False'">
+            <xsl:copy>
+                <xsl:apply-templates select="@*" />
+                <xsl:for-each select="node()">
+                    <xsl:choose>
+                        <xsl:when test="$csdlVersion='beta' and self::edm:Record and not(edm:PropertyValue[@Property='Referenceable'])">
+                            <xsl:copy>
+                                <xsl:apply-templates select="@* | node()" />
+                                <PropertyValue Property="Referenceable" Bool="true" />
+                            </xsl:copy>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="." />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+            </xsl:copy>
+        </xsl:if>
+    </xsl:template>
     <xsl:template match="edm:Schema[@Namespace='microsoft.graph']/edm:EntityType[@Name='backupRestoreRoot']/edm:NavigationProperty[@Name='protectionUnits']">
         <xsl:copy>
             <xsl:copy-of select="@* | node()" />
