@@ -2051,6 +2051,12 @@
         <Member Name="high" Value="1" />
         <Member Name="urgent" Value="2" />
       </EnumType>
+      <EnumType Name="chatMessageMigrationReason">
+        <Member Name="chatToChannelConversion" Value="0" />
+        <Member Name="import" Value="1" />
+        <Member Name="moveToChannel" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="chatMessagePolicyViolationDlpActionTypes" IsFlags="true">
         <Member Name="none" Value="0" />
         <Member Name="notifySender" Value="1" />
@@ -3549,6 +3555,12 @@
         <Member Name="drive" Value="4" />
         <Member Name="driveItem" Value="5" />
         <Member Name="unknownFutureValue" Value="6" />
+      </EnumType>
+      <EnumType Name="costManagementBillingInstrumentProvisioningStatus">
+        <Member Name="succeeded" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="failed" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
       </EnumType>
       <EnumType Name="costManagementBillingMethod">
         <Member Name="prepaidCredits" Value="0" />
@@ -6314,6 +6326,7 @@
         <Member Name="warning" Value="1" />
         <Member Name="warningNotify" Value="2" />
         <Member Name="nonCompliant" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
       </EnumType>
       <EnumType Name="loadTestFailureType">
         <Member Name="expectedListArray" Value="0" />
@@ -10297,6 +10310,7 @@
         <Member Name="hidden" Value="3" />
         <Member Name="none" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="notEvaluated" Value="6" />
       </EnumType>
       <EnumType Name="riskState">
         <Member Name="none" Value="0" />
@@ -15203,6 +15217,9 @@
         <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
       </ComplexType>
       <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
+      <ComplexType Name="chatMigrationSource" BaseType="graph.migrationSource">
+        <Property Name="chatId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="chatReaction">
         <Property Name="key" Type="Edm.String" />
         <Property Name="users" Type="Collection(graph.creationTimestamp)" />
@@ -15214,6 +15231,17 @@
       </ComplexType>
       <ComplexType Name="chatRestrictions">
         <Property Name="allowTextOnly" Type="Edm.Boolean" />
+      </ComplexType>
+      <ComplexType Name="chatToChannelMigrationDetails">
+        <Property Name="initiator" Type="graph.identitySet" />
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="targetChannel" Type="graph.channelIdentity" />
+      </ComplexType>
+      <ComplexType Name="chatToChannelMigrationEventMessageDetail" BaseType="graph.eventMessageDetail">
+        <Property Name="initiator" Type="graph.identitySet" />
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="sourceChatId" Type="Edm.String" />
+        <Property Name="targetChannel" Type="graph.channelIdentity" />
       </ComplexType>
       <ComplexType Name="chatViewpoint">
         <Property Name="isHidden" Type="Edm.Boolean" />
@@ -16408,6 +16436,13 @@
       </ComplexType>
       <ComplexType Name="costManagementAlertThreshold" Abstract="true">
         <Property Name="value" Type="Edm.Double" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="costManagementBillingInstrument">
+        <Property Name="billingRegion" Type="Edm.String" Nullable="false" />
+        <Property Name="billingResourceGroup" Type="Edm.String" Nullable="false" />
+        <Property Name="billingResourceId" Type="Edm.String" Nullable="false" />
+        <Property Name="billingSubscriptionId" Type="Edm.String" Nullable="false" />
+        <Property Name="provisioningStatus" Type="graph.costManagementBillingInstrumentProvisioningStatus" Nullable="false" />
       </ComplexType>
       <ComplexType Name="costManagementBillingMethodBalance">
         <Property Name="billingMethod" Type="graph.costManagementBillingMethod" Nullable="false" />
@@ -20006,6 +20041,14 @@
         <Property Name="assignedTo" Type="Collection(graph.trainingAssignedTo)" />
         <NavigationProperty Name="training" Type="graph.training" />
       </ComplexType>
+      <ComplexType Name="migrationDetails">
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="migrationReason" Type="graph.chatMessageMigrationReason" Nullable="false" />
+        <Property Name="migrationSource" Type="graph.migrationSource" />
+      </ComplexType>
+      <ComplexType Name="migrationSource" Abstract="true">
+        <Property Name="tenantId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="mimeContent">
         <Property Name="type" Type="Edm.String" />
         <Property Name="value" Type="Edm.Binary" />
@@ -22137,6 +22180,10 @@
         <Property Name="type" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="resourceRoleRiskAnalysisResult">
+        <Property Name="riskAnalysisResults" Type="Collection(graph.riskAnalysisResult)" Nullable="false" />
+        <NavigationProperty Name="resourceRole" Type="graph.accessPackageResourceRole" />
+      </ComplexType>
       <ComplexType Name="resourceSpecificPermission">
         <Property Name="description" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
@@ -22293,6 +22340,14 @@
         <Property Name="providerAlertId" Type="Edm.String" Nullable="false" />
         <Property Name="severity" Type="graph.severity" Nullable="false" />
         <Property Name="source" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="riskAnalysisResult">
+        <Property Name="externalReferenceUrl" Type="Edm.String" />
+        <Property Name="violations" Type="Collection(graph.riskAnalysisViolation)" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="riskAnalysisViolation">
+        <Property Name="description" Type="Edm.String" />
+        <Property Name="level" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="riskProfile">
         <Property Name="humanCount" Type="Edm.Int32" Nullable="false" />
@@ -25367,6 +25422,7 @@
         <Property Name="requestState" Type="Edm.String" />
         <Property Name="requestStatus" Type="Edm.String" />
         <Property Name="requestType" Type="Edm.String" />
+        <Property Name="resourceRoleRiskAnalysisResults" Type="Collection(graph.resourceRoleRiskAnalysisResult)" Nullable="false" />
         <Property Name="schedule" Type="graph.requestSchedule" />
         <Property Name="verifiedCredentialsData" Type="Collection(graph.verifiedCredentialData)" />
         <NavigationProperty Name="accessPackage" Type="graph.accessPackage" />
@@ -27327,7 +27383,7 @@
         <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="servicePrincipalLockConfiguration" Type="graph.servicePrincipalLockConfiguration" />
         <Property Name="signInAudience" Type="Edm.String" />
-        <Property Name="signInAudienceRestrictions" Type="graph.signInAudienceRestrictionsBase" Nullable="false" />
+        <Property Name="signInAudienceRestrictions" Type="graph.signInAudienceRestrictionsBase" />
         <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
@@ -28636,6 +28692,7 @@
         <NavigationProperty Name="tags" Type="Collection(graph.teamworkChannelTag)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
+        <Property Name="channelMigrationDetails" Type="graph.chatToChannelMigrationDetails" />
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -28679,6 +28736,7 @@
         <Property Name="mentions" Type="Collection(graph.chatMessageMention)" />
         <Property Name="messageHistory" Type="Collection(graph.chatMessageHistoryItem)" />
         <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
+        <Property Name="migrationDetails" Type="graph.migrationDetails" />
         <Property Name="onBehalfOf" Type="graph.chatMessageFromIdentitySet" />
         <Property Name="policyViolation" Type="graph.chatMessagePolicyViolation" />
         <Property Name="reactions" Type="Collection(graph.chatMessageReaction)" />
@@ -40654,6 +40712,7 @@
         <Property Name="wordsSpokenCount" Type="Edm.Int64" Nullable="false" />
       </EntityType>
       <EntityType Name="spendingPolicy" BaseType="graph.entity" Abstract="true">
+        <Property Name="billingInstrument" Type="graph.costManagementBillingInstrument" />
         <Property Name="billingMethods" Type="graph.costManagementBillingMethods" Nullable="false" />
         <Property Name="createdBy" Type="graph.identitySet" Nullable="false" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
@@ -57547,6 +57606,13 @@
       </Function>
     </Schema>
     <Schema Namespace="microsoft.graph.entraRecoveryServices" Alias="entraRecoveryServices" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EnumType Name="premiumPlanStatus">
+        <Member Name="disabled" Value="0" />
+        <Member Name="enabled" Value="1" />
+        <Member Name="protectionPaused" Value="2" />
+        <Member Name="billingStopped" Value="3" />
+        <Member Name="unknownFutureValue" Value="4" />
+      </EnumType>
       <EnumType Name="recoveryAction">
         <Member Name="softDelete" Value="0" />
         <Member Name="update" Value="1" />
@@ -57578,9 +57644,18 @@
         <Member Name="appRoleAssignment" Value="11" />
         <Member Name="organization" Value="12" />
       </EnumType>
+      <EnumType Name="snapshotTier">
+        <Member Name="basic" Value="0" />
+        <Member Name="premium" Value="1" />
+        <Member Name="unknownFutureValue" Value="2" />
+      </EnumType>
       <ComplexType Name="entityTypeAndIds">
         <Property Name="entityIds" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="entityType" Type="entraRecoveryServices.resourceTypeName" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="premiumPlanConfiguration">
+        <Property Name="enabledDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="status" Type="entraRecoveryServices.premiumPlanStatus" Nullable="false" />
       </ComplexType>
       <ComplexType Name="recoveryJobEntityNameAndIdsFilter" BaseType="entraRecoveryServices.recoveryJobFilteringCriteriaBase">
         <Property Name="filterValues" Type="Collection(entraRecoveryServices.entityTypeAndIds)" Nullable="false" />
@@ -57590,6 +57665,7 @@
       </ComplexType>
       <ComplexType Name="recoveryJobFilteringCriteriaBase" />
       <EntityType Name="recovery" BaseType="graph.entity">
+        <NavigationProperty Name="configuration" Type="entraRecoveryServices.recoveryConfiguration" ContainsTarget="true" Nullable="false" />
         <NavigationProperty Name="jobs" Type="Collection(entraRecoveryServices.recoveryJobBase)" ContainsTarget="true" />
         <NavigationProperty Name="snapshots" Type="Collection(entraRecoveryServices.snapshot)" ContainsTarget="true" />
       </EntityType>
@@ -57598,6 +57674,10 @@
         <Property Name="entityTypeName" Type="entraRecoveryServices.resourceTypeName" Nullable="false" />
         <Property Name="failureMessage" Type="Edm.String" />
         <Property Name="recoveryAction" Type="entraRecoveryServices.recoveryAction" Nullable="false" />
+      </EntityType>
+      <EntityType Name="recoveryConfiguration" BaseType="graph.entity">
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="premiumPlan" Type="entraRecoveryServices.premiumPlanConfiguration" Nullable="false" />
       </EntityType>
       <EntityType Name="recoveryJob" BaseType="entraRecoveryServices.recoveryJobBase">
         <Property Name="totalFailedChanges" Type="Edm.Int32" />
@@ -57608,6 +57688,7 @@
         <Property Name="filteringCriteria" Type="entraRecoveryServices.recoveryJobFilteringCriteriaBase" />
         <Property Name="jobCompletionDateTime" Type="Edm.DateTimeOffset" />
         <Property Name="jobStartDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="servicePlan" Type="entraRecoveryServices.snapshotTier" Nullable="false" />
         <Property Name="status" Type="entraRecoveryServices.recoveryStatus" Nullable="false" />
         <Property Name="targetStateDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="totalChangedLinksCalculated" Type="Edm.Int32" />
@@ -57616,6 +57697,7 @@
       <EntityType Name="recoveryPreviewJob" BaseType="entraRecoveryServices.recoveryJobBase" />
       <EntityType Name="snapshot" BaseType="graph.entity">
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="servicePlan" Type="entraRecoveryServices.snapshotTier" Nullable="false" />
         <Property Name="totalChangedObjects" Type="Edm.Int32" />
         <NavigationProperty Name="recoveryJobs" Type="Collection(entraRecoveryServices.recoveryJob)" />
         <NavigationProperty Name="recoveryPreviewJobs" Type="Collection(entraRecoveryServices.recoveryPreviewJob)" />
@@ -70539,6 +70621,41 @@
       <Annotations Target="microsoft.graph.costManagementAlertThreshold/value">
         <Annotation Term="Org.OData.Core.V1.Description" String="The threshold value. Its permitted range is set by the derived type." />
       </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The complete Azure billing instrument for pay-as-you-go provisioning. The service generates&#xA;the Power Platform account name and identity; callers supply only the provisioning coordinates." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument/billingRegion">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A supported Neptune billing-geography key, such as UnitedStates, not an arbitrary Azure&#xA;region name. Required whenever a billingInstrument object is supplied; no default is selected." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument/billingResourceGroup">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Azure resource group in which the service provisions the billing resource.&#xA;Required whenever a billingInstrument object is supplied; no default is selected." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument/billingResourceId">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The full Azure Resource Manager ID of the Microsoft.PowerPlatform/accounts resource&#xA;generated by the service, in the form&#xA;/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.PowerPlatform/accounts/{accountName}.&#xA;Read-only; available after the billing resource is provisioned. Not an existing-account&#xA;attachment selector or a Microsoft.Billing/billingAccounts identifier." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument/billingSubscriptionId">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The Azure subscription identifier in which the service provisions the billing resource.&#xA;Required whenever a billingInstrument object is supplied." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrument/provisioningStatus">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="Service-reported provisioning status of the Microsoft.PowerPlatform/accounts Azure resource.&#xA;Read-only; reported from the tracked ARM/account provisioning lifecycle of the same billing&#xA;instrument as these coordinates and billingResourceId. Never inferred from policy status,&#xA;resource ID presence, or acceptance of an ARM deployment. A disabled policy may have a&#xA;billing instrument whose resource provisioning succeeded. Pending instrument metadata must&#xA;not be mixed with a different active instrument. Omitted when provisioning status is&#xA;unavailable or unrecorded; absence does not indicate success.&#xA;Read through the existing policy GET operation." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrumentProvisioningStatus">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Provisioning state of the Azure resource for a billing instrument, independent of policy status." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrumentProvisioningStatus/failed">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure resource provisioning failed." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrumentProvisioningStatus/inProgress">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure resource provisioning is in progress." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrumentProvisioningStatus/succeeded">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Azure resource provisioning completed. Does not imply policy enablement, permanent&#xA;authorization, or ongoing resource health." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.costManagementBillingInstrumentProvisioningStatus/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="A marker value for members added after the release of this API." />
+      </Annotations>
       <Annotations Target="microsoft.graph.costManagementBillingMethod">
         <Annotation Term="Org.OData.Core.V1.Description" String="How Copilot consumption is billed." />
       </Annotations>
@@ -81429,6 +81546,15 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.premiumPlanConfiguration">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the tenant's Microsoft Entra Backup Premium plan configuration." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.premiumPlanConfiguration/enabledDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.premiumPlanConfiguration/status">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.entraRecoveryServices.recovery">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -81483,6 +81609,30 @@
           </Collection>
         </Annotation>
       </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryConfiguration">
+        <Annotation Term="Org.OData.Capabilities.V1.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectSupport">
+          <Record>
+            <PropertyValue Property="Supported" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false" />
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Core.V1.Description" String="Represents the tenant's Microsoft Entra Backup and Recovery configuration." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryConfiguration/lastModifiedDateTime">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryConfiguration/premiumPlan">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+      </Annotations>
       <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryJob">
         <Annotation Term="Org.OData.Core.V1.Revisions">
           <Collection>
@@ -81510,6 +81660,10 @@
             </Record>
           </Collection>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryJobBase/servicePlan">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The service-assigned plan used to process this recovery job. This property is always returned." />
       </Annotations>
       <Annotations Target="microsoft.graph.entraRecoveryServices.recoveryJobEntityNameAndIdsFilter">
         <Annotation Term="Org.OData.Core.V1.Revisions">
@@ -81671,6 +81825,19 @@
             </Record>
           </Collection>
         </Annotation>
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.snapshot/servicePlan">
+        <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+        <Annotation Term="Org.OData.Core.V1.Description" String="The service-assigned snapshot service plan. This property is always returned." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.snapshotTier/basic">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The standard tier for all standard, existing, and legacy snapshots." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.snapshotTier/premium">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The advanced offering with recovery up to 30 days back and improved performance." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.entraRecoveryServices.snapshotTier/unknownFutureValue">
+        <Annotation Term="Org.OData.Core.V1.Description" String="Evolvable enumeration sentinel value. Do not use." />
       </Annotations>
       <Annotations Target="microsoft.graph.enumeratedAccountsWithAccess/accounts">
         <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
@@ -84088,6 +84255,12 @@
             <PropertyValue Property="Filterable" Bool="true" />
             <PropertyValue Property="NonFilterableProperties">
               <Collection>
+                <PropertyPath>billingInstrument</PropertyPath>
+                <PropertyPath>billingInstrument/billingRegion</PropertyPath>
+                <PropertyPath>billingInstrument/billingResourceGroup</PropertyPath>
+                <PropertyPath>billingInstrument/billingResourceId</PropertyPath>
+                <PropertyPath>billingInstrument/billingSubscriptionId</PropertyPath>
+                <PropertyPath>billingInstrument/provisioningStatus</PropertyPath>
                 <PropertyPath>billingMethods</PropertyPath>
                 <PropertyPath>createdBy</PropertyPath>
                 <PropertyPath>createdBy/application</PropertyPath>
@@ -84157,6 +84330,7 @@
           <Record>
             <PropertyValue Property="NonSortableProperties">
               <Collection>
+                <PropertyPath>billingInstrument</PropertyPath>
                 <PropertyPath>billingMethods</PropertyPath>
                 <PropertyPath>createdBy</PropertyPath>
                 <PropertyPath>id</PropertyPath>
@@ -108985,6 +109159,9 @@
       </Annotations>
       <Annotations Target="microsoft.graph.spendingPolicy">
         <Annotation Term="Org.OData.Core.V1.Description" String="A policy that governs Copilot Credits consumption for an audience. Every policy is one of&#xA;its derived types, identified by @odata.type on create." />
+      </Annotations>
+      <Annotations Target="microsoft.graph.spendingPolicy/billingInstrument">
+        <Annotation Term="Org.OData.Core.V1.Description" String="The complete provisioning target for pay-as-you-go billing. Optional at creation; omission&#xA;preserves the existing billing behavior. A supplied object must contain all three billing&#xA;coordinates. Null, empty, and partial objects do not select defaults or clear the instrument.&#xA;Applies only when the resulting billingMethods includes payAsYouGo; otherwise the coordinates&#xA;are ignored after schema validation. Required when PATCH changes stored funding from&#xA;non-pay-as-you-go to pay-as-you-go, including combined prepaid and pay-as-you-go funding.&#xA;Supplying this object does not define a partial-update or already-pay-as-you-go replacement API." />
       </Annotations>
       <Annotations Target="microsoft.graph.spendingPolicy/billingMethods">
         <Annotation Term="Org.OData.Core.V1.Description" String="How consumption under this policy is funded. This is a flags value, so combined values&#xA;such as prepaidCredits,payAsYouGo are valid. Optional at creation and updatable with&#xA;PATCH. When omitted at creation the value is notSpecified, meaning no funding method was&#xA;chosen; no organization-level default is substituted." />
