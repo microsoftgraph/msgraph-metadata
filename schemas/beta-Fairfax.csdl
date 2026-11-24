@@ -1430,6 +1430,12 @@
         <Member Name="high" Value="1" />
         <Member Name="urgent" Value="2" />
       </EnumType>
+      <EnumType Name="chatMessageMigrationReason">
+        <Member Name="chatToChannelConversion" Value="0" />
+        <Member Name="import" Value="1" />
+        <Member Name="moveToChannel" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
       <EnumType Name="chatMessagePolicyViolationDlpActionTypes" IsFlags="true">
         <Member Name="none" Value="0" />
         <Member Name="notifySender" Value="1" />
@@ -7928,6 +7934,7 @@
         <Member Name="hidden" Value="3" />
         <Member Name="none" Value="4" />
         <Member Name="unknownFutureValue" Value="5" />
+        <Member Name="notEvaluated" Value="6" />
       </EnumType>
       <EnumType Name="riskState">
         <Member Name="none" Value="0" />
@@ -11528,10 +11535,24 @@
         <Property Name="user" Type="graph.chatMessageReactionIdentitySet" Nullable="false" />
       </ComplexType>
       <ComplexType Name="chatMessageReactionIdentitySet" BaseType="graph.identitySet" OpenType="true" />
+      <ComplexType Name="chatMigrationSource" BaseType="graph.migrationSource">
+        <Property Name="chatId" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="chatRenamedEventMessageDetail" BaseType="graph.eventMessageDetail">
         <Property Name="chatDisplayName" Type="Edm.String" />
         <Property Name="chatId" Type="Edm.String" />
         <Property Name="initiator" Type="graph.identitySet" />
+      </ComplexType>
+      <ComplexType Name="chatToChannelMigrationDetails">
+        <Property Name="initiator" Type="graph.identitySet" />
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="targetChannel" Type="graph.channelIdentity" />
+      </ComplexType>
+      <ComplexType Name="chatToChannelMigrationEventMessageDetail" BaseType="graph.eventMessageDetail">
+        <Property Name="initiator" Type="graph.identitySet" />
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="sourceChatId" Type="Edm.String" />
+        <Property Name="targetChannel" Type="graph.channelIdentity" />
       </ComplexType>
       <ComplexType Name="chatViewpoint">
         <Property Name="isHidden" Type="Edm.Boolean" />
@@ -15030,6 +15051,14 @@
       </ComplexType>
       <ComplexType Name="microsoftStoreForBusinessAppAssignmentSettings" BaseType="graph.mobileAppAssignmentSettings">
         <Property Name="useDeviceContext" Type="Edm.Boolean" Nullable="false" />
+      </ComplexType>
+      <ComplexType Name="migrationDetails">
+        <Property Name="migratedAtDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="migrationReason" Type="graph.chatMessageMigrationReason" Nullable="false" />
+        <Property Name="migrationSource" Type="graph.migrationSource" />
+      </ComplexType>
+      <ComplexType Name="migrationSource" Abstract="true">
+        <Property Name="tenantId" Type="Edm.String" />
       </ComplexType>
       <ComplexType Name="mimeContent">
         <Property Name="type" Type="Edm.String" />
@@ -20420,7 +20449,7 @@
         <Property Name="serviceManagementReference" Type="Edm.String" />
         <Property Name="servicePrincipalLockConfiguration" Type="graph.servicePrincipalLockConfiguration" />
         <Property Name="signInAudience" Type="Edm.String" />
-        <Property Name="signInAudienceRestrictions" Type="graph.signInAudienceRestrictionsBase" Nullable="false" />
+        <Property Name="signInAudienceRestrictions" Type="graph.signInAudienceRestrictionsBase" />
         <Property Name="spa" Type="graph.spaApplication" />
         <Property Name="tags" Type="Collection(Edm.String)" Nullable="false" />
         <Property Name="tokenEncryptionKeyId" Type="Edm.Guid" />
@@ -21153,6 +21182,7 @@
         <NavigationProperty Name="tabs" Type="Collection(graph.teamsTab)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="chat" BaseType="graph.entity">
+        <Property Name="channelMigrationDetails" Type="graph.chatToChannelMigrationDetails" />
         <Property Name="chatType" Type="graph.chatType" Nullable="false" />
         <Property Name="createdBy" Type="graph.identitySet" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
@@ -21190,6 +21220,7 @@
         <Property Name="mentions" Type="Collection(graph.chatMessageMention)" />
         <Property Name="messageHistory" Type="Collection(graph.chatMessageHistoryItem)" />
         <Property Name="messageType" Type="graph.chatMessageType" Nullable="false" />
+        <Property Name="migrationDetails" Type="graph.migrationDetails" />
         <Property Name="onBehalfOf" Type="graph.chatMessageFromIdentitySet" />
         <Property Name="policyViolation" Type="graph.chatMessagePolicyViolation" />
         <Property Name="reactions" Type="Collection(graph.chatMessageReaction)" />
